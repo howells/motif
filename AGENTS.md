@@ -40,7 +40,7 @@ RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.
 - CLI: `motif --describe --format json`, `motif --dry-run --format json`, stdin JSON, `--fields`, `--format ndjson`.
 - SDK: `MotifServer`, `buildGenerateBody`, model metadata, fal utility tools, and Result-returning methods.
 - MCP: stdio server exposing generate, upscale, remove background, vary, history, and read-only registry resources.
-- Discovery: `README.md`, `llms.txt`, `docs/security.md`, and `docs/surface/`.
+- Discovery: `README.md`, `llms.txt`, and `docs/security.md`.
 
 ## Environment
 

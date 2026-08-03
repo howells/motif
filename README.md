@@ -125,7 +125,6 @@ pnpm link --global
 - `AGENTS.md` - repo commands, package map, architecture boundaries, and permission rules.
 - `llms.txt` - compact agent-readable index of docs, package surfaces, tests, and source entrypoints.
 - `docs/security.md` - `FAL_KEY`, MCP trust boundaries, local history exposure, and `--ephemeral` caveats.
-- `docs/surface/scorecard.md` - current agent-readiness scorecard.
 - `motif --describe --format json` - live CLI schema for commands, models, tools, leaderboards, and errors.
 
 ## SDK

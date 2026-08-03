@@ -7,7 +7,6 @@
 - [README](./README.md) - User-facing overview, install commands, model registry, CLI examples, and options reference.
 - [Agent instructions](./AGENTS.md) - Cross-tool commands, package map, permission boundaries, and verification expectations.
 - [Security notes](./docs/security.md) - FAL_KEY handling, MCP trust boundary, local history exposure, and ephemeral generation limits.
-- [Surface scorecard](./docs/surface/scorecard.md) - Current agent-readiness score and dimension summary.
 
 ## Packages
 
