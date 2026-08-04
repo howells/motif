@@ -445,6 +445,7 @@ export const mockRunEngine: RunEngine = {
   ): Promise<EngineJudgment> => {
     const verdict = buildSyntheticJudgment(input.sampleId, input.alias);
     return {
+      costMicros: null,
       critique: verdict.critique,
       errorCode: verdict.errorCode,
       levels: verdict.levels,

@@ -74,6 +74,13 @@ export interface EngineJudgmentInput {
 }
 
 export interface EngineJudgment {
+  /** `bench_judgments.cost_micros` — integer micros, `null` when the judge
+   * provider reports no per-call price (the mock engine always; the live
+   * engine too, since `JudgeModelClient.generateJudgeText` returns only text
+   * and fal's `any-llm/vision` reports no billing field — see
+   * `live-engine.ts`). Distinct from `0`: unknown cost is not free cost
+   * (`docs/arc/bench/BRIEF.md` rule 9). */
+  readonly costMicros: number | null;
   readonly critique: string | null;
   readonly errorCode: JudgeErrorCodeValue | null;
   readonly levels: RoomJudgeLevels | null;

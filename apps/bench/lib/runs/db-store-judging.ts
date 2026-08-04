@@ -114,6 +114,7 @@ const judgeOneSample = async (
   await db
     .insert(benchJudgments)
     .values({
+      costMicros: verdict.costMicros,
       critique: verdict.critique,
       id: randomUUID(),
       judgeModel,
@@ -126,6 +127,7 @@ const judgeOneSample = async (
     })
     .onConflictDoUpdate({
       set: {
+        costMicros: verdict.costMicros,
         critique: verdict.critique,
         levels,
         overall: verdict.overall,

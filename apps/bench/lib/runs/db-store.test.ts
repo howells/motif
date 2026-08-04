@@ -50,7 +50,7 @@ const LIVE_ENGINE: RunEngine = {
   buildAttempt: unusedBuildAttempt,
   buildJudgment: unusedBuildJudgment,
   isMock: false,
-  judgeModelLabel: "gemini-2.5-flash",
+  judgeModelLabel: "google/gemini-2.5-flash-lite",
 };
 
 describe("buildRunInsertRow", () => {

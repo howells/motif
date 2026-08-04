@@ -18,15 +18,15 @@
 import { mkdir, rename } from "node:fs/promises";
 import path from "node:path";
 
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { FalClient } from "@howells/motif-sdk";
 import { routeFor } from "@motif/bench-core";
 import type { GenerationClient } from "@motif/bench-core/execute";
 import { executeGeneration } from "@motif/bench-core/execute";
-import type { JudgeModelClient } from "@motif/bench-core/judge";
+import type {
+  JudgeModelCallInput,
+  JudgeModelClient,
+} from "@motif/bench-core/judge";
 import { judgeSample } from "@motif/bench-core/judge";
-import { generateText } from "ai";
-import type { ModelMessage } from "ai";
 
 import type {
   EngineAttempt,
@@ -214,66 +214,160 @@ const buildLiveAttempt = async (
 };
 
 // ---------------------------------------------------------------------------
-// buildJudgment — real vision judge via the AI SDK
+// buildJudgment — real vision judge via fal's any-llm/vision endpoint
 // ---------------------------------------------------------------------------
 
-/** Fast, cheap, multimodal — the same Gemini family
- * `@howells/motif-sdk/image`'s Google adapter already uses as its "fast"
- * image-generation tier (`packages/motif-sdk/src/image/google.ts`,
- * `GOOGLE_TIER_MODELS.fast`), applied here to text+vision judging instead of
- * image generation. */
-const JUDGE_MODEL_ID = "gemini-2.5-flash";
+/** `GOOGLE_GENERATIVE_AI_API_KEY` does not exist anywhere on this machine or
+ * in `.env` (team lead's brief), so the judge is routed through fal's
+ * provider-agnostic `any-llm/vision` endpoint instead — same `FAL_KEY` the
+ * generation client already requires, no second provider credential. Cheapest
+ * capable option of the verified-working model ids (`google/gemini-2.5-flash`,
+ * `google/gemini-2.5-pro`, `anthropic/claude-haiku-4.5`,
+ * `anthropic/claude-3-haiku`, `openai/gpt-4o` are the alternatives) — a
+ * single named constant so swapping tiers later is a one-line change. */
+export const FAL_JUDGE_MODEL_ID = "google/gemini-2.5-flash-lite";
 
-/** Same env var `@howells/motif-sdk/image`'s Google adapter reads
- * (`GOOGLE_API_KEY_ENV` in `packages/motif-sdk/src/image/google.ts`) — a raw
- * `process.env` read, not routed through `@motif/bench-env`, matching that
- * existing convention for provider keys in this codebase. Read lazily, only
- * when a live judge call actually happens (never at `createLiveEngine()`
- * construction — a live *generation* run with judging turned off must not
- * require this key at all). */
-const googleApiKey = (): string => {
-  // oxlint-disable-next-line no-restricted-properties -- raw provider-key read, mirroring packages/motif-sdk/src/image/google.ts's own convention; read lazily inside this function body only, never at module scope
-  const key = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-  if (key === undefined || key === "") {
-    throw new Error(
-      "Live judging requires GOOGLE_GENERATIVE_AI_API_KEY (the same key @howells/motif-sdk's Google image adapter reads)."
-    );
-  }
-  return key;
+/** Verified live against a real image (team lead's brief): returns
+ * `200 { output: "<string>", reasoning, partial, error }`. Takes `image_url`,
+ * not bytes — the CDN upload below is what turns a local `Buffer` into a URL
+ * this endpoint can fetch. */
+const FAL_VISION_JUDGE_URL = "https://fal.run/fal-ai/any-llm/vision";
+
+/** Generous relative to a single vision-classification call — this is a
+ * judge request, not a generation, so it does not need
+ * `LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS`' headroom. Bounds both the CDN
+ * upload (`FalClient`'s own per-request timeout) and the vision call
+ * (`withJudgeTimeout` below). */
+const FAL_JUDGE_TIMEOUT_MS = 60_000;
+
+const withJudgeTimeout = (signal: AbortSignal | undefined): AbortSignal => {
+  const timeoutSignal = AbortSignal.timeout(FAL_JUDGE_TIMEOUT_MS);
+  return signal === undefined
+    ? timeoutSignal
+    : AbortSignal.any([signal, timeoutSignal]);
 };
 
-/** The exact message shape sent to `generateText` — split out so a test can
- * assert its content (the base64/data-URI rule) without invoking the AI SDK
- * or the network. `imagePart.data` is whatever `@motif/bench-core/judge`'s
- * `judgeSample` already built it as (a raw `Buffer` off local disk, never a
- * base64 string or a `data:` URI — that guarantee is `bench-core`'s, tested
- * in `judge.test.ts`); this function only has to not undo it, which it
- * cannot: it forwards the `FilePart` object as-is. */
-export const buildJudgeMessages = (
-  imagePart: Parameters<JudgeModelClient["generateJudgeText"]>[0]["imagePart"],
-  prompt: string
-): ModelMessage[] => [
-  {
-    content: [{ text: prompt, type: "text" }, imagePart],
-    role: "user",
-  },
-];
+/** `imagePart.data` is documented by `@motif/bench-core/judge` to always be a
+ * raw `Buffer` read off local disk — never a base64-encoded string, never a
+ * `data:` URI (`BRIEF.md` rule 1). The AI SDK's `FilePart.data` type is wider
+ * than that guarantee (`DataContent = string | Uint8Array | ArrayBuffer |
+ * Buffer`), so this both narrows it to what `uploadToFalCdn` needs and
+ * re-enforces the rule at this call site: a `string` (which could be exactly
+ * the base64/data-URI shape the rule forbids) is refused rather than
+ * forwarded to fal as text. */
+export const bufferFromFilePartData = (
+  data: JudgeModelCallInput["imagePart"]["data"]
+): Buffer => {
+  if (Buffer.isBuffer(data)) {
+    return data;
+  }
+  if (data instanceof Uint8Array) {
+    return Buffer.from(data);
+  }
+  if (data instanceof ArrayBuffer) {
+    return Buffer.from(data);
+  }
+  throw new Error(
+    "Judge image part must be binary bytes (Buffer/Uint8Array/ArrayBuffer) — refusing to forward a string or URL to fal, which could be a base64/data URI."
+  );
+};
 
-const buildLiveJudgeModelClient = (): JudgeModelClient => ({
+interface FalVisionJudgeRequestBody {
+  readonly image_url: string;
+  readonly model: string;
+  readonly prompt: string;
+}
+
+/** The exact request body sent to `FAL_VISION_JUDGE_URL` — split out so a
+ * test can assert its shape (the verified contract, and the base64/data-URI
+ * rule: `image_url` is a fal CDN URL, never inlined image bytes) without
+ * making a network call. */
+export const buildFalVisionRequestBody = (
+  prompt: string,
+  imageUrl: string
+): FalVisionJudgeRequestBody => ({
+  image_url: imageUrl,
+  model: FAL_JUDGE_MODEL_ID,
+  prompt,
+});
+
+/** Loose-parses `any-llm/vision`'s response: a truthy `error` or a missing/
+ * blank `output` both fail closed into a thrown error, which `judgeSample`
+ * (`@motif/bench-core/judge`) catches and turns into `{ status:
+ * "inconclusive", errorCode: "JUDGE_UNAVAILABLE" }` — a dead judge must never
+ * fail the run. Split out so a test can cover all three branches without a
+ * network call. */
+export const parseFalVisionOutput = (data: unknown): string => {
+  if (typeof data !== "object" || data === null) {
+    throw new Error("fal vision judge returned a non-object response");
+  }
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- narrowed by the object/null check directly above; both reads below go through explicit typeof/truthiness checks that treat the value as unknown regardless
+  const record = data as Record<string, unknown>;
+  if (
+    record.error !== undefined &&
+    record.error !== null &&
+    record.error !== false
+  ) {
+    throw new Error("fal vision judge reported an error");
+  }
+  if (typeof record.output !== "string" || record.output.trim() === "") {
+    throw new Error("fal vision judge response missing a string output");
+  }
+  return record.output;
+};
+
+/** Wraps a real `FalClient` (for the CDN upload) plus a raw `fetch` (for the
+ * vision call itself — `FalClient` exposes no generic method for an
+ * arbitrary `fal.run/*` endpoint) behind `bench-core/judge`'s narrow
+ * `JudgeModelClient` seam. `uploadToFalCdn` is reused rather than
+ * hand-rolled (team lead's brief) — it is the only piece of this path that
+ * already existed. */
+export const buildFalJudgeModelClient = (apiKey: string): JudgeModelClient => ({
   generateJudgeText: async ({ imagePart, prompt, signal }) => {
-    const model = createGoogleGenerativeAI({ apiKey: googleApiKey() })(
-      JUDGE_MODEL_ID
-    );
-    const result = await generateText({
-      abortSignal: signal,
-      messages: buildJudgeMessages(imagePart, prompt),
-      model,
+    const falClient = new FalClient({
+      apiKey,
+      retries: 0,
+      timeout: FAL_JUDGE_TIMEOUT_MS,
     });
-    return result.text;
+    const bytes = bufferFromFilePartData(imagePart.data);
+    const extension = EXTENSION_BY_CONTENT_TYPE[imagePart.mediaType] ?? "jpg";
+    const uploadResult = await falClient.uploadToFalCdn(bytes, {
+      contentType: imagePart.mediaType,
+      fileName: `judge-sample.${extension}`,
+    });
+    if (uploadResult.isErr()) {
+      throw new Error(`fal CDN upload failed: ${uploadResult.error.message}`);
+    }
+
+    const response = await fetch(FAL_VISION_JUDGE_URL, {
+      body: JSON.stringify(
+        buildFalVisionRequestBody(prompt, uploadResult.value)
+      ),
+      headers: {
+        Authorization: `Key ${apiKey}`,
+        "content-type": "application/json",
+      },
+      method: "POST",
+      signal: withJudgeTimeout(signal),
+    });
+    if (!response.ok) {
+      throw new Error(`fal vision judge request failed: ${response.status}`);
+    }
+
+    const data: unknown = await response.json();
+    return parseFalVisionOutput(data);
   },
 });
 
+/** `costMicros` is `null`, always: `JudgeModelClient.generateJudgeText`
+ * (`bench-core/judge`'s contract, not changeable here) returns only the
+ * judge's text, and fal's `any-llm/vision` response carries no billing field
+ * to capture even if the seam allowed it through — the same situation
+ * `buildLiveAttempt`'s `costRefinedMicros` comment describes for generation.
+ * `null` stays distinct from `0` (`BRIEF.md` rule 9): this is genuinely
+ * unknown, not free. */
 const INCONCLUSIVE_NO_IMAGE: EngineJudgment = {
+  costMicros: null,
   critique: null,
   errorCode: "IMAGE_READ_FAILED",
   levels: null,
@@ -283,17 +377,19 @@ const INCONCLUSIVE_NO_IMAGE: EngineJudgment = {
 };
 
 const buildLiveJudgment = async (
+  apiKey: string,
   input: EngineJudgmentInput
 ): Promise<EngineJudgment> => {
   if (input.imagePath === null) {
     return INCONCLUSIVE_NO_IMAGE;
   }
-  const result = await judgeSample(buildLiveJudgeModelClient(), {
+  const result = await judgeSample(buildFalJudgeModelClient(apiKey), {
     imagePath: input.imagePath,
     prompt: input.prompt,
   });
   return result.status === "scored"
     ? {
+        costMicros: null,
         critique: result.critique,
         errorCode: null,
         levels: result.levels,
@@ -302,6 +398,7 @@ const buildLiveJudgment = async (
         status: "scored",
       }
     : {
+        costMicros: null,
         critique: null,
         errorCode: result.errorCode,
         levels: null,
@@ -317,8 +414,10 @@ const buildLiveJudgment = async (
 
 /** Constructs the live `RunEngine`. Throws synchronously — before any
  * network call, before any file is touched — when `FAL_KEY` is unset or
- * empty: the live engine cannot exist without it. `repository.ts` is the
- * only caller, and only when `BENCH_MOCK=0`. */
+ * empty: neither generation nor judging can exist without it, now that the
+ * judge is routed through fal's `any-llm/vision` instead of a second
+ * (unconfigured) Google credential. `repository.ts` is the only caller, and
+ * only when `BENCH_MOCK=0`. */
 export const createLiveEngine = (): RunEngine => {
   // oxlint-disable-next-line no-restricted-properties -- raw provider-key read, matching FalClient's own convention (packages/motif-sdk/src/server.ts constructs from a raw apiKey string); read here, once, inside this factory — never at module scope
   const apiKey = process.env.FAL_KEY;
@@ -330,8 +429,8 @@ export const createLiveEngine = (): RunEngine => {
 
   return {
     buildAttempt: async (input) => await buildLiveAttempt(apiKey, input),
-    buildJudgment: buildLiveJudgment,
+    buildJudgment: async (input) => await buildLiveJudgment(apiKey, input),
     isMock: false,
-    judgeModelLabel: JUDGE_MODEL_ID,
+    judgeModelLabel: FAL_JUDGE_MODEL_ID,
   };
 };
