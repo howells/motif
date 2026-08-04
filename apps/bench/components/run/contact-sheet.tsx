@@ -59,6 +59,12 @@ export const ContactSheet = ({
   const openSample =
     samples.find((sample) => sample.id === openSampleId) ?? null;
   const aspectClassName = ASPECT_CLASS[run.aspect] ?? "aspect-square";
+  // The dropped/coerced lines are per-model, so one frame carries them and its
+  // neighbour does not — which staggers the annotation blocks and pulls the
+  // lattice out of alignment. Decided once for the whole sheet: if any sample
+  // has them, every annotation reserves the line.
+  const anyDrops = samples.some((sample) => sample.droppedParams.length > 0);
+  const anyCoerces = samples.some((sample) => sample.coercedParams.length > 0);
 
   if (samples.length === 0) {
     return (
@@ -70,7 +76,13 @@ export const ContactSheet = ({
 
   return (
     <div className="-mx-4 bg-plate sm:-mx-6">
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
+      {/* `auto-fit`, not a fixed column count. A fixed grid leaves the plate
+          half-empty on a two-model smoke run — a large dead dark region that
+          reads as broken rather than as a surface. With `auto-fit` the tracks
+          collapse to the number of samples and the frames grow to fill the
+          row, so there is no empty plate at any count, and the fewer models
+          you ran the larger you get to look at each one. */}
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
         {samples.map((sample) => (
           <SampleFrame
             aspectClassName={aspectClassName}
@@ -81,6 +93,8 @@ export const ContactSheet = ({
             onOpen={() => {
               setOpenSampleId(sample.id);
             }}
+            reserveCoercesLine={anyCoerces}
+            reserveDropsLine={anyDrops}
             runId={run.id}
             runJudgingInFlight={run.judgingStatus === "running"}
             sample={sample}

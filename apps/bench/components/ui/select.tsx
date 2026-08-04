@@ -7,10 +7,10 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 /** shadcn/ui's `select` on house tokens, trimmed to the trigger/content/item
- * trio this app uses. The upstream `shadow-xs`/`shadow-md` are gone
- * (borders-only depth) and the item's focus wash moved off `accent` — in
- * this theme `accent` is the one forest green, not a neutral hover tint, so
- * upstream's `focus:bg-accent` would paint a green row. */
+ * trio this app uses. The stock `shadow-xs`/`shadow-md` stay; what moved is
+ * the item's focus wash, off `accent` — in this theme `accent` is the one
+ * forest green, not a neutral hover tint, so upstream's `focus:bg-accent`
+ * would paint a green row. */
 export const Select = (props: ComponentProps<typeof SelectPrimitive.Root>) => (
   <SelectPrimitive.Root data-slot="select" {...props} />
 );
@@ -26,7 +26,7 @@ export const SelectTrigger = ({
 }: ComponentProps<typeof SelectPrimitive.Trigger>) => (
   <SelectPrimitive.Trigger
     className={cn(
-      "flex h-[34px] w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border bg-surface-soft px-2.5 text-ink transition-colors duration-150 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-45 data-[placeholder]:text-muted",
+      "flex h-[34px] w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border bg-surface-soft px-2.5 text-ink shadow-xs transition-colors duration-150 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-45 data-[placeholder]:text-muted",
       className
     )}
     data-slot="select-trigger"
@@ -48,7 +48,7 @@ export const SelectContent = ({
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       className={cn(
-        "relative z-50 max-h-(--radix-select-content-available-height) min-w-[var(--radix-select-trigger-width)] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-md border border-border bg-surface p-1 text-ink",
+        "relative z-50 max-h-(--radix-select-content-available-height) min-w-[var(--radix-select-trigger-width)] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-md border border-border bg-surface p-1 text-ink shadow-md",
         "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
         className
       )}

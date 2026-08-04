@@ -6,11 +6,15 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 /** shadcn/ui's `button`, retuned to the house theme
- * (`docs/design/specs/design-bench.md`): borders-only depth, so the upstream
- * `shadow-xs` is gone; `transition-all` narrowed to the three properties
- * that actually change; and the focus ring left to the global
- * `:focus-visible` rule in `app/globals.css` rather than a per-variant
- * `ring-*` stack, so every control in the app rings identically.
+ * (`docs/design/specs/design-bench.md`): `transition-all` narrowed to the
+ * three properties that actually change, and the focus ring left to the
+ * global `:focus-visible` rule in `app/globals.css` rather than a
+ * per-variant `ring-*` stack, so every control rings identically.
+ *
+ * The stock `shadow-xs` stays. The spec's "zero box-shadow" guardrail is
+ * about panels and surfaces — Patternmode ships shadcn's primitives with
+ * their shadows intact, and matching that is what makes the two apps read
+ * as siblings.
  *
  * `accent` is the only filled variant and the spec allows at most two filled
  * elements per screen — reach for `outline` unless this is *the* action of
@@ -30,10 +34,11 @@ const buttonVariants = cva(
       },
       variant: {
         accent:
-          "border border-accent bg-accent font-medium text-background hover:bg-accent/90",
+          "border border-accent bg-accent font-medium text-background shadow-xs hover:bg-accent/90",
         ghost: "text-muted hover:bg-surface-soft hover:text-ink",
         link: "text-accent underline-offset-4 hover:underline",
-        outline: "border border-border bg-surface text-ink hover:border-ink",
+        outline:
+          "border border-border bg-surface text-ink shadow-xs hover:border-ink",
         // The plate is the one dark surface; its controls cannot borrow the
         // paper palette or they vanish into it.
         plate:

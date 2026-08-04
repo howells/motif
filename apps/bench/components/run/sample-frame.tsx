@@ -19,6 +19,28 @@ import { cn } from "@/lib/utils";
 import { JudgePanel } from "./judge-panel";
 import { SampleError } from "./sample-error";
 
+/** A dropped/coerced-param line, or the blank that holds its place. Rendered
+ * as a non-breaking space rather than a fixed height so the reserved line is
+ * exactly one line of this type at this size, whatever the type is doing. */
+const ParamLine = ({
+  label,
+  params,
+  reserve,
+}: {
+  readonly label: string;
+  readonly params: readonly string[];
+  readonly reserve: boolean;
+}) => {
+  if (params.length === 0 && !reserve) {
+    return null;
+  }
+  return (
+    <span className="truncate font-mono text-[11px] text-plate-muted">
+      {params.length === 0 ? " " : `${label} ${params.join(", ")}`}
+    </span>
+  );
+};
+
 interface SampleFrameProps {
   /** The run's requested aspect as a Tailwind ratio class. Held constant
    * across pending / failed / resolved so nothing reflows when an image
@@ -28,6 +50,11 @@ interface SampleFrameProps {
   readonly judgment: JudgmentRecord | undefined;
   readonly manualRating: ManualRatingRecord | undefined;
   readonly onOpen: () => void;
+  /** Set when *some* sample in the sheet coerced a param — this frame then
+   * holds the line even if it coerced nothing, so the annotation blocks stay
+   * the same height and the lattice stays aligned. */
+  readonly reserveCoercesLine: boolean;
+  readonly reserveDropsLine: boolean;
   readonly runId: string;
   readonly runJudgingInFlight: boolean;
   readonly sample: SampleRecord;
@@ -50,6 +77,8 @@ export const SampleFrame = ({
   judgment,
   manualRating,
   onOpen,
+  reserveCoercesLine,
+  reserveDropsLine,
   runId,
   runJudgingInFlight,
   sample,
@@ -131,17 +160,16 @@ export const SampleFrame = ({
         </>
       )}
 
-      {sample.droppedParams.length > 0 ? (
-        <span className="font-mono text-[11px] text-plate-muted">
-          drops {sample.droppedParams.join(", ")}
-        </span>
-      ) : null}
-
-      {sample.coercedParams.length > 0 ? (
-        <span className="font-mono text-[11px] text-plate-muted">
-          coerces {sample.coercedParams.map((entry) => entry.param).join(", ")}
-        </span>
-      ) : null}
+      <ParamLine
+        label="drops"
+        params={sample.droppedParams}
+        reserve={reserveDropsLine}
+      />
+      <ParamLine
+        label="coerces"
+        params={sample.coercedParams.map((entry) => entry.param)}
+        reserve={reserveCoercesLine}
+      />
 
       {sample.status === "completed" ? (
         <JudgePanel

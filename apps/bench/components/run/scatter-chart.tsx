@@ -19,9 +19,9 @@ interface ScatterChartProps {
  * type with it, which would put a fifth size on a page the spec caps at four
  * — so the chart keeps its natural size and the container scrolls when the
  * viewport is narrower than it is. */
-const WIDTH = 760;
-const HEIGHT = 340;
-const MARGIN = { bottom: 46, left: 40, right: 104, top: 30 };
+const WIDTH = 1040;
+const HEIGHT = 360;
+const MARGIN = { bottom: 46, left: 40, right: 120, top: 30 };
 
 const buildPoints = (
   timing: readonly ModelAggregate[],

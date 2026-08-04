@@ -5,8 +5,8 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** shadcn/ui's `switch` on house tokens: no shadow, and `transition-all`
- * narrowed to the two properties that move.
+/** shadcn/ui's `switch` on house tokens, with the stock `shadow-xs` kept and
+ * `transition-all` narrowed to the two properties that move.
  *
  * Checked fills at `ink`, not `accent`. The accent budget is two filled
  * elements per screen (`docs/design/specs/design-bench.md`) and on the
@@ -18,7 +18,7 @@ export const Switch = ({
 }: ComponentProps<typeof SwitchPrimitive.Root>) => (
   <SwitchPrimitive.Root
     className={cn(
-      "peer inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full border border-border transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:border-ink data-[state=checked]:bg-ink data-[state=unchecked]:bg-surface-soft",
+      "peer inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full border border-border shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:border-ink data-[state=checked]:bg-ink data-[state=unchecked]:bg-surface-soft",
       className
     )}
     data-slot="switch"

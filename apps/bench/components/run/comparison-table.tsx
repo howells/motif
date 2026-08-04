@@ -130,10 +130,14 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
   }
 
   return (
-    <Table className="w-auto min-w-max">
+    // Full width, not shrink-to-fit: the row rules are the same hairlines the
+    // verdict band and every section header use, so a table huddled at 480px
+    // on a 1120px column reads as an accident. The metric column is pinned so
+    // the numbers stay in even, comparable tracks whatever the model count.
+    <Table className="w-full min-w-max">
       <TableHeader>
         <TableRow>
-          <TableHead className="pr-8">Metric</TableHead>
+          <TableHead className="w-[220px] pr-8">Metric</TableHead>
           {aliases.map((alias) => (
             <TableHead className="min-w-[112px] text-right" key={alias}>
               {alias}
