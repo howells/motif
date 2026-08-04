@@ -40,6 +40,13 @@ import {
 import type { QualityLevel, RoomJudgeLevels } from "@motif/bench-core/judge";
 
 import type {
+  EngineAttempt,
+  EngineAttemptInput,
+  EngineJudgment,
+  EngineJudgmentInput,
+  RunEngine,
+} from "./engine";
+import type {
   JudgeErrorCodeValue,
   PreviewModelRow,
   PreviewResult,
@@ -397,3 +404,55 @@ export const buildSyntheticJudgment = (
 };
 
 export { usdToMicros as usdMicros } from "@motif/bench-core";
+
+// ---------------------------------------------------------------------------
+// RunEngine — the mock half of the `./engine.ts` composition-root seam.
+// ---------------------------------------------------------------------------
+
+/** Wraps this module's existing synchronous synthetic builders behind the
+ * shared `RunEngine` shape (`./engine.ts`) — `isMock: true` is stated once,
+ * here, and every store persists it verbatim rather than re-deciding it. */
+export const mockRunEngine: RunEngine = {
+  // oxlint-disable-next-line require-await -- RunEngine.buildAttempt must return a Promise; buildSyntheticAttempt itself is synchronous by design (no fetch, no timers)
+  buildAttempt: async (input: EngineAttemptInput): Promise<EngineAttempt> => {
+    const attempt = buildSyntheticAttempt(
+      input.runId,
+      input.alignment,
+      input.costEstimatedMicros,
+      input.sampleIndex
+    );
+    return {
+      bytes: attempt.bytes,
+      contentType: attempt.contentType,
+      costRefinedMicros: attempt.costRefinedMicros,
+      downloadMs: attempt.downloadMs,
+      droppedParams: attempt.droppedParams,
+      errorCode: attempt.errorCode,
+      falRequestId: null,
+      height: attempt.height,
+      imagePath: null,
+      ok: attempt.ok,
+      providerMs: attempt.providerMs,
+      queuePolled: attempt.queuePolled,
+      seedReturned: attempt.seedReturned,
+      totalMs: attempt.totalMs,
+      width: attempt.width,
+    };
+  },
+  // oxlint-disable-next-line require-await -- RunEngine.buildJudgment must return a Promise; buildSyntheticJudgment itself is synchronous by design (no network, no timers)
+  buildJudgment: async (
+    input: EngineJudgmentInput
+  ): Promise<EngineJudgment> => {
+    const verdict = buildSyntheticJudgment(input.sampleId, input.alias);
+    return {
+      critique: verdict.critique,
+      errorCode: verdict.errorCode,
+      levels: verdict.levels,
+      overall: verdict.overall,
+      overallLevel: verdict.overallLevel,
+      status: verdict.status,
+    };
+  },
+  isMock: true,
+  judgeModelLabel: "mock-vision-judge-v1",
+};
