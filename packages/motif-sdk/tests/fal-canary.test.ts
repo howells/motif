@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
+
 import { getFalKeyFromEnv, MotifServer } from "../src/index";
 
+// Test-runner control flow (skip this whole live-API suite unless opted
+// into), not application config — motifEnvSchema only models FAL_KEY, the
+// one env var the SDK itself reads. RUN_FAL_CANARY is this test file's own
+// switch, so it reads process.env directly rather than growing the SDK's
+// schema for a variable only this describe block cares about.
 const describeCanary =
+  // oxlint-disable-next-line no-restricted-properties -- see comment above
   process.env.RUN_FAL_CANARY === "1" ? describe : describe.skip;
 
 describeCanary("fal live canaries", () => {
@@ -11,23 +18,21 @@ describeCanary("fal live canaries", () => {
 
     const motif = new MotifServer({ apiKey: apiKey ?? "", retries: 1 });
     const result = await motif.generate({
-      model: "flux-fast",
-      prompt:
-        "plain product photo of a matte blue cube on white seamless, centered",
       aspect: "4:3",
       guidanceScale: 3,
-      numInferenceSteps: 4,
+      model: "flux-fast",
       numImages: 1,
+      numInferenceSteps: 4,
       outputFormat: "jpeg",
+      prompt:
+        "plain product photo of a matte blue cube on white seamless, centered",
       seed: 1234,
       syncMode: false,
     });
 
-    expect(result.isOk()).toBe(true);
-    if (result.isOk()) {
-      expect(result.value.images).toHaveLength(1);
-      expect(result.value.images[0]?.url).toMatch(/^https?:\/\//);
-    }
+    const value = result._unsafeUnwrap();
+    expect(value.images).toHaveLength(1);
+    expect(value.images[0]?.url).toMatch(/^https?:\/\//u);
   }, 120_000);
 
   it("runs one live SAM 3 image tool request with non-default options", async () => {
@@ -36,7 +41,6 @@ describeCanary("fal live canaries", () => {
 
     const motif = new MotifServer({ apiKey: apiKey ?? "", retries: 1 });
     const result = await motif.runTool({
-      tool: "sam3-image",
       input:
         "https://raw.githubusercontent.com/facebookresearch/segment-anything/main/notebooks/images/truck.jpg",
       options: {
@@ -45,14 +49,11 @@ describeCanary("fal live canaries", () => {
         output_format: "png",
         prompt: "truck",
       },
+      tool: "sam3-image",
     });
 
-    expect(result.isOk(), result.isErr() ? result.error.message : "").toBe(
-      true,
-    );
-    if (result.isOk()) {
-      expect(result.value).toEqual(expect.any(Object));
-      expect(Object.keys(result.value).length).toBeGreaterThan(0);
-    }
+    const value = result._unsafeUnwrap();
+    expect(value).toEqual(expect.any(Object));
+    expect(Object.keys(value).length).toBeGreaterThan(0);
   }, 120_000);
 });

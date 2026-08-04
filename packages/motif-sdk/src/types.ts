@@ -35,7 +35,10 @@ export type FalImageSizePreset =
   | "portrait_16_9"
   | "landscape_4_3"
   | "landscape_16_9";
-export type CustomImageSize = { height: number; width: number };
+export interface CustomImageSize {
+  height: number;
+  width: number;
+}
 export type ImageSize = GptImageSize | FalImageSizePreset | CustomImageSize;
 
 /** How the model accepts image dimensions */
@@ -287,8 +290,12 @@ export interface QueuedJob {
 
 export interface JobStatus {
   error?: string;
-  logs?: Array<{ message: string; timestamp: string }>;
+  logs?: { message: string; timestamp: string }[];
   queuePosition?: number;
+  // fal.ai's actual queue status protocol has exactly these four states;
+  // splitting the union would not make the type any less exhaustive, just
+  // harder to read at the call site.
+  // oxlint-disable-next-line sonarjs/max-union-size -- see comment above
   status: "queued" | "processing" | "completed" | "failed";
 }
 

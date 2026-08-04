@@ -2,11 +2,15 @@ import { MODELS } from "./models";
 import type { Resolution } from "./types";
 
 /** Estimate cost based on model and settings */
-export function estimateCost(
+// The fallback switch is an exhaustive per-model price table (one branch
+// per model id); splitting it up would scatter pricing across functions
+// without reducing complexity.
+// oxlint-disable-next-line complexity -- see comment above
+export const estimateCost = (
   model: string,
   resolution?: Resolution,
-  numImages = 1,
-): number {
+  numImages = 1
+): number => {
   const configuredPrice = MODELS[model]?.pricePerImageUsd;
   if (configuredPrice !== undefined) {
     if ((model === "banana" || model === "gemini3") && resolution === "4K") {
@@ -16,37 +20,46 @@ export function estimateCost(
   }
 
   switch (model) {
-    case "gpt2":
+    case "gpt2": {
       return 0.211 * numImages;
-    case "gpt":
+    }
+    case "gpt": {
       return 0.133 * numImages;
+    }
     case "banana":
-    case "gemini3":
+    case "gemini3": {
       return (resolution === "4K" ? 0.3 : 0.15) * numImages;
-    case "gemini":
+    }
+    case "gemini": {
       return 0.039 * numImages;
+    }
     case "flux":
-    case "ideogram":
+    case "ideogram": {
       return 0.06 * numImages;
-    case "recraft":
+    }
+    case "recraft": {
       return 0.04 * numImages;
-    case "flux-fast":
+    }
+    case "flux-fast": {
       return 0.003 * numImages;
+    }
     case "clarity":
     case "crystal":
     case "rmbg":
-    case "bria":
+    case "bria": {
       return 0.02 * numImages;
-    default:
+    }
+    default: {
       return 0.1 * numImages;
+    }
   }
-}
+};
 
 /** Estimate cost for video generation */
-export function estimateVideoCost(
+export const estimateVideoCost = (
   durationSeconds = 5,
-  generateAudio = true,
-): number {
+  generateAudio = true
+): number => {
   const perSecond = generateAudio ? 0.168 : 0.112;
   return perSecond * durationSeconds;
-}
+};

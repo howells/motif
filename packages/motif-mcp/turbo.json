@@ -1,0 +1,4 @@
+{
+  "extends": ["//"],
+  "tags": ["type:package", "scope:motif-mcp", "visibility:internal"]
+}

@@ -1,22 +1,15 @@
 import { existsSync } from "node:fs";
 import { basename, resolve } from "node:path";
-import {
-  type AspectRatio,
-  estimateCost,
-  MODELS,
-  type Resolution,
-} from "@howells/motif-sdk";
+
+import { estimateCost, MODELS } from "@howells/motif-sdk";
+import type { AspectRatio, Resolution } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { useEffect, useState } from "react";
+
 import { generate, removeBackground, upscale } from "../../api/fal";
-import {
-  addGeneration,
-  type Generation,
-  generateId,
-  loadHistory,
-  type MotifConfig,
-} from "../../utils/config";
+import { addGeneration, generateId, loadHistory } from "../../utils/config";
+import type { Generation, MotifConfig } from "../../utils/config";
 import {
   downloadImage,
   generateFilename,
@@ -32,7 +25,7 @@ const IMAGE_EXT_REGEX = /\.(png|jpg|jpeg|webp)$/i;
 function getModelForMode(
   mode: Mode,
   config: MotifConfig,
-  sourceModel: string,
+  sourceModel: string
 ): string {
   if (mode === "upscale") {
     return config.upscaler;
@@ -64,17 +57,17 @@ type Step =
   | "done";
 
 const OPERATIONS: { key: Mode; label: string; description: string }[] = [
-  { key: "edit", label: "Edit", description: "Modify with a new prompt" },
+  { description: "Modify with a new prompt", key: "edit", label: "Edit" },
   {
+    description: "Generate similar images",
     key: "variations",
     label: "Variations",
-    description: "Generate similar images",
   },
-  { key: "upscale", label: "Upscale", description: "Enhance resolution" },
+  { description: "Enhance resolution", key: "upscale", label: "Upscale" },
   {
+    description: "Transparent PNG output",
     key: "rmbg",
     label: "Remove Background",
-    description: "Transparent PNG output",
   },
 ];
 
@@ -120,14 +113,14 @@ export function EditScreen({
   } => {
     if (useCustomPath && customPath) {
       return {
+        aspect: config.defaultAspect,
+        model: config.defaultModel,
         output: customPath.trim(),
         prompt: basename(customPath),
-        model: config.defaultModel,
-        aspect: config.defaultAspect,
         resolution: config.defaultResolution,
       };
     }
-    return selectedGen as Generation;
+    return selectedGen!;
   };
 
   useEffect(() => {
@@ -137,14 +130,14 @@ export function EditScreen({
         setUseCustomPath(true);
       } else {
         const latest = history.generations.at(-1) ?? null;
-        setGenerations([...history.generations].reverse());
+        setGenerations([...history.generations].toReversed());
         setSelectedGen(latest);
         if (skipToOperation) {
           setStep("operation");
         }
       }
     };
-    loadGenerations();
+    void loadGenerations();
   }, [skipToOperation]);
 
   const proceedFromSelect = () => {
@@ -165,7 +158,6 @@ export function EditScreen({
   };
 
   const proceedFromOperation = () => {
-    // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
     const selectedMode = OPERATIONS[operationIndex]!.key;
     setMode(selectedMode);
 
@@ -206,7 +198,7 @@ export function EditScreen({
       return?: boolean;
       ctrl?: boolean;
       meta?: boolean;
-    },
+    }
   ) => {
     if (key.upArrow && selectedIndex > 0) {
       setSelectedIndex(selectedIndex - 1);
@@ -239,7 +231,7 @@ export function EditScreen({
       return?: boolean;
       ctrl?: boolean;
       meta?: boolean;
-    },
+    }
   ) => {
     if (useCustomPath) {
       handleCustomPathInput(key);
@@ -278,7 +270,7 @@ export function EditScreen({
 
   const handleConfirmInput = (input: string, key: { return?: boolean }) => {
     if (key.return || input === "y") {
-      runProcess();
+      void runProcess();
     } else if (input === "n") {
       setStep("operation");
     }
@@ -330,28 +322,26 @@ export function EditScreen({
 
         setStatus("Generating edit...");
         const result = await generate({
-          prompt,
-          model: editModel,
           editImages: [imageData],
+          model: editModel,
+          prompt,
         });
 
         outputPath = generateFilename("motif-edit");
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
         outputPath = await downloadImage(result.images[0]!.url, outputPath);
         cost = estimateCost(editModel);
         promptLabel = prompt;
       } else if (mode === "variations") {
         setStatus("Generating variations...");
         const result = await generate({
-          prompt: source.prompt,
-          model: source.model,
           aspect: source.aspect,
-          resolution: source.resolution,
+          model: source.model,
           numImages: 1,
+          prompt: source.prompt,
+          resolution: source.resolution,
         });
 
         outputPath = generateFilename("motif-edit");
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
         outputPath = await downloadImage(result.images[0]!.url, outputPath);
         cost = estimateCost(source.model, source.resolution);
         promptLabel = source.prompt;
@@ -367,7 +357,6 @@ export function EditScreen({
         });
 
         outputPath = source.output.replace(IMAGE_EXT_REGEX, `-up${scale}x.png`);
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
         outputPath = await downloadImage(result.images[0]!.url, outputPath);
         cost = 0.02;
         promptLabel = `[upscale ${scale}x] ${source.prompt}`;
@@ -383,7 +372,6 @@ export function EditScreen({
         });
 
         outputPath = source.output.replace(IMAGE_EXT_REGEX, "-nobg.png");
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
         outputPath = await downloadImage(result.images[0]!.url, outputPath);
         cost = 0.02;
         promptLabel = `[rmbg] ${source.prompt}`;
@@ -392,35 +380,35 @@ export function EditScreen({
       setStatus("Saving...");
 
       const dims = await getImageDimensions(outputPath);
-      const size = await getFileSize(outputPath);
+      const size = getFileSize(outputPath);
 
       await addGeneration({
-        id: generateId(),
-        prompt: promptLabel,
-        model: getModelForMode(mode, config, source.model),
         aspect: source.aspect,
-        resolution: source.resolution,
-        output: resolve(outputPath),
         cost,
-        timestamp: new Date().toISOString(),
         editedFrom: source.output,
+        id: generateId(),
+        model: getModelForMode(mode, config, source.model),
+        output: resolve(outputPath),
+        prompt: promptLabel,
+        resolution: source.resolution,
+        timestamp: new Date().toISOString(),
       });
 
       const fullPath = resolve(outputPath);
 
       setResult({
-        path: fullPath,
         dims: dims ? `${dims.width}x${dims.height}` : "?",
+        path: fullPath,
         size,
       });
 
       if (config.openAfterGenerate) {
-        await openImage(fullPath);
+        openImage(fullPath);
       }
 
       setStep("done");
-    } catch (err) {
-      onError(err as Error);
+    } catch (error) {
+      onError(error as Error);
       onBack();
     }
   };

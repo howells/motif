@@ -19,10 +19,12 @@ const FAL_IMAGE_SIZE_PRESETS = [
   "landscape_16_9",
 ];
 
-function normalizeImageSize(
+const IMAGE_SIZE_DIMENSIONS_REGEX = /^(?<width>\d+)x(?<height>\d+)$/u;
+
+const normalizeImageSize = (
   imageSize: ImageSize | undefined,
-  sizeMode: SizeMode,
-): ImageSize | undefined {
+  sizeMode: SizeMode
+): ImageSize | undefined => {
   if (imageSize === undefined) {
     return undefined;
   }
@@ -37,7 +39,7 @@ function normalizeImageSize(
   if (sizeMode === "gpt_size") {
     if (!GPT_IMAGE_SIZES.includes(imageSize)) {
       throw new Error(
-        `GPT Image 1.5 image_size must be one of ${GPT_IMAGE_SIZES.join(", ")}`,
+        `GPT Image 1.5 image_size must be one of ${GPT_IMAGE_SIZES.join(", ")}`
       );
     }
     return imageSize;
@@ -47,39 +49,47 @@ function normalizeImageSize(
     return imageSize;
   }
 
-  const match = imageSize.match(/^(\d+)x(\d+)$/);
-  if (match) {
-    const width = Number(match[1]);
-    const height = Number(match[2]);
-    return { width, height };
+  const match = IMAGE_SIZE_DIMENSIONS_REGEX.exec(imageSize);
+  if (match?.groups) {
+    const width = Number(match.groups.width);
+    const height = Number(match.groups.height);
+    return { height, width };
   }
 
   throw new Error(
-    `fal image_size must be one of ${FAL_IMAGE_SIZE_PRESETS.join(", ")} or WIDTHxHEIGHT`,
+    `fal image_size must be one of ${FAL_IMAGE_SIZE_PRESETS.join(", ")} or WIDTHxHEIGHT`
   );
-}
+};
 
-function unsupported(config: ModelConfig, option: string): never {
+const unsupported = (config: ModelConfig, option: string): never => {
   throw new Error(`${config.name} does not support ${option}`);
-}
+};
 
-function validateGenerateOptions(
+// Exhaustive per-option support-flag validation: one independent `if` per
+// GenerateOptions field, each checking that field against its own
+// ModelConfig capability flag. Splitting by field would multiply the
+// function count without changing what's being checked or reducing real
+// complexity; splitting by "groups of options" would require an arbitrary,
+// undocumented grouping that doesn't exist in the domain model.
+/* oxlint-disable complexity, sonarjs/cognitive-complexity, max-lines-per-function, max-statements -- see comment above */
+const validateGenerateOptions = (
   options: GenerateOptions,
   config: ModelConfig,
   sizeMode: SizeMode,
-  hasEditImages: boolean,
-): void {
+  hasEditImages: boolean
+): void => {
   if (
-    options.editImageUrls?.length &&
+    options.editImageUrls !== undefined &&
+    options.editImageUrls.length > 0 &&
     config.maxReferenceImages !== undefined &&
     options.editImageUrls.length > config.maxReferenceImages
   ) {
     throw new Error(
-      `${config.name} supports at most ${config.maxReferenceImages} reference images`,
+      `${config.name} supports at most ${config.maxReferenceImages} reference images`
     );
   }
 
-  if (options.editImageUrls?.length && !config.supportsEdit) {
+  if ((options.editImageUrls?.length ?? 0) > 0 && !config.supportsEdit) {
     unsupported(config, "image editing");
   }
   if (options.aspect !== undefined && sizeMode === "none") {
@@ -99,12 +109,14 @@ function validateGenerateOptions(
   ) {
     unsupported(config, "numImages");
   }
-  if (options.background !== undefined && !config.supportsBackground) {
+  if (options.background !== undefined && config.supportsBackground !== true) {
     unsupported(config, "background");
   }
   if (
-    options.transparent &&
-    !(config.supportsBackground || config.supportsOutputFormat)
+    options.transparent === true &&
+    !(
+      config.supportsBackground === true || config.supportsOutputFormat === true
+    )
   ) {
     unsupported(config, "transparent output");
   }
@@ -125,89 +137,114 @@ function validateGenerateOptions(
   }
   if (
     options.imagePromptStrength !== undefined &&
-    !config.supportsImagePromptStrength
+    config.supportsImagePromptStrength !== true
   ) {
     unsupported(config, "imagePromptStrength");
   }
   if (options.imagePromptStrength !== undefined && !hasEditImages) {
     throw new Error("imagePromptStrength requires editImageUrls");
   }
-  if (options.maskImageUrl !== undefined && !config.supportsMaskImage) {
+  if (options.maskImageUrl !== undefined && config.supportsMaskImage !== true) {
     unsupported(config, "maskImageUrl");
   }
   if (options.maskImageUrl !== undefined && !hasEditImages) {
     throw new Error("maskImageUrl requires editImageUrls");
   }
-  if (options.seed !== undefined && !config.supportsSeed) {
+  if (options.seed !== undefined && config.supportsSeed !== true) {
     unsupported(config, "seed");
   }
-  if (options.outputFormat !== undefined && !config.supportsOutputFormat) {
+  if (
+    options.outputFormat !== undefined &&
+    config.supportsOutputFormat !== true
+  ) {
     unsupported(config, "outputFormat");
   }
-  if (options.quality !== undefined && !config.supportsQuality) {
+  if (options.quality !== undefined && config.supportsQuality !== true) {
     unsupported(config, "quality");
   }
-  if (options.negativePrompt !== undefined && !config.supportsNegativePrompt) {
+  if (
+    options.negativePrompt !== undefined &&
+    config.supportsNegativePrompt !== true
+  ) {
     unsupported(config, "negativePrompt");
   }
-  if (options.style !== undefined && !config.supportsStyle) {
+  if (options.style !== undefined && config.supportsStyle !== true) {
     unsupported(config, "style");
   }
-  if (options.syncMode !== undefined && !config.supportsSyncMode) {
+  if (options.syncMode !== undefined && config.supportsSyncMode !== true) {
     unsupported(config, "syncMode");
   }
-  if (options.renderingSpeed !== undefined && !config.supportsRenderingSpeed) {
+  if (
+    options.renderingSpeed !== undefined &&
+    config.supportsRenderingSpeed !== true
+  ) {
     unsupported(config, "renderingSpeed");
   }
-  if (options.guidanceScale !== undefined && !config.supportsGuidanceScale) {
+  if (
+    options.guidanceScale !== undefined &&
+    config.supportsGuidanceScale !== true
+  ) {
     unsupported(config, "guidanceScale");
   }
   if (
     options.numInferenceSteps !== undefined &&
-    !config.supportsInferenceSteps
+    config.supportsInferenceSteps !== true
   ) {
     unsupported(config, "numInferenceSteps");
   }
-  if (options.raw !== undefined && !config.supportsRaw) {
+  if (options.raw !== undefined && config.supportsRaw !== true) {
     unsupported(config, "raw");
   }
-  if (options.enhancePrompt !== undefined && !config.supportsEnhancePrompt) {
+  if (
+    options.enhancePrompt !== undefined &&
+    config.supportsEnhancePrompt !== true
+  ) {
     unsupported(config, "enhancePrompt");
   }
   if (
     options.safetyTolerance !== undefined &&
-    !config.supportsSafetyTolerance
+    config.supportsSafetyTolerance !== true
   ) {
     unsupported(config, "safetyTolerance");
   }
-  if (options.enableWebSearch !== undefined && !config.supportsWebSearch) {
+  if (
+    options.enableWebSearch !== undefined &&
+    config.supportsWebSearch !== true
+  ) {
     unsupported(config, "enableWebSearch");
   }
   if (
     options.enableGoogleSearch !== undefined &&
-    !config.supportsGoogleSearch
+    config.supportsGoogleSearch !== true
   ) {
     unsupported(config, "enableGoogleSearch");
   }
   if (
     options.enableSafetyChecker !== undefined &&
-    !config.supportsSafetyChecker
+    config.supportsSafetyChecker !== true
   ) {
     unsupported(config, "enableSafetyChecker");
   }
   if (
     options.limitGenerations !== undefined &&
-    !config.supportsLimitGenerations
+    config.supportsLimitGenerations !== true
   ) {
     unsupported(config, "limitGenerations");
   }
-  if (options.thinkingLevel !== undefined && !config.supportsThinkingLevel) {
+  if (
+    options.thinkingLevel !== undefined &&
+    config.supportsThinkingLevel !== true
+  ) {
     unsupported(config, "thinkingLevel");
   }
-  if (options.expandPrompt !== undefined && !config.supportsExpandPrompt) {
+  if (
+    options.expandPrompt !== undefined &&
+    config.supportsExpandPrompt !== true
+  ) {
     unsupported(config, "expandPrompt");
   }
-}
+};
+/* oxlint-enable complexity, sonarjs/cognitive-complexity, max-lines-per-function, max-statements */
 
 /**
  * Build the fal.ai request body for a generation request.
@@ -219,10 +256,18 @@ function validateGenerateOptions(
  * - `image_size_enum`: named presets like "landscape_4_3" (FLUX.2, Seedream, Recraft, Ideogram, GPT Image 2)
  * - `none`: no size control (video models)
  */
-export function buildGenerateBody(options: GenerateOptions): {
+// This is the single shared place that maps every GenerateOptions field to
+// its fal.ai request-body field, gated by the target model's capability
+// flags — the same shape and reasoning as validateGenerateOptions above.
+// Splitting it would scatter one model request's construction across
+// several functions for no reduction in real complexity.
+/* oxlint-disable complexity, sonarjs/cognitive-complexity, max-lines-per-function, max-statements -- see comment above */
+export const buildGenerateBody = (
+  options: GenerateOptions
+): {
   endpoint: string;
   body: Record<string, unknown>;
-} {
+} => {
   const {
     prompt,
     model,
@@ -262,9 +307,9 @@ export function buildGenerateBody(options: GenerateOptions): {
     throw new Error(`Unknown model: ${model}`);
   }
 
-  let endpoint = config.endpoint;
+  let { endpoint } = config;
   const enrichedPrompt = creative
-    ? enrichPrompt({ prompt, creative }).prompt
+    ? enrichPrompt({ creative, prompt }).prompt
     : prompt;
   const body: Record<string, unknown> = { prompt: enrichedPrompt };
   const hasEditImages = Boolean(editImageUrls?.length);
@@ -277,17 +322,19 @@ export function buildGenerateBody(options: GenerateOptions): {
   const normalizedImageSize = normalizeImageSize(imageSize, sizeMode);
 
   switch (sizeMode) {
-    case "gpt_size":
+    case "gpt_size": {
       body.image_size =
         normalizedImageSize ??
         (hasEditImages && !explicitAspect ? "auto" : aspectToGptSize(aspect));
       break;
+    }
 
-    case "image_size_enum":
+    case "image_size_enum": {
       body.image_size = normalizedImageSize ?? aspectToFalImageSize(aspect);
       break;
+    }
 
-    case "aspect_ratio":
+    case "aspect_ratio": {
       if (config.supportsAspect) {
         body.aspect_ratio = aspect;
       }
@@ -296,113 +343,147 @@ export function buildGenerateBody(options: GenerateOptions): {
           model === "grok-image" ? resolution.toLowerCase() : resolution;
       }
       break;
+    }
+    case "none": {
+      // Some models take no size parameter at all — intentionally a no-op.
+      break;
+    }
+    default: {
+      break;
+    }
   }
 
-  if (config.supportsQuality) {
+  if (config.supportsQuality === true) {
     body.quality = quality ?? "high";
   }
 
-  if (config.supportsBackground && background) {
+  if (config.supportsBackground === true && background !== undefined) {
     body.background = background;
   }
-  if (config.supportsBackground && transparent) {
+  if (config.supportsBackground === true && transparent === true) {
     body.background = "transparent";
   }
-  if (transparent && config.supportsOutputFormat) {
+  if (transparent === true && config.supportsOutputFormat === true) {
     body.output_format = "png";
   }
 
-  if (syncMode !== undefined && config.supportsSyncMode) {
+  if (syncMode !== undefined && config.supportsSyncMode === true) {
     body.sync_mode = syncMode;
   }
 
   // ── Seed ──────────────────────────────────────────────────────────
-  if (seed !== undefined && config.supportsSeed) {
+  if (seed !== undefined && config.supportsSeed === true) {
     body.seed = seed;
   }
 
   // ── Output format ──────────────────────────────────────────────────
   // transparent mode already forces output_format = "png" where supported.
-  if (outputFormat && config.supportsOutputFormat && !transparent) {
+  if (
+    outputFormat !== undefined &&
+    config.supportsOutputFormat === true &&
+    transparent !== true
+  ) {
     if (
       config.supportedOutputFormats &&
       !config.supportedOutputFormats.includes(outputFormat)
     ) {
       throw new Error(
-        `${config.name} supports output formats: ${config.supportedOutputFormats.join(", ")}`,
+        `${config.name} supports output formats: ${config.supportedOutputFormats.join(", ")}`
       );
     }
     body.output_format = outputFormat;
   }
 
-  if (config.supportsRaw && raw !== undefined) {
+  if (config.supportsRaw === true && raw !== undefined) {
     body.raw = raw;
   }
-  if (config.supportsEnhancePrompt && enhancePrompt !== undefined) {
+  if (config.supportsEnhancePrompt === true && enhancePrompt !== undefined) {
     body.enhance_prompt = enhancePrompt;
   }
-  if (config.supportsImagePromptStrength && imagePromptStrength !== undefined) {
+  if (
+    config.supportsImagePromptStrength === true &&
+    imagePromptStrength !== undefined
+  ) {
     body.image_prompt_strength = imagePromptStrength;
   }
-  if (model === "flux") {
-    if (safetyTolerance) body.safety_tolerance = safetyTolerance;
+  if (
+    model === "flux" &&
+    safetyTolerance !== undefined &&
+    safetyTolerance !== ""
+  ) {
+    body.safety_tolerance = safetyTolerance;
   }
 
-  if (config.supportsGuidanceScale && guidanceScale !== undefined) {
+  if (config.supportsGuidanceScale === true && guidanceScale !== undefined) {
     body.guidance_scale = guidanceScale;
   }
-  if (config.supportsInferenceSteps && numInferenceSteps !== undefined) {
+  if (
+    config.supportsInferenceSteps === true &&
+    numInferenceSteps !== undefined
+  ) {
     body.num_inference_steps = numInferenceSteps;
   }
 
   // ── Shared safety / web-search controls ────────────────────────────
-  if (config.supportsSafetyTolerance) {
-    if (safetyTolerance) body.safety_tolerance = safetyTolerance;
+  if (
+    config.supportsSafetyTolerance === true &&
+    safetyTolerance !== undefined &&
+    safetyTolerance !== ""
+  ) {
+    body.safety_tolerance = safetyTolerance;
   }
-  if (config.supportsWebSearch) {
-    if (enableWebSearch !== undefined) body.enable_web_search = enableWebSearch;
+  if (config.supportsWebSearch === true && enableWebSearch !== undefined) {
+    body.enable_web_search = enableWebSearch;
   }
-  if (config.supportsGoogleSearch) {
-    if (enableGoogleSearch !== undefined) {
-      body.enable_google_search = enableGoogleSearch;
-    }
+  if (
+    config.supportsGoogleSearch === true &&
+    enableGoogleSearch !== undefined
+  ) {
+    body.enable_google_search = enableGoogleSearch;
   }
-  if (config.supportsSafetyChecker) {
-    if (enableSafetyChecker !== undefined) {
-      body.enable_safety_checker = enableSafetyChecker;
-    }
+  if (
+    config.supportsSafetyChecker === true &&
+    enableSafetyChecker !== undefined
+  ) {
+    body.enable_safety_checker = enableSafetyChecker;
   }
-  if (config.supportsLimitGenerations) {
-    if (limitGenerations !== undefined) {
-      body.limit_generations = limitGenerations;
-    }
+  if (
+    config.supportsLimitGenerations === true &&
+    limitGenerations !== undefined
+  ) {
+    body.limit_generations = limitGenerations;
   }
-  if (config.supportsThinkingLevel) {
-    if (thinkingLevel) body.thinking_level = thinkingLevel;
+  if (config.supportsThinkingLevel === true && thinkingLevel !== undefined) {
+    body.thinking_level = thinkingLevel;
   }
 
   // ── Recraft: style ────────────────────────────────────────────────
-  if (config.supportsStyle && style) {
+  if (config.supportsStyle === true && style !== undefined && style !== "") {
     body.style = style;
   }
 
   // ── Ideogram: negative_prompt, style, rendering_speed, expand_prompt
-  if (config.supportsNegativePrompt) {
-    if (negativePrompt) body.negative_prompt = negativePrompt;
+  if (
+    config.supportsNegativePrompt === true &&
+    negativePrompt !== undefined &&
+    negativePrompt !== ""
+  ) {
+    body.negative_prompt = negativePrompt;
   }
-  if (model === "ideogram") {
-    if (style) body.style = style;
+  if (model === "ideogram" && style !== undefined && style !== "") {
+    body.style = style;
   }
-  if (config.supportsRenderingSpeed) {
-    if (renderingSpeed) body.rendering_speed = renderingSpeed;
+  if (config.supportsRenderingSpeed === true && renderingSpeed !== undefined) {
+    body.rendering_speed = renderingSpeed;
   }
-  if (config.supportsExpandPrompt) {
-    if (expandPrompt !== undefined) body.expand_prompt = expandPrompt;
+  if (config.supportsExpandPrompt === true && expandPrompt !== undefined) {
+    body.expand_prompt = expandPrompt;
   }
 
   // FLUX Pro Ultra reference image
   if (model === "flux" && hasEditImages) {
-    body.image_url = editImages[0];
+    const [firstEditImage] = editImages;
+    body.image_url = firstEditImage;
     body.image_prompt_strength = imagePromptStrength ?? 0.5;
   }
 
@@ -432,9 +513,14 @@ export function buildGenerateBody(options: GenerateOptions): {
     }
   }
 
-  if (maskImageUrl && config.supportsMaskImage) {
+  if (
+    maskImageUrl !== undefined &&
+    maskImageUrl !== "" &&
+    config.supportsMaskImage === true
+  ) {
     body.mask_image_url = maskImageUrl;
   }
 
-  return { endpoint, body };
-}
+  return { body, endpoint };
+};
+/* oxlint-enable complexity, sonarjs/cognitive-complexity, max-lines-per-function, max-statements */

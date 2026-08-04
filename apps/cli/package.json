@@ -39,8 +39,8 @@
   "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsup src/index.ts --format esm --target node22",
-    "lint": "howells-lint",
-    "format": "howells-format",
+    "lint": "howells-check src tests",
+    "lint:fix": "howells-fix src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -54,17 +54,20 @@
     "ink-text-input": "^6.0.0",
     "ora": "^9.4.0",
     "react": "^19.2.6",
-    "zod": "^4.4.3"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@howells/lint": "^0.1.6",
-    "@howells/typescript-config": "^0.1.2",
-    "@types/node": "^25.6.0",
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
+    "@types/node": "catalog:",
     "@types/react": "^19.2.14",
     "react-devtools-core": "^7.0.1",
-    "tsup": "^8.0.0",
-    "tsx": "^4.21.0",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.15.0 <25"
   }
 }

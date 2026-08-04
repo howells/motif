@@ -7,6 +7,7 @@ import {
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { useState } from "react";
+
 import type { MotifConfig } from "../../utils/config";
 
 interface SettingItem {
@@ -20,32 +21,32 @@ const SETTINGS: SettingItem[] = [
   {
     key: "defaultModel",
     label: "Default Model",
-    type: "select",
     options: GENERATION_MODELS,
+    type: "select",
   },
   {
     key: "defaultAspect",
     label: "Default Aspect",
-    type: "select",
     options: ASPECT_RATIOS,
+    type: "select",
   },
   {
     key: "defaultResolution",
     label: "Default Resolution",
-    type: "select",
     options: RESOLUTIONS,
+    type: "select",
   },
   {
     key: "upscaler",
     label: "Upscaler",
-    type: "select",
     options: ["clarity", "crystal"],
+    type: "select",
   },
   {
     key: "backgroundRemover",
     label: "Background Remover",
-    type: "select",
     options: ["rmbg", "bria"],
+    type: "select",
   },
   { key: "openAfterGenerate", label: "Open After Generate", type: "toggle" },
   { key: "apiKey", label: "API Key", type: "text" },
@@ -67,7 +68,6 @@ export function SettingsScreen({
   const [editValue, setEditValue] = useState("");
   const [localConfig, setLocalConfig] = useState<MotifConfig>({ ...config });
 
-  // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
   const currentSetting = SETTINGS[selectedIndex]!;
 
   useInput((input, key) => {
@@ -93,7 +93,6 @@ export function SettingsScreen({
     }
 
     if (key.return) {
-      // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
       const setting = SETTINGS[selectedIndex]!;
       if (setting.type === "toggle") {
         // Toggle boolean value
@@ -118,7 +117,7 @@ export function SettingsScreen({
 
     if (input === "s") {
       // Save settings
-      onSave(localConfig);
+      void onSave(localConfig);
     }
   });
 
@@ -140,9 +139,9 @@ export function SettingsScreen({
       return `${str.slice(0, 8)}...${str.slice(-4)}`;
     }
     if (setting.key === "defaultModel" && value) {
-      return MODELS[value as string]?.name || (value as string);
+      return MODELS[value as string]?.name ?? (value as string);
     }
-    return String(value || "Not set");
+    return String(value ?? "Not set");
   };
 
   return (

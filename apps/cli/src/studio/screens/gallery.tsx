@@ -1,6 +1,7 @@
 import { MODELS } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import { useState } from "react";
+
 import type { History } from "../../utils/config";
 import { openImage } from "../../utils/image";
 
@@ -15,7 +16,7 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
   const pageSize = 8;
 
   // Reverse to display newest-first (storage is oldest-first for O(1) push)
-  const generations = [...history.generations].reverse();
+  const generations = [...history.generations].toReversed();
   const totalPages = Math.ceil(generations.length / pageSize);
   const pageItems = generations.slice(page * pageSize, (page + 1) * pageSize);
 
@@ -37,7 +38,7 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
     }
   };
 
-  useInput(async (_input, key) => {
+  useInput((_input, key) => {
     if (key.escape) {
       onBack();
       return;
@@ -58,7 +59,7 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
     }
     if (key.return && pageItems[selectedIndex]) {
       try {
-        await openImage(pageItems[selectedIndex].output);
+        openImage(pageItems[selectedIndex].output);
       } catch {
         // Image may have been deleted; silently ignore
       }
@@ -86,10 +87,10 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
       {pageItems.map((gen, index) => {
         const isSelected = index === selectedIndex;
         const date = new Date(gen.timestamp);
-        const timeStr =
-          date.toLocaleDateString() +
-          " " +
-          date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        const timeStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString(
+          [],
+          { hour: "2-digit", minute: "2-digit" }
+        )}`;
 
         return (
           <Box key={gen.id} marginLeft={1}>
@@ -104,7 +105,7 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
             </Box>
             <Box width={18}>
               <Text dimColor>
-                {MODELS[gen.model]?.name?.slice(0, 15) || gen.model}
+                {MODELS[gen.model]?.name?.slice(0, 15) ?? gen.model}
               </Text>
             </Box>
             <Text dimColor>{timeStr}</Text>

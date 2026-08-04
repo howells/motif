@@ -12,14 +12,14 @@ import { isAbsolute, relative, resolve } from "node:path";
 // -- Control character filtering --
 
 /** Characters that should never appear in user prompts */
-// biome-ignore lint/suspicious/noControlCharactersInRegex: Intentionally matching control characters for sanitization
-const CONTROL_CHAR_REGEX = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
+// oxlint-disable-next-line no-control-regex, sonarjs/stateful-regex -- matching control characters is this sanitiser` + "`" + `s entire purpose, and the g flag is safe here because the regex is only ever used with String.replace, which neither reads nor advances lastIndex
+const CONTROL_CHAR_REGEX = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 /** Sanitize a text prompt: strip control chars, normalize whitespace */
 export function sanitizePrompt(prompt: string): string {
   return prompt
     .replace(CONTROL_CHAR_REGEX, "")
-    .replace(/\r\n/g, "\n") // Normalize line endings
+    .replaceAll("\r\n", "\n") // Normalize line endings
     .trim();
 }
 
@@ -38,7 +38,7 @@ const EMBEDDED_QUERY_REGEX = /[?#]/;
 export function validateResourceId(id: string, label: string): string {
   if (CONTROL_CHAR_REGEX.test(id)) {
     throw new Error(
-      `${label} contains control characters: ${JSON.stringify(id)}`,
+      `${label} contains control characters: ${JSON.stringify(id)}`
     );
   }
   if (id.includes("..") || id.includes("/") || id.includes("\\")) {
@@ -46,12 +46,12 @@ export function validateResourceId(id: string, label: string): string {
   }
   if (PERCENT_TRAVERSAL_REGEX.test(id)) {
     throw new Error(
-      `${label} contains percent-encoded traversal: ${JSON.stringify(id)}`,
+      `${label} contains percent-encoded traversal: ${JSON.stringify(id)}`
     );
   }
   if (EMBEDDED_QUERY_REGEX.test(id)) {
     throw new Error(
-      `${label} contains embedded query params: ${JSON.stringify(id)}`,
+      `${label} contains embedded query params: ${JSON.stringify(id)}`
     );
   }
   return id;
@@ -60,11 +60,11 @@ export function validateResourceId(id: string, label: string): string {
 export function parseIntegerOption(
   value: number | string,
   label: string,
-  options: { max?: number; min?: number } = {},
+  options: { max?: number; min?: number } = {}
 ): number {
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isInteger(parsed)) {
-    throw new Error(`${label} must be an integer: ${value}`);
+    throw new TypeError(`${label} must be an integer: ${value}`);
   }
   if (options.min !== undefined && parsed < options.min) {
     throw new Error(`${label} must be >= ${options.min}: ${value}`);
@@ -78,11 +78,11 @@ export function parseIntegerOption(
 export function parseNumberOption(
   value: number | string,
   label: string,
-  options: { max?: number; min?: number } = {},
+  options: { max?: number; min?: number } = {}
 ): number {
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsed)) {
-    throw new Error(`${label} must be a number: ${value}`);
+    throw new TypeError(`${label} must be a number: ${value}`);
   }
   if (options.min !== undefined && parsed < options.min) {
     throw new Error(`${label} must be >= ${options.min}: ${value}`);
@@ -96,11 +96,11 @@ export function parseNumberOption(
 export function validateEnumOption<T extends string>(
   value: string,
   allowed: readonly T[],
-  label: string,
+  label: string
 ): T {
   if (!allowed.includes(value as T)) {
     throw new Error(
-      `${label} must be one of ${allowed.join(", ")}: ${JSON.stringify(value)}`,
+      `${label} must be one of ${allowed.join(", ")}: ${JSON.stringify(value)}`
     );
   }
   return value as T;
@@ -116,17 +116,17 @@ export function validateOutputPath(outputPath: string): string {
   // Check for percent-encoded traversal before resolving
   if (PERCENT_TRAVERSAL_REGEX.test(outputPath)) {
     throw new Error(
-      `Output path contains percent-encoded traversal: ${outputPath}`,
+      `Output path contains percent-encoded traversal: ${outputPath}`
     );
   }
   if (EMBEDDED_QUERY_REGEX.test(outputPath)) {
     throw new Error(
-      `Output path contains embedded query params: ${outputPath}`,
+      `Output path contains embedded query params: ${outputPath}`
     );
   }
   if (CONTROL_CHAR_REGEX.test(outputPath)) {
     throw new Error(
-      `Output path contains control characters: ${JSON.stringify(outputPath)}`,
+      `Output path contains control characters: ${JSON.stringify(outputPath)}`
     );
   }
 
@@ -137,7 +137,7 @@ export function validateOutputPath(outputPath: string): string {
   const rel = relative(cwd, resolved);
   if (rel.startsWith("..") || isAbsolute(rel)) {
     throw new Error(
-      `Output path must be within current directory: ${outputPath}`,
+      `Output path must be within current directory: ${outputPath}`
     );
   }
 
@@ -153,12 +153,12 @@ export function validateOutputPath(outputPath: string): string {
 export function validateEditPath(editPath: string): string {
   if (PERCENT_TRAVERSAL_REGEX.test(editPath)) {
     throw new Error(
-      `Edit path contains percent-encoded traversal: ${editPath}`,
+      `Edit path contains percent-encoded traversal: ${editPath}`
     );
   }
   if (CONTROL_CHAR_REGEX.test(editPath)) {
     throw new Error(
-      `Edit path contains control characters: ${JSON.stringify(editPath)}`,
+      `Edit path contains control characters: ${JSON.stringify(editPath)}`
     );
   }
 
@@ -189,16 +189,16 @@ export function validateEditPath(editPath: string): string {
  * Read JSON from stdin if data is being piped.
  * Returns null if stdin is a TTY (interactive).
  */
-export function readStdinJson<T>(): Promise<T | null> {
+export async function readStdinJson<T>(): Promise<T | null> {
   if (process.stdin.isTTY) {
-    return Promise.resolve(null);
+    return null;
   }
 
-  return new Promise((resolve, reject) => {
+  return await new Promise((resolve, reject) => {
     let data = "";
     process.stdin.setEncoding("utf-8");
     process.stdin.on("data", (chunk) => {
-      data += chunk;
+      data += String(chunk);
     });
     process.stdin.on("end", () => {
       if (!data.trim()) {
@@ -207,11 +207,11 @@ export function readStdinJson<T>(): Promise<T | null> {
       }
       try {
         resolve(JSON.parse(data) as T);
-      } catch (err) {
+      } catch (error) {
         reject(
           new Error(
-            `Invalid JSON on stdin: ${err instanceof Error ? err.message : String(err)}`,
-          ),
+            `Invalid JSON on stdin: ${error instanceof Error ? error.message : String(error)}`
+          )
         );
       }
     });

@@ -1,0 +1,4 @@
+{
+  "extends": ["//"],
+  "tags": ["type:app", "scope:cli", "visibility:internal"]
+}

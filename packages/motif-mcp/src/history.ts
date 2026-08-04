@@ -8,9 +8,9 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import path from "node:path";
 
-const HISTORY_PATH = join(homedir(), ".motif", "history.json");
+const HISTORY_PATH = path.join(homedir(), ".motif", "history.json");
 
 export interface HistoryEntry {
   aspect: string;
@@ -54,7 +54,7 @@ interface RawHistory {
   totalCost: { allTime: number; session: number; today: number };
 }
 
-const EMPTY_RESULT = (limit: number, offset: number): HistoryResult => ({
+const emptyResult = (limit: number, offset: number): HistoryResult => ({
   costs: { allTime: 0, session: 0, today: 0 },
   generations: [],
   hasMore: false,
@@ -63,20 +63,26 @@ const EMPTY_RESULT = (limit: number, offset: number): HistoryResult => ({
   total: 0,
 });
 
-export function readHistory(limit = 10, offset = 0): HistoryResult {
+export const readHistory = (limit = 10, offset = 0): HistoryResult => {
   if (!existsSync(HISTORY_PATH)) {
-    return EMPTY_RESULT(limit, offset);
+    return emptyResult(limit, offset);
   }
 
   let history: RawHistory;
   try {
+    // This is our own CLI's history file (~/.motif/history.json), not
+    // external input; the surrounding try/catch already falls back to
+    // emptyResult() on any parse failure. Adding real schema validation
+    // (e.g. zod) would be a new dependency/behaviour, out of this
+    // lint-only migration.
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- see comment above
     history = JSON.parse(readFileSync(HISTORY_PATH, "utf-8")) as RawHistory;
   } catch {
-    return EMPTY_RESULT(limit, offset);
+    return emptyResult(limit, offset);
   }
 
   // Stored oldest-first; reverse for newest-first
-  const all = [...history.generations].reverse();
+  const all = [...history.generations].toReversed();
   const total = all.length;
   const page = all.slice(offset, offset + limit);
 
@@ -91,11 +97,11 @@ export function readHistory(limit = 10, offset = 0): HistoryResult {
       prompt: g.prompt,
       resolution: g.resolution,
       timestamp: g.timestamp,
-      ...(g.editedFrom !== undefined ? { editedFrom: g.editedFrom } : {}),
+      ...(g.editedFrom === undefined ? {} : { editedFrom: g.editedFrom }),
     })),
     hasMore: offset + limit < total,
     limit,
     offset,
     total,
   };
-}
+};

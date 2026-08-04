@@ -9,14 +9,10 @@ export const motifEnvSchema = defineEnv({
 
 export type MotifEnv = ReturnType<typeof motifEnvSchema.parse>;
 
-export function parseMotifEnv(
-  input: Record<string, unknown> = process.env,
-): MotifEnv {
-  return motifEnvSchema.parse(input);
-}
+export const parseMotifEnv = (
+  input: Record<string, unknown> = process.env
+): MotifEnv => motifEnvSchema.parse(input);
 
-export function getFalKeyFromEnv(
-  input: Record<string, unknown> = process.env,
-): string | undefined {
-  return parseMotifEnv(input).FAL_KEY;
-}
+export const getFalKeyFromEnv = (
+  input: Record<string, unknown> = process.env
+): string | undefined => parseMotifEnv(input).FAL_KEY;

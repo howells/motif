@@ -40,8 +40,8 @@
   "scripts": {
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
-    "lint": "howells-lint",
-    "format": "howells-format",
+    "lint": "howells-check src tests",
+    "lint:fix": "howells-fix src tests",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -51,15 +51,18 @@
   "dependencies": {
     "@howells/envy": "^0.3.7",
     "neverthrow": "^8.2.0",
-    "zod": "^4.4.3"
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@howells/lint": "^0.1.6",
-    "@howells/typescript-config": "^0.1.2",
-    "@types/node": "^25.6.0",
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
+    "@types/node": "catalog:",
     "@vitest/coverage-v8": "^4.1.5",
-    "tsup": "^8.0.0",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.5"
+    "tsup": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.15.0 <25"
   }
 }

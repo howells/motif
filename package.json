@@ -1,6 +1,7 @@
 {
   "name": "motif",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "turbo run dev --filter=@howells/motif-cli",
     "dev:cli": "turbo run dev --filter=@howells/motif-cli",
@@ -13,25 +14,26 @@
     "knip": "knip",
     "clean": "turbo clean",
     "check": "pnpm build && pnpm typecheck && pnpm lint && pnpm test",
-    "check:affected": "turbo run build lint typecheck test --affected"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "howells-biome check --write",
-      "howells-ultracite fix"
-    ],
-    "*.{js,json}": [
-      "howells-biome check --write"
-    ]
+    "check:affected": "turbo run build lint typecheck test --affected",
+    "boundaries": "boundaries check"
   },
   "devDependencies": {
-    "@howells/lint": "^0.1.6",
-    "@howells/typescript-config": "^0.1.2",
+    "@howells/boundaries": "0.1.6",
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
     "husky": "^9.1.7",
     "knip": "^6.12.0",
     "lint-staged": "^17.0.2",
+    "oxlint-tsgolint": "7.0.2001",
     "turbo": "2.9.9",
-    "typescript": "^6.0.3"
+    "typescript": "catalog:"
   },
-  "packageManager": "pnpm@10.23.0"
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,jsx,tsx}": "howells-fix",
+    "*.{json,jsonc,md,css}": "howells-oxfmt --write"
+  },
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
+  "packageManager": "pnpm@11.5.2"
 }
