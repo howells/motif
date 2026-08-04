@@ -44,9 +44,13 @@ const bestKeyFor = (row: Row): string | null => {
   return bestKey;
 };
 
+/** `null` means different things per row and the label has to say which.
+ * "not judged" is only true of the quality row; a model whose every attempt
+ * failed has no latency and no cost to report, and calling that "not judged"
+ * blames the judge for a generation failure. */
 const formatRowValue = (row: Row, value: number | null): string => {
   if (value === null) {
-    return "not judged";
+    return row.label.startsWith("Quality") ? "not judged" : "no data";
   }
   if (row.label.startsWith("Provider") || row.label.startsWith("Total")) {
     return formatMs(value);
@@ -130,16 +134,24 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
   }
 
   return (
-    // Full width, not shrink-to-fit: the row rules are the same hairlines the
-    // verdict band and every section header use, so a table huddled at 480px
-    // on a 1120px column reads as an accident. The metric column is pinned so
-    // the numbers stay in even, comparable tracks whatever the model count.
-    <Table className="w-full min-w-max">
+    // Fixed column widths, not full-bleed. Stretching the table to the
+    // content column puts ~500px between a metric's label and its value,
+    // which defeats the comparison the table exists for. 200px for the label,
+    // 160px per model, packed from the left; past about six models the table
+    // outgrows its container and the container scrolls.
+    <Table className="w-auto max-w-full">
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[220px] pr-8">Metric</TableHead>
+          {/* `min-w` as well as `w`: auto table layout treats `width` as a
+              hint and will happily crush columns to fit the container, which
+              is how a fourteen-model run ended up wrapping "Provider p50"
+              onto two lines instead of scrolling. */}
+          <TableHead className="w-[200px] min-w-[200px]">Metric</TableHead>
           {aliases.map((alias) => (
-            <TableHead className="min-w-[112px] text-right" key={alias}>
+            <TableHead
+              className="w-[160px] min-w-[160px] text-right"
+              key={alias}
+            >
               {alias}
             </TableHead>
           ))}
@@ -150,14 +162,14 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
           const bestKey = bestKeyFor(row);
           return (
             <TableRow key={row.label}>
-              <TableCell className="text-[13px] text-muted">
+              <TableCell className="text-[13px] whitespace-nowrap text-muted">
                 {row.label}
               </TableCell>
               {aliases.map((alias) => {
                 const value = row.values.get(alias) ?? null;
                 return (
                   <TableCell
-                    className="bench-numeric text-right text-[13px] text-ink"
+                    className="bench-numeric text-right text-[13px] whitespace-nowrap text-ink"
                     key={alias}
                   >
                     {formatRowValue(row, value)}

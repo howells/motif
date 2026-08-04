@@ -156,7 +156,10 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      {/* `min-w-0` for the same reason as the table container: a flex item
+          defaults to its content's minimum width, so the fixed-geometry chart
+          would widen the page instead of scrolling inside this box. */}
+      <div className="-mx-4 min-w-0 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <svg
           aria-label="Cost versus quality scatter plot with the Pareto frontier highlighted"
           className="block font-mono tabular-nums"
@@ -203,11 +206,14 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
                   cy={yFor(point.quality)}
                   r={onFrontier ? 4.5 : 3}
                 />
+                {/* Sits above-right of the mark, not level with it: the
+                    frontier path passes through the point, and a vertically
+                    centred label is struck through by the dashed line. */}
                 <text
                   className={onFrontier ? "fill-ink" : "fill-muted"}
                   fontSize={11}
-                  x={xFor(point.costUsd) + 8}
-                  y={yFor(point.quality) + 4}
+                  x={xFor(point.costUsd) + 7}
+                  y={yFor(point.quality) - 7}
                 >
                   {point.modelAlias}
                 </text>

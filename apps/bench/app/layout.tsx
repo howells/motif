@@ -30,7 +30,15 @@ const RootLayout = ({ children }: { children: ReactNode }) => (
     <body>
       <QueryProvider>
         <TooltipProvider>
-          <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-9 px-4 pt-10 pb-24 sm:px-6 sm:pt-14">
+          {/* `overflow-x-clip`, not `hidden`: the wide surfaces on this page
+              (the comparison table, the fixed-geometry scatter) scroll inside
+              their own containers, and without this guard their overflow
+              still reaches the document and gives the whole page a horizontal
+              scrollbar. `clip` does not establish a scroll container, so the
+              history rail's `position: sticky` keeps working. The plate's
+              negative-margin bleed lands exactly on the clip edge, so it is
+              untouched. */}
+          <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-9 overflow-x-clip px-4 pt-10 pb-24 sm:px-6 sm:pt-14">
             <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-border pb-4">
               <h1>
                 <Link className="no-underline" href="/">

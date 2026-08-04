@@ -41,11 +41,13 @@ const ParamLine = ({
   );
 };
 
+/** The tallest an annotation gets: alias, latency, cost · dimensions, drops,
+ * coerces, judge verdict and the star row, plus the block's own padding. Held
+ * as a floor on every cell so a model that dropped nothing does not sit
+ * shorter than its neighbour and pull the lattice out of alignment. */
+const ANNOTATION_MIN_HEIGHT = "min-h-[176px]";
+
 interface SampleFrameProps {
-  /** The run's requested aspect as a Tailwind ratio class. Held constant
-   * across pending / failed / resolved so nothing reflows when an image
-   * lands (`docs/design/specs/design-bench.md`, States). */
-  readonly aspectClassName: string;
   readonly contended: boolean;
   readonly judgment: JudgmentRecord | undefined;
   readonly manualRating: ManualRatingRecord | undefined;
@@ -60,10 +62,15 @@ interface SampleFrameProps {
   readonly sample: SampleRecord;
 }
 
-/** One cell of the contact sheet: the image at the run's aspect with zero
- * radius, and its annotation directly beneath in mono — not a card
- * (`docs/design/specs/design-bench.md`). The hairlines are the cell's own
- * top/left borders, which tile into the sheet's lattice.
+/** One cell of the contact sheet: a square frame with zero radius, and its
+ * annotation directly beneath in mono — not a card
+ * (`docs/design/specs/design-bench.md`).
+ *
+ * The frame is square and `object-cover` regardless of the run's requested
+ * aspect, because a contact sheet is *uniform* frames — ragged rows are
+ * harder to scan than a cropped thumbnail is misleading, and the lightbox
+ * one click away shows the untouched full-resolution image. Its size is
+ * fixed by the grid track, so nothing reflows when an image lands.
  *
  * The contention and queue-granularity marks sit *beside the latency* rather
  * than floating over the image, because that is the number they qualify:
@@ -72,7 +79,6 @@ interface SampleFrameProps {
  * Thumbnails go through the Next image optimizer (`sizes` set for the grid);
  * only the lightbox's full-res view opts out — see `lightbox.tsx`. */
 export const SampleFrame = ({
-  aspectClassName,
   contended,
   judgment,
   manualRating,
@@ -83,14 +89,20 @@ export const SampleFrame = ({
   runJudgingInFlight,
   sample,
 }: SampleFrameProps) => (
-  <figure className="m-0 flex min-w-0 flex-col border-t border-l border-plate-edge bg-plate">
-    <div className={cn("relative w-full bg-plate", aspectClassName)}>
+  <figure className="m-0 flex min-w-0 flex-col bg-plate">
+    <div className="relative aspect-square w-full bg-plate">
       {sample.status === "completed" && sample.imageUrl !== null ? (
         <button
           // `relative`, not decoration: `next/image` with `fill` positions
           // against its *direct* parent, and a static button would silently
           // size the thumbnail against the page instead of the frame.
-          className="relative block size-full cursor-zoom-in border-0 bg-transparent p-0 focus-visible:outline-plate-ink"
+          //
+          // The hover outline is the only thing telling you a frame opens;
+          // without it the affordance is invisible. `accent-soft` rather than
+          // the forest accent itself, which at 1.9:1 on the plate would not
+          // read — and drawn inside the frame so it never overlaps a
+          // neighbour across the 1px gutter.
+          className="relative block size-full cursor-zoom-in border-0 bg-transparent p-0 outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 hover:outline-accent-soft focus-visible:outline-plate-ink"
           onClick={onOpen}
           type="button"
         >
@@ -98,7 +110,7 @@ export const SampleFrame = ({
             alt={`${sample.modelName ?? sample.modelAlias}, sample ${sample.sampleIndex}`}
             className="rounded-frame object-cover"
             fill
-            sizes="(min-width: 1024px) 280px, (min-width: 640px) 33vw, 50vw"
+            sizes="240px"
             src={sample.imageUrl}
           />
         </button>
@@ -113,7 +125,9 @@ export const SampleFrame = ({
       ) : null}
     </div>
 
-    <figcaption className="flex flex-col gap-1.5 px-3 py-3">
+    <figcaption
+      className={cn("flex flex-col gap-1.5 px-3 py-3", ANNOTATION_MIN_HEIGHT)}
+    >
       <span className="truncate font-mono text-[11px] text-plate-ink">
         {sample.modelAlias}
       </span>
@@ -160,15 +174,18 @@ export const SampleFrame = ({
         </>
       )}
 
+      {/* Reserving blank lines keeps the judge verdict on one baseline across
+          the row. A failed frame has no latency, cost or verdict to align to,
+          so it opts out rather than carrying a stray gap. */}
       <ParamLine
         label="drops"
         params={sample.droppedParams}
-        reserve={reserveDropsLine}
+        reserve={reserveDropsLine && sample.status !== "failed"}
       />
       <ParamLine
         label="coerces"
         params={sample.coercedParams.map((entry) => entry.param)}
-        reserve={reserveCoercesLine}
+        reserve={reserveCoercesLine && sample.status !== "failed"}
       />
 
       {sample.status === "completed" ? (
