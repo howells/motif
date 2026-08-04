@@ -1,180 +1,186 @@
 # Design spec — Motif Bench
 
-**Surface:** `apps/bench` · **Type:** app UI, developer tool · **Stack:** Next 16, React 19, Tailwind v4 (to be added)
+**Surface:** `apps/bench` · **Type:** app UI, developer tool · **Stack:** Next 16, React 19, Tailwind v4, shadcn/ui (new-york)
+
+**Inherits:** the Patternmode house theme (`~/Sites/patternmode`). This app should feel like it belongs beside the user's other work, not like a separate product.
 
 ## Intent
 
 - **Who:** a designer-engineer choosing an image model for room renders. Technically fluent; model aliases and fal endpoints are their objects, not leakage.
-- **Task:** configure a run, watch it land, compare 23 models on speed / quality / cost, and decide.
-- **Feel:** a laboratory instrument. Calm, precise, trustworthy. Numbers you would quote to someone else.
-- **Hidden:** workflow mechanics, Mastra step names, span ids, table names, run-state machines. Diagnostics live behind a trace link, never in the primary read.
+- **Task:** configure a run, watch it land, compare 23 models on speed / quality / cost, decide.
+- **Feel:** quiet, warm, precise. A well-made instrument on a paper desk — not a dashboard, not a control room.
+- **Hidden:** workflow mechanics, Mastra step names, span ids, table names. Diagnostics behind one trace link.
 
-## The constraint that drives everything
+## Inherited house theme — do not re-litigate
 
-**You cannot judge image quality against white.** A bright surround shifts perceived contrast and colour — it is why photographers evaluate on neutral grey and why darkrooms are dark. This tool exists to compare images. Putting them on white with grey cards, as the current build does, actively degrades the judgement it is asking the user to make.
+Taken directly from Patternmode so the two apps read as siblings:
 
-So: **neutral dark ground, hairline structure, images unframed.** This is a functional requirement, not a mood.
+- **Warm paper ground**, not white. Warm-grey borders. Near-black warm ink.
+- **Inter at 14px / weight 450** — the 450 is deliberate and distinctive; do not round it to 400 or 500.
+- Font features `"cpsp", "cv01", "cv02", "cv11"` on body. These give Inter its Patternmode character (single-storey a alternates, straight-tail l). Non-negotiable.
+- **One accent: deep forest green** `#315c4b`. Restrained — it is a ring/accent colour, not a fill-everything brand colour.
+- Radius 8px. Borders-only depth, no shadows.
+- Prose line-height 1.65, UI line-height 1.5.
 
-## Aesthetic direction
+## The one deliberate departure
 
-- **Tone:** industrial / instrument. Photographic lab, not "dark mode SaaS".
-- **Memorable element:** the **contact sheet** — samples at uniform size on neutral ground, hairline gutters, no card chrome, no rounded corners, metadata annotated *beneath* the frame in mono. It reads as a photographic contact sheet because that is exactly what it is.
-- **Second move:** the verdict band is **not four cards**. It is four large mono readouts separated by hairline rules — an instrument panel. This removes four wrapper elements and increases legibility.
-- **Colour strategy:** warm-neutral near-black ground, one accent (darkroom safelight amber) reserved for the primary action and best-in-row marks.
-- **Motion:** almost none. Samples fade in as they resolve (150ms ease-out). Nothing else moves.
+**The image comparison surface is a neutral dark plate, not warm paper.**
 
-## Defaults consciously avoided
+You cannot judge image quality against warm white. A bright, slightly-yellow surround shifts perceived contrast and colour temperature — which is exactly the judgement this tool asks the user to make across 23 models. Photographers evaluate on neutral grey; Lightroom and Capture One ship light chrome with a neutral canvas for this reason.
 
-1. White background + grey cards (what exists now, and wrong for this domain).
-2. Blue primary button.
-3. Uniform `rounded-lg` cards in an even grid.
+So: **house theme for all chrome, neutral dark plate for the contact sheet and lightbox only.** This is one scoped exception with a stated reason, not a second theme. Everything outside the image bed follows Patternmode exactly.
 
-## Typography
-
-**IBM Plex Sans** (UI) + **IBM Plex Mono** (all numerics and data). Plex was drawn for IBM's technical products; it carries engineered character without novelty, and its mono has true tabular figures. Not Geist (now ubiquitous), not Inter (the default), never Instrument Serif.
-
-- UI body: Plex Sans 14px / 1.5, weight 400. Labels 12px weight 500.
-- **All numbers, ids, endpoints, aliases, durations, costs, dimensions: Plex Mono with `font-variant-numeric: tabular-nums`.** Columns of numbers must align or comparison is guesswork.
-- Verdict readouts: Plex Mono 32px, weight 500, tight tracking.
-- No display face. App chrome never uses display type.
-- Mono small-caps: permitted **only** on the four verdict labels and column headers — numeric/data-adjacent, ≤2 words. Not on section headings, not on chips, not on card labels.
-
-## Palette — Tailwind v4 `@theme`, OKLCH
+## Tokens — Tailwind v4 `@theme`
 
 ```css
 @theme {
-  /* ground → raised: 2-4% lightness steps, warm-neutral hue 60 */
-  --color-ground:     oklch(0.175 0.006 60);  /* canvas */
-  --color-plate:      oklch(0.213 0.005 60);  /* panels, contact-sheet bed */
-  --color-raised:     oklch(0.252 0.005 60);  /* inputs, hovered rows */
-  --color-line:       oklch(0.318 0.006 60);  /* hairlines */
-  --color-line-soft:  oklch(0.262 0.006 60);  /* interior rules */
+  /* ── Inherited from Patternmode (exact) ───────────────────────── */
+  --color-background:   oklch(0.9875 0.0026 106.4); /* #fbfbf9 warm paper */
+  --color-surface:      oklch(1.0000 0.0000 90);    /* #ffffff panels */
+  --color-surface-soft: oklch(0.9698 0.0054 95.1);  /* #f6f5f1 inset rows */
+  --color-ink:          oklch(0.2300 0.0038 106.7); /* #1d1d1b */
+  --color-muted:        oklch(0.5617 0.0123 95.3);  /* #77756d secondary */
+  --color-border:       oklch(0.9099 0.0071 88.6);  /* #e3e1dc */
+  --color-border-soft:  oklch(0.9432 0.0070 88.6);  /* #eeece7 interior rules */
+  --color-accent:       oklch(0.4380 0.0563 166.3); /* #315c4b forest */
+  --color-accent-soft:  oklch(0.9308 0.0133 159.9); /* #e1ebe5 */
 
-  --color-ink:        oklch(0.955 0.004 60);  /* primary text */
-  --color-ink-dim:    oklch(0.735 0.005 60);  /* secondary */
-  --color-ink-faint:  oklch(0.560 0.006 60);  /* tertiary, annotations */
+  /* ── Bench-only: the image plate ──────────────────────────────── */
+  --color-plate:        oklch(0.2450 0.0020 106);   /* neutral, near-achromatic */
+  --color-plate-edge:   oklch(0.3200 0.0020 106);   /* gutter between frames */
+  --color-plate-ink:    oklch(0.9200 0.0020 106);   /* annotation on plate */
+  --color-plate-muted:  oklch(0.6600 0.0020 106);
 
-  --color-safelight:  oklch(0.790 0.150 68);  /* THE accent — primary action, best-in-row */
-  --color-safelight-hover: oklch(0.840 0.150 68);
+  /* ── Semantic ─────────────────────────────────────────────────── */
+  --color-ok:   oklch(0.4380 0.0563 166.3);         /* completed — reuse accent */
+  --color-warn: oklch(0.5900 0.1000 75);            /* partial, contended, inconclusive */
+  --color-bad:  oklch(0.5100 0.1600 27);            /* failed */
 
-  --color-good:       oklch(0.720 0.120 152); /* completed */
-  --color-warn:       oklch(0.780 0.105 95);  /* partial, contended, inconclusive */
-  --color-bad:        oklch(0.640 0.185 27);  /* failed */
-
-  --radius-frame: 0px;   /* images: never rounded */
-  --radius-control: 3px; /* buttons, inputs — barely there */
+  --radius: 8px;
+  --radius-frame: 0px;  /* image frames never round */
 }
 ```
 
-Accent discipline: **safelight appears at most twice per screen** — the primary action, and best-in-row marks in the comparison table. Everything else is neutral or semantic. Countable rule.
+The plate tokens are near-achromatic on purpose (chroma ≤ 0.002). Any hue in the image surround biases colour judgement.
 
-## Spacing & structure
+## Typography
 
-- Base unit 4px. Section gap 32px. Panel padding 20px. Control height 32px.
-- Hairline `1px solid var(--color-line)`. **Borders only — no shadows anywhere.** Depth comes from the surface ladder.
-- Max content width 1440px; the contact sheet is allowed to use all of it.
+- UI: **Inter**, 14px, weight 450, line-height 1.5. Feature settings as above.
+- Data: the Patternmode mono stack (`SFMono-Regular, SF Mono, Consolas, Liberation Mono, Menlo, monospace`) with `font-variant-numeric: tabular-nums`.
+- **Every comparable number is mono + tabular** — latency, cost, dimensions, scores. Columns that don't align can't be compared.
+- Verdict readouts: mono, 28px, weight 500.
+- Headings: Inter 14px weight 500. **No display type anywhere** — Patternmode keeps headings at body size and earns hierarchy through spacing and rules, and so does this.
+- Mono small-caps: verdict labels and table column headers only. Nowhere else.
+
+## Components — shadcn/ui, new-york
+
+Install into `apps/bench` with `components.json` matching Patternmode's: `style: new-york`, `rsc: true`, `baseColor: neutral`, `cssVariables: true`, `iconLibrary: lucide`.
+
+Use: `button`, `input`, `select`, `checkbox`, `switch`, `badge`, `table`, `dialog`, `skeleton`, `tooltip`.
+
+Map shadcn's variables onto the tokens above so the primitives inherit the house theme rather than shipping default neutral.
+
+Do **not** use `card` for the contact sheet or the verdict band. Both are deliberately card-free.
 
 ## Layout
 
 ### `/` — composer
 
-Two columns on desktop. The run form is the work; history is reference.
-
 ```
-┌────────────────────────────────────────────────────────────────┐
-│ MOTIF BENCH                                    23 models · fal │  ← hairline under
-├──────────────────────────────────────┬─────────────────────────┤
-│ prompt                               │ RECENT                  │
-│ ┌──────────────────────────────────┐ │ ─────────────────────── │
-│ │                                  │ │ 3 models   14:23  $0.05 │
-│ └──────────────────────────────────┘ │ completed               │
-│                                      │ ─────────────────────── │
-│ models            5 of 23 selected   │ 2 models   14:18  $0.00 │
-│ budget    [chip][chip][chip][chip]   │ partial                 │
-│ standard  [chip][chip][chip][chip]   │                         │
-│ premium   [chip][chip][chip]         │                         │
-│                                      │                         │
-│ samples 1   parallel 1   1:1   1K    │                         │
-│ seed ○ 42          judge after ●     │                         │
-│ stop above $2.00                     │                         │
-│                                      │                         │
-│ [ preview ]                          │                         │
-│ ── dry run ─────────────────────────  │                         │
-│ MODEL      SENDS        DROPS   EST  │                         │
-│ flux-fast  square_hd    resltn  .003 │                         │
-│ grok-image 3:2          —       .020 │                         │
-│                                      │                         │
-│ [ RUN — $0.023 ]  ← safelight        │                         │
-└──────────────────────────────────────┴─────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ Motif Bench                                    23 models · fal   │
+├────────────────────────────────────────────┬─────────────────────┤
+│ Prompt                                     │ Recent              │
+│ ┌────────────────────────────────────────┐ │ ─────────────────── │
+│ │                                        │ │ 3 models  14:23     │
+│ └────────────────────────────────────────┘ │ completed    $0.05  │
+│                                            │ ─────────────────── │
+│ Models                   5 of 23 selected  │ 2 models  14:18     │
+│ Budget    ▢flux-fast ▢flux2-turbo ▢qwen    │ partial      $0.00  │
+│ Standard  ▢seedream4 ▢ideogram ▢recraft    │                     │
+│ Premium   ▢banana2 ▢gpt ▢gemini3           │                     │
+│                                            │                     │
+│ Samples 1   Parallel 1   1:1   1K          │                     │
+│ Seed ▢ 42            Judge after ▣         │                     │
+│ Stop above $2.00                           │                     │
+│                                            │                     │
+│ [Preview]                                  │                     │
+│ ───────────────────────────────────────    │                     │
+│ Model       Sends       Drops     Est      │                     │
+│ flux-fast   square_hd   resltn    $0.0030  │                     │
+│ grok-image  3:2         —         $0.0200  │                     │
+│                                            │                     │
+│ [ Run — $0.023 ]  ← accent, only fill      │                     │
+└────────────────────────────────────────────┴─────────────────────┘
 ```
 
-Model chips: mono alias + mono price, 1px border, `--color-raised` when selected with a safelight-tinted left edge (2px). Tier labels are quiet sentence-case in `--color-ink-faint`, not uppercase eyebrows.
+Model chips are `checkbox`-backed toggles: 1px border, `--color-surface-soft` when selected with an accent left edge. Tier labels sentence-case in `--color-muted` — not uppercase eyebrows.
 
 ### `/runs/[id]` — results
 
-The contact sheet is the page. Verdict band above it, comparison below.
-
 ```
-┌────────────────────────────────────────────────────────────────┐
-│ ← runs   "a well-lit modern living room…"    completed · mock  │
-│ 3 models × 1 sample · 1:1 · 1K · seed unset · $0.05            │
-├────────────────────────────────────────────────────────────────┤
-│  FASTEST      │  BEST QUALITY  │  CHEAPEST   │  BEST VALUE     │  ← no cards,
-│  1.53s        │  2.59          │  $0.0028    │  1087 pts/$     │    hairline rules
-│  seedream4    │  seedream4     │  flux-fast  │  flux-fast      │    between
-├────────────────────────────────────────────────────────────────┤
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐                        │
-│ │          │ │          │ │          │   ← images flush, no    │
-│ │          │ │          │ │          │     radius, 1px gutter  │
-│ └──────────┘ └──────────┘ └──────────┘                        │
-│ flux-fast     grok-image    seedream4    ← mono, beneath frame │
-│ 3.12s 1024²   5.66s 1024²   1.53s 1024²                       │
-│ $0.0028       $0.0200       $0.0300                            │
-│ competent     inconclusive  competent                          │
-├────────────────────────────────────────────────────────────────┤
-│ COMPARISON                                                     │
-│ metric         flux-fast    grok-image    seedream4            │
-│ latency p50    3.12s        5.66s         1.53s ◂ best         │
-│ cost / image   $0.0028 ◂    $0.0200       $0.0300              │
-└────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ ← Runs   "a well-lit modern living room…"     completed · mock   │
+│ 3 models × 1 sample · 1:1 · 1K · $0.05                           │
+├──────────────────────────────────────────────────────────────────┤
+│  FASTEST     │  BEST QUALITY  │  CHEAPEST   │  BEST VALUE        │
+│  1.53s       │  2.59          │  $0.0028    │  1087 pts/$        │
+│  seedream4   │  seedream4     │  flux-fast  │  flux-fast         │
+├──────────────────────────────────────────────────────────────────┤
+│ ▓▓▓▓ dark plate ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+│ ▓ ┌────────┐┌────────┐┌────────┐                               ▓ │
+│ ▓ │        ││        ││        │  1px gutter, no radius        ▓ │
+│ ▓ └────────┘└────────┘└────────┘                               ▓ │
+│ ▓ flux-fast   grok-image  seedream4   ← mono, on plate         ▓ │
+│ ▓ 3.12s       5.66s       1.53s                                ▓ │
+│ ▓ $0.0028     $0.0200     $0.0300                              ▓ │
+│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ │
+├──────────────────────────────────────────────────────────────────┤
+│ Comparison                                                       │
+│ Metric          flux-fast     grok-image    seedream4            │
+│ Latency p50     3.12s         5.66s         1.53s ◂              │
+│ Cost / image    $0.0028 ◂     $0.0200       $0.0300              │
+└──────────────────────────────────────────────────────────────────┘
 ```
 
-Mobile: single column; contact sheet becomes 2-up; verdict band stacks to a 2×2 grid keeping the hairline rules.
+The plate bleeds to the container edge — it is a surface the images sit on, not a card. Verdict band: hairline rules between readouts, no boxes.
+
+Mobile: single column, contact sheet 2-up, verdict band 2×2 keeping the rules.
 
 ## States
 
-- **Generating:** the frame holds its aspect and shows a slow neutral shimmer — never a spinner, never a layout shift when the image lands.
-- **Failed:** frame fills `--color-plate` with the error code in mono `--color-bad` and one plain-language line. Never provider text.
-- **Not judged:** quality slot reads `not judged` in `--color-ink-faint`. Never `—` alone, never zero.
-- **Inconclusive:** `--color-warn`, with the reason on hover. This is a real outcome, not an error.
+- **Generating:** `skeleton` at the frame's aspect on the plate. No spinner, no layout shift when the image lands.
+- **Failed:** frame fills `--color-plate`, error code in mono `--color-bad`, one plain sentence. Never provider text.
+- **Not judged:** `not judged` in `--color-plate-muted`. Never `—`, never 0.
+- **Inconclusive:** `--color-warn` with the reason on hover. A real outcome, not an error.
 - **Empty history:** "No runs yet. Pick a few models and preview a dry run — it costs nothing."
-- **Contended:** when parallel > 1, a `contended` mark sits with the latency, because those numbers are not comparable to serial ones.
-- **gpt2:** a `±3s` mark beside its latency — queue polling granularity.
+- **Contended** (parallel > 1) and **±3s** (gpt2 queue granularity) marks sit beside the affected latency, because those numbers aren't comparable to the rest.
 
 ## Abstraction rules
 
-Keep visible (user's objects): model alias, endpoint, dropped/coerced params, latency, cost, dimensions, error code, judge level.
+Visible (the user's objects): model alias, endpoint, dropped/coerced params, latency, cost, dimensions, error code, judge level.
 
-Translate or hide: workflow/step names, Mastra internals, span and trace ids (behind a single "trace" link), table and column names, run-state enum values (`partial` → "partial — some models failed").
+Hidden or translated: workflow and step names, Mastra internals, span/trace ids (one "trace" link), table and column names, raw state enums (`partial` → "partial — some models failed").
 
 ## Complexity guardrails — countable
 
-- **Zero** `box-shadow` in the app. Depth is the surface ladder plus hairlines.
-- **Zero** `border-radius` on any image frame.
-- **At most 2** safelight-coloured elements per screen.
+- **Zero** `box-shadow`.
+- **Zero** `border-radius` on image frames.
+- **At most 2** accent-filled elements per screen.
 - **At most 4** type sizes per screen.
-- **Zero** nested cards. The contact sheet is a grid on a bed, not cards in a card.
-- **Zero** `transition-all` — name the properties.
-- Every number that can be compared across models is mono + `tabular-nums`.
+- **Zero** nested cards; zero `Card` around the contact sheet or verdict band.
+- **Zero** `transition-all`.
+- Every comparable number is mono + `tabular-nums`.
+- Exactly **one** dark surface on the page: the image plate.
 
 ## Verification checklist
 
-- [ ] Images sit on `--color-plate` or darker, never on white.
-- [ ] Verdict band contains no card/panel wrappers.
-- [ ] Safelight count ≤ 2 per screen.
-- [ ] All comparable numerics mono + tabular.
-- [ ] Contrast: `--color-ink` on `--color-ground` ≥ 12:1; `--color-ink-dim` ≥ 5:1; `--color-ink-faint` ≥ 3.5:1 (annotation only, never sole carrier of meaning).
-- [ ] Every status also carries a text label, never colour alone.
-- [ ] Focus rings visible on every control (2px safelight, 2px offset).
+- [ ] Images sit only on `--color-plate`, never on paper or white.
+- [ ] Chrome matches Patternmode: `#fbfbf9` ground, Inter 450/14px, `cv01 cv02 cv11` applied, `#315c4b` accent, 8px radius.
+- [ ] Verdict band and contact sheet contain no card wrappers.
+- [ ] Accent-filled elements ≤ 2 per screen.
+- [ ] Contrast: ink on paper ≥ 12:1; muted ≥ 4.5:1; plate-ink on plate ≥ 11:1.
+- [ ] Every status carries a text label, never colour alone.
+- [ ] Focus ring visible on every control (accent, 2px offset).
 - [ ] No layout shift when a sample resolves.
-- [ ] Reduced-motion: shimmer becomes a static tint.
+- [ ] Reduced-motion: skeleton shimmer becomes a static tint.
