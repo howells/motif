@@ -1,0 +1,28 @@
+{
+  "name": "@motif/bench-env",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/config.ts",
+    "./config": "./src/config.ts",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "lint": "howells-check src",
+    "lint:fix": "howells-fix src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@howells/envy": "^0.3.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@howells/lint": "^1.1.0",
+    "@howells/typescript-config": "^0.1.6",
+    "@types/node": "^26.1.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
+}
