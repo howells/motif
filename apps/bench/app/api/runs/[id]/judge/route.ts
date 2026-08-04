@@ -32,7 +32,7 @@ export async function POST(
     return jsonValidationError(parsed.error);
   }
 
-  const started = startJudging(id, parsed.data.judgeModel);
+  const started = await startJudging(id, parsed.data.judgeModel);
   if (!started) {
     return jsonError(404, "RUN_NOT_FOUND", `No run with id "${id}".`);
   }

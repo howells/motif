@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const detail = getRun(id);
+  const detail = await getRun(id);
   if (!detail) {
     return jsonError(404, "RUN_NOT_FOUND", `No run with id "${id}".`);
   }

@@ -16,9 +16,8 @@ import { RunSpecInputSchema } from "@/lib/runs/validation";
 
 export const dynamic = "force-dynamic";
 
-// oxlint-disable-next-line require-await -- Route Handlers must export an async function; listRuns is a synchronous in-memory read
 export async function GET() {
-  return jsonOk({ runs: listRuns() });
+  return jsonOk({ runs: await listRuns() });
 }
 
 export async function POST(request: Request) {
@@ -35,7 +34,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { runId } = createRun(parsed.data);
+    const { runId } = await createRun(parsed.data);
     return jsonOk({ runId }, { status: 201 });
   } catch (error) {
     if (error instanceof CostCapExceededError) {

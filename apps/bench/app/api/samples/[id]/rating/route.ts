@@ -29,7 +29,7 @@ export async function PUT(
     return jsonValidationError(parsed.error);
   }
 
-  const rating = setManualRating({
+  const rating = await setManualRating({
     note: parsed.data.note ?? null,
     sampleId: id,
     stars: parsed.data.stars,

@@ -1,27 +1,42 @@
 /**
  * The app's persistence seam. Every route handler under `app/api/**` reads
- * and writes through this module, never through `mock-store.ts` directly —
- * so the day a database is provisioned (`docs/arc/bench/BRIEF.md`'s
- * "Reality check" no longer applies), only this file's implementation
- * changes; every route handler, every React Query hook, and every
- * component stays exactly as written.
+ * and writes through this module, never through `mock-store.ts` or
+ * `db-store.ts` directly — so this is the ONLY place that decides which
+ * implementation is live. `BENCH_MOCK=1` selects `mock-store.ts` (the
+ * original in-process `Map`, unchanged); anything else selects
+ * `db-store.ts` (real Postgres, `docs/arc/bench/BRIEF.md`'s "Reality check"
+ * no longer applies once a database is provisioned). Never an env check
+ * inside `lib/` helpers or components — one decision, one place, so a fake
+ * run can never reach a real longitudinal stat regardless of which path a
+ * given request took.
  *
- * This phase ships exactly one implementation, `mock-store.ts`, because
- * there is no database to fail over to (the brief: "There is no database
- * and no fal access... Build against the mock executors"). That is a
- * narrower claim than "this file hard-codes mock behavior" — the functions
- * below are the real repository contract; `mock-store.ts` just happens to
- * be the only thing satisfying it yet. A real Postgres-backed
- * implementation is later-phase work, not a redesign of this seam.
+ * Both modules export the same surface (`createRun`, `getRun`, `listRuns`,
+ * `startJudging`, `setManualRating`, `sampleBelongsToRun`) —
+ * `mock-store.ts`'s functions are synchronous, `db-store.ts`'s are async.
+ * Every export below returns a `Promise` regardless of which implementation
+ * is selected, so route handlers always `await` and never need to know
+ * which one is live. `useMockStore` is checked inline at each call site
+ * (rather than pre-selecting a single function reference) — deliberately:
+ * a stored union of a sync and an async function forwarded uniform types to
+ * `tsc` but not to oxlint's simpler union-call inference, so branching per
+ * call keeps every function's return type unambiguous.
  */
+import {
+  createRun as dbCreateRun,
+  getRun as dbGetRun,
+  listRuns as dbListRuns,
+  sampleBelongsToRun as dbSampleBelongsToRun,
+  setManualRating as dbSetManualRating,
+  startJudging as dbStartJudging,
+} from "./db-store";
 import { buildPreview } from "./mock-engine";
 import {
-  createRun as storeCreateRun,
-  getRun as storeGetRun,
-  listRuns as storeListRuns,
-  sampleBelongsToRun,
-  setManualRating as storeSetManualRating,
-  startJudging as storeStartJudging,
+  createRun as mockCreateRun,
+  getRun as mockGetRun,
+  listRuns as mockListRuns,
+  sampleBelongsToRun as mockSampleBelongsToRun,
+  setManualRating as mockSetManualRating,
+  startJudging as mockStartJudging,
 } from "./mock-store";
 import type {
   ManualRatingRecord,
@@ -33,40 +48,60 @@ import type {
 
 export { CostCapExceededError, MissingPricingError } from "./mock-engine";
 
+// oxlint-disable-next-line no-restricted-properties -- this module IS the composition-root env-check boundary (BRIEF.md: one decision, one place); BENCH_MOCK is optional so a raw read never throws
+const useMockStore = process.env.BENCH_MOCK === "1";
+
 /** Dry-run preview: pure alignment + worst-case cost, zero fal calls, zero
  * persistence. Exposed from the repository module for a single import
- * surface even though it never touches the store. */
+ * surface even though it never touches either store. */
 export const previewRun = (spec: RunSpecInput): PreviewResult =>
   buildPreview(spec);
 
 /** Throws `CostCapExceededError` / `MissingPricingError` — route handlers
  * map both to a 400 with the closed reason, never a raw 500. The cost-cap
- * assertion happens inside `mockStore.createRun` itself, before any sample
- * row is written (`BRIEF.md` rule 5: the cap must throw before any provider
- * work, and here "provider work" is standing up the run at all). */
-export const createRun = (spec: RunSpecInput): { runId: string } =>
-  storeCreateRun(spec);
+ * assertion happens inside the selected store's `createRun` itself, before
+ * any sample row is written (`BRIEF.md` rule 5: the cap must throw before
+ * any provider work, and here "provider work" is standing up the run at
+ * all). */
+export const createRun = async (
+  spec: RunSpecInput
+): Promise<{ runId: string }> =>
+  useMockStore ? mockCreateRun(spec) : await dbCreateRun(spec);
 
-export const listRuns = (): RunSummary[] => storeListRuns();
+export const listRuns = async (): Promise<RunSummary[]> =>
+  useMockStore ? mockListRuns() : await dbListRuns();
 
-export const getRun = (runId: string): RunDetail | null => storeGetRun(runId);
+export const getRun = async (runId: string): Promise<RunDetail | null> =>
+  useMockStore ? mockGetRun(runId) : await dbGetRun(runId);
 
-export const startJudging = (runId: string, judgeModel: string): boolean => {
-  const existing = storeGetRun(runId);
+export const startJudging = async (
+  runId: string,
+  judgeModel: string
+): Promise<boolean> => {
+  const existing = await getRun(runId);
   if (!existing) {
     return false;
   }
-  storeStartJudging(runId, judgeModel);
+  if (useMockStore) {
+    mockStartJudging(runId, judgeModel);
+  } else {
+    await dbStartJudging(runId, judgeModel);
+  }
   return true;
 };
 
-export const setManualRating = (input: {
+export const setManualRating = async (input: {
   note?: string | null;
   sampleId: string;
   stars: number;
-}): ManualRatingRecord | null => {
-  if (sampleBelongsToRun(input.sampleId) === null) {
+}): Promise<ManualRatingRecord | null> => {
+  const belongsToRun = useMockStore
+    ? mockSampleBelongsToRun(input.sampleId)
+    : await dbSampleBelongsToRun(input.sampleId);
+  if (belongsToRun === null) {
     return null;
   }
-  return storeSetManualRating(input);
+  return useMockStore
+    ? mockSetManualRating(input)
+    : await dbSetManualRating(input);
 };
