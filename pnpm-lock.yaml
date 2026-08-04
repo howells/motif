@@ -130,6 +130,9 @@ importers:
       '@howells/motif-sdk':
         specifier: workspace:*
         version: link:../motif-sdk
+      ai:
+        specifier: ^7.0.51
+        version: 7.0.51(zod@4.4.3)
     devDependencies:
       '@howells/lint':
         specifier: ^1.1.0
@@ -210,7 +213,7 @@ importers:
     dependencies:
       '@howells/mastra':
         specifier: 0.1.2
-        version: 0.1.2(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@mastra/langfuse@1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3))(@mastra/loggers@1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(@mastra/observability@1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3))(@mastra/pg@1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(pg@8.22.0)(typescript@6.0.3)(zod@4.4.3)
+        version: 0.1.2(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@mastra/langfuse@1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3))(@mastra/loggers@1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(@mastra/observability@1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3))(@mastra/pg@1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(pg@8.22.0)(typescript@6.0.3)(zod@4.4.3)
       '@howells/motif-sdk':
         specifier: workspace:*
         version: link:../motif-sdk
@@ -219,19 +222,19 @@ importers:
         version: 0.1.1(@neondatabase/serverless@1.1.0)(drizzle-kit@1.0.0-rc.4)(drizzle-orm@1.0.0-rc.4(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.20.3)(pg@8.22.0)(zod@4.4.3))(pg@8.22.0)
       '@mastra/core':
         specifier: 1.55.0
-        version: 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+        version: 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
       '@mastra/langfuse':
         specifier: ^1.4.6
-        version: 1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3)
+        version: 1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3)
       '@mastra/loggers':
         specifier: ^1.2.0
-        version: 1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
+        version: 1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
       '@mastra/observability':
         specifier: ^1.16.3
-        version: 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
+        version: 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
       '@mastra/pg':
         specifier: ^1.18.1
-        version: 1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
+        version: 1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
       '@motif/bench-core':
         specifier: workspace:*
         version: link:../bench-core
@@ -259,7 +262,7 @@ importers:
         version: 8.20.3
       mastra:
         specifier: ^1.21.0
-        version: 1.21.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
+        version: 1.21.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
       typescript:
         specifier: ^6.0.3
         version: 6.0.3
@@ -376,6 +379,12 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/gateway@4.0.40':
+    resolution: {integrity: sha512-poNySlk+zSe04M4v0wgJKt+mzY6Vk6abcQid58YZnFUBJYo6VwfsFUaW7oINoR1vYYB7Ne6eqY1doSxYKt0KDg==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/google@4.0.12':
     resolution: {integrity: sha512-4Rw4viFwH2Wprx6OssZzhV/KgNWaA7qYr5Kg28AlZ7r3sEvyXH0kDZtZok7onPjr0RuFTg2EjCjTIeoCesg0Ww==}
     engines: {node: '>=22'}
@@ -406,6 +415,12 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
+  '@ai-sdk/provider-utils@5.0.20':
+    resolution: {integrity: sha512-9W8c2mXiGgbo9sBBT4ybEWF8znxla2CO8VTim8t5oCCLP4aDH4o6RvkHfwL/iLC6mEbO4a6LpS2FBbQHccU+ig==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
   '@ai-sdk/provider-utils@5.0.7':
     resolution: {integrity: sha512-OSm5/5kdrHa11WIOo5LYgDKnxYWp5aB/wx5EXRHi0jpUGduMDeB6oht9U6p+UNNWIP3F/EqPpV8d7vdP/iRnqg==}
     engines: {node: '>=22'}
@@ -422,6 +437,10 @@ packages:
 
   '@ai-sdk/provider@4.0.3':
     resolution: {integrity: sha512-e0CpNWJUY7OxAFAnCZkw+ri9QOHWwTs1tXP42782KFGCU07qt8NiXCrCVowyCB5dP2r5/Uls+g2oPd8kOJn9dw==}
+    engines: {node: '>=22'}
+
+  '@ai-sdk/provider@4.0.5':
+    resolution: {integrity: sha512-9WAerTaPU2jcVi8dh8x27tySEuLur1Kfg7Go74GuCmsC/2MDSvrTkrK8ZrXWjryEevKfcPPmO1enveE7eqlzoA==}
     engines: {node: '>=22'}
 
   '@ai-sdk/replicate@3.0.8':
@@ -3235,6 +3254,12 @@ packages:
 
   ai@7.0.22:
     resolution: {integrity: sha512-iAXYwQtR18qN7GXwNmGVAQM4uSJOh2+nZ5RP9NtDXfH5d4tlYyYzAM133O3U+eVcyWrvNRzecN9yW58xpCdfMg==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4.1.8
+
+  ai@7.0.51:
+    resolution: {integrity: sha512-yyxSDZmlpTZs2oepyjzHMXrPk0mJ2ITpw8TfXYiF53yo0WkQJ1qm6MbpUiYclh640D35nNJ8bq57RffSrX+Qzg==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -6470,6 +6495,10 @@ packages:
     resolution: {integrity: sha512-xXnp4kTyor2Zq+J1FfPI6Eq3ew5h6Vl0F/8d9XU5zZQf1tX9s2Su1/3PiMmUANFULpmksxkClamIZcaUqryHsQ==}
     engines: {node: '>=20.18.1'}
 
+  undici@7.29.0:
+    resolution: {integrity: sha512-IDxfleLmmbSskfWSUATiN1nfn2rDuvnMOqb5CWR92iIfojA0Ud+ulOAAEQ57LPr9rWmsreUyf5lwyao+7GNNVw==}
+    engines: {node: '>=20.18.1'}
+
   unicorn-magic@0.3.0:
     resolution: {integrity: sha512-+QBBXBCvifc56fsbuxZQ6Sic3wqqc3WWaqxs58gvJrcOuN83HGTCwz3oS5phzU9LthRNE9VrJCFCLUgHeeFnfA==}
     engines: {node: '>=18'}
@@ -6824,6 +6853,13 @@ snapshots:
       '@vercel/oidc': 3.2.0
       zod: 4.4.3
 
+  '@ai-sdk/gateway@4.0.40(zod@4.4.3)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.5
+      '@ai-sdk/provider-utils': 5.0.20(zod@4.4.3)
+      '@vercel/oidc': 3.2.0
+      zod: 4.4.3
+
   '@ai-sdk/google@4.0.12(zod@4.4.3)':
     dependencies:
       '@ai-sdk/provider': 4.0.3
@@ -6858,6 +6894,15 @@ snapshots:
       eventsource-parser: 3.0.8
       zod: 4.4.3
 
+  '@ai-sdk/provider-utils@5.0.20(zod@4.4.3)':
+    dependencies:
+      '@ai-sdk/provider': 4.0.5
+      '@standard-schema/spec': 1.1.0
+      '@workflow/serde': 4.1.0
+      eventsource-parser: 3.0.8
+      undici: 7.29.0
+      zod: 4.4.3
+
   '@ai-sdk/provider-utils@5.0.7(zod@4.4.3)':
     dependencies:
       '@ai-sdk/provider': 4.0.3
@@ -6875,6 +6920,10 @@ snapshots:
       json-schema: 0.4.0
 
   '@ai-sdk/provider@4.0.3':
+    dependencies:
+      json-schema: 0.4.0
+
+  '@ai-sdk/provider@4.0.5':
     dependencies:
       json-schema: 0.4.0
 
@@ -7578,15 +7627,15 @@ snapshots:
       - svelte
       - vite-plus
 
-  '@howells/mastra@0.1.2(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@mastra/langfuse@1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3))(@mastra/loggers@1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(@mastra/observability@1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3))(@mastra/pg@1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(pg@8.22.0)(typescript@6.0.3)(zod@4.4.3)':
+  '@howells/mastra@0.1.2(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@mastra/langfuse@1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3))(@mastra/loggers@1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(@mastra/observability@1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3))(@mastra/pg@1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)))(pg@8.22.0)(typescript@6.0.3)(zod@4.4.3)':
     dependencies:
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
       zod: 4.4.3
     optionalDependencies:
-      '@mastra/langfuse': 1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3)
-      '@mastra/loggers': 1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
-      '@mastra/observability': 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
-      '@mastra/pg': 1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
+      '@mastra/langfuse': 1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3)
+      '@mastra/loggers': 1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
+      '@mastra/observability': 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
+      '@mastra/pg': 1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
       pg: 8.22.0
       typescript: 6.0.3
 
@@ -7804,7 +7853,7 @@ snapshots:
       js-yaml: 4.1.1
       tinyglobby: 0.2.16
 
-  '@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)':
+  '@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)':
     dependencies:
       '@a2a-js/sdk': 0.3.14(@grpc/grpc-js@1.14.4)(express@5.2.1)
       '@ai-sdk/provider-utils-v5': '@ai-sdk/provider-utils@3.0.30(zod@4.4.3)'
@@ -7820,7 +7869,7 @@ snapshots:
       '@sindresorhus/slugify': 2.2.1
       '@standard-schema/spec': 1.1.0
       ajv: 8.20.0
-      chat: 4.36.0(ai@7.0.22(zod@4.4.3))(zod@4.4.3)
+      chat: 4.36.0(ai@7.0.51(zod@4.4.3))(zod@4.4.3)
       croner: 10.0.1
       dotenv: 17.4.2
       execa: 9.6.1
@@ -7850,14 +7899,14 @@ snapshots:
       - utf-8-validate
       - workflow
 
-  '@mastra/deployer@1.55.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)':
+  '@mastra/deployer@1.55.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)':
     dependencies:
       '@babel/core': 8.0.1
       '@babel/preset-typescript': 8.0.1(@babel/core@8.0.1)
       '@babel/traverse': 8.0.4
       '@hono/node-ws': 1.3.1(@hono/node-server@1.19.14(hono@4.12.14))(hono@4.12.14)
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
-      '@mastra/server': 1.55.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/server': 1.55.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
       '@optimize-lodash/rollup-plugin': 5.1.0(rollup@4.62.4)
       '@rollup/plugin-alias': 6.0.0(rollup@4.62.4)
       '@rollup/plugin-commonjs': 29.0.2(rollup@4.62.4)
@@ -7888,13 +7937,13 @@ snapshots:
       - utf-8-validate
       - zod
 
-  '@mastra/langfuse@1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3)':
+  '@mastra/langfuse@1.4.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(zod@4.4.3)':
     dependencies:
       '@langfuse/client': 5.10.0(@opentelemetry/api@1.9.1)
       '@langfuse/otel': 5.10.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/exporter-trace-otlp-http@0.218.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
-      '@mastra/observability': 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
-      '@mastra/otel-exporter': 1.3.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/observability': 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
+      '@mastra/otel-exporter': 1.3.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
     transitivePeerDependencies:
@@ -7902,21 +7951,21 @@ snapshots:
       - '@opentelemetry/exporter-trace-otlp-http'
       - zod
 
-  '@mastra/loggers@1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))':
+  '@mastra/loggers@1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))':
     dependencies:
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
       pino: 10.3.1
       pino-pretty: 13.1.3
 
-  '@mastra/observability@1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)':
+  '@mastra/observability@1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)':
     dependencies:
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
       zod: 4.4.3
 
-  '@mastra/otel-exporter@1.3.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)':
+  '@mastra/otel-exporter@1.3.6(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)':
     dependencies:
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
-      '@mastra/observability': 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/observability': 1.16.3(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.218.0
       '@opentelemetry/core': 2.10.0(@opentelemetry/api@1.9.1)
@@ -7937,9 +7986,9 @@ snapshots:
     transitivePeerDependencies:
       - zod
 
-  '@mastra/pg@1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))':
+  '@mastra/pg@1.18.1(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))':
     dependencies:
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
       async-mutex: 0.5.0
       pg: 8.22.0
       pg-connection-string: 2.14.0
@@ -7955,9 +8004,9 @@ snapshots:
       zod-from-json-schema-v3: zod-from-json-schema@0.0.5
       zod-to-json-schema: 3.25.2(zod@4.4.3)
 
-  '@mastra/server@1.55.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)':
+  '@mastra/server@1.55.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(zod@4.4.3)':
     dependencies:
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
       hono: 4.12.14
       zod: 4.4.3
 
@@ -9161,6 +9210,13 @@ snapshots:
       '@ai-sdk/provider-utils': 5.0.7(zod@4.4.3)
       zod: 4.4.3
 
+  ai@7.0.51(zod@4.4.3):
+    dependencies:
+      '@ai-sdk/gateway': 4.0.40(zod@4.4.3)
+      '@ai-sdk/provider': 4.0.5
+      '@ai-sdk/provider-utils': 5.0.20(zod@4.4.3)
+      zod: 4.4.3
+
   ajv-formats@3.0.1(ajv@8.18.0):
     optionalDependencies:
       ajv: 8.18.0
@@ -9472,7 +9528,7 @@ snapshots:
 
   character-entities@2.0.2: {}
 
-  chat@4.36.0(ai@7.0.22(zod@4.4.3))(zod@4.4.3):
+  chat@4.36.0(ai@7.0.51(zod@4.4.3))(zod@4.4.3):
     dependencies:
       '@workflow/serde': 4.1.0-beta.2
       mdast-util-to-string: 4.0.0
@@ -9482,7 +9538,7 @@ snapshots:
       remend: 1.3.0
       unified: 11.0.5
     optionalDependencies:
-      ai: 7.0.22(zod@4.4.3)
+      ai: 7.0.51(zod@4.4.3)
       zod: 4.4.3
     transitivePeerDependencies:
       - supports-color
@@ -11082,15 +11138,15 @@ snapshots:
 
   markdown-table@3.0.4: {}
 
-  mastra@1.21.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3):
+  mastra@1.21.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3):
     dependencies:
       '@babel/parser': 8.0.4
       '@babel/types': 8.0.4
       '@clack/prompts': 1.7.0
       '@expo/devcert': 1.2.1
-      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
-      '@mastra/deployer': 1.55.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
-      '@mastra/loggers': 1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.22(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
+      '@mastra/core': 1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3)
+      '@mastra/deployer': 1.55.0(@hono/node-server@1.19.14(hono@4.12.14))(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))(typescript@6.0.3)(zod@4.4.3)
+      '@mastra/loggers': 1.2.0(@mastra/core@1.55.0(@grpc/grpc-js@1.14.4)(ai@7.0.51(zod@4.4.3))(express@5.2.1)(zod@4.4.3))
       archiver: 8.0.0
       commander: 14.0.3
       dotenv: 17.4.2
@@ -12956,6 +13012,8 @@ snapshots:
   undici@7.25.0:
     optional: true
 
+  undici@7.29.0: {}
+
   unicorn-magic@0.3.0: {}
 
   unified@11.0.5:
@@ -13035,7 +13093,7 @@ snapshots:
       fdir: 6.5.0(picomatch@4.0.4)
       picomatch: 4.0.4
       postcss: 8.5.23
-      rollup: 4.57.1
+      rollup: 4.62.4
       tinyglobby: 0.2.17
     optionalDependencies:
       '@types/node': 26.1.1
