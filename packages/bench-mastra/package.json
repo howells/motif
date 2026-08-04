@@ -1,0 +1,38 @@
+{
+  "name": "@motif/bench-mastra",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "howells-check src",
+    "lint:fix": "howells-fix src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@howells/mastra": "0.1.2",
+    "@howells/motif-sdk": "workspace:*",
+    "@howells/neon": "0.1.1",
+    "@mastra/core": "1.55.0",
+    "@mastra/langfuse": "^1.4.6",
+    "@mastra/loggers": "^1.2.0",
+    "@mastra/observability": "^1.16.3",
+    "@mastra/pg": "^1.18.1",
+    "@motif/bench-core": "workspace:*",
+    "@motif/bench-env": "workspace:*",
+    "pg": "^8.22.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@howells/lint": "^1.1.0",
+    "@howells/typescript-config": "^0.1.6",
+    "@types/node": "^26.1.1",
+    "@types/pg": "^8.20.3",
+    "mastra": "^1.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
+}
