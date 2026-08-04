@@ -32,6 +32,9 @@ importers:
 
   apps/bench:
     dependencies:
+      '@motif/bench-core':
+        specifier: workspace:*
+        version: link:../../packages/bench-core
       '@motif/bench-db':
         specifier: workspace:*
         version: link:../../packages/bench-db
@@ -50,6 +53,9 @@ importers:
       react-dom:
         specifier: 19.2.7
         version: 19.2.7(react@19.2.8)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@howells/lint':
         specifier: ^1.1.0

@@ -1,9 +1,19 @@
-// Placeholder home page. The real benchmark UI (run launcher, leaderboard,
-// judge results) lands in Phase 4 — see docs/arc/bench/BRIEF.md.
+import { Composer } from "@/components/composer/composer";
+import { HistoryList } from "@/components/history/history-list";
+
+// This route reads run history through the app's own store on every
+// request (via the client-side React Query hooks it renders); it must never
+// be statically cached (`docs/arc/bench/BRIEF.md`: "force-dynamic on every
+// DB-backed page and route").
+export const dynamic = "force-dynamic";
+
 const HomePage = () => (
   <main>
-    <h1>Motif Bench</h1>
-    <p>Image-model benchmark harness. UI lands in Phase 4.</p>
+    <Composer />
+    <div className="card">
+      <div className="section-title">History</div>
+      <HistoryList />
+    </div>
   </main>
 );
 

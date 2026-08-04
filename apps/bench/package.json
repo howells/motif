@@ -7,17 +7,19 @@
     "dev": "next dev --port 4400",
     "build": "next build",
     "start": "next start --port 4400",
-    "lint": "howells-check app lib next.config.ts",
-    "lint:fix": "howells-fix app lib next.config.ts",
+    "lint": "howells-check app components lib next.config.ts",
+    "lint:fix": "howells-fix app components lib next.config.ts",
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@motif/bench-core": "workspace:*",
     "@motif/bench-db": "workspace:*",
     "@motif/bench-env": "workspace:*",
     "@tanstack/react-query": "^5.101.4",
     "next": "^16.2.12",
     "react": "^19.2.7",
-    "react-dom": "19.2.7"
+    "react-dom": "19.2.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@howells/lint": "^1.1.0",
