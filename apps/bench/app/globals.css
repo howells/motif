@@ -163,26 +163,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Unlayered on purpose: the same rule inside `@layer base` loses to Tailwind's
-   own layered preflight, so it computed as `visible` and the guard silently did
-   nothing. Unlayered declarations outrank every cascade layer, so this is the
-   one place it reliably applies.
-
-   Why it is needed at all: a `display: table` box inside an `overflow-x: auto`
-   container still contributes its full width to the *root's* scrollable
-   overflow in Chromium, even though the container clips it. With 12 models the
-   comparison table is 2120px wide, and the document gained a 582px horizontal
-   scroll over blank space. Verified by bisection — hiding the table container
-   drops documentElement.scrollWidth from 1926 to exactly clientWidth.
-
-   `clip` rather than `hidden` so `position: sticky` keeps working.
-
-   Both elements, not just `html`: overflow set on the root propagates to the
-   viewport and the root's own used value reverts to `visible`, so `html`
-   alone left a residual 74px of document scroll. With `html` non-visible,
-   `body`'s overflow no longer propagates either, so the declaration applies
-   to the body box itself and the last of the overflow is clipped there. */
-html,
-body {
-  overflow-x: clip;
-}
+/* A page-level `overflow-x: clip` used to live here to stop the comparison
+   table's overflow reaching the document. It is gone deliberately: the real
+   cause was the table's scroll container failing to contain its `display:
+   table` child, now fixed at source with `contain: paint` in
+   `components/ui/table.tsx`. A global clip fixed the symptom but would also
+   have hidden every future horizontal-overflow bug, which on a page of wide
+   data surfaces is the last thing this app wants. */

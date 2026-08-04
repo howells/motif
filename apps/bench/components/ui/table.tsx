@@ -10,11 +10,25 @@ import { cn } from "@/lib/utils";
  * Column headers are the one place besides the verdict labels where mono
  * small-caps is allowed (`docs/design/specs/design-bench.md`, Typography). */
 export const Table = ({ className, ...props }: ComponentProps<"table">) => (
-  // `min-w-0` is load-bearing: this container is a flex item, and a flex
-  // item's automatic minimum size is its *content* width. Without it a wide
-  // table simply grows the container past the viewport instead of scrolling
-  // inside it, and the whole page picks up a horizontal scrollbar.
-  <div className="w-full min-w-0 overflow-x-auto" data-slot="table-container">
+  // Two classes here are load-bearing, both about horizontal overflow:
+  //
+  // `min-w-0`, because this box is a flex item and a flex item's automatic
+  // minimum size is its content width — without it the box grows past the
+  // viewport instead of scrolling inside itself.
+  //
+  // `contain:paint`, because a `display: table` box wider than its scroll
+  // container still contributes its full width to the *document's* scrollable
+  // overflow in Chromium, `overflow-x: auto` notwithstanding. A fourteen-model
+  // comparison is 2440px wide, and the page gained 1576px of horizontal scroll
+  // over blank space at 390px. Bisected to this container; `contain: paint` is
+  // the only thing that stopped the propagation (a `w-max` block wrapper and
+  // `overflow-x: clip` on html/body both failed). It clips painting to this
+  // box's padding edge, which is exactly the scroll viewport, so the table
+  // still scrolls normally inside it.
+  <div
+    className="w-full min-w-0 overflow-x-auto [contain:paint]"
+    data-slot="table-container"
+  >
     <table
       className={cn("w-full caption-bottom border-collapse", className)}
       data-slot="table"
