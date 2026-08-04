@@ -24,16 +24,30 @@ const hueFor = (identity: string): number => {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Dimensions arrive as a `WIDTHxHEIGHT` path segment rather than a query
+ * string. Next 16 made query strings on local `next/image` sources require an
+ * `images.localPatterns.search` entry that must match EXACTLY — so per-model
+ * dimensions could not be covered by any single pattern. A path segment avoids
+ * the restriction without weakening the anti-enumeration guard.
+ */
 export async function GET(
-  request: Request,
+  _request: Request,
   {
     params,
-  }: { params: Promise<{ alias: string; runId: string; sampleIndex: string }> }
+  }: {
+    params: Promise<{
+      alias: string;
+      runId: string;
+      sampleIndex: string;
+      size: string;
+    }>;
+  }
 ) {
-  const { alias, runId, sampleIndex } = await params;
-  const url = new URL(request.url);
-  const width = clamp(Number(url.searchParams.get("w")) || 1024, 64, 2048);
-  const height = clamp(Number(url.searchParams.get("h")) || 1024, 64, 2048);
+  const { alias, runId, sampleIndex, size } = await params;
+  const [rawWidth, rawHeight] = size.split("x");
+  const width = clamp(Number(rawWidth) || 1024, 64, 2048);
+  const height = clamp(Number(rawHeight) || 1024, 64, 2048);
 
   const hue = hueFor(`${runId}:${alias}:${sampleIndex}`);
   const fill = `hsl(${hue.toFixed(0)}, 38%, 30%)`;

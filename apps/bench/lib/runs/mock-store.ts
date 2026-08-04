@@ -160,9 +160,14 @@ const toSampleRecord = (sample: StoredSample): SampleRecord => ({
   executionOrdinal: sample.executionOrdinal,
   height: sample.height,
   id: sample.id,
+  // Dimensions travel as a path segment, never a query string. Next 16 made
+  // query strings on local `next/image` sources a build-time opt-in
+  // (`images.localPatterns.search`) as an anti-enumeration measure, and that
+  // `search` must match EXACTLY — so per-model dimensions cannot be expressed
+  // as one pattern. A path segment sidesteps the restriction entirely.
   imageUrl:
     sample.status === "completed"
-      ? `/api/mock-image/${sample.runId}/${encodeURIComponent(sample.modelAlias)}/${sample.sampleIndex}?w=${sample.width ?? 1024}&h=${sample.height ?? 1024}`
+      ? `/api/mock-image/${sample.runId}/${encodeURIComponent(sample.modelAlias)}/${sample.sampleIndex}/${sample.width ?? 1024}x${sample.height ?? 1024}`
       : null,
   modelAlias: sample.modelAlias,
   modelName: sample.modelName,

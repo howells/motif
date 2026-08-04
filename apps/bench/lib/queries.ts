@@ -52,7 +52,13 @@ const requestJson = async <T>(
   if (!headers.has("content-type")) {
     headers.set("content-type", "application/json");
   }
-  const response = await fetch(input, { ...init, headers });
+  // `no-store` is load-bearing, not defensive. These routes carry no
+  // cache-control headers, so the browser is free to heuristically cache a
+  // GET — which makes every poll replay the first response and a run appears
+  // frozen at "generating..." forever even after it has completed. The bug is
+  // invisible to a curl-based check of the API, because curl is not the thing
+  // doing the caching.
+  const response = await fetch(input, { ...init, cache: "no-store", headers });
   const body: unknown = await response.json();
   if (!response.ok) {
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- every route handler in app/api/** returns { code, error } on a non-2xx response (see lib/api-response.ts's jsonError/jsonValidationError)
@@ -93,6 +99,9 @@ export const useRuns = () =>
   useQuery({
     queryFn: async () => await requestJson<{ runs: RunSummary[] }>("/api/runs"),
     queryKey: queryKeys.runs(),
+    // Same reason as `useRun`: the history list must keep advancing while the
+    // user is looking at another tab.
+    refetchIntervalInBackground: true,
     refetchInterval: (query) => {
       const hasRunningRun =
         query.state.data?.runs.some((run) => run.status === "running") ?? false;
@@ -105,10 +114,19 @@ export const useRun = (runId: string) =>
     enabled: runId.length > 0,
     queryFn: async () => await requestJson<RunDetail>(`/api/runs/${runId}`),
     queryKey: queryKeys.run(runId),
+    // React Query pauses interval refetching while the tab is unfocused. A
+    // full sweep takes 15-25 minutes, and nobody watches a progress bar for
+    // that long — they switch tabs and come back. Without this, the run
+    // appears frozen at "generating..." on return until a manual refresh.
+    refetchIntervalInBackground: true,
     refetchInterval: (query) => {
       const data = query.state.data;
+      // No data yet means the first fetch is still in flight or it failed.
+      // Keep polling rather than switching off: returning false here leaves a
+      // slow or failed initial load permanently inert, with no way to recover
+      // short of a manual refresh.
       if (!data) {
-        return false;
+        return RUNNING_POLL_MS;
       }
       const stillGenerating = data.run.status === "running";
       const stillJudging = data.run.judgingStatus === "running";
