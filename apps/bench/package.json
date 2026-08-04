@@ -1,0 +1,30 @@
+{
+  "name": "@motif/bench-web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 4400",
+    "build": "next build",
+    "start": "next start --port 4400",
+    "lint": "howells-check app lib next.config.ts",
+    "lint:fix": "howells-fix app lib next.config.ts",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@motif/bench-db": "workspace:*",
+    "@motif/bench-env": "workspace:*",
+    "@tanstack/react-query": "^5.101.4",
+    "next": "^16.2.12",
+    "react": "^19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@howells/lint": "^1.1.0",
+    "@howells/typescript-config": "^0.1.6",
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3"
+  }
+}
