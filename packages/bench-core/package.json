@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@howells/motif-sdk": "workspace:*",
-    "ai": "^7.0.51"
+    "ai": "^7.0.22"
   },
   "devDependencies": {
     "@howells/lint": "^1.1.0",
