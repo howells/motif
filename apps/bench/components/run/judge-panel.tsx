@@ -2,6 +2,11 @@
 
 import { useState } from "react";
 
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useSetManualRating } from "@/lib/queries";
 import type { JudgmentRecord, ManualRatingRecord } from "@/lib/runs/types";
 
@@ -18,8 +23,14 @@ interface JudgePanelProps {
 /** The four judge states, each rendered explicitly — `not-run`,
  * `inconclusive`, `scored`, and (via the "judging…" indicator) the
  * in-flight state between them. Split out of `JudgePanel` itself so the
- * state switch is a plain early-return chain instead of a nested ternary. */
-const JudgeStateBadge = ({
+ * state switch is a plain early-return chain instead of a nested ternary.
+ *
+ * `not judged` is spelled out rather than shown as an em dash or a zero
+ * (`docs/design/specs/design-bench.md`, States) — those read as "scored
+ * badly", which is a different and wrong claim. `inconclusive` is a real
+ * outcome, not an error, so it carries `--color-warn` and puts its reason in
+ * a tooltip instead of shouting the code inline. */
+const JudgeState = ({
   judgment,
   showJudgingIndicator,
 }: {
@@ -27,32 +38,46 @@ const JudgeStateBadge = ({
   readonly showJudgingIndicator: boolean;
 }) => {
   if (judgment === undefined) {
-    return showJudgingIndicator ? (
-      <span className="badge badge-warn">judging…</span>
-    ) : (
-      <span className="badge">not-run</span>
+    return (
+      <span className="text-plate-muted">
+        {showJudgingIndicator ? "judging…" : "not judged"}
+      </span>
     );
   }
 
   if (judgment.status === "inconclusive") {
     return (
-      <span className="badge badge-warn">
-        inconclusive · {judgment.errorCode}
-      </span>
+      <Tooltip>
+        <TooltipTrigger className="cursor-help text-warn underline decoration-dotted underline-offset-2">
+          inconclusive
+        </TooltipTrigger>
+        <TooltipContent>
+          The judge could not reach a verdict for this sample
+          {judgment.errorCode === null ? "" : ` (${judgment.errorCode})`}. It is
+          an outcome, not a failed generation — the image above is fine.
+        </TooltipContent>
+      </Tooltip>
     );
   }
 
-  const hasCritique =
-    judgment.critique !== null && judgment.critique.length > 0;
-  return (
-    <>
-      <span className={`judge-level judge-level-${judgment.overallLevel}`}>
-        {judgment.overallLevel} ({judgment.overall?.toFixed(2)})
-      </span>
-      {hasCritique ? (
-        <span className="footnote">{judgment.critique}</span>
-      ) : null}
-    </>
+  if (judgment.status === "not-run") {
+    return <span className="text-plate-muted">not judged</span>;
+  }
+
+  const critique = judgment.critique ?? "";
+  const label = (
+    <span className="text-plate-ink">
+      {judgment.overallLevel} {judgment.overall?.toFixed(2)}
+    </span>
+  );
+
+  return critique.length === 0 ? (
+    label
+  ) : (
+    <Tooltip>
+      <TooltipTrigger className="cursor-help">{label}</TooltipTrigger>
+      <TooltipContent>{critique}</TooltipContent>
+    </Tooltip>
   );
 };
 
@@ -85,20 +110,23 @@ export const JudgePanel = ({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <JudgeStateBadge
-        judgment={judgment}
-        showJudgingIndicator={showJudgingIndicator}
-      />
-
-      <div style={{ alignItems: "center", display: "flex", gap: 6 }}>
+    <div className="flex flex-col gap-1.5">
+      <span className="bench-numeric text-[11px]">
+        <JudgeState
+          judgment={judgment}
+          showJudgingIndicator={showJudgingIndicator}
+        />
+      </span>
+      <span className="flex items-center gap-2">
         <StarRating
           disabled={setRating.isPending}
           onRate={rate}
           value={pendingStars ?? manualRating?.stars ?? null}
         />
-        {manualRating ? <span className="badge">manual</span> : null}
-      </div>
+        {manualRating ? (
+          <span className="font-mono text-[11px] text-plate-muted">manual</span>
+        ) : null}
+      </span>
     </div>
   );
 };

@@ -7,13 +7,14 @@ import { HistoryList } from "@/components/history/history-list";
 // DB-backed page and route").
 export const dynamic = "force-dynamic";
 
+/** Composer left, recent runs right (`docs/design/specs/design-bench.md`,
+ * the `/` layout). The two collapse to one column below `lg` with the
+ * composer first — history is a way back to a previous decision, not the
+ * thing you came here to do. */
 const HomePage = () => (
-  <main>
+  <main className="grid min-w-0 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_236px] lg:gap-12">
     <Composer />
-    <div className="card">
-      <div className="section-title">History</div>
-      <HistoryList />
-    </div>
+    <HistoryList />
   </main>
 );
 

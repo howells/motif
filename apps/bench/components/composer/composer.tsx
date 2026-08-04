@@ -1,18 +1,59 @@
 "use client";
 
+import { BENCH_ROUTES } from "@motif/bench-core";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { Section } from "@/components/section";
 import type { BenchAspect } from "@/lib/aspect";
 import { formatUsd } from "@/lib/format";
-import { ApiError, useCreateRun, usePreview } from "@/lib/queries";
-import type { RunSpecInput } from "@/lib/runs/types";
+import { useCreateRun, usePreview } from "@/lib/queries";
+import type { PreviewResult, RunSpecInput } from "@/lib/runs/types";
 
 import { ComposerFields } from "./composer-fields";
+import { ComposerPreview } from "./composer-preview";
 import { ModelChips } from "./model-chips";
-import { PreviewTable } from "./preview-table";
 
 const DEFAULT_MAX_COST_USD = 2;
+
+/** Before a preview lands there is no honest number to put on the confirm
+ * button, and "$0.00" would read as "this is free" — the one thing it must
+ * never say. So it stays a bare "Run" until a dry run has priced it. */
+const formatRunLabel = (preview: PreviewResult | undefined): string =>
+  preview === undefined
+    ? "Run"
+    : `Run — ${formatUsd(Math.round(preview.totalWorstCaseCostUsd * 1_000_000))}`;
+
+/** "5 of 23 selected" — both counts mono so the pair stays legible as the
+ * selection changes and the first number's width shifts. */
+const SelectedCount = ({ selected }: { readonly selected: number }) => (
+  <span className="text-[13px] text-muted">
+    <span className="bench-numeric">{selected}</span> of{" "}
+    <span className="bench-numeric">{BENCH_ROUTES.length}</span> selected
+  </span>
+);
+
+/** The one field with no rule above it: it sits at the top of the column,
+ * directly under the page header's own rule, and doubling them would read as
+ * a border rather than as rhythm. */
+const PromptField = ({
+  onChange,
+  value,
+}: {
+  readonly onChange: (value: string) => void;
+  readonly value: string;
+}) => (
+  <Section rule={false} title="Prompt">
+    <textarea
+      className="min-h-[92px] w-full resize-y rounded-lg border border-border bg-surface px-3 py-2.5 leading-[1.6] text-ink"
+      id="bench-prompt"
+      onChange={(event) => {
+        onChange(event.target.value);
+      }}
+      value={value}
+    />
+  </Section>
+);
 
 /** Composer + preview flow (`docs/arc/bench/BRIEF.md`, UI section):
  * Preview (dry-run, zero fal calls) → confirm button reading
@@ -21,7 +62,12 @@ const DEFAULT_MAX_COST_USD = 2;
  * any field after previewing invalidates it, so a stale preview can never
  * be confirmed against a different spec. Field inputs themselves live in
  * `ComposerFields`; this component owns state, the preview/confirm mutations,
- * and the prompt/model-chip fields. */
+ * and the prompt/model-chip fields.
+ *
+ * The confirm button is the page's single accent-filled element
+ * (`docs/design/specs/design-bench.md` allows at most two per screen) —
+ * spending money is the one irreversible thing here, so it gets the fill and
+ * nothing else does. */
 export const Composer = () => {
   const router = useRouter();
   const [prompt, setPrompt] = useState(
@@ -86,6 +132,8 @@ export const Composer = () => {
 
   const canPreview = spec.models.length > 0 && spec.prompt.length > 0;
 
+  const runLabel = formatRunLabel(preview.data);
+
   const runPreview = () => {
     preview.mutate(spec, {
       onSuccess: () => {
@@ -103,104 +151,46 @@ export const Composer = () => {
   };
 
   return (
-    <div className="card">
-      <div className="section-title">New run</div>
+    <div className="flex min-w-0 flex-col gap-8">
+      <PromptField onChange={setPrompt} value={prompt} />
 
-      <div className="field">
-        <label htmlFor="bench-prompt">Prompt</label>
-        <textarea
-          id="bench-prompt"
-          onChange={(event) => {
-            setPrompt(event.target.value);
-          }}
-          value={prompt}
-        />
-      </div>
-
-      <div className="field">
-        <label>Models ({selectedModels.size} selected)</label>
+      <Section
+        action={<SelectedCount selected={selectedModels.size} />}
+        title="Models"
+      >
         <ModelChips onToggle={toggleModel} selected={selectedModels} />
-      </div>
+      </Section>
 
-      <ComposerFields
-        aspect={aspect}
-        concurrency={concurrency}
-        judgeAfter={judgeAfter}
-        maxEstimatedCostUsd={maxEstimatedCostUsd}
-        onAspectChange={setAspect}
-        onConcurrencyChange={setConcurrency}
-        onJudgeAfterChange={setJudgeAfter}
-        onMaxCostChange={setMaxEstimatedCostUsd}
-        onResolutionChange={setResolution}
-        onSamplesPerModelChange={setSamplesPerModel}
-        onSeedChange={setSeed}
-        onSeedEnabledChange={setSeedEnabled}
-        resolution={resolution}
-        samplesPerModel={samplesPerModel}
-        seed={seed}
-        seedEnabled={seedEnabled}
+      <Section title="Settings">
+        <ComposerFields
+          aspect={aspect}
+          concurrency={concurrency}
+          judgeAfter={judgeAfter}
+          maxEstimatedCostUsd={maxEstimatedCostUsd}
+          onAspectChange={setAspect}
+          onConcurrencyChange={setConcurrency}
+          onJudgeAfterChange={setJudgeAfter}
+          onMaxCostChange={setMaxEstimatedCostUsd}
+          onResolutionChange={setResolution}
+          onSamplesPerModelChange={setSamplesPerModel}
+          onSeedChange={setSeed}
+          onSeedEnabledChange={setSeedEnabled}
+          resolution={resolution}
+          samplesPerModel={samplesPerModel}
+          seed={seed}
+          seedEnabled={seedEnabled}
+        />
+      </Section>
+
+      <ComposerPreview
+        canPreview={canPreview}
+        createRun={createRun}
+        isPreviewCurrent={isPreviewCurrent}
+        onConfirmRun={confirmRun}
+        onRunPreview={runPreview}
+        preview={preview}
+        runLabel={runLabel}
       />
-
-      <div className="btn-row">
-        <button
-          className="btn"
-          disabled={!canPreview || preview.isPending}
-          onClick={runPreview}
-          type="button"
-        >
-          {preview.isPending ? "Previewing…" : "Preview (dry run)"}
-        </button>
-      </div>
-
-      {preview.isError ? (
-        <div className="error-banner">
-          {preview.error instanceof ApiError
-            ? preview.error.message
-            : "Preview failed."}
-        </div>
-      ) : null}
-
-      {preview.data ? (
-        <div style={{ marginTop: 14 }}>
-          <PreviewTable preview={preview.data} />
-        </div>
-      ) : null}
-
-      {createRun.isError ? (
-        <div className="error-banner">
-          {createRun.error instanceof ApiError
-            ? createRun.error.message
-            : "Could not start the run."}
-        </div>
-      ) : null}
-
-      <div className="btn-row" style={{ marginTop: 12 }}>
-        <button
-          className="btn btn-primary"
-          disabled={!isPreviewCurrent || createRun.isPending}
-          onClick={confirmRun}
-          type="button"
-        >
-          {createRun.isPending
-            ? "Starting…"
-            : `Run — spend ~${formatUsd(
-                Math.round(
-                  (preview.data?.totalWorstCaseCostUsd ?? 0) * 1_000_000
-                )
-              )}`}
-        </button>
-        {!isPreviewCurrent && preview.data ? (
-          <span
-            style={{
-              alignSelf: "center",
-              color: "var(--text-faint)",
-              fontSize: 12,
-            }}
-          >
-            The form changed since the last preview — preview again to confirm.
-          </span>
-        ) : null}
-      </div>
     </div>
   );
 };

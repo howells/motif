@@ -6,8 +6,8 @@ import type { SampleErrorCode } from "@/lib/runs/types";
 const ERROR_COPY: Record<SampleErrorCode, string> = {
   DOWNLOAD_FAILED:
     "The image URL returned by the provider could not be downloaded.",
-  HTTP_4XX: "The provider rejected the request (client error).",
-  HTTP_5XX: "The provider failed to serve the request (server error).",
+  HTTP_4XX: "The provider rejected the request.",
+  HTTP_5XX: "The provider failed to serve the request.",
   INTERRUPTED: "The attempt was interrupted before it finished.",
   NO_IMAGE: "The provider responded without returning an image.",
   RATE_LIMITED: "The provider rate-limited this request.",
@@ -15,14 +15,22 @@ const ERROR_COPY: Record<SampleErrorCode, string> = {
   TIMEOUT: "The attempt exceeded the run's timeout budget.",
 };
 
-export const ErrorCard = ({
+/** A failed frame keeps the plate — it stays part of the contact sheet
+ * rather than becoming a card that breaks the lattice
+ * (`docs/design/specs/design-bench.md`, States: "frame fills
+ * `--color-plate`, error code in mono `--color-bad`, one plain sentence").
+ * The sentence is ours, keyed off the closed error vocabulary; provider
+ * strings never appear. */
+export const SampleError = ({
   errorCode,
 }: {
-  errorCode: SampleErrorCode | null;
+  readonly errorCode: SampleErrorCode | null;
 }) => (
-  <div style={{ padding: "10px 12px" }}>
-    <span className="badge badge-bad">{errorCode ?? "UNKNOWN"}</span>
-    <p style={{ margin: "8px 0 0", fontSize: 12, color: "var(--text-dim)" }}>
+  <div className="flex h-full flex-col items-center justify-center gap-2 bg-plate px-4 py-6 text-center">
+    <span className="font-mono text-[11px] tracking-[0.06em] text-bad">
+      {errorCode ?? "UNKNOWN"}
+    </span>
+    <p className="max-w-[30ch] text-[11px] leading-[1.5] text-plate-ink">
       {errorCode
         ? ERROR_COPY[errorCode]
         : "This attempt failed for an unrecorded reason."}

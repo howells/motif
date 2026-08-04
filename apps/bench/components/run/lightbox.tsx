@@ -1,73 +1,78 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { formatDimensions } from "@/lib/format";
 import type { SampleRecord } from "@/lib/runs/types";
 
 interface LightboxProps {
   readonly onClose: () => void;
-  readonly sample: SampleRecord;
+  readonly sample: SampleRecord | null;
 }
 
-/** Full-res view. `unoptimized` is required here, not stylistic — Next's
- * image optimizer re-encodes on the way through, which silently changes the
- * pixels a viewer is trying to judge (`docs/arc/bench/BRIEF.md`, UI section:
- * "the optimizer re-encodes, which is invalid when comparing image
- * quality"). Thumbnails in `image-grid.tsx` intentionally do NOT set this —
- * only the full-res comparison view needs untouched bytes.
+/** Full-res view, on the plate — the same neutral surround as the contact
+ * sheet, for the same reason (`docs/design/specs/design-bench.md`).
  *
- * The backdrop click-to-dismiss is a real `<button>` positioned *behind*
- * the content as a sibling, not a wrapping element with an `onClick` — a
- * `<button>` cannot contain the content's own "Close" `<button>` (invalid
- * HTML), and a non-interactive `<div onClick>` needs a role and a keyboard
- * handler it would otherwise be faking. Making it an actual button gives
- * keyboard/AT support for free and content, layered on top via z-index,
- * never needs `stopPropagation()` — a click on it simply never reaches the
- * backdrop element underneath. */
-export const Lightbox = ({ sample, onClose }: LightboxProps) => {
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => {
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onClose]);
-
-  if (sample.imageUrl === null) {
-    return null;
-  }
+ * `unoptimized` is required here, not stylistic: Next's image optimizer
+ * re-encodes on the way through, which silently changes the pixels a viewer
+ * is trying to judge (`docs/arc/bench/BRIEF.md`, UI section — "the optimizer
+ * re-encodes, which is invalid when comparing image quality"). Thumbnails in
+ * `sample-frame.tsx` intentionally do NOT set this; only the full-res
+ * comparison view needs untouched bytes.
+ *
+ * Built on shadcn's `dialog` rather than a hand-rolled backdrop: Radix
+ * already owns focus trapping, `Escape`, scroll locking and the
+ * click-outside-to-dismiss that the previous bespoke backdrop-button
+ * approach was approximating. */
+export const Lightbox = ({ onClose, sample }: LightboxProps) => {
+  const imageUrl = sample?.imageUrl ?? null;
+  const isOpen = sample !== null && imageUrl !== null;
 
   return (
-    <div className="lightbox-backdrop">
-      <button
-        aria-label="Close lightbox"
-        className="lightbox-backdrop-button"
-        onClick={onClose}
-        type="button"
-      />
-      <div className="lightbox-content">
-        <Image
-          alt={`${sample.modelName ?? sample.modelAlias} — sample ${sample.sampleIndex}, full resolution`}
-          height={sample.height ?? 1024}
-          src={sample.imageUrl}
-          unoptimized
-          width={sample.width ?? 1024}
-        />
-        <div className="run-meta">
-          <span>{sample.modelName ?? sample.modelAlias}</span>
-          <span>{formatDimensions(sample.width, sample.height)}</span>
-          <span>endpoint: {sample.endpoint}</span>
-          <button className="btn" onClick={onClose} type="button">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+    <Dialog
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+      open={isOpen}
+    >
+      {sample !== null && imageUrl !== null ? (
+        <DialogContent className="border-plate-edge bg-plate p-0">
+          <DialogTitle className="sr-only">
+            {sample.modelAlias}, sample {sample.sampleIndex}, full resolution
+          </DialogTitle>
+          <div className="flex min-h-0 flex-1 items-center justify-center overflow-auto">
+            <Image
+              alt={`${sample.modelName ?? sample.modelAlias} — sample ${sample.sampleIndex}, full resolution`}
+              className="h-auto max-h-[calc(100dvh-9rem)] w-auto max-w-full rounded-frame object-contain"
+              height={sample.height ?? 1024}
+              src={imageUrl}
+              unoptimized
+              width={sample.width ?? 1024}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-plate-edge px-4 py-3 font-mono text-[11px] text-plate-muted">
+            <span className="text-plate-ink">{sample.modelAlias}</span>
+            <span className="bench-numeric">
+              {formatDimensions(sample.width, sample.height)}
+            </span>
+            <span className="truncate">{sample.endpoint}</span>
+            <DialogClose asChild>
+              <Button className="ml-auto" size="sm" variant="plate">
+                Close
+              </Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      ) : null}
+    </Dialog>
   );
 };

@@ -2,75 +2,75 @@
 
 import Link from "next/link";
 
-import { formatDateTime, formatUsd } from "@/lib/format";
+import { Section } from "@/components/section";
+import { RunStatusBadge } from "@/components/status-badge";
+import { Badge } from "@/components/ui/badge";
+import { formatRelativeToNow, formatUsd } from "@/lib/format";
 import { useRuns } from "@/lib/queries";
-
-const STATUS_BADGE_CLASS: Record<string, string> = {
-  completed: "badge-good",
-  failed: "badge-bad",
-  partial: "badge-warn",
-  running: "badge-warn",
-};
 
 /** History list — flags stale `running` runs (`docs/arc/bench/BRIEF.md`, UI
  * section). This phase has no persisted Mastra workflow state to `restart()`
  * (`docs/arc/bench/BRIEF.md` precedent table: `listActiveWorkflowRuns()` /
  * `restart()` are unverified APIs, and there is no database this phase to
  * back them regardless), so a stale run surfaces as a labeled dead end
- * rather than an action that would silently do nothing. */
+ * rather than an action that would silently do nothing.
+ *
+ * Rows are hairline-separated, not carded — the same rule rhythm the rest of
+ * the page uses (`docs/design/specs/design-bench.md`). */
 export const HistoryList = () => {
-  const { data, isLoading, isError } = useRuns();
-
-  if (isLoading) {
-    return <div className="empty-state">Loading run history…</div>;
-  }
-  if (isError) {
-    return (
-      <div className="empty-state">
-        Could not load run history. The app&apos;s own store may be unavailable.
-      </div>
-    );
-  }
-  if (!data || data.runs.length === 0) {
-    return (
-      <div className="empty-state">
-        No runs yet — configure a run above and preview it to get started.
-      </div>
-    );
-  }
+  const { data, isError, isLoading } = useRuns();
+  const runs = data?.runs ?? [];
+  const isSettled = !isLoading && !isError;
 
   return (
-    <div>
-      {data.runs.map((run) => (
-        <div className="history-row" key={run.id}>
-          <div className="prompt">
-            <Link href={`/runs/${run.id}`}>{run.prompt}</Link>
-            <div style={{ color: "var(--text-faint)", fontSize: 11 }}>
-              {run.models.length} models × {run.samplesPerModel} samples ·{" "}
-              {formatDateTime(run.createdAt)}
-            </div>
-          </div>
-          <span className={`badge ${STATUS_BADGE_CLASS[run.status] ?? ""}`}>
-            {run.status}
-          </span>
-          {run.stale ? (
-            <span className="badge badge-bad">
-              stale — no executor to resume
-            </span>
-          ) : (
-            <span />
-          )}
-          {run.isMock ? (
-            <span className="badge badge-mock">mock</span>
-          ) : (
-            <span />
-          )}
-          <span style={{ fontFamily: "var(--mono)", fontSize: 12 }}>
-            {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
-            {run.costActualMicros === null ? " (est.)" : ""}
-          </span>
-        </div>
-      ))}
-    </div>
+    <Section className="lg:sticky lg:top-8" rule={false} title="Recent">
+      {isLoading ? (
+        <p className="text-[13px] text-muted">Loading run history…</p>
+      ) : null}
+
+      {isError ? (
+        <p className="text-[13px] text-muted">
+          Could not load run history. The app&apos;s own store may be
+          unavailable.
+        </p>
+      ) : null}
+
+      {isSettled && runs.length === 0 ? (
+        <p className="max-w-[36ch] text-[13px] leading-[1.6] text-muted">
+          No runs yet. Pick a few models and preview a dry run — it costs
+          nothing.
+        </p>
+      ) : null}
+
+      {runs.length > 0 ? (
+        <ul className="m-0 flex list-none flex-col p-0">
+          {runs.map((run) => (
+            <li key={run.id}>
+              <Link
+                className="flex flex-col gap-1.5 border-t border-border-soft py-3 no-underline transition-colors duration-150 hover:bg-surface-soft"
+                href={`/runs/${run.id}`}
+              >
+                <span className="line-clamp-2 text-[13px] leading-[1.5] text-ink">
+                  {run.prompt}
+                </span>
+                <span className="bench-numeric text-[11px] text-muted">
+                  {run.models.length} model{run.models.length === 1 ? "" : "s"}{" "}
+                  · {formatRelativeToNow(run.createdAt)}
+                </span>
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <RunStatusBadge short status={run.status} />
+                  {run.isMock ? <Badge>mock</Badge> : null}
+                  {run.stale ? <Badge variant="bad">stale</Badge> : null}
+                  <span className="bench-numeric ml-auto text-[11px] text-muted">
+                    {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
+                    {run.costActualMicros === null ? " est" : ""}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </Section>
   );
 };

@@ -1,40 +1,48 @@
 "use client";
 
+import { Section } from "@/components/section";
 import { useJudgeRun, useRun } from "@/lib/queries";
 import { aggregateQualityByModel, buildVerdictStrip } from "@/lib/verdicts";
 
 import { ComparisonTable } from "./comparison-table";
-import { ImageGrid } from "./image-grid";
+import { ContactSheet } from "./contact-sheet";
 import { RunHeader } from "./run-header";
 import { ScatterChart } from "./scatter-chart";
-import { VerdictStrip } from "./verdict-strip";
+import { VerdictBand } from "./verdict-band";
 
+/** The results page, top to bottom: what you asked for, what won, the
+ * images, then the numbers behind the verdict
+ * (`docs/design/specs/design-bench.md`, the `/runs/[id]` layout).
+ *
+ * The contact sheet deliberately sits between the verdict and the tables:
+ * the verdict is a claim, and the images are the evidence you check it
+ * against before reading any further. */
 export const RunDetail = ({ runId }: { runId: string }) => {
-  const { data, isLoading, isError, error } = useRun(runId);
+  const { data, error, isError, isLoading } = useRun(runId);
   const judgeRun = useJudgeRun(runId);
 
   if (isLoading) {
-    return <div className="empty-state">Loading run…</div>;
+    return <p className="text-[13px] text-muted">Loading run…</p>;
   }
   if (isError) {
     const notFound =
       error instanceof Error && error.message.includes("No run with id");
     return (
-      <div className="empty-state">
+      <p className="text-[13px] text-muted">
         {notFound ? "This run does not exist." : "Could not load this run."}
-      </div>
+      </p>
     );
   }
   if (!data) {
-    return <div className="empty-state">This run does not exist.</div>;
+    return <p className="text-[13px] text-muted">This run does not exist.</p>;
   }
 
-  const { run, samples, judgments, manualRatings } = data;
+  const { judgments, manualRatings, run, samples } = data;
   const verdicts = buildVerdictStrip(samples, judgments);
   const quality = aggregateQualityByModel(samples, judgments);
 
   return (
-    <main>
+    <main className="flex min-w-0 flex-col gap-9">
       <RunHeader
         judgePending={judgeRun.isPending}
         onJudgeClick={() => {
@@ -43,30 +51,24 @@ export const RunDetail = ({ runId }: { runId: string }) => {
         run={run}
       />
 
-      <div className="card">
-        <div className="section-title">Verdict</div>
-        <VerdictStrip data={verdicts} />
-      </div>
+      <VerdictBand data={verdicts} />
 
-      <div className="card">
-        <div className="section-title">Samples</div>
-        <ImageGrid
+      <Section rule={false} title="Samples">
+        <ContactSheet
           judgments={judgments}
           manualRatings={manualRatings}
           run={run}
           samples={samples}
         />
-      </div>
+      </Section>
 
-      <div className="card">
-        <div className="section-title">Comparison</div>
+      <Section title="Comparison">
         <ComparisonTable quality={quality} timing={verdicts.timing} />
-      </div>
+      </Section>
 
-      <div className="card">
-        <div className="section-title">Cost vs. quality</div>
+      <Section title="Cost against quality">
         <ScatterChart quality={quality} timing={verdicts.timing} />
-      </div>
+      </Section>
     </main>
   );
 };

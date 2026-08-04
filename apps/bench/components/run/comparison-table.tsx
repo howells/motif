@@ -2,6 +2,14 @@
 
 import type { ModelAggregate } from "@motif/bench-core";
 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatMs, formatPercent, formatUsd } from "@/lib/format";
 import type { ModelQuality } from "@/lib/verdicts";
 
@@ -38,7 +46,7 @@ const bestKeyFor = (row: Row): string | null => {
 
 const formatRowValue = (row: Row, value: number | null): string => {
   if (value === null) {
-    return "—";
+    return "not judged";
   }
   if (row.label.startsWith("Provider") || row.label.startsWith("Total")) {
     return formatMs(value);
@@ -46,17 +54,22 @@ const formatRowValue = (row: Row, value: number | null): string => {
   if (row.label === "Success rate") {
     return formatPercent(value);
   }
-  if (row.label.startsWith("Mean cost")) {
+  if (row.label.startsWith("Cost")) {
     return formatUsd(Math.round(value));
   }
   return value.toFixed(2);
 };
 
-/** Metric rows × model columns, best-in-row highlighted
+/** Metric rows × model columns, best-in-row marked
  * (`docs/arc/bench/BRIEF.md`, UI section) — the same per-model aggregates
- * the verdict strip picks its four superlatives from, laid out so every
- * model can be compared on every metric at once, not just the winner. */
-export const ComparisonTable = ({ timing, quality }: ComparisonTableProps) => {
+ * the verdict band picks its four superlatives from, laid out so every model
+ * can be compared on every metric at once, not just the winner.
+ *
+ * "Best" is a single accent glyph beside the value, not a tinted cell
+ * (`docs/design/specs/design-bench.md`): a filled cell is a second, louder
+ * emphasis competing with the numbers themselves, and it would blow the
+ * two-accent-fills budget six times over on a six-row table. */
+export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
   const aliases = timing.map((model) => model.modelAlias);
   const qualityByAlias = new Map(
     quality.map((entry) => [entry.modelAlias, entry])
@@ -90,7 +103,7 @@ export const ComparisonTable = ({ timing, quality }: ComparisonTableProps) => {
     },
     {
       direction: "lower",
-      label: "Mean cost / image",
+      label: "Cost / image",
       values: new Map(
         timing.map((m) => [
           m.modelAlias,
@@ -102,7 +115,7 @@ export const ComparisonTable = ({ timing, quality }: ComparisonTableProps) => {
     },
     {
       direction: "higher",
-      label: "Quality (mean overall)",
+      label: "Quality (mean)",
       values: new Map(
         aliases.map((alias) => [
           alias,
@@ -113,39 +126,52 @@ export const ComparisonTable = ({ timing, quality }: ComparisonTableProps) => {
   ];
 
   if (aliases.length === 0) {
-    return <div className="empty-state">No samples to compare yet.</div>;
+    return <p className="text-[13px] text-muted">Nothing to compare yet.</p>;
   }
 
   return (
-    <div style={{ overflowX: "auto" }}>
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>Metric</th>
-            {aliases.map((alias) => (
-              <th key={alias}>{alias}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            const bestKey = bestKeyFor(row);
-            return (
-              <tr key={row.label}>
-                <td>{row.label}</td>
-                {aliases.map((alias) => (
-                  <td
-                    className={`numeric${alias === bestKey ? " best-in-row" : ""}`}
+    <Table className="w-auto min-w-max">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="pr-8">Metric</TableHead>
+          {aliases.map((alias) => (
+            <TableHead className="min-w-[112px] text-right" key={alias}>
+              {alias}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row) => {
+          const bestKey = bestKeyFor(row);
+          return (
+            <TableRow key={row.label}>
+              <TableCell className="text-[13px] text-muted">
+                {row.label}
+              </TableCell>
+              {aliases.map((alias) => {
+                const value = row.values.get(alias) ?? null;
+                return (
+                  <TableCell
+                    className="bench-numeric text-right text-[13px] text-ink"
                     key={alias}
                   >
-                    {formatRowValue(row, row.values.get(alias) ?? null)}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+                    {formatRowValue(row, value)}
+                    {alias === bestKey ? (
+                      <span aria-hidden className="ml-1.5 text-accent">
+                        ◂
+                      </span>
+                    ) : null}
+                    {alias === bestKey ? (
+                      <span className="sr-only"> — best in row</span>
+                    ) : null}
+                  </TableCell>
+                );
+              })}
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
   );
 };

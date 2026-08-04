@@ -1,79 +1,77 @@
 "use client";
 
+import Link from "next/link";
+
+import { RunStatusBadge } from "@/components/status-badge";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { isUniformAspect } from "@/lib/aspect";
-import { formatDateTime, formatUsd } from "@/lib/format";
+import { formatRelativeToNow, formatUsd } from "@/lib/format";
 import type { RunSummary } from "@/lib/runs/types";
 
-const STATUS_BADGE_CLASS: Record<string, string> = {
-  completed: "badge-good",
-  failed: "badge-bad",
-  partial: "badge-warn",
-  running: "badge-warn",
-};
-
 interface RunHeaderProps {
-  readonly onJudgeClick: () => void;
   readonly judgePending: boolean;
+  readonly onJudgeClick: () => void;
   readonly run: RunSummary;
 }
 
 /** Run identity, status/contention/mock/stale badges, the run spec summary,
- * and the judge-trigger button — split out of `RunDetail` purely to keep
- * that component's own body short. */
+ * and the judge trigger.
+ *
+ * The workflow's internals stay hidden (`docs/design/specs/design-bench.md`,
+ * Abstraction rules): no step names, no span ids, and the run id itself is
+ * left in the URL rather than repeated as chrome. What is shown is what the
+ * user chose — models, samples, aspect, resolution, seed — plus what it
+ * cost. */
 export const RunHeader = ({
-  run,
-  onJudgeClick,
   judgePending,
+  onJudgeClick,
+  run,
 }: RunHeaderProps) => (
-  <div className="card">
-    <div
-      style={{
-        alignItems: "center",
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 10,
-      }}
-    >
-      <span className={`badge ${STATUS_BADGE_CLASS[run.status] ?? ""}`}>
-        {run.status}
-      </span>
-      {run.isMock ? <span className="badge badge-mock">mock</span> : null}
-      {run.concurrency > 1 ? (
-        <span className="badge badge-warn">contended (×{run.concurrency})</span>
-      ) : null}
-      {run.stale ? <span className="badge badge-bad">stale</span> : null}
-      <span style={{ color: "var(--text-faint)", fontSize: 12 }}>{run.id}</span>
-    </div>
-    <p style={{ fontSize: 14, margin: "10px 0" }}>{run.prompt}</p>
-    {isUniformAspect(run.aspect) ? null : (
-      <div className="warning-banner">
-        This run used aspect {run.aspect}, not the uniform <code>1:1</code> —
-        models were framed differently, so the quality comparisons below are not
-        fully apples-to-apples.
+  <header className="flex flex-col gap-4">
+    <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
+      <Link
+        className="text-muted no-underline transition-colors duration-150 hover:text-ink"
+        href="/"
+      >
+        ← Runs
+      </Link>
+      <div className="flex flex-wrap items-center gap-2">
+        <RunStatusBadge status={run.status} />
+        {run.isMock ? <Badge>mock</Badge> : null}
+        {run.concurrency > 1 ? (
+          <Badge variant="warn">contended ×{run.concurrency}</Badge>
+        ) : null}
+        {run.stale ? (
+          <Badge variant="bad">stale — no executor to resume</Badge>
+        ) : null}
       </div>
-    )}
-    <div className="run-meta">
-      <span>
-        {run.models.length} models × {run.samplesPerModel} samples
-      </span>
-      <span>aspect {run.aspect}</span>
-      <span>resolution {run.resolution}</span>
-      <span>seed {run.seed ?? "unset"}</span>
-      <span>created {formatDateTime(run.createdAt)}</span>
-      <span>
-        cost {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
-        {run.costActualMicros === null ? " (est.)" : ""}
-      </span>
     </div>
-    <div className="btn-row" style={{ marginTop: 12 }}>
-      <button
-        className="btn"
+
+    <h2 className="max-w-[68ch] leading-[1.55] font-normal">{run.prompt}</h2>
+
+    <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border-soft pt-3 text-[13px] text-muted">
+      <span className="bench-numeric">
+        {run.models.length} model{run.models.length === 1 ? "" : "s"} ×{" "}
+        {run.samplesPerModel} sample{run.samplesPerModel === 1 ? "" : "s"}
+      </span>
+      <span className="bench-numeric">{run.aspect}</span>
+      <span className="bench-numeric">{run.resolution}</span>
+      <span className="bench-numeric">seed {run.seed ?? "free"}</span>
+      <span className="bench-numeric text-ink">
+        {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
+        {run.costActualMicros === null ? " est" : ""}
+      </span>
+      <span>{formatRelativeToNow(run.createdAt)}</span>
+      <Button
+        className="ml-auto"
         disabled={
           run.status === "running" ||
           run.judgingStatus === "running" ||
           judgePending
         }
         onClick={onJudgeClick}
+        size="sm"
         type="button"
       >
         {run.judgingStatus === "running"
@@ -81,7 +79,17 @@ export const RunHeader = ({
           : run.judgingStatus === "done"
             ? "Re-judge"
             : "Judge this run"}
-      </button>
+      </Button>
     </div>
-  </div>
+
+    {isUniformAspect(run.aspect) ? null : (
+      <p className="max-w-[68ch] rounded-lg border border-border border-l-2 border-l-warn bg-surface-soft px-3.5 py-3 text-[13px] leading-[1.55] text-muted">
+        <span className="text-ink">Framing was not uniform.</span> This run used{" "}
+        <span className="bench-numeric">{run.aspect}</span> rather than{" "}
+        <span className="bench-numeric">1:1</span>, and the three sizing
+        dialects disagree there — models were framed differently, so the quality
+        comparisons below are not fully apples-to-apples.
+      </p>
+    )}
+  </header>
 );
