@@ -8,3 +8,17 @@ export {
   benchRuns,
   benchSamples,
 } from "./schema";
+
+// `manual-ratings.ts` takes its `db` as a parameter rather than importing
+// `./client` itself, so re-exporting it here carries none of the eager
+// env-parse concern above.
+export {
+  getManualRating,
+  listManualRatingsForRun,
+  upsertManualRating,
+} from "./manual-ratings";
+export type {
+  BenchDb,
+  ManualRating,
+  ManualRatingInput,
+} from "./manual-ratings";
