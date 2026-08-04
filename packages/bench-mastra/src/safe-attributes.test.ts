@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildSafeBenchAttributes,
   safeParseBenchAttribute,
+  SafeBenchAttributeKeySchema,
 } from "./safe-attributes";
 
 describe("safeParseBenchAttribute", () => {
@@ -57,6 +58,13 @@ describe("safeParseBenchAttribute", () => {
       key: "bench.queue_polled",
       value: true,
     });
+    expect(safeParseBenchAttribute("bench.quality_score", 3.25)).toEqual({
+      key: "bench.quality_score",
+      value: 3.25,
+    });
+    expect(safeParseBenchAttribute("bench.quality_level", "editorial")).toEqual(
+      { key: "bench.quality_level", value: "editorial" }
+    );
   });
 
   it("drops an unknown key", () => {
@@ -88,10 +96,54 @@ describe("safeParseBenchAttribute", () => {
     expect(safeParseBenchAttribute("bench.cost_basis", "gallons")).toBeNull();
   });
 
+  it("drops an out-of-vocabulary quality level and a negative quality score", () => {
+    expect(
+      safeParseBenchAttribute("bench.quality_level", "amazing")
+    ).toBeNull();
+    expect(safeParseBenchAttribute("bench.quality_score", -0.1)).toBeNull();
+  });
+
   it("drops a negative or non-integer number for an integer-only key", () => {
     expect(safeParseBenchAttribute("bench.sample_index", -1)).toBeNull();
     expect(safeParseBenchAttribute("bench.cost_micros", 1.5)).toBeNull();
     expect(safeParseBenchAttribute("bench.width", 0)).toBeNull();
+  });
+});
+
+describe("no base64/data URI can reach a span attribute", () => {
+  // Executable form of BRIEF.md rule 1 ("no base64 or a data URI reach a
+  // span, a log, or Langfuse"): a realistic data URI, and a bare base64
+  // blob long enough to be an inlined image, are tried against *every* key
+  // in the closed vocabulary — string-typed keys reject it via
+  // `urlLikePattern`/length; every other key rejects it by failing its own
+  // type (a string can never satisfy a number/boolean/enum schema).
+  const DATA_URI_PAYLOAD =
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB";
+  const BARE_BASE64_PAYLOAD = "A".repeat(400);
+
+  it.each(SafeBenchAttributeKeySchema.options)(
+    "rejects a data: URI under %s",
+    (key) => {
+      expect(safeParseBenchAttribute(key, DATA_URI_PAYLOAD)).toBeNull();
+    }
+  );
+
+  it.each(SafeBenchAttributeKeySchema.options)(
+    "rejects a long bare base64 blob under %s",
+    (key) => {
+      expect(safeParseBenchAttribute(key, BARE_BASE64_PAYLOAD)).toBeNull();
+    }
+  );
+
+  it("never lets either payload survive buildSafeBenchAttributes across the whole vocabulary at once", () => {
+    const hostileBag = Object.fromEntries(
+      SafeBenchAttributeKeySchema.options.map((key, index) => [
+        key,
+        index % 2 === 0 ? DATA_URI_PAYLOAD : BARE_BASE64_PAYLOAD,
+      ])
+    );
+
+    expect(buildSafeBenchAttributes(hostileBag)).toEqual({});
   });
 });
 

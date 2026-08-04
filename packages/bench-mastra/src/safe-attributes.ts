@@ -27,6 +27,14 @@ const BenchErrorCodeSchema = z.enum([
   "INTERRUPTED",
 ]);
 
+/** Same four ordinal levels as `bench-core/judge.ts`'s `QualityLevel` —
+ * duplicated here rather than imported (same house style as
+ * `BenchErrorCodeSchema` below mirroring `bench-core/execute.ts`'s
+ * `ExecuteErrorCode`): a closed four-member enum has no realistic drift risk,
+ * and this file must not depend on `@motif/bench-core/judge` pulling in
+ * `node:fs/promises` transitively. */
+const QualityLevelSchema = z.enum(["competent", "editorial", "slop", "stock"]);
+
 /** `falPricing.unit` — the five values confirmed in `BRIEF.md`. A sixth unit
  * introduced upstream would fail this schema and be dropped rather than
  * corrupt a span with an unrecognized value; `bench-core/routes.ts` (which
@@ -73,6 +81,8 @@ export const SafeBenchAttributeKeySchema = z.enum([
   "bench.error.code",
   "bench.dropped_params",
   "bench.queue_polled",
+  "bench.quality_score",
+  "bench.quality_level",
 ]);
 
 const safeAttributeValueSchemas = {
@@ -90,6 +100,12 @@ const safeAttributeValueSchemas = {
   "bench.error.code": BenchErrorCodeSchema,
   "bench.dropped_params": droppedParamsSchema,
   "bench.queue_polled": z.boolean(),
+  // The weighted-geometric-mean overall (`bench-core/judge.ts`), 0 when the
+  // slop gate fired. Uncapped above 4 is never expected but not enforced
+  // here — a schema ceiling would just silently drop a real (if surprising)
+  // score rather than surface the discrepancy.
+  "bench.quality_score": finiteNonnegativeNumberSchema,
+  "bench.quality_level": QualityLevelSchema,
 } as const satisfies Record<string, z.ZodType>;
 
 export type SafeBenchAttributeKey = z.infer<typeof SafeBenchAttributeKeySchema>;

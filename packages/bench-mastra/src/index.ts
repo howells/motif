@@ -22,6 +22,7 @@ import { requireServerEnv } from "@motif/bench-env/server";
 
 import { logger, observability } from "./observability";
 import { benchmarkRunWorkflow } from "./workflows/benchmark-run";
+import { judgeRunWorkflow } from "./workflows/judge-run";
 
 export const mastra = new Mastra(
   defineMastraConfig({
@@ -35,6 +36,7 @@ export const mastra = new Mastra(
     }),
     workflows: {
       "benchmark-run": benchmarkRunWorkflow,
+      "judge-run": judgeRunWorkflow,
     },
   })
 );

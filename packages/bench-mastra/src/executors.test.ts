@@ -1,7 +1,13 @@
 import { alignParams } from "@motif/bench-core";
 import { describe, expect, it } from "vitest";
 
-import { mockGenerationExecutor, mockPersistExecutor } from "./executors";
+import {
+  mockGenerationExecutor,
+  mockJudgeExecutor,
+  mockJudgmentPersistExecutor,
+  mockPersistExecutor,
+  mockSampleLoaderExecutor,
+} from "./executors";
 
 describe("mockGenerationExecutor", () => {
   it("resolves ok, never touching the network or filesystem", async () => {
@@ -58,5 +64,60 @@ describe("mockPersistExecutor", () => {
     });
 
     expect(persisted.sampleId).toBe("mock-run-1-flux-fast-2");
+  });
+});
+
+describe("mockSampleLoaderExecutor", () => {
+  it("resolves without touching the network or a database", async () => {
+    const samples = await mockSampleLoaderExecutor.loadSamples("run-1");
+
+    expect(samples).toHaveLength(1);
+    expect(samples[0]?.sampleId).toContain("run-1");
+    expect(samples[0]?.imagePath.length).toBeGreaterThan(0);
+    expect(samples[0]?.prompt.length).toBeGreaterThan(0);
+  });
+});
+
+describe("mockJudgeExecutor", () => {
+  it("resolves a deterministic scored judgment without a vision model call", async () => {
+    const result = await mockJudgeExecutor.judge({
+      imagePath: "/tmp/does-not-matter.png",
+      prompt: "a room",
+    });
+
+    expect(result).toEqual({
+      critique: "Mock judge: plausible composition, no obvious defects.",
+      levels: {
+        artifacts: "competent",
+        lightingCoherence: "competent",
+        materialFidelity: "competent",
+        photorealism: "competent",
+        promptAdherence: "competent",
+        spatialPlausibility: "competent",
+      },
+      overall: 3,
+      overallLevel: "competent",
+      rubricId: "bench-room-v1",
+      rubricVersion: 1,
+      status: "scored",
+    });
+  });
+});
+
+describe("mockJudgmentPersistExecutor", () => {
+  it("returns a deterministic id derived from the sample's coordinates", async () => {
+    const persisted = await mockJudgmentPersistExecutor.persistJudgment({
+      critique: "fine",
+      errorCode: null,
+      judgeModel: "mock-judge",
+      levels: null,
+      overall: 3,
+      rubricId: "bench-room-v1",
+      rubricVersion: 1,
+      sampleId: "sample-42",
+      status: "scored",
+    });
+
+    expect(persisted.judgmentId).toBe("mock-judgment-sample-42");
   });
 });
