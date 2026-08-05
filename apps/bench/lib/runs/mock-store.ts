@@ -21,6 +21,7 @@ import {
   routeFor,
 } from "@motif/bench-core";
 
+import { elapsedMsFor } from "./elapsed";
 import {
   assertRunWithinCostCap,
   buildSyntheticAttempt,
@@ -67,6 +68,10 @@ interface StoredSample {
   sampleIndex: number;
   seedReturned: number | null;
   seedSent: number | null;
+  /** Mirrors `bench_samples.started_at` — see the column comment there. Set
+   * when the settle timer is armed, because that is when this store's
+   * "generation" begins. */
+  startedAt: Date | null;
   status: SampleStatus;
   totalMs: number | null;
   width: number | null;
@@ -164,6 +169,11 @@ const toSampleRecord = (sample: StoredSample): SampleRecord => ({
   createdAt: sample.createdAt.toISOString(),
   downloadMs: sample.downloadMs,
   droppedParams: sample.droppedParams,
+  elapsedMs: elapsedMsFor({
+    now: Date.now(),
+    startedAt: sample.startedAt,
+    status: sample.status,
+  }),
   endpoint: sample.endpoint,
   errorCode: sample.errorCode,
   executionOrdinal: sample.executionOrdinal,
@@ -386,6 +396,7 @@ export const createRun = (spec: RunSpecInput): CreateRunResult => {
         sampleIndex,
         seedReturned: null,
         seedSent: spec.seed === null ? null : spec.seed + sampleIndex,
+        startedAt: now,
         status: "pending",
         totalMs: null,
         width: null,
@@ -579,6 +590,7 @@ export const retrySamples = (
     sample.providerMs = null;
     sample.queuePolled = false;
     sample.seedReturned = null;
+    sample.startedAt = now;
     sample.status = "pending";
     sample.totalMs = null;
     sample.width = null;

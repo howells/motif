@@ -149,6 +149,11 @@ export interface SampleRecord {
   readonly createdAt: string;
   readonly downloadMs: number | null;
   readonly droppedParams: readonly string[];
+  /** Milliseconds this sample has been generating, as of the moment the
+   * server built this response — non-null only while it is still in the air.
+   * A duration rather than a start instant so the browser never has to
+   * subtract two clocks (`./elapsed.ts`). */
+  readonly elapsedMs: number | null;
   readonly endpoint: string;
   readonly errorCode: SampleErrorCode | null;
   readonly executionOrdinal: number;

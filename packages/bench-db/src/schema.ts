@@ -142,6 +142,21 @@ export const benchSamples = pgTable(
        bigint in number mode is exact to 2^53, far beyond any seed. */
     seedReturned: bigint("seed_returned", { mode: "number" }),
     seedSent: bigint("seed_sent", { mode: "number" }),
+    /* The moment this sample was handed to the engine — NOT when its row was
+       written. Every sample of a run is inserted in one batch, so `createdAt`
+       is the same instant for all of them and says nothing about when any
+       one of them actually began.
+
+       It exists so the UI can count a sample's elapsed time up while it is
+       still in the air, and it is deliberately a timestamp rather than a
+       `running` status: `finalizeRunIfDone` waits on `status = 'pending'`
+       alone, so a third live status would let a run finalise with a sample
+       still generating. `started_at is not null and status = 'pending'`
+       means in flight, and the state machine is untouched.
+
+       Also the only record of queue wait (`started_at - created_at`) once
+       something actually enforces `concurrency`. */
+    startedAt: timestamptz("started_at"),
     status: text("status").notNull(),
     totalMs: integer("total_ms"),
     updatedAt: timestamptz("updated_at").defaultNow().notNull(),

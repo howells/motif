@@ -13,6 +13,7 @@ import type { ManualRatingRecord, SampleRecord } from "@/lib/runs/types";
 import { cn } from "@/lib/utils";
 
 import { JudgePanel } from "./judge-panel";
+import { LiveElapsed } from "./live-elapsed";
 import { SampleError } from "./sample-error";
 
 /** What the run had to change to reach this model, on one line.
@@ -60,6 +61,59 @@ const ParamLine = ({
  * alias with latency and cost with dimensions on shared baselines, and folding
  * drops and coerces into one line, carries the same information in four. */
 const ANNOTATION_MIN_HEIGHT = "min-h-[104px]";
+
+/** The right-hand figure on the alias line: a stopwatch while the sample is
+ * in the air, the measured latency once it lands, and the qualifiers that
+ * say when that latency is not comparable with its neighbours'.
+ *
+ * One slot for both numbers, so nothing moves when the count settles — it
+ * changes weight and stops. The qualifiers are suppressed while counting:
+ * `±3s` and `contended` qualify a *measurement*, and until the sample
+ * settles there isn't one to qualify.
+ *
+ * The marks lead and the number trails, so every latency in a column lands
+ * on the same right edge whether or not its model carries a qualifier. */
+const LatencyCell = ({
+  contended,
+  sample,
+}: {
+  readonly contended: boolean;
+  readonly sample: SampleRecord;
+}) => {
+  const counting = sample.elapsedMs !== null;
+
+  return (
+    <span className="bench-numeric ml-auto flex shrink-0 items-baseline gap-1.5 text-[11px] text-plate-ink">
+      {sample.queuePolled && !counting ? (
+        <Tooltip>
+          <TooltipTrigger className="cursor-help text-warn">±3s</TooltipTrigger>
+          <TooltipContent>
+            This provider reports through a polled queue, so its latency is only
+            accurate to about three seconds. Do not compare it directly with the
+            others.
+          </TooltipContent>
+        </Tooltip>
+      ) : null}
+      {contended && !counting ? (
+        <Tooltip>
+          <TooltipTrigger className="cursor-help text-warn">
+            contended
+          </TooltipTrigger>
+          <TooltipContent>
+            This run generated more than one image at a time, so latencies
+            include queueing against each other and are not comparable with a
+            serial run.
+          </TooltipContent>
+        </Tooltip>
+      ) : null}
+      {sample.elapsedMs === null ? (
+        formatMs(sample.providerMs)
+      ) : (
+        <LiveElapsed elapsedMs={sample.elapsedMs} />
+      )}
+    </span>
+  );
+};
 
 interface SampleFrameProps {
   readonly contended: boolean;
@@ -169,33 +223,7 @@ export const SampleFrame = ({
             every latency in a column lands on the same right edge whether or
             not its model carries a qualifier. */}
         {sample.status === "failed" ? null : (
-          <span className="bench-numeric ml-auto flex shrink-0 items-baseline gap-1.5 text-[11px] text-plate-ink">
-            {sample.queuePolled ? (
-              <Tooltip>
-                <TooltipTrigger className="cursor-help text-warn">
-                  ±3s
-                </TooltipTrigger>
-                <TooltipContent>
-                  This provider reports through a polled queue, so its latency
-                  is only accurate to about three seconds. Do not compare it
-                  directly with the others.
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-            {contended ? (
-              <Tooltip>
-                <TooltipTrigger className="cursor-help text-warn">
-                  contended
-                </TooltipTrigger>
-                <TooltipContent>
-                  This run generated more than one image at a time, so latencies
-                  include queueing against each other and are not comparable
-                  with a serial run.
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-            {formatMs(sample.providerMs)}
-          </span>
+          <LatencyCell contended={contended} sample={sample} />
         )}
       </span>
 

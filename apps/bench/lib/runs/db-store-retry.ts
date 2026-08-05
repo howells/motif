@@ -71,6 +71,12 @@ export const buildRetryResetPatch = () => ({
   providerMs: null,
   queuePolled: false,
   seedReturned: null,
+  // Cleared, not left pointing at the failed attempt's dispatch. Without
+  // this the retried sample re-enters the sheet already counting from the
+  // original run — a frame showing eight hours elapsed the instant you press
+  // Retry. `settleSample` sets it again when the retry is actually
+  // dispatched.
+  startedAt: null,
   status: "pending" as const,
   totalMs: null,
   width: null,

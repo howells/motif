@@ -58,6 +58,7 @@ import {
 import { startJudging } from "./db-store-judging";
 import { computeRunDeadlineMs, planReconciliation } from "./deadline";
 import type { ReconcileSampleInput } from "./deadline";
+import { elapsedMsFor } from "./elapsed";
 import type { RunEngine } from "./engine";
 import {
   assertRunWithinCostCap,
@@ -207,6 +208,11 @@ const toSampleRecord = (
     createdAt: row.createdAt.toISOString(),
     downloadMs: row.downloadMs,
     droppedParams,
+    elapsedMs: elapsedMsFor({
+      now: Date.now(),
+      startedAt: row.startedAt,
+      status,
+    }),
     endpoint: row.endpoint,
     errorCode,
     executionOrdinal: row.executionOrdinal,
@@ -573,6 +579,17 @@ export const settleSample = async (
   // terminal row instead of silently staying `pending`. If even that write
   // throws, it is logged and left for the run-level watchdog
   // (`reconcileRunIfPastDeadline`) to eventually catch via `TIMEOUT`.
+  // The stopwatch starts here, one statement before the generation call and
+  // after alignment has already had its chance to fail — so what the UI
+  // counts up is time spent generating, not time spent deciding what to
+  // send. Deliberately not written in the same statement as the terminal
+  // result: it has to be visible to a poll *while* the call is in flight,
+  // which is the entire point of it.
+  await db
+    .update(benchSamples)
+    .set({ startedAt: new Date() })
+    .where(eq(benchSamples.id, sampleId));
+
   try {
     const attempt = await engine.buildAttempt({
       alignment,
