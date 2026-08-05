@@ -58,14 +58,10 @@ import {
 import { startJudging } from "./db-store-judging";
 import { computeRunDeadlineMs, planReconciliation } from "./deadline";
 import type { ReconcileSampleInput } from "./deadline";
+import { dispatchSamples } from "./dispatch";
 import { elapsedMsFor } from "./elapsed";
 import type { RunEngine } from "./engine";
-import {
-  assertRunWithinCostCap,
-  hashUnit,
-  simulatedDelayMs,
-  usdMicros,
-} from "./mock-engine";
+import { assertRunWithinCostCap, hashUnit, usdMicros } from "./mock-engine";
 import type {
   JudgmentRecord,
   ManualRatingRecord,
@@ -416,22 +412,19 @@ export const createRun = async (
     db.insert(benchSamples).values(sampleRows),
   ]);
 
-  for (const sample of planned) {
-    // Mock: stagger with a UI-friendly synthetic delay. Live: no synthetic
-    // value to stagger with — start as soon as the tick clears (delay 0);
-    // the real fal call itself is the "delay".
-    const delayMs = engine.isMock
-      ? simulatedDelayMs(
-          `${runId}:${sample.modelAlias}:${sample.sampleIndex}`,
-          sample.speedP95Seconds
-        )
-      : 0;
-    setTimeout(() => {
-      runDetached("settleSample", async () => {
-        await settleSample(sample.id, runId, engine);
-      });
-    }, delayMs);
-  }
+  // At most `spec.concurrency` samples in the air at once. This used to be
+  // a bare loop of zero-delay `setTimeout`s, so every sample of a run
+  // dispatched simultaneously and the concurrency the composer collected was
+  // decoration — see `./pool.ts` for what that cost. Samples are handed out
+  // in `executionOrdinal` order, which is the order `planned` is already in.
+  dispatchSamples(
+    planned.map((sample) => sample.id),
+    spec.concurrency,
+    async (sampleId) => {
+      await settleSample(sampleId, runId, engine);
+    },
+    "db-store"
+  );
 
   // The run-level watchdog: fires once, at the deadline just computed above,
   // and reconciles a run that is still `running` past it (`./deadline.ts`'s

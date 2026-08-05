@@ -32,12 +32,16 @@ export interface DeadlineSampleInput {
  * (`perAttemptTimeoutMs` — `speedP95Seconds × 1.5`, or
  * `LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS × 1.5` when a model publishes no
  * p95, the common case per `BRIEF.md`: 12 of 23 models) plus a flat safety
- * margin. Takes one entry per *sample*, not per model — `samplesPerModel >
- * 1` genuinely needs that many timeout budgets, since nothing in this app
- * enforces `concurrency` as a real execution limiter (`validation.ts`'s
- * comment on the mock store: "the concurrency knob itself is not
- * simulated") — summing rather than taking a max is the conservative
- * (never-too-tight) choice for an upper bound. */
+ * margin. One entry per *sample*, not per model — `samplesPerModel > 1`
+ * genuinely needs that many budgets.
+ *
+ * Summing rather than taking a max was written as the conservative choice
+ * back when nothing enforced `concurrency` and every sample dispatched at
+ * once, which made it wildly generous. `./pool.ts` now enforces it, and at
+ * the default `concurrency: 1` the sum is no longer a loose upper bound but
+ * close to the real serial cost of the run — which is exactly what a
+ * deadline should be sized against. It stays an upper bound at any higher
+ * limit. */
 export const computeRunDeadlineMs = (
   samples: readonly DeadlineSampleInput[]
 ): number =>

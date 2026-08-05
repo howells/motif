@@ -31,8 +31,8 @@ import {
   settleSample,
 } from "./db-store";
 import { computeRunDeadlineMs } from "./deadline";
+import { dispatchSamples } from "./dispatch";
 import type { RunEngine } from "./engine";
-import { simulatedDelayMs } from "./mock-engine";
 import { planRetry } from "./retry";
 import type { RetryResult } from "./retry";
 import { RUN_STATUSES, SAMPLE_STATUSES } from "./types";
@@ -187,19 +187,18 @@ export const retrySamples = async (
       .where(eq(benchRuns.id, runId)),
   ]);
 
-  for (const row of retryRows) {
-    const delayMs = engine.isMock
-      ? simulatedDelayMs(
-          `${runId}:${row.modelAlias}:${row.sampleIndex}`,
-          speedP95For(row.modelAlias)
-        )
-      : 0;
-    setTimeout(() => {
-      runDetached("settleSample", async () => {
-        await settleSample(row.id, runId, engine);
-      });
-    }, delayMs);
-  }
+  // Under the run's own concurrency limit, through the same dispatcher
+  // `createRun` uses. This is the case that most needs it: the samples being
+  // retried are overwhelmingly the ones fal rate-limited, and firing all of
+  // them at once again is precisely the condition that failed them.
+  dispatchSamples(
+    retryRows.map((row) => row.id),
+    run.concurrency,
+    async (sampleId) => {
+      await settleSample(sampleId, runId, engine);
+    },
+    "db-store-retry"
+  );
 
   // Same two-layer guard `createRun` uses: a timer that dies with the
   // process, plus `getRun`'s reconcile-on-read that survives a restart.

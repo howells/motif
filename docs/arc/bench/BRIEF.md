@@ -84,9 +84,15 @@ Always record actual returned W×H from the image; never infer it.
 6. **Mock by default.** No test, no default code path, and no dev-server boot
    may hit fal. Live runs require explicit opt-in. Every mock run is flagged
    `isMock` so fake data cannot pollute longitudinal stats.
-7. **Concurrency defaults to 1.** "Fastest model" is the headline answer, so the
-   default must be the trustworthy one. Contended runs (`concurrency > 1`) are
-   badged everywhere they appear.
+7. **Concurrency defaults to 1, and is enforced.** "Fastest model" is the
+   headline answer, so the default must be the trustworthy one. Contended runs
+   (`concurrency > 1`) are badged everywhere they appear.
+   *Enforcement arrived late (2026-08-05, `lib/runs/pool.ts`).* Before it, the
+   field was collected, persisted and badged but acted on by nothing: a
+   23-sample run whose per-sample latencies sum to 584s completed in 153s of
+   wall clock, i.e. fully parallel, with 8 of its 11 failures `RATE_LIMITED`.
+   Every latency recorded before that date is contended and unbadged — treat
+   those runs as indicative, not comparable.
 8. **Costs are integer micros.** Never floats, never bigint.
 9. **`null` cost ≠ zero cost.** Unknown must stay distinguishable from free.
 10. **No SDK changes.** Everything needed is already exported from

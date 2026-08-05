@@ -30,6 +30,7 @@ import {
   simulatedDelayMs,
   usdMicros,
 } from "./mock-engine";
+import { runWithConcurrency } from "./pool";
 import { planRetry } from "./retry";
 import type { RetryResult } from "./retry";
 import type {
@@ -68,9 +69,10 @@ interface StoredSample {
   sampleIndex: number;
   seedReturned: number | null;
   seedSent: number | null;
-  /** Mirrors `bench_samples.started_at` — see the column comment there. Set
-   * when the settle timer is armed, because that is when this store's
-   * "generation" begins. */
+  /** Mirrors `bench_samples.started_at` — see the column comment there.
+   * Stamped when a dispatch lane picks the sample up, not when the row was
+   * created, so a sample queued behind the concurrency limit does not report
+   * its wait as generation time. */
   startedAt: Date | null;
   status: SampleStatus;
   totalMs: number | null;
@@ -344,13 +346,65 @@ export interface CreateRunResult {
   readonly runId: string;
 }
 
-/** Builds every (model, sample) row up front (status `pending`), then
- * schedules each one's synthetic completion independently — mirrors
- * `benchmark-run`'s `planRun → .foreach(runOneModel)` shape closely enough
- * that a real executor swap would not change this function's structure,
- * even though the concurrency knob itself is not simulated (there is no
- * shared resource in-process to contend over; it is stored and badged, not
- * enforced — see `mock-engine.ts`'s header). */
+interface PlannedMockSample {
+  readonly id: string;
+  /** Seeds `simulatedDelayMs`, so a given (run, model, sample) always takes
+   * the same synthetic time however it was scheduled. */
+  readonly key: string;
+  readonly speedP95Seconds: number | null;
+}
+
+const sleep = async (ms: number): Promise<void> => {
+  await new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
+
+/** The mock counterpart of `db-store.ts`'s `dispatchRun`: same pool, same
+ * limit, same fire-and-forget contract to the caller. The synthetic delay
+ * moved inside the lane, so it now models generation *time* rather than a
+ * scheduling offset — at `concurrency: 1` the delays run back to back
+ * instead of overlapping.
+ *
+ * `startedAt` is stamped when the lane picks the sample up, which is what
+ * makes the elapsed counter in the sheet measure this sample's own wait
+ * rather than the whole run's. */
+const dispatchMockSamples = (
+  planned: readonly PlannedMockSample[],
+  concurrency: number,
+  runId: string
+): void => {
+  void runWithConcurrency(planned, {
+    limit: concurrency,
+    onError: (error, sample) => {
+      console.error(
+        `[bench mock-store] settleSample threw for sample ${sample.id}`,
+        error
+      );
+    },
+    worker: async (sample) => {
+      const row = store.samples.get(sample.id);
+      if (row) {
+        row.startedAt = new Date();
+        store.samples.set(sample.id, row);
+      }
+      await sleep(simulatedDelayMs(sample.key, sample.speedP95Seconds));
+      settleSample(sample.id, runId);
+    },
+  });
+};
+
+/** Builds every (model, sample) row up front (status `pending`), then works
+ * through them under the run's `concurrency` limit — the same `./pool.ts`
+ * the Postgres store dispatches through.
+ *
+ * This store has no shared resource to contend over, so the limit changes
+ * nothing about its synthetic results. It is honoured anyway because this is
+ * the only store reachable without credentials, which makes it the only
+ * place the dispatch behaviour can be *seen*: a sheet that fills one frame
+ * at a time at `concurrency: 1` is what a real serial sweep looks like, and
+ * a mock that fanned out regardless would show a shape the product no longer
+ * has. */
 export const createRun = (spec: RunSpecInput): CreateRunResult => {
   assertRunWithinCostCap(spec);
 
@@ -358,6 +412,7 @@ export const createRun = (spec: RunSpecInput): CreateRunResult => {
   const now = new Date();
   let executionOrdinal = 0;
   let costEstimatedTotal = 0;
+  const planned: PlannedMockSample[] = [];
 
   for (const alias of spec.models) {
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- assertRunWithinCostCap (via routeFor) already rejected any alias without a route before this loop runs
@@ -396,19 +451,21 @@ export const createRun = (spec: RunSpecInput): CreateRunResult => {
         sampleIndex,
         seedReturned: null,
         seedSent: spec.seed === null ? null : spec.seed + sampleIndex,
-        startedAt: now,
+        // Null until this sample is actually picked up: with a concurrency
+        // limit the last frame of a serial run waits minutes for its turn,
+        // and a stopwatch started at run creation would show that wait as
+        // generation time.
+        startedAt: null,
         status: "pending",
         totalMs: null,
         width: null,
       });
 
-      const delayMs = simulatedDelayMs(
-        `${runId}:${alias}:${sampleIndex}`,
-        route.speedP95Seconds
-      );
-      setTimeout(() => {
-        settleSample(sampleId, runId);
-      }, delayMs);
+      planned.push({
+        id: sampleId,
+        key: `${runId}:${alias}:${sampleIndex}`,
+        speedP95Seconds: route.speedP95Seconds,
+      });
     }
   }
 
@@ -435,6 +492,10 @@ export const createRun = (spec: RunSpecInput): CreateRunResult => {
     status: "running",
     updatedAt: now,
   });
+
+  // After the run row exists, never before — `settleSample` looks the run up
+  // and a lane that started first would find nothing there.
+  dispatchMockSamples(planned, spec.concurrency, runId);
 
   return { runId };
 };
@@ -571,6 +632,7 @@ export const retrySamples = (
   }
 
   const now = new Date();
+  const planned: PlannedMockSample[] = [];
   for (const sampleId of plan.sampleIds) {
     const sample = store.samples.get(sampleId);
     if (!sample) {
@@ -590,28 +652,30 @@ export const retrySamples = (
     sample.providerMs = null;
     sample.queuePolled = false;
     sample.seedReturned = null;
-    sample.startedAt = now;
+    // Cleared, not restamped: the lane stamps it when it picks this sample
+    // up, so a queued retry does not count time it spent waiting its turn.
+    sample.startedAt = null;
     sample.status = "pending";
     sample.totalMs = null;
     sample.width = null;
     store.samples.set(sampleId, sample);
 
-    const delayMs = simulatedDelayMs(
-      `${runId}:${sample.modelAlias}:${sample.sampleIndex}`,
-      routeFor(
+    planned.push({
+      id: sampleId,
+      key: `${runId}:${sample.modelAlias}:${sample.sampleIndex}`,
+      speedP95Seconds: routeFor(
         // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- modelAlias was validated against BENCH_ROUTES_BY_ALIAS in createRun before this sample row was ever written
         sample.modelAlias as Parameters<typeof routeFor>[0]
-      ).speedP95Seconds
-    );
-    setTimeout(() => {
-      settleSample(sampleId, runId);
-    }, delayMs);
+      ).speedP95Seconds,
+    });
   }
 
   run.completedAt = null;
   run.status = "running";
   run.updatedAt = now;
   store.runs.set(runId, run);
+
+  dispatchMockSamples(planned, run.concurrency, runId);
 
   return { refusal: null, retried: plan.sampleIds.length };
 };
