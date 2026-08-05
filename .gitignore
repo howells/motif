@@ -27,3 +27,4 @@ coverage/
 
 # Phase 0 benchmark spike — local, own tsc+vitest gate; not held to the published-package standard yet (MOT-23)
 /bench/
+.env*
