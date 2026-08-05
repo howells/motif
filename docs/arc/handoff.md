@@ -15,23 +15,25 @@ This exact gap — green gates over an unseen screen — caused every UI defect 
 this project. Verify by looking, at 1440×900 and 390×844, on the populated
 24-model run (not an empty state).
 
-## Two production bugs — real, confirmed, invisible locally
+## Production bugs — one fixed, one open
 
 Both surfaced from asking "what happens on Vercel?", not from any check.
 
-### 1. Every image 404s in production
+### 1. Every image 404s in production — FIXED 2026-08-05
 
-Confirmed: the same image returns **200 locally, 404 on the live site**.
+Images now go to a **private** Vercel Blob store (`motif-bench-images`,
+`store_AtQrX9D4ZmyUK4CV`, iad1), linked to the project with
+`BLOB_READ_WRITE_TOKEN` set for all three environments.
 
-Images write to `process.cwd()/var/live-runs/<runId>/<alias>-<idx>.<ext>` and are
-served by `/api/image/...` via `readFile`. Vercel's filesystem is ephemeral and
-not shared between invocations, so the file written during generation does not
-exist when the image route is later called.
+`bench_samples.image_path` holds either an absolute filesystem path (a local run
+with no token — unchanged, and still right for a throwaway sweep) or a Blob
+pathname `runs/<runId>/<alias>-<idx>.<ext>`. Blob keys are relative and local
+paths absolute, so no discriminator column was needed. Private rather than
+public, so `/api/image/**` remains the only way in — which is why no stored
+`imageUrl` changed and the contact sheet needed no edit.
 
-**Fix:** object storage. `~/Sites/materialdesk` already uses R2 (credentials and
-precedent exist there); Vercel Blob is the alternative. `bench_samples.image_path`
-becomes a key rather than a filesystem path. Downloading from fal immediately is
-still right — fal's URLs expire — only the destination changes.
+**Images from runs before this date are still 404 in production.** They live on
+a disk Vercel never had; nothing migrates them. Re-run to repopulate.
 
 ### 2. Background work is killed in production
 
