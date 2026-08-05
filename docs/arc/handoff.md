@@ -1,171 +1,127 @@
-# Handoff — image model benchmark harness
+# Handoff — Motif Bench
 
-**Date:** 2026-08-04 · **Branch:** `chore/phase-0-toolchain` · **Status:** Phase 0 incomplete
+**Date:** 2026-08-05 · **Branch:** `main` (pushed) · **Live:** motif.materialinstruments.com
 
-Session ended on usage limits, not on a blocker. Nothing is broken that isn't
-recorded below.
+## Do this first
 
-## Read these first
+**Look at the UI.** `pnpm --filter @motif/bench-web dev` → localhost:4400.
 
-| File | Why |
+Three rounds of visual fixes landed but **nobody has seen the result** — the
+previous session's browser extension disconnected mid-work and the agent making
+the fixes never produced a screenshot despite three requests. The code reads
+correctly and gates pass; whether it *looks* good is unverified. Assume nothing.
+
+This exact gap — green gates over an unseen screen — caused every UI defect in
+this project. Verify by looking, at 1440×900 and 390×844, on the populated
+24-model run (not an empty state).
+
+## Two production bugs — real, confirmed, invisible locally
+
+Both surfaced from asking "what happens on Vercel?", not from any check.
+
+### 1. Every image 404s in production
+
+Confirmed: the same image returns **200 locally, 404 on the live site**.
+
+Images write to `process.cwd()/var/live-runs/<runId>/<alias>-<idx>.<ext>` and are
+served by `/api/image/...` via `readFile`. Vercel's filesystem is ephemeral and
+not shared between invocations, so the file written during generation does not
+exist when the image route is later called.
+
+**Fix:** object storage. `~/Sites/materialdesk` already uses R2 (credentials and
+precedent exist there); Vercel Blob is the alternative. `bench_samples.image_path`
+becomes a key rather than a filesystem path. Downloading from fal immediately is
+still right — fal's URLs expire — only the destination changes.
+
+### 2. Background work is killed in production
+
+`runDetached` (`apps/bench/lib/runs/db-store.ts`) is a bare floating promise with
+no `waitUntil` anywhere in the app. Serverless freezes the instance once the
+response is sent, so a run started in production will not reliably finish.
+`gpt2` alone took 151s, far past any function budget.
+
+**Fix, and it needs a decision:**
+- `waitUntil` from `@vercel/functions` — smallest change, still bounded by the
+  function's max duration.
+- fal's **queue API** (`submitGeneration`/`getJobStatus`/`getJobResult`, already
+  in the SDK; only `gpt2` uses it today) so no request is ever long-lived.
+
+**The catch, which matters:** fal does not return inference timing. Every number
+in this benchmark is measured client-side with `performance.now()`. Going
+queue-based turns `providerMs` into "queue wait + inference + poll granularity",
+degrading the headline speed measurement — which is exactly why `gpt2`'s timings
+carry a ±3s badge today. Check whether `JobStatus.logs[]` timestamps can yield
+real inference time before committing to that route.
+
+## Non-problem: the timeouts
+
+Zero `TIMEOUT` failures across 78 real samples — the only failures on record are
+8 `RATE_LIMITED` and 3 `INTERRUPTED`. The preview table prints `timeout floor` in
+the P95 column for the 12 of 24 models with no published `p95Seconds`; it means
+"no speed data, using the 90s default". It reads like an error and is not one.
+**Reword it.**
+
+## Where things stand
+
+Working, on `main`, deployed:
+
+- **24 models** measured end to end with real fal generations. Fastest
+  `flux-fast` 1.3s/$0.003; slowest `gpt2` 151s/$0.21 — 113× slower, 70× dearer.
+  Best value `flux2-turbo` 2.4s/$0.008.
+- Neon Postgres persistence, verified across a dev-server restart and under
+  concurrent writes.
+- App shell: no document scroll ≥768px, three `ScrollFrame`s (runs rail, contact
+  sheet, table pane), verdicts pinned, images dominant.
+- Patternmode theme: warm paper `#fbfbf9`, Inter **450**/14px with
+  `cv01 cv02 cv11`, forest `#315c4b` as the only accent, dark image plate.
+- Published: `@howells/motif-sdk` 1.1.0, `motif-cli` 1.6.0, `motif-mcp` 0.3.0
+  (qwen3 added; `workspace:*` correctly resolved in the published specs).
+- Total spend to date: ~$2.50.
+
+## Decisions made — do not relitigate
+
+- **The auto-judge is retired.** Built, measured against a real sweep, removed:
+  across 20 judgments it produced 5 distinct verdicts with 14 models
+  byte-identical, so "best quality" was a coin toss among a 14-way tie. Later
+  work (payload normalisation, pairwise Bradley-Terry ranking) improved it but
+  not enough. Quality is **manual star ratings**. The machinery remains in the
+  codebase, tested but unreachable from the product path. Do not wire it back in
+  without new evidence.
+- **The environment carries credentials only** — `DATABASE_URL`,
+  `DIRECT_DATABASE_URL`, `FAL_KEY`. No behaviour config. Mock vs live is
+  *derived* from which credentials are present (`bench-env/runtime`), so it
+  cannot be misconfigured independently of the credentials it needs. A flag
+  version of this caused synthetic data to be persisted as real.
+- **Default aspect is `1:1`** — the only value where all three sizing dialects
+  agree. Any other aspect frames models differently and contaminates comparison.
+- **Concurrency defaults to 1** so latency numbers stay trustworthy.
+
+## Traps that have already cost hours
+
+1. **Never `oxlint --fix-dangerously`.** It *fabricates code* — it invented
+   `case "1:1": throw ...` in two aspect mappers and `case undefined: throw` in a
+   studio switch, all breaking intentional fallthroughs. All three passed
+   typecheck and lint; only the test suite caught them.
+2. **No sub-agents on a shared working tree, and no write-side git from agents.**
+   A sub-agent ran a repo-wide format, self-reverted with `git reset`, and
+   destroyed two siblings' work. Twice.
+3. **A 200 response does not mean the work happened.** `POST /judge` returned
+   `started:true` while doing nothing — twice, for two different reasons (an
+   unlinked `sharp` import, then an idempotence guard). Verify by telemetry, not
+   by status.
+4. **Postgres integer columns are narrower than the data.** `performance.now()`
+   floats and fal's unsigned 32-bit seeds both broke writes *after* images had
+   been generated and paid for.
+5. **Verify where the instrument runs.** curl against an API and a browser
+   rendering that API's response are different instruments; only the second is
+   the product.
+
+## Files worth reading
+
+| | |
 |---|---|
-| `docs/arc/plans/2026-08-03-image-model-benchmark.md` | The plan. Still the spec, with the corrections below applied. |
-| `docs/arc/bench/BRIEF.md` | Verified ground truth + non-negotiable rules. **Give this to every agent.** |
-| `docs/arc/bench/align-params.kernel.ts` | The solved hard kernel. Ready to drop into `packages/bench-core`. |
-| `docs/arc/bench/verify-kernel.mjs` | Standalone verifier for the kernel. `node docs/arc/bench/verify-kernel.mjs`. |
-
-## Where the work stands
-
-Scope agreed with the user: **all six phases**, Phase 0 first. Only Phase 0 was
-started.
-
-### Phase 0 — toolchain bump (COMPLETE)
-
-All four gates green on Node 24: build, typecheck, lint, test.
-Test counts match pre-migration exactly — 27 / 36 / 1 / 99.
-
-**Known debt, deliberately visible.** `apps/cli` reports ~67 lint *warnings*
-(`no-non-null-assertion`, the `no-unsafe-*` family). These are demoted to
-warnings in `apps/cli/oxlint.config.ts`, not switched off, so they surface on
-every run without blocking the gate. Fixing them means adding guards and error
-paths — new behaviour, which does not belong in a toolchain migration. Pay them
-down and promote back to `"error"`.
-
-That config also scopes off rules oxlint adds that biome never enforced
-(`func-style`, `strict-boolean-expressions`, the `react-doctor/*` advisories,
-complexity metrics). Each entry carries its reason. Nothing is disabled
-repo-wide; no type-safety rule is disabled in `src/`.
-
-<details><summary>Original in-progress notes</summary>
-
-On `chore/phase-0-toolchain`, seven WIP commits, `main` untouched.
-
-Done and committed:
-- Node 22 → 24.15.0, pnpm 10.23 → 11.5.2, `engines` on every package.
-- `pnpm-workspace.yaml` catalog block + `minimumReleaseAge: 1440` with
-  `minimumReleaseAgeExclude: ["@howells/*"]`.
-- `@howells/lint` → 1.x: `oxlint.config.ts` + `oxfmt.config.ts` at root and per
-  package, `biome.json` deleted, `lint-staged` switched to `howells-fix`.
-- `@howells/typescript-config` presets, `turbo.json` boundaries tags.
-- Lint fallout cleared for **`motif-server`**, **`motif-mcp`**, **`motif-sdk`**.
-
-Not done:
-- **`apps/cli` lint fallout — ~814 findings. This is the remaining bulk.**
-- Final five-gate verification.
-- Squash of the seven WIP commits into one clean Phase 0 commit. One is labelled
-  `BROKEN, do not merge` and **must not reach `main` unsquashed**.
-
-Gates at handoff: `build` green, `typecheck` green, `lint` red (apps/cli only),
-`test` green per package (27 / 36 / 99, matching pre-migration counts exactly).
-
-</details>
-
-**A fourth fabricated-throw regression was found after the above was written**,
-in `apps/cli/src/studio/screens/generate.tsx` — `case undefined: throw new
-Error("Not implemented yet")` inserted into the studio's action switch, where
-the original fell through to `default: break`. It would have crashed the studio
-UI on an out-of-range selection. Fixed in `44a60e3`. The earlier audit that
-reported "nothing else found" was wrong, so treat any such all-clear with
-suspicion. A final audit of the whole `apps/cli` diff against `9dde27f` now
-shows zero `Not implemented yet` insertions and one new `throw`, which is an
-existing throw whose template expression gained a `String()` wrapper.
-
-### Phases 1–6 — NOT STARTED
-
-No `apps/bench`, no bench packages exist. The kernel is the only bench artifact.
-
-## Plan corrections — apply these, the plan doc is wrong
-
-Found by reading real code, not inferred:
-
-1. **`falPricing.unit` has five values**, not the four the plan lists: `images`
-   (9 models), `megapixels` (3), `processed megapixels` (2), `compute seconds`
-   (1), `units` (2). Derive `cost_basis` from this field, never a hardcoded list.
-2. **`MotifServer.timeout` is per-HTTP-request**, not a ceiling on `gpt2`'s
-   queue poll loop (160 × 3s = 8 min). The run-level deadline is load-bearing.
-3. **Aspect coercion is lossy and non-uniform.** At `3:2`, `aspect_ratio` models
-   get 1.5, `image_size_enum` models get `landscape_4_3` (1.333), `gpt` gets
-   1.5. Models would be framed differently and quality scores contaminated.
-   **Default the spec to `1:1`** — the only aspect where all three dialects
-   agree. Warn in the UI on any other value. See the table in `BRIEF.md`.
-4. **Mastra's Postgres pool must come from `createMastraPool`**
-   (`@howells/neon/mastra`). Its `max` clamps to >= 2 because a single-client
-   pool deadlocks `@mastra/pg` batch writes. A hand-rolled pool hangs
-   intermittently under `.foreach`.
-5. **`createHttpDb` has no precedent in materialdesk** (it uses `createNeonPool`
-   + `drizzle-orm/node-postgres`). It does exist at `@howells/neon/http`. We
-   proceed per plan, knowingly, without a precedent to copy.
-6. **materialdesk never persists money.** Integer micros in Postgres is our
-   decision to own, not an inherited convention.
-
-## Verified ground truth (do not re-derive)
-
-- 18 aliases in `GENERATION_MODELS`; all 18 align and build a body cleanly.
-- No seed: `gpt2`, `gpt`, `recraft`, `grok-image`.
-- No `p95Seconds`: `banana2`, `gemini`, `flux`, `flux-fast`, `recraft`,
-  `ideogram` — timeout derivation needs an explicit floor for these six.
-- Queue polling: `gpt2` only.
-- Full sweep 18 × 1 sample ≈ **$1.17**. Smoke pair `flux-fast` + `grok-image`
-  ≈ **$0.023**.
-- The kernel was re-verified after the Phase 0 migration at both `3:2` and
-  `1:1`, plus all 15 aspects through both mappers. Clean.
-
-## Unverified — gate Phase 3 on this
-
-The plan asserts these but they have **zero occurrences in materialdesk**, so
-they carry no precedent and were never confirmed against installed types:
-
-- `.foreach(step, { concurrency })` and nested-workflow-per-item fan-out.
-- `context.tracingContext.currentSpan?.createChildSpan(...)` / `span.end({ metadata })`.
-- `listActiveWorkflowRuns()` / `restart()`.
-
-**Verify each against the installed `@mastra/core` types before writing Phase 3
-code.** If one is missing, stop and report — do not shim. `.foreach` decides the
-whole fan-out shape; if its concurrency semantics differ from the plan's
-assumption, every latency number the harness produces is wrong.
-
-## Working rules — learned expensively, keep them
-
-Phase 0 lost its working tree **twice**. Cause: a sub-agent ran a repo-wide
-format that swept outside its scope, then self-reverted with `git reset`,
-destroying two sibling agents' concurrent work.
-
-1. **No sub-agents on a shared working tree.** Sequential, one package at a time.
-2. **No write-side git commands by any delegated agent** — no `reset`,
-   `checkout`, `stash`, `clean`, `restore`.
-3. **Commit early and often.** The plan's "do not commit" rule is what made the
-   resets destructive. Ten scrappy `--no-verify` commits beat one lost tree.
-4. **Never run `oxlint --fix-dangerously`.** It *fabricated code*: inserted
-   `case "1:1": throw ...` into both aspect mappers in `motif-sdk/src/aspects.ts`
-   and `case "none": throw ...` into `generate.ts`'s sizeMode switch, breaking
-   intentional fallthroughs. Typecheck and lint both passed; only the test suite
-   caught it. Reverted in `07a732f`. Plain `--fix` and by-hand edits only.
-5. **After any import-touching autofix, typecheck immediately.**
-   `no-duplicate-imports` replaced `import { basename, resolve } from
-   "node:path"` with a default `import path`, breaking 8 call sites — and a
-   local variable named `path` made it silently wrong rather than just broken.
-6. **A red gate is not done.** Never go idle on a failing verification command.
-
-## Next session — suggested order
-
-1. Finish `apps/cli` lint fallout (~814 findings). Mechanical; Sonnet is fine.
-   Sequential, commit per file group, full suite before each commit.
-2. All five gates green on Node 24.
-3. **Squash the seven WIP commits into one clean Phase 0 commit** and merge to
-   `main`. Delete `chore/phase-0-toolchain`.
-4. Phase 1 scaffold. Precedent file paths are in `BRIEF.md` — have the agent
-   read materialdesk directly rather than relaying config through the main loop.
-5. Phase 2: drop `align-params.kernel.ts` into `packages/bench-core/src/` as
-   `align-params.ts` and port `verify-kernel.mjs` into a colocated vitest drift
-   guard. **Do not let an agent rewrite the kernel.**
-
-## Dispatch notes
-
-- Routing that worked: Sonnet for mechanical + triage, Opus reserved for taste
-  (UI, judge) and interlocking work (Mastra).
-- A broad open-ended research brief to a background agent was wasteful — narrow,
-  file-specific specs are cheaper and more accurate.
-- Read-only agents cannot write files. Don't ask them to; collect by message or
-  read the files yourself.
-- Idle notifications in this harness were unreliable in both directions. Verify
-  state by inspecting the tree, not by trusting a status signal.
+| `docs/design/specs/design-bench-shell.md` | app-shell structure (current) |
+| `docs/design/specs/design-bench.md` | Patternmode visual system |
+| `docs/arc/bench/BRIEF.md` | verified ground truth + working rules |
+| `docs/arc/bench/align-params.kernel.ts` | the solved kernel, drift-guarded |
+| `docs/arc/plans/2026-08-03-image-model-benchmark.md` | original plan — **stale**: says 18 models and `MotifServer`, both wrong |
