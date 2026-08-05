@@ -29,5 +29,10 @@ export const ManualRatingInputSchema = z.object({
 });
 
 export const JudgeRunInputSchema = z.object({
+  /** An explicit POST /judge means "judge again": without this, a run whose
+   * samples all carry rank rows from a previous pass is silently skipped
+   * (the skip exists so the automatic post-run trigger is idempotent), and
+   * two "re-judges" in production no-opped while reporting started:true. */
+  force: z.boolean().default(true),
   judgeModel: z.string().min(1).max(100).default("mock-vision-judge-v1"),
 });

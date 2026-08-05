@@ -459,7 +459,8 @@ const runComparativePass = async (
  */
 export const startComparativeJudging = async (
   runId: string,
-  engine: RunEngine
+  engine: RunEngine,
+  force = false
 ): Promise<boolean> => {
   const judge = engine.comparativeJudge;
   if (judge === null) {
@@ -515,7 +516,11 @@ export const startComparativeJudging = async (
       )
     );
   const spec = RunSpecJsonSchema.parse(run.spec);
-  if (alreadyRanked.length === samples.length) {
+  // `force` is the explicit POST /judge path: skip the idempotence guard so a
+  // re-judge actually re-runs pairs (the upsert replaces rows). Without it a
+  // fully-ranked run silently no-ops — two production re-judges did exactly
+  // that while the endpoint reported started:true.
+  if (!force && alreadyRanked.length === samples.length) {
     if (spec.judgingStatus === "not-started") {
       await setJudgingStatus(db, runId, "not-started", "done");
     }
@@ -545,7 +550,8 @@ export const startComparativeJudging = async (
 export const startJudging = async (
   runId: string,
   judgeModel: string,
-  engine: RunEngine
+  engine: RunEngine,
+  force = false
 ): Promise<void> => {
   // Comparative first: absolute scoring saturates (5 distinct verdicts across
   // 20 real judgments, 14 models byte-identical — see
@@ -554,7 +560,7 @@ export const startJudging = async (
   // ranking is the answer. `startComparativeJudging` declines — and the
   // absolute pass below runs unchanged — for the mock engine and for a run
   // with fewer than two comparable samples.
-  if (await startComparativeJudging(runId, engine)) {
+  if (await startComparativeJudging(runId, engine, force)) {
     return;
   }
 

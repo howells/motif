@@ -137,7 +137,8 @@ export const getSampleImage = async (
 
 export const startJudging = async (
   runId: string,
-  judgeModel: string
+  judgeModel: string,
+  force = false
 ): Promise<boolean> => {
   const existing = await getRun(runId);
   if (!existing) {
@@ -146,7 +147,7 @@ export const startJudging = async (
   if (useMockStore) {
     mockStartJudging(runId, judgeModel);
   } else {
-    await dbStartJudging(runId, judgeModel, selectEngine());
+    await dbStartJudging(runId, judgeModel, selectEngine(), force);
   }
   return true;
 };
