@@ -17,7 +17,6 @@ describe("bench-env schema", () => {
     const parsed = parseServerEnv(VALID_INPUT);
     expect(parsed.DATABASE_URL).toBe(VALID_INPUT.DATABASE_URL);
     expect(parsed.FAL_KEY).toBe("fal_test_key");
-    expect(parsed.BENCH_MOCK).toBeUndefined();
     expect(parsed.BENCH_SCHEMA_PUSH_TARGET).toBeUndefined();
   });
 
@@ -34,15 +33,6 @@ describe("bench-env schema", () => {
         DIRECT_DATABASE_URL: "https://example.com",
       })
     ).toThrow(/./u);
-  });
-
-  it("coerces BENCH_MOCK truthy/falsy string forms", () => {
-    expect(
-      parseServerEnv({ ...VALID_INPUT, BENCH_MOCK: "true" }).BENCH_MOCK
-    ).toBe(true);
-    expect(parseServerEnv({ ...VALID_INPUT, BENCH_MOCK: "0" }).BENCH_MOCK).toBe(
-      false
-    );
   });
 
   it("only accepts the motif-bench-dev literal for the push-target acknowledgement", () => {

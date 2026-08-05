@@ -44,14 +44,16 @@ const postgresqlUrl = z
 // `./server.ts`). This file is deliberately excluded from the package export
 // map; consumers reach it only through `./config` (parse-free) or `./server`
 // (eager parse + `requireServerEnv`).
+// The environment carries ONLY credentials (user decision, 2026-08-05):
+// tokens, API keys, and connection strings — never behavior config. Mode
+// (mock vs live) is DERIVED from which credentials are present, and the
+// schema-push acknowledgement is passed inline at invocation
+// (`BENCH_SCHEMA_PUSH_TARGET=motif-bench-dev pnpm db:push`), never stored.
 export const envSchema = defineEnv({
-  optional: {
-    // Mock-by-default flag for the harness (see `docs/arc/bench/BRIEF.md`
-    // rule 6). `bench-core` owns the actual default-to-mock behavior; this
-    // schema only validates the raw value.
-    BENCH_MOCK: z.preprocess(parseOptionalBoolean, z.boolean().optional()),
-  },
   server: {
+    // Push acknowledgement — deliberate per-invocation friction for a
+    // remote-DB schema push, not persistent config. Validated here so the
+    // guard in bench-db reads it through envy like everything else.
     BENCH_SCHEMA_PUSH_TARGET: z.literal("motif-bench-dev").optional(),
     DATABASE_URL: z.url(),
     DIRECT_DATABASE_URL: postgresqlUrl,

@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/config.ts",
     "./config": "./src/config.ts",
-    "./server": "./src/server.ts"
+    "./server": "./src/server.ts",
+    "./runtime": "./src/runtime.ts"
   },
   "scripts": {
     "lint": "howells-check src",

@@ -1,23 +1,15 @@
+import { getLiveCredentials } from "@motif/bench-env/runtime";
+
 /**
  * The app's persistence seam. Every route handler under `app/api/**` reads
  * and writes through this module, never through `mock-store.ts` or
  * `db-store.ts` directly — so this is the ONLY place that decides which
- * implementation is live. `BENCH_MOCK=1` selects `mock-store.ts` (the
- * original in-process `Map`, unchanged); anything else selects
- * `db-store.ts` (real Postgres, `docs/arc/bench/BRIEF.md`'s "Reality check"
- * no longer applies once a database is provisioned). Never an env check
- * inside `lib/` helpers or components — one decision, one place, so a fake
- * run can never reach a real longitudinal stat regardless of which path a
- * given request took.
- *
- * Store and *engine* (`./engine.ts`) are selected independently here, even
- * though both currently derive from the same `BENCH_MOCK` value — this is
- * the fix for the bug this phase exists to close (`./engine.ts`'s header):
- * `BENCH_MOCK` used to select only the store, while generation always ran
- * through `mock-engine.ts` regardless, so a `BENCH_MOCK=0` run landed in
- * Postgres carrying synthetic data labeled `isMock: false`. `useMockStore`
- * and `useMockEngine` are two separate consts, computed separately, so nothing
- * short of BENCH_MOCK itself changing can make them disagree with what each
+ * implementation is live. Mode is derived from credentials at the
+ * composition root — see the comment above `getLiveCredentials()` below.
+ * (Historical note: a BENCH_MOCK env flag used to select only the store
+ * while generation always ran mock, so a "live" run persisted synthetic
+ * data as real. Deriving both store and engine from one credentials check
+ * makes that disagreement impossible.)
  * one is actually named for. `selectEngine()` is called fresh at each call
  * site, never hoisted to module scope — `createLiveEngine()` reads `FAL_KEY`
  * and throws if it is missing, which must never happen at module-eval time
@@ -68,28 +60,17 @@ export { CostCapExceededError, MissingPricingError } from "./mock-engine";
 /** Store selection — unchanged from before this phase. Pure and exported so
  * the BENCH_MOCK → store/engine mapping is unit-testable without touching
  * `process.env` or a live database. */
-export const storeModeFromEnv = (
-  rawBenchMock: string | undefined
-): "mock" | "postgres" => (rawBenchMock === "1" ? "mock" : "postgres");
-
-/** Engine selection — independent of store selection. Mock unless
- * `BENCH_MOCK` is explicitly `"0"`: an unset or malformed value must default
- * to mock (`BRIEF.md` rule 6), never accidentally select live.
- * `storeModeFromEnv(x) === "mock"` implies `engineModeFromEnv(x) === "mock"`
- * for every possible `x` (`"1" !== "0"`), so "mock store + live engine"
- * never arises; "Postgres store + mock engine" (`rawBenchMock` unset or some
- * other value) does, deliberately — a safe way to seed Postgres with
- * synthetic data, now correctly flagged `isMock: true` instead of this
- * phase's bug. */
-export const engineModeFromEnv = (
-  rawBenchMock: string | undefined
-): "live" | "mock" => (rawBenchMock === "0" ? "live" : "mock");
-
-// oxlint-disable-next-line no-restricted-properties -- this module IS the composition-root env-check boundary (BRIEF.md: one decision, one place); BENCH_MOCK is optional so a raw read never throws
-const rawBenchMock = process.env.BENCH_MOCK;
-
-const useMockStore = storeModeFromEnv(rawBenchMock) === "mock";
-const useMockEngine = engineModeFromEnv(rawBenchMock) === "mock";
+// Mode is DERIVED from credentials, never configured (user decision,
+// 2026-08-05: the environment carries only tokens and keys). All live
+// credentials present -> live store and engine; anything missing -> mock
+// for both. There is no flag to set and therefore none to misconfigure —
+// the old BENCH_MOCK produced exactly that bug, a "live" run of synthetic
+// data persisted as real. `getLiveCredentials` parses at call time and
+// never throws, so a zero-env build and a credential-less dev boot both
+// resolve to mock without touching this module's import graph.
+const liveCredentials = getLiveCredentials();
+const useMockStore = liveCredentials === null;
+const useMockEngine = liveCredentials === null;
 
 const selectEngine = (): RunEngine =>
   useMockEngine ? mockRunEngine : createLiveEngine();

@@ -29,6 +29,7 @@ import type {
 import { judgeSample } from "@motif/bench-core/judge";
 import type { PairJudgeModelClient } from "@motif/bench-core/rank-judge";
 import { judgePair } from "@motif/bench-core/rank-judge";
+import { getLiveCredentials } from "@motif/bench-env/runtime";
 import sharp from "sharp";
 
 import type {
@@ -598,17 +599,16 @@ const buildLiveComparativeJudge = (apiKey: string): ComparativeJudge => ({
 // ---------------------------------------------------------------------------
 
 /** Constructs the live `RunEngine`. Throws synchronously — before any
- * network call, before any file is touched — when `FAL_KEY` is unset or
- * empty: neither generation nor judging can exist without it, now that the
- * judge is routed through fal's `any-llm/vision` instead of a second
- * (unconfigured) Google credential. `repository.ts` is the only caller, and
- * only when `BENCH_MOCK=0`. */
-export const createLiveEngine = (): RunEngine => {
-  // oxlint-disable-next-line no-restricted-properties -- raw provider-key read, matching FalClient's own convention (packages/motif-sdk/src/server.ts constructs from a raw apiKey string); read here, once, inside this factory — never at module scope
-  const apiKey = process.env.FAL_KEY;
+ * network call, before any file is touched — when the live credentials are
+ * absent: neither generation nor judging can exist without `FAL_KEY`, now
+ * that the judge is routed through fal's `any-llm/vision`. `repository.ts`
+ * is the only caller, and only when `getLiveCredentials()` already
+ * resolved — so this throw is a belt-and-braces guard, not a code path. */
+export const createLiveEngine = (envInput?: NodeJS.ProcessEnv): RunEngine => {
+  const apiKey = getLiveCredentials(envInput)?.falKey;
   if (apiKey === undefined || apiKey === "") {
     throw new Error(
-      "Live generation requires FAL_KEY. Set BENCH_MOCK=1 to use the mock engine instead."
+      "Live generation requires FAL_KEY in the environment; without it the app runs the mock engine."
     );
   }
 

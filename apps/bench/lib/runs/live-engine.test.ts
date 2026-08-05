@@ -81,13 +81,15 @@ describe("createLiveEngine", () => {
   });
 
   it("cannot be constructed without FAL_KEY", () => {
-    delete process.env.FAL_KEY;
-    expect(() => createLiveEngine()).toThrow(/FAL_KEY/u);
+    expect(() => createLiveEngine({} as NodeJS.ProcessEnv)).toThrow(
+      /requires FAL_KEY/
+    );
   });
 
   it("cannot be constructed with an empty-string FAL_KEY", () => {
-    process.env.FAL_KEY = "";
-    expect(() => createLiveEngine()).toThrow(/FAL_KEY/u);
+    expect(() =>
+      createLiveEngine({ FAL_KEY: "" } as NodeJS.ProcessEnv)
+    ).toThrow(/requires FAL_KEY/);
   });
 
   it("constructs successfully, flagged isMock: false, once FAL_KEY is present", () => {
