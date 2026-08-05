@@ -14,9 +14,11 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { buildRunInsertRow } from "./db-store";
+import { buildRunInsertRow, buildSettleFailurePatch } from "./db-store";
 import type { RunEngine } from "./engine";
 import type { RunSpecInput } from "./types";
+
+const DEADLINE_AT_ISO = new Date(1_000_000).toISOString();
 
 const SPEC: RunSpecInput = {
   aspect: "1:1",
@@ -55,12 +57,26 @@ const LIVE_ENGINE: RunEngine = {
 
 describe("buildRunInsertRow", () => {
   it("persists isMock: true for a run produced by the mock engine", () => {
-    const row = buildRunInsertRow(SPEC, "run-1", new Date(0), MOCK_ENGINE, 0);
+    const row = buildRunInsertRow(
+      SPEC,
+      "run-1",
+      new Date(0),
+      MOCK_ENGINE,
+      0,
+      DEADLINE_AT_ISO
+    );
     expect(row.isMock).toBe(true);
   });
 
   it("persists isMock: false for a run produced by the live engine", () => {
-    const row = buildRunInsertRow(SPEC, "run-2", new Date(0), LIVE_ENGINE, 0);
+    const row = buildRunInsertRow(
+      SPEC,
+      "run-2",
+      new Date(0),
+      LIVE_ENGINE,
+      0,
+      DEADLINE_AT_ISO
+    );
     expect(row.isMock).toBe(false);
   });
 
@@ -70,14 +86,16 @@ describe("buildRunInsertRow", () => {
       "same-run-id",
       new Date(0),
       MOCK_ENGINE,
-      1_000_000
+      1_000_000,
+      DEADLINE_AT_ISO
     );
     const liveRow = buildRunInsertRow(
       SPEC,
       "same-run-id",
       new Date(0),
       LIVE_ENGINE,
-      1_000_000
+      1_000_000,
+      DEADLINE_AT_ISO
     );
     // Every field except isMock is identical for identical inputs — the only
     // thing that can flip isMock is which engine was passed in.
@@ -86,5 +104,31 @@ describe("buildRunInsertRow", () => {
       isMock: undefined,
     });
     expect(mockRow.isMock).not.toBe(liveRow.isMock);
+  });
+
+  it("persists the computed watchdog deadline inside spec.deadlineAt — the fix for the production hang with no run-level deadline (BRIEF.md)", () => {
+    const row = buildRunInsertRow(
+      SPEC,
+      "run-3",
+      new Date(0),
+      MOCK_ENGINE,
+      0,
+      DEADLINE_AT_ISO
+    );
+    expect(row.spec).toMatchObject({ deadlineAt: DEADLINE_AT_ISO });
+  });
+});
+
+describe("buildSettleFailurePatch", () => {
+  it("is a terminal failed row, never pending — the fix for a settle failure stranding a sample forever (BRIEF.md)", () => {
+    const patch = buildSettleFailurePatch();
+    expect(patch.status).toBe("failed");
+    expect(patch.status).not.toBe("pending");
+    expect(patch.errorCode).toBe("INTERRUPTED");
+  });
+
+  it("uses INTERRUPTED, not TIMEOUT — the settle-failure code is distinct from the watchdog's deadline code", () => {
+    const patch = buildSettleFailurePatch();
+    expect(patch.errorCode).not.toBe("TIMEOUT");
   });
 });

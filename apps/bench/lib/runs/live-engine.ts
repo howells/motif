@@ -53,14 +53,20 @@ export const LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS = 90;
  * model's poll loop (`BRIEF.md`) — this is still the right number to build
  * a run-level deadline from, because `routeFor(alias).speedP95Seconds` (fed
  * by `MODELS[alias].benchmark.speed.p95Seconds`) is the only per-model speed
- * signal this codebase has, queued models included. */
-export const timeoutMsForAlias = (
-  alias: Parameters<typeof routeFor>[0]
-): number => {
-  const p95Seconds = routeFor(alias).speedP95Seconds;
+ * signal this codebase has, queued models included. Split out from
+ * `timeoutMsForAlias` below so `./deadline.ts` can build the run-level
+ * deadline from a `speedP95Seconds` it already has in hand (from
+ * `db-store.ts`'s `createRun`, which calls `routeFor` once per model anyway)
+ * without a second `routeFor` lookup or re-deriving the alias-narrowing cast
+ * that call site already did. */
+export const perAttemptTimeoutMs = (p95Seconds: number | null): number => {
   const baseSeconds = p95Seconds ?? LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS;
   return Math.round(baseSeconds * 1.5 * 1000);
 };
+
+export const timeoutMsForAlias = (
+  alias: Parameters<typeof routeFor>[0]
+): number => perAttemptTimeoutMs(routeFor(alias).speedP95Seconds);
 
 // ---------------------------------------------------------------------------
 // GenerationClient — FalClient adapter

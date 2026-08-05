@@ -258,6 +258,28 @@ describe("executeGeneration — closed error vocabulary", () => {
     });
   });
 
+  it("classifies INTERRUPTED promptly when the signal aborts while the provider call is still in flight — a stalled read FalClient's own per-request timeout cannot bound (BRIEF.md)", async () => {
+    const controller = new AbortController();
+    // Simulates a genuinely stalled provider call: never resolves, never
+    // rejects. Without racing against the signal, awaiting this would hang
+    // `executeGeneration` forever regardless of `options.signal`.
+    const client = stubClient(
+      async () =>
+        await new Promise<Result<MotifResponse, MotifError>>(() => {
+          /* never settles */
+        })
+    );
+    const resultPromise = executeGeneration(client, alignmentFor(), {
+      imagePath: path.join(workDir, "sample.png"),
+      signal: controller.signal,
+    });
+
+    controller.abort();
+    const result = await resultPromise;
+
+    expect(result).toMatchObject({ errorCode: "INTERRUPTED", ok: false });
+  });
+
   it("classifies an injected client throwing an unexpected value as HTTP_5XX rather than crashing", async () => {
     const client = rejectedClient(new Error("boom"));
     const result = await executeGeneration(client, alignmentFor(), {

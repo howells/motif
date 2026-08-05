@@ -20,8 +20,15 @@ const JudgingStatusSchema = z.enum(JUDGING_STATUSES);
  * `maxEstimatedCostUsd`) plus judging progress, which has no column either
  * — `judgingStatus` lives here as a mutable key, guarded on write (see
  * `db-store.ts`'s `setJudgingStatus`) rather than a schema column, since the
- * already-pushed schema cannot be altered by this change. */
+ * already-pushed schema cannot be altered by this change. `deadlineAt`
+ * (`./deadline.ts`'s `computeRunDeadlineMs`, ISO string) is the same idea
+ * applied to the run-level watchdog deadline — the column comment on
+ * `bench_runs.spec` already calls this out: "derived timeout floors ...
+ * the run-level source of truth". `.nullable().default(null)` tolerates
+ * rows written before this field existed (a missing key parses as `null`,
+ * meaning "no deadline to reconcile against" rather than a parse failure). */
 export const RunSpecJsonSchema = z.object({
+  deadlineAt: z.string().nullable().default(null),
   judgeAfter: z.boolean(),
   judgingStatus: JudgingStatusSchema,
   maxEstimatedCostUsd: z.number(),

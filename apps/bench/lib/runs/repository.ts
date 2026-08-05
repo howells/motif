@@ -114,8 +114,14 @@ export const createRun = async (
 export const listRuns = async (): Promise<RunSummary[]> =>
   useMockStore ? mockListRuns() : await dbListRuns();
 
+/** The Postgres branch passes `selectEngine()` (same pattern as `createRun`/
+ * `startJudging`) — `db-store.ts`'s `getRun` needs an engine to finalise a
+ * run its own deadline-reconciliation pass just timed out (`./db-store.ts`'s
+ * header on `getRun`). The mock store never times out a run this way (no
+ * `deadlineAt` concept there — `mock-engine.ts`'s synthetic delays are
+ * already bounded), so it stays a plain passthrough. */
 export const getRun = async (runId: string): Promise<RunDetail | null> =>
-  useMockStore ? mockGetRun(runId) : await dbGetRun(runId);
+  useMockStore ? mockGetRun(runId) : await dbGetRun(runId, selectEngine());
 
 /** Backs the live image route (`app/api/image/[runId]/[alias]
  * /[sampleIndex]/route.ts`) — `mock-store.ts` never has a real file on disk

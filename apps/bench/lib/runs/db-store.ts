@@ -53,6 +53,8 @@ import {
 // real import, not collapsed into a re-export-only `export ... from`.
 // oxlint-disable-next-line unicorn/prefer-export-from -- see above; the binding is used locally in this file, a bare `export ... from` would not create one
 import { startJudging } from "./db-store-judging";
+import { computeRunDeadlineMs, planReconciliation } from "./deadline";
+import type { ReconcileSampleInput } from "./deadline";
 import type { RunEngine } from "./engine";
 import {
   assertRunWithinCostCap,
@@ -258,13 +260,18 @@ const cohortHashFor = (spec: RunSpecInput): string => {
 
 /** The exact row `createRun` inserts into `bench_runs` — a pure function (no
  * `db`, no I/O) so `isMock: engine.isMock` is unit-testable without a live
- * Postgres connection (`db-store.test.ts`) and never a hardcoded literal. */
+ * Postgres connection (`db-store.test.ts`) and never a hardcoded literal.
+ * `deadlineAtIso` is the run-level watchdog deadline (`./deadline.ts`'s
+ * `computeRunDeadlineMs`, added to `now`) — the fix for the production hang
+ * `docs/arc/bench/BRIEF.md` documents: no deadline existed at all on this
+ * app's real (Postgres + live engine) path. */
 export const buildRunInsertRow = (
   spec: RunSpecInput,
   runId: string,
   now: Date,
   engine: RunEngine,
-  costEstimatedTotalMicros: number
+  costEstimatedTotalMicros: number,
+  deadlineAtIso: string
 ): typeof benchRuns.$inferInsert => ({
   aspect: spec.aspect,
   cohortHash: cohortHashFor(spec),
@@ -280,6 +287,7 @@ export const buildRunInsertRow = (
   sdkVersion: MOTIF_SDK_VERSION,
   seed: spec.seed,
   spec: {
+    deadlineAt: deadlineAtIso,
     judgeAfter: spec.judgeAfter,
     judgingStatus: "not-started",
     maxEstimatedCostUsd: spec.maxEstimatedCostUsd,
@@ -353,11 +361,23 @@ export const createRun = async (
     }
   }
 
+  const deadlineMs = computeRunDeadlineMs(
+    planned.map((sample) => ({ speedP95Seconds: sample.speedP95Seconds }))
+  );
+  const deadlineAtIso = new Date(now.getTime() + deadlineMs).toISOString();
+
   await db.batch([
     db
       .insert(benchRuns)
       .values(
-        buildRunInsertRow(spec, runId, now, engine, costEstimatedTotalMicros)
+        buildRunInsertRow(
+          spec,
+          runId,
+          now,
+          engine,
+          costEstimatedTotalMicros,
+          deadlineAtIso
+        )
       ),
     db.insert(benchSamples).values(sampleRows),
   ]);
@@ -378,6 +398,18 @@ export const createRun = async (
       });
     }, delayMs);
   }
+
+  // The run-level watchdog: fires once, at the deadline just computed above,
+  // and reconciles a run that is still `running` past it (`./deadline.ts`'s
+  // `planReconciliation`). This alone cannot be the only safeguard — it dies
+  // with the process on a dev-server restart — which is exactly why `getRun`
+  // also reconciles on every read (`BRIEF.md`: "a timer alone dies with the
+  // process; reconciliation on read survives a dev-server restart").
+  setTimeout(() => {
+    runDetached("reconcileRunIfPastDeadline", async () => {
+      await reconcileRunIfPastDeadline(runId, engine);
+    });
+  }, deadlineMs);
 
   return { runId };
 };
@@ -439,6 +471,23 @@ const finalizeRunIfDone = async (
   }
 };
 
+/** The exact patch a hard settle failure writes — a pure function (no `db`)
+ * so it is unit-testable the same way `buildRunInsertRow` is. Deliberately
+ * minimal: this is the recovery path for "the generation attempt itself, or
+ * the write that would have recorded it, just threw" — touching only
+ * columns that cannot themselves fail (no seeds, no jsonb, no floats; see
+ * `settleSample`'s header comment). `INTERRUPTED` is the closed vocabulary's
+ * honest code for "we could not record the result", distinct from
+ * `TIMEOUT` (the watchdog's own code, `./deadline.ts`, for "the run-level
+ * deadline passed before this ever settled"). This is the direct fix for
+ * the production hang `docs/arc/bench/BRIEF.md` documents: `qwen` generated
+ * successfully, the settle write failed on an unrelated bug, and the
+ * swallowed error left the sample `pending` forever. */
+export const buildSettleFailurePatch = (): {
+  errorCode: "INTERRUPTED";
+  status: "failed";
+} => ({ errorCode: "INTERRUPTED", status: "failed" });
+
 const settleSample = async (
   sampleId: string,
   runId: string,
@@ -485,36 +534,121 @@ const settleSample = async (
     return;
   }
 
-  const attempt = await engine.buildAttempt({
-    alignment,
-    costEstimatedMicros: sample.costEstimatedMicros ?? 0,
-    runId,
-    sampleIndex: sample.sampleIndex,
-  });
+  // A settle failure must never leave the sample `pending` forever
+  // (`BRIEF.md`'s "what went wrong in production"). `engine.buildAttempt`
+  // (a real fal call for the live engine) and the main result write are the
+  // two things that can throw here — either way, the sample gets a minimal
+  // terminal row instead of silently staying `pending`. If even that write
+  // throws, it is logged and left for the run-level watchdog
+  // (`reconcileRunIfPastDeadline`) to eventually catch via `TIMEOUT`.
+  try {
+    const attempt = await engine.buildAttempt({
+      alignment,
+      costEstimatedMicros: sample.costEstimatedMicros ?? 0,
+      runId,
+      sampleIndex: sample.sampleIndex,
+    });
 
-  await db
-    .update(benchSamples)
-    .set({
-      bytes: attempt.bytes || null,
-      coercedParams: toCoercedParamsJson(alignment.coerced),
-      contentType: attempt.contentType || null,
-      costRefinedMicros: attempt.costRefinedMicros,
-      downloadMs: msToInt(attempt.downloadMs),
-      droppedParams: [...attempt.droppedParams],
-      errorCode: attempt.errorCode,
-      falRequestId: attempt.falRequestId,
-      height: attempt.height,
-      imagePath: attempt.imagePath,
-      providerMs: msToInt(attempt.providerMs),
-      queuePolled: attempt.queuePolled,
-      requestBody: alignment.body,
-      seedReturned: attempt.seedReturned,
-      status: attempt.ok ? "completed" : "failed",
-      totalMs: msToInt(attempt.totalMs),
-      updatedAt: new Date(),
-      width: attempt.width,
-    })
-    .where(eq(benchSamples.id, sampleId));
+    await db
+      .update(benchSamples)
+      .set({
+        bytes: attempt.bytes || null,
+        coercedParams: toCoercedParamsJson(alignment.coerced),
+        contentType: attempt.contentType || null,
+        costRefinedMicros: attempt.costRefinedMicros,
+        downloadMs: msToInt(attempt.downloadMs),
+        droppedParams: [...attempt.droppedParams],
+        errorCode: attempt.errorCode,
+        falRequestId: attempt.falRequestId,
+        height: attempt.height,
+        imagePath: attempt.imagePath,
+        providerMs: msToInt(attempt.providerMs),
+        queuePolled: attempt.queuePolled,
+        requestBody: alignment.body,
+        seedReturned: attempt.seedReturned,
+        status: attempt.ok ? "completed" : "failed",
+        totalMs: msToInt(attempt.totalMs),
+        updatedAt: new Date(),
+        width: attempt.width,
+      })
+      .where(eq(benchSamples.id, sampleId));
+  } catch (error) {
+    console.error(
+      `[bench db-store] settleSample generation/write failed for sample ${sampleId}`,
+      error
+    );
+    try {
+      await db
+        .update(benchSamples)
+        .set({ ...buildSettleFailurePatch(), updatedAt: new Date() })
+        .where(eq(benchSamples.id, sampleId));
+    } catch (writeError) {
+      console.error(
+        `[bench db-store] settleSample terminal write also failed for sample ${sampleId} — the run-level watchdog will still catch this`,
+        writeError
+      );
+    }
+  }
+
+  await finalizeRunIfDone(runId, engine);
+};
+
+/** The run-level watchdog's DB-touching half — `./deadline.ts`'s
+ * `planReconciliation` decides *what* to do; this applies it. Called both
+ * from the per-run `setTimeout` `createRun` schedules at creation time and
+ * from every `getRun` for a `running` run (`BRIEF.md`: a timer alone dies
+ * with the process, so reads must reconcile too). Reuses `finalizeRunIfDone`
+ * for the actual status write rather than duplicating its succeeded/failed/
+ * partial arithmetic — it recomputes against the fresh post-`TIMEOUT` rows,
+ * so there remains exactly one place that decides the persisted run status,
+ * and its own `WHERE status = 'running'` guard is what makes calling this
+ * twice safe (the second call's `planReconciliation` sees a non-`running`
+ * run and returns a no-op plan before any write is attempted). */
+const reconcileRunIfPastDeadline = async (
+  runId: string,
+  engine: RunEngine
+): Promise<void> => {
+  const db = await getDb();
+  const [run] = await db
+    .select()
+    .from(benchRuns)
+    .where(eq(benchRuns.id, runId))
+    .limit(1);
+  if (!run) {
+    return;
+  }
+
+  const spec = RunSpecJsonSchema.parse(run.spec);
+  const sampleRows = await db
+    .select({ id: benchSamples.id, status: benchSamples.status })
+    .from(benchSamples)
+    .where(eq(benchSamples.runId, runId));
+  const samples: ReconcileSampleInput[] = sampleRows.map((row) => ({
+    id: row.id,
+    status: SampleStatusSchema.parse(row.status),
+  }));
+
+  const plan = planReconciliation(
+    run.status,
+    spec.deadlineAt,
+    new Date(),
+    samples
+  );
+  if (plan.finalRunStatus === null) {
+    return; // not running, deadline not yet passed, or nothing to reconcile
+  }
+
+  if (plan.timedOutSampleIds.length > 0) {
+    await db
+      .update(benchSamples)
+      .set({ errorCode: "TIMEOUT", status: "failed", updatedAt: new Date() })
+      .where(
+        and(
+          eq(benchSamples.runId, runId),
+          inArray(benchSamples.id, plan.timedOutSampleIds)
+        )
+      );
+  }
 
   await finalizeRunIfDone(runId, engine);
 };
@@ -532,7 +666,23 @@ export const listRuns = async (): Promise<RunSummary[]> => {
   return rows.map(toRunSummary);
 };
 
-export const getRun = async (runId: string): Promise<RunDetail | null> => {
+/** `engine` is only needed for `reconcileRunIfPastDeadline`'s
+ * `finalizeRunIfDone` call (auto-judging a `partial` timed-out run when the
+ * spec asked for it) — a normal read otherwise never touches it.
+ * `repository.ts` passes `selectEngine()`, same as `createRun`/`startJudging`.
+ * Reconciliation runs unconditionally before the read: it is a cheap no-op
+ * (`planReconciliation` short-circuits) whenever the run isn't `running` or
+ * hasn't passed its deadline, and is the enforcement `BRIEF.md` asks for —
+ * "any `GET /api/runs/[id]` for a `running` run past its deadline must
+ * reconcile it" — so the response below always reflects a timed-out run's
+ * true terminal state, even if the per-run watchdog `setTimeout` never fired
+ * (a dev-server restart between run creation and this request). */
+export const getRun = async (
+  runId: string,
+  engine: RunEngine
+): Promise<RunDetail | null> => {
+  await reconcileRunIfPastDeadline(runId, engine);
+
   const db = await getDb();
   const [runRow] = await db
     .select()

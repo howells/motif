@@ -87,6 +87,55 @@ const isSafetyMessage = (message: string): boolean =>
 const isAborted = (signal: AbortSignal | undefined): boolean =>
   signal?.aborted === true;
 
+const makeAbortError = (): Error => {
+  const error = new Error("Aborted");
+  error.name = "AbortError";
+  return error;
+};
+
+/**
+ * Rejects as soon as `signal` fires, so an in-flight `client.generate()` call
+ * that never settles — a genuinely stalled read, not merely a slow one —
+ * still lets `executeGeneration` return promptly instead of hanging
+ * indefinitely (`docs/arc/bench/BRIEF.md`: "Do not rely on `FalClient`'s
+ * internal timeout alone — it is per-HTTP-request and does not bound a
+ * stalled read"). `GenerationClient.generate` takes no signal of its own
+ * (`FalClient.generate` accepts none either — no SDK change, `BRIEF.md` rule
+ * 10), so this cannot cancel the underlying HTTP request; it only stops
+ * *waiting* on it, which is what unblocks the caller's own settle queue (the
+ * "per-attempt guard" `apps/bench/lib/runs/live-engine.ts`'s `buildLiveAttempt`
+ * relies on). `Promise.race` attaches its own reaction to both `promise` and
+ * the abort promise, so neither is ever left with an unhandled rejection
+ * once the race settles.
+ */
+const raceAgainstAbort = async <T>(
+  promise: Promise<T>,
+  signal: AbortSignal | undefined
+): Promise<T> => {
+  if (signal === undefined) {
+    return await promise;
+  }
+  if (isAborted(signal)) {
+    throw makeAbortError();
+  }
+
+  let onAbort: (() => void) | undefined;
+  const abortPromise = new Promise<never>((_resolve, reject) => {
+    onAbort = (): void => {
+      reject(makeAbortError());
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+
+  try {
+    return await Promise.race([promise, abortPromise]);
+  } finally {
+    if (onAbort) {
+      signal.removeEventListener("abort", onAbort);
+    }
+  }
+};
+
 /**
  * Maps a `MotifError` (or a thrown value) to the closed vocabulary. Reads
  * `error.message`/`error.status` only to pick a code — the message itself is
@@ -162,7 +211,10 @@ export const executeGeneration = async (
   const providerStart = performance.now();
   let response: Result<MotifResponse, MotifError>;
   try {
-    response = await client.generate(alignment.options);
+    response = await raceAgainstAbort(
+      client.generate(alignment.options),
+      options.signal
+    );
   } catch (error) {
     return {
       downloadMs: null,
