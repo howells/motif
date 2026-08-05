@@ -28,19 +28,38 @@
      compare images — so the surround must be as achromatic as the light
      theme's plate was. Hue 106 is retained so the greys stay very slightly
      warm rather than clinically blue. */
-  --color-background: oklch(0.185 0.002 106); /* the ground, everywhere */
-  --color-surface: oklch(0.225 0.002 106); /* rail, top bar, popovers */
-  --color-surface-soft: oklch(0.265 0.003 106); /* hover, selected rows */
-  --color-ink: oklch(0.94 0.002 106);
-  --color-muted: oklch(0.68 0.004 106);
-  --color-border: oklch(0.305 0.003 106);
-  --color-border-soft: oklch(0.255 0.003 106); /* interior rules */
+  /* Ground goes deep. Informed by ~/Sites/kiln, the closest sibling tool
+     (same author, same job — judging generated images). Its reasoning: the
+     images should be the only luminous thing on screen. At L 0.185 the
+     surround was still bright enough to compete; at L 0.11 the rooms read
+     as lit objects on a bench. */
+  --color-background: oklch(0.11 0.002 106); /* the ground, everywhere */
+  --color-surface: oklch(0.145 0.002 106); /* rail, top bar, popovers */
+  --color-surface-soft: oklch(0.185 0.003 106); /* hover, selected rows */
 
-  /* Forest lifted from L 0.438 to L 0.62: the light theme's accent is a
-     dark green chosen to read on paper, and it disappears against this
-     ground. Same hue family, re-derived for the new surround. */
-  --color-accent: oklch(0.62 0.075 166);
-  --color-accent-soft: oklch(0.3 0.03 166); /* tinted fill, not a wash */
+  /* Three text rungs, not two. `muted` was doing double duty on both
+     labels and de-emphasised data, which is why annotation blocks read flat.
+     Now: primary reading, secondary labels, tertiary annotation. */
+  --color-ink: oklch(0.96 0.002 106);
+  --color-muted: oklch(0.66 0.004 106);
+  --color-faint: oklch(0.46 0.004 106);
+
+  /* Borders are white at low alpha, not a solid grey. A solid border has to
+     be hand-tuned for each rung of the surface ladder; an alpha border sits
+     correctly against all of them automatically. */
+  --color-border: oklch(1 0 0 / 0.08);
+  --color-border-soft: oklch(1 0 0 / 0.05); /* interior rules */
+  --color-border-strong: oklch(1 0 0 / 0.16);
+
+  /* The accent is achromatic, and that is the point. This tool exists to
+     judge colour in the images; a coloured accent competes with the subject
+     it is meant to help evaluate. The previous commit lifted forest green to
+     L 0.62 just to survive the dark ground — kiln's answer is better: a hued
+     accent should not be here at all. Near-white on near-black is the
+     strongest possible affordance and carries no hue to interfere. */
+  --color-accent: oklch(0.96 0 0);
+  --color-accent-soft: oklch(1 0 0 / 0.1); /* tinted fill, not a wash */
+  --color-on-accent: oklch(0.11 0.002 106); /* text ON the accent fill */
 
   /* ── The plate tokens now alias the ground ────────────────────────
      Kept as names rather than deleted so every component that annotates
@@ -52,7 +71,9 @@
   --color-plate-muted: var(--color-muted);
 
   /* ── Semantic — all lifted for a dark surround ────────────────── */
-  --color-ok: oklch(0.62 0.075 166); /* completed — reuse accent */
+  --color-ok: oklch(
+    0.7 0.085 166
+  ); /* completed — its own green now the accent is achromatic */
   --color-warn: oklch(0.76 0.11 78); /* partial, contended, stale */
   --color-bad: oklch(0.66 0.16 27); /* failed */
 
@@ -86,10 +107,10 @@
   --color-popover: var(--color-surface);
   --color-popover-foreground: var(--color-ink);
   --color-primary: var(--color-accent);
-  --color-primary-foreground: var(--color-background);
+  --color-primary-foreground: var(--color-on-accent);
   --color-secondary: var(--color-surface-soft);
   --color-secondary-foreground: var(--color-ink);
-  --color-accent-foreground: var(--color-background);
+  --color-accent-foreground: var(--color-on-accent);
   --color-muted-foreground: var(--color-muted);
   --color-destructive: var(--color-bad);
   --color-input: var(--color-border);

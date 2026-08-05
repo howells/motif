@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Aperto } from "@patternmode/aperto";
+
+import "@patternmode/aperto/styles.css";
 
 import type {
   ManualRatingRecord,
@@ -8,7 +10,11 @@ import type {
   SampleRecord,
 } from "@/lib/runs/types";
 
-import { Lightbox } from "./lightbox";
+import {
+  apertoIndexBySampleId,
+  renderBenchImage,
+  toApertoMedia,
+} from "./aperto-media";
 import { SampleFrame } from "./sample-frame";
 
 interface ContactSheetProps {
@@ -25,13 +31,13 @@ interface ContactSheetProps {
  * same reason: any hue in the surround biases the comparison.
  *
  * It is a *surface*, not a card: it fills its scroll frame edge to edge and
- * the frames tile against each other on a 1px gutter rather than sitting in
- * bordered boxes. The frame around it is a `ScrollFrame` owned by the run
+ * the frames sit on the ground with a 20px gutter rather than in bordered
+ * boxes. The frame around it is a `ScrollFrame` owned by the run
  * pane, so this component sets no height and no overflow of its own.
  *
  * Frames are square, uniform, and start at 240px. A contact sheet is uniform
  * *small* frames — the point is scanning many at once, and full size belongs
- * in the lightbox, which is one click away.
+ * in the expanded view, which is one click away.
  *
  * The track is `auto-fill` with `minmax(240px, 1fr)`. The rule this replaces
  * was "`auto-fill` with a fixed track, never `auto-fit` with `1fr`", on the
@@ -50,12 +56,14 @@ export const ContactSheet = ({
   run,
   samples,
 }: ContactSheetProps) => {
-  const [openSampleId, setOpenSampleId] = useState<string | null>(null);
   const ratingBySample = new Map(
     manualRatings.map((entry) => [entry.sampleId, entry])
   );
-  const openSample =
-    samples.find((sample) => sample.id === openSampleId) ?? null;
+  // Aperto owns the expanded view now, so there is no open-sample state here:
+  // the thumbnail *is* the trigger and the transition is a shared element
+  // rather than a separate dialog mounting a second copy of the image.
+  const media = toApertoMedia(samples);
+  const apertoIndex = apertoIndexBySampleId(samples);
   // The dropped/coerced lines are per-model, so one frame carries them and its
   // neighbour does not — which staggers the annotation blocks and pulls the
   // lattice out of alignment. Decided once for the whole sheet: if any sample
@@ -85,28 +93,22 @@ export const ContactSheet = ({
           single dark ground there is no contrasting surround, so butted
           frames merge into one another and the ground has to do the
           separating instead. */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-5 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
-        {samples.map((sample) => (
-          <SampleFrame
-            contended={run.concurrency > 1}
-            key={sample.id}
-            manualRating={ratingBySample.get(sample.id)}
-            onOpen={() => {
-              setOpenSampleId(sample.id);
-            }}
-            reserveCoercesLine={anyCoerces}
-            reserveDropsLine={anyDrops}
-            runId={run.id}
-            sample={sample}
-          />
-        ))}
-      </div>
-      <Lightbox
-        onClose={() => {
-          setOpenSampleId(null);
-        }}
-        sample={openSample}
-      />
+      <Aperto.Group media={media} renderImage={renderBenchImage}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-5 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+          {samples.map((sample) => (
+            <SampleFrame
+              apertoIndex={apertoIndex.get(sample.id)}
+              contended={run.concurrency > 1}
+              key={sample.id}
+              manualRating={ratingBySample.get(sample.id)}
+              reserveCoercesLine={anyCoerces}
+              reserveDropsLine={anyDrops}
+              runId={run.id}
+              sample={sample}
+            />
+          ))}
+        </div>
+      </Aperto.Group>
     </div>
   );
 };

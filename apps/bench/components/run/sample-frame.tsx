@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { Aperto } from "@patternmode/aperto";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -64,7 +64,9 @@ const ANNOTATION_MIN_HEIGHT = "min-h-[104px]";
 interface SampleFrameProps {
   readonly contended: boolean;
   readonly manualRating: ManualRatingRecord | undefined;
-  readonly onOpen: () => void;
+  /** Index into the parent `Aperto.Group`'s media array, or `undefined` for
+   * a sample with no image (failed, pending). */
+  readonly apertoIndex?: number;
   /** Set when *some* sample in the sheet coerced a param — this frame then
    * holds the line even if it coerced nothing, so the annotation blocks stay
    * the same height and the lattice stays aligned. */
@@ -80,20 +82,22 @@ interface SampleFrameProps {
  *
  * The frame is square and `object-cover` regardless of the run's requested
  * aspect, because a contact sheet is *uniform* frames — ragged rows are
- * harder to scan than a cropped thumbnail is misleading, and the lightbox
- * one click away shows the untouched full-resolution image. Its size is
+ * harder to scan than a cropped thumbnail is misleading, and the expanded
+ * view one click away shows the untouched full-resolution image. Its size is
  * fixed by the grid track, so nothing reflows when an image lands.
  *
  * The contention and queue-granularity marks sit *beside the latency* rather
  * than floating over the image, because that is the number they qualify:
  * both mean "this figure is not comparable to the others in the column".
  *
- * Thumbnails go through the Next image optimizer (`sizes` set for the grid);
- * only the lightbox's full-res view opts out — see `lightbox.tsx`. */
+ * Both the thumbnail and the expanded view render through one `renderImage`
+ * with `unoptimized` set — see `aperto-media.tsx`. They previously disagreed
+ * (optimized thumbnail, unoptimized full-res), which meant two different URLs
+ * and a refetch on every expansion. */
 export const SampleFrame = ({
   contended,
   manualRating,
-  onOpen,
+  apertoIndex,
   reserveCoercesLine,
   reserveDropsLine,
   runId,
@@ -101,34 +105,18 @@ export const SampleFrame = ({
 }: SampleFrameProps) => (
   <figure className="m-0 flex min-w-0 flex-col bg-plate">
     <div className="relative aspect-square w-full bg-plate">
-      {sample.status === "completed" && sample.imageUrl !== null ? (
-        <button
-          // `relative`, not decoration: `next/image` with `fill` positions
-          // against its *direct* parent, and a static button would silently
-          // size the thumbnail against the page instead of the frame.
-          //
-          // The hover outline is the only thing telling you a frame opens;
-          // without it the affordance is invisible. `accent-soft` rather than
-          // the forest accent itself, which at 1.9:1 on the plate would not
-          // read — and drawn inside the frame so it never overlaps a
-          // neighbour across the 1px gutter.
-          className="relative block size-full cursor-zoom-in border-0 bg-transparent p-0 outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 hover:outline-accent-soft focus-visible:outline-plate-ink"
-          onClick={onOpen}
-          type="button"
-        >
-          <Image
-            alt={`${sample.modelName ?? sample.modelAlias}, sample ${sample.sampleIndex}`}
-            className="rounded-frame object-cover"
-            fill
-            // The track is `minmax(240px, 1fr)`, so a frame is 240px at its
-            // narrowest and grows with the pane. Asking the optimizer for a
-            // flat 240 would serve an image the browser then has to upscale on
-            // a wide screen — the one place softness would be read as the
-            // model's.
-            sizes="(width < 40rem) 50vw, 360px"
-            src={sample.imageUrl}
-          />
-        </button>
+      {sample.status === "completed" &&
+      sample.imageUrl !== null &&
+      apertoIndex !== undefined ? (
+        // Aperto owns the trigger and the shared-element transition into the
+        // expanded view. The hover outline is the only thing telling you a
+        // frame opens, so it stays: `accent-soft` rather than the forest
+        // accent itself, which would not read against the ground, and drawn
+        // inside the frame so it never crosses the gutter.
+        <Aperto.Thumbnail
+          className="relative block size-full cursor-zoom-in outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 hover:outline-accent-soft focus-visible:outline-plate-ink [&_img]:size-full"
+          index={apertoIndex}
+        />
       ) : null}
 
       {sample.status === "failed" ? (
