@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
   boolean,
   check,
   doublePrecision,
@@ -134,8 +135,13 @@ export const benchSamples = pgTable(
       .notNull()
       .references(() => benchRuns.id, { onDelete: "restrict" }),
     sampleIndex: integer("sample_index").notNull(),
-    seedReturned: integer("seed_returned"),
-    seedSent: integer("seed_sent"),
+    /* fal returns UNSIGNED 32-bit seeds (up to 4,294,967,295) but Postgres
+       `integer` is signed int4, max 2,147,483,647. qwen returned 4258306349
+       and the write failed with "out of range for type integer", stranding the
+       sample at pending after the image had been generated and paid for.
+       bigint in number mode is exact to 2^53, far beyond any seed. */
+    seedReturned: bigint("seed_returned", { mode: "number" }),
+    seedSent: bigint("seed_sent", { mode: "number" }),
     status: text("status").notNull(),
     totalMs: integer("total_ms"),
     updatedAt: timestamptz("updated_at").defaultNow().notNull(),
