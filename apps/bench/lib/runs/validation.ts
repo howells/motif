@@ -4,6 +4,7 @@
  * `mock-engine.ts`/`mock-store.ts` with an out-of-range value — the cost cap
  * in particular is a server-side guarantee, not a UI courtesy.
  */
+import { GENERATION_MODELS } from "@howells/motif-sdk";
 import { z } from "zod";
 
 import { BENCH_ASPECTS } from "@/lib/aspect";
@@ -13,7 +14,9 @@ export const RunSpecInputSchema = z.object({
   concurrency: z.number().int().min(1).max(8),
   judgeAfter: z.boolean(),
   maxEstimatedCostUsd: z.number().positive().max(50),
-  models: z.array(z.string().min(1)).min(1).max(23),
+  // Bounded by the live registry, not a hand-pinned count — a pinned 23
+  // silently rejected full sweeps the day qwen3 became the 24th model.
+  models: z.array(z.string().min(1)).min(1).max(GENERATION_MODELS.length),
   prompt: z.string().trim().min(1).max(2000),
   resolution: z.enum(["0.5K", "1K", "2K", "4K"]),
   samplesPerModel: z.number().int().min(1).max(4),
