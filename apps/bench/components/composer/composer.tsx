@@ -81,7 +81,6 @@ export const Composer = () => {
     useState<RunSpecInput["resolution"]>("1K");
   const [seedEnabled, setSeedEnabled] = useState(false);
   const [seed, setSeed] = useState(42);
-  const [judgeAfter, setJudgeAfter] = useState(true);
   const [maxEstimatedCostUsd, setMaxEstimatedCostUsd] =
     useState(DEFAULT_MAX_COST_USD);
   const [previewedSpecKey, setPreviewedSpecKey] = useState<string | null>(null);
@@ -93,7 +92,7 @@ export const Composer = () => {
     () => ({
       aspect,
       concurrency,
-      judgeAfter,
+      judgeAfter: false,
       maxEstimatedCostUsd,
       models: [...selectedModels].toSorted(),
       prompt: prompt.trim(),
@@ -104,7 +103,6 @@ export const Composer = () => {
     [
       aspect,
       concurrency,
-      judgeAfter,
       maxEstimatedCostUsd,
       prompt,
       resolution,
@@ -165,11 +163,9 @@ export const Composer = () => {
         <ComposerFields
           aspect={aspect}
           concurrency={concurrency}
-          judgeAfter={judgeAfter}
           maxEstimatedCostUsd={maxEstimatedCostUsd}
           onAspectChange={setAspect}
           onConcurrencyChange={setConcurrency}
-          onJudgeAfterChange={setJudgeAfter}
           onMaxCostChange={setMaxEstimatedCostUsd}
           onResolutionChange={setResolution}
           onSamplesPerModelChange={setSamplesPerModel}

@@ -10,7 +10,11 @@
 import { aggregateByModel } from "@motif/bench-core";
 import type { AggregateSampleInput, ModelAggregate } from "@motif/bench-core";
 
-import type { JudgmentRecord, SampleRecord } from "@/lib/runs/types";
+import type {
+  JudgmentRecord,
+  ManualRatingRecord,
+  SampleRecord,
+} from "@/lib/runs/types";
 
 export interface ModelQuality {
   readonly meanOverall: number | null;
@@ -118,13 +122,28 @@ const countSuffix = (count: number): string => (count === 1 ? "" : "s");
 
 export const buildVerdictStrip = (
   samples: readonly SampleRecord[],
-  judgments: readonly JudgmentRecord[]
+  judgments: readonly JudgmentRecord[],
+  manualRatings: readonly ManualRatingRecord[] = []
 ): VerdictStripData => {
-  const timing = aggregateByModel(samples.map(toAggregateInput));
-  const quality = aggregateQualityByModel(samples, judgments);
-  const qualityByAlias = new Map(
-    quality.map((entry) => [entry.modelAlias, entry])
+  // Quality is human judgment (2026-08-05): the auto-judge is out of the
+  // product path, so "Best quality" and "Best value" read the manual star
+  // ratings — mean stars per model, stars-per-dollar for value. Historical
+  // judgments still render on sample cards but no longer drive verdicts.
+  const starsByAlias = new Map<string, { count: number; sum: number }>();
+  const aliasBySample = new Map(
+    samples.map((sample) => [sample.id, sample.modelAlias])
   );
+  for (const rating of manualRatings) {
+    const alias = aliasBySample.get(rating.sampleId);
+    if (alias === undefined) {
+      continue;
+    }
+    const entry = starsByAlias.get(alias) ?? { count: 0, sum: 0 };
+    entry.count += 1;
+    entry.sum += rating.stars;
+    starsByAlias.set(alias, entry);
+  }
+  const timing = aggregateByModel(samples.map(toAggregateInput));
 
   const fastest = bestCandidate(
     timing.flatMap((model) =>
@@ -158,32 +177,25 @@ export const buildVerdictStrip = (
   );
 
   const bestQuality = bestCandidate(
-    quality.flatMap((model) =>
-      model.meanOverall === null
-        ? []
-        : [
-            {
-              modelAlias: model.modelAlias,
-              sublabel: `mean of ${model.scoredCount} judged sample${countSuffix(model.scoredCount)}`,
-              value: model.meanOverall,
-            },
-          ]
-    ),
+    [...starsByAlias.entries()].map(([modelAlias, entry]) => ({
+      modelAlias,
+      sublabel: `mean of ${entry.count} star rating${countSuffix(entry.count)}`,
+      value: entry.sum / entry.count,
+    })),
     "higher"
   );
 
   const bestValue = bestCandidate(
     timing.flatMap((model) => {
       const usd = perImageUsd(model);
-      const meanOverall =
-        qualityByAlias.get(model.modelAlias)?.meanOverall ?? null;
-      return usd === null || usd <= 0 || meanOverall === null
+      const stars = starsByAlias.get(model.modelAlias);
+      return usd === null || usd <= 0 || stars === undefined
         ? []
         : [
             {
               modelAlias: model.modelAlias,
-              sublabel: "quality points per dollar",
-              value: meanOverall / usd,
+              sublabel: "stars per dollar",
+              value: stars.sum / stars.count / usd,
             },
           ];
     }),

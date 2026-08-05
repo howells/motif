@@ -422,7 +422,7 @@ export const createRun = async (
   // process; reconciliation on read survives a dev-server restart").
   setTimeout(() => {
     runDetached("reconcileRunIfPastDeadline", async () => {
-      await reconcileRunIfPastDeadline(runId, engine);
+      await reconcileRunIfPastDeadline(runId);
     });
   }, deadlineMs);
 
@@ -433,10 +433,7 @@ export const createRun = async (
  * guard means a run can only be finalised once even if two settlements race
  * to be "the last sample" — the loser's `UPDATE` matches zero rows and
  * `updated.length === 0` short-circuits before judging is triggered twice. */
-const finalizeRunIfDone = async (
-  runId: string,
-  engine: RunEngine
-): Promise<void> => {
+const finalizeRunIfDone = async (runId: string): Promise<void> => {
   const db = await getDb();
   const samples = await db
     .select({
@@ -480,10 +477,13 @@ const finalizeRunIfDone = async (
     return; // another concurrent settlement already finalised this run
   }
 
-  const spec = RunSpecJsonSchema.parse(finalizedRow.spec);
-  if (spec.judgeAfter && newStatus !== "failed") {
-    await startJudging(runId, engine.judgeModelLabel, engine);
-  }
+  // Auto-judging removed by decision (2026-08-05): three stacked defects in
+  // the vision-judge pipeline (oversized payloads, a silently no-oping
+  // re-judge, an 18% verdict-parse failure rate) cost more trust than the
+  // scores earned. Quality is human judgment now — the manual star ratings.
+  // The judging machinery stays in the codebase, tested but unreachable from
+  // the product path, in case a future model earns its way back in.
+  RunSpecJsonSchema.parse(finalizedRow.spec);
 };
 
 /** The exact patch a hard settle failure writes — a pure function (no `db`)
@@ -545,7 +545,7 @@ const settleSample = async (
       .update(benchSamples)
       .set({ errorCode: "HTTP_4XX", status: "failed", updatedAt: new Date() })
       .where(eq(benchSamples.id, sampleId));
-    await finalizeRunIfDone(runId, engine);
+    await finalizeRunIfDone(runId);
     return;
   }
 
@@ -605,7 +605,7 @@ const settleSample = async (
     }
   }
 
-  await finalizeRunIfDone(runId, engine);
+  await finalizeRunIfDone(runId);
 };
 
 /** The run-level watchdog's DB-touching half — `./deadline.ts`'s
@@ -619,10 +619,7 @@ const settleSample = async (
  * and its own `WHERE status = 'running'` guard is what makes calling this
  * twice safe (the second call's `planReconciliation` sees a non-`running`
  * run and returns a no-op plan before any write is attempted). */
-const reconcileRunIfPastDeadline = async (
-  runId: string,
-  engine: RunEngine
-): Promise<void> => {
+const reconcileRunIfPastDeadline = async (runId: string): Promise<void> => {
   const db = await getDb();
   const [run] = await db
     .select()
@@ -665,7 +662,7 @@ const reconcileRunIfPastDeadline = async (
       );
   }
 
-  await finalizeRunIfDone(runId, engine);
+  await finalizeRunIfDone(runId);
 };
 
 // ---------------------------------------------------------------------------
@@ -694,9 +691,11 @@ export const listRuns = async (): Promise<RunSummary[]> => {
  * (a dev-server restart between run creation and this request). */
 export const getRun = async (
   runId: string,
-  engine: RunEngine
+  // Kept for repository-surface parity with mock-store; unused since the
+  // auto-judge left the finalisation path (2026-08-05).
+  _engine: RunEngine
 ): Promise<RunDetail | null> => {
-  await reconcileRunIfPastDeadline(runId, engine);
+  await reconcileRunIfPastDeadline(runId);
 
   const db = await getDb();
   const [runRow] = await db

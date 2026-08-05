@@ -659,6 +659,10 @@ export interface JudgedPair {
 
 export interface InconclusivePair {
   readonly errorCode: JudgeErrorCode;
+  /** Bounded, newline-flattened sample of unparseable judge output — set
+   * only on INVALID_VERDICT, for diagnosing the parser against what the
+   * model actually said. Judge output only; never our prompt, never a URL. */
+  readonly rawSample?: string;
   readonly status: "inconclusive";
 }
 
@@ -713,7 +717,15 @@ export const judgePair = async (
 
   const verdict = parsePairVerdictText(text);
   if (verdict === null) {
-    return { errorCode: "INVALID_VERDICT", status: "inconclusive" };
+    // Carry a bounded, newline-flattened sample of what the model actually
+    // said: 10 of 54 real pairs failed here and the raw text was discarded,
+    // leaving nothing to diagnose the parser against. Judge output only —
+    // never our prompt, never a URL.
+    return {
+      errorCode: "INVALID_VERDICT",
+      rawSample: text.replaceAll(/\s+/gu, " ").trim().slice(0, 220),
+      status: "inconclusive",
+    };
   }
 
   return {

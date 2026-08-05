@@ -397,6 +397,9 @@ describe("judgePair — the injected seam", () => {
     });
     expect(result).toStrictEqual({
       errorCode: "INVALID_VERDICT",
+      // The bounded sample of what the judge actually said — added after 10
+      // of 54 real pairs failed here with the raw text discarded.
+      rawSample: "no json here",
       status: "inconclusive",
     });
   });

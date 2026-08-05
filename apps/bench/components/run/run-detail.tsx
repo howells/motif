@@ -1,7 +1,7 @@
 "use client";
 
 import { Section } from "@/components/section";
-import { useJudgeRun, useRun } from "@/lib/queries";
+import { useRun } from "@/lib/queries";
 import { aggregateQualityByModel, buildVerdictStrip } from "@/lib/verdicts";
 
 import { ComparisonTable } from "./comparison-table";
@@ -19,7 +19,6 @@ import { VerdictBand } from "./verdict-band";
  * against before reading any further. */
 export const RunDetail = ({ runId }: { runId: string }) => {
   const { data, error, isError, isLoading } = useRun(runId);
-  const judgeRun = useJudgeRun(runId);
 
   if (isLoading) {
     return <p className="text-[13px] text-muted">Loading run…</p>;
@@ -38,18 +37,12 @@ export const RunDetail = ({ runId }: { runId: string }) => {
   }
 
   const { judgments, manualRatings, run, samples } = data;
-  const verdicts = buildVerdictStrip(samples, judgments);
+  const verdicts = buildVerdictStrip(samples, judgments, manualRatings);
   const quality = aggregateQualityByModel(samples, judgments);
 
   return (
     <main className="flex min-w-0 flex-col gap-9">
-      <RunHeader
-        judgePending={judgeRun.isPending}
-        onJudgeClick={() => {
-          judgeRun.mutate();
-        }}
-        run={run}
-      />
+      <RunHeader run={run} />
 
       <VerdictBand data={verdicts} />
 

@@ -12,7 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import {
   ASPECT_DIALECT_TABLE,
   BENCH_ASPECTS,
@@ -82,11 +81,9 @@ const AspectCoercionNote = ({ aspect }: { readonly aspect: BenchAspect }) => {
 interface ComposerFieldsProps {
   readonly aspect: BenchAspect;
   readonly concurrency: number;
-  readonly judgeAfter: boolean;
   readonly maxEstimatedCostUsd: number;
   readonly onAspectChange: (aspect: BenchAspect) => void;
   readonly onConcurrencyChange: (value: number) => void;
-  readonly onJudgeAfterChange: (value: boolean) => void;
   readonly onMaxCostChange: (value: number) => void;
   readonly onResolutionChange: (resolution: RunSpecInput["resolution"]) => void;
   readonly onSamplesPerModelChange: (value: number) => void;
@@ -106,11 +103,9 @@ interface ComposerFieldsProps {
 export const ComposerFields = ({
   aspect,
   concurrency,
-  judgeAfter,
   maxEstimatedCostUsd,
   onAspectChange,
   onConcurrencyChange,
-  onJudgeAfterChange,
   onMaxCostChange,
   onResolutionChange,
   onSamplesPerModelChange,
@@ -136,9 +131,7 @@ export const ComposerFields = ({
     <AspectCoercionNote aspect={aspect} />
 
     <ToggleFields
-      judgeAfter={judgeAfter}
       maxEstimatedCostUsd={maxEstimatedCostUsd}
-      onJudgeAfterChange={onJudgeAfterChange}
       onMaxCostChange={onMaxCostChange}
       onSeedChange={onSeedChange}
       onSeedEnabledChange={onSeedEnabledChange}
@@ -257,9 +250,7 @@ const ShapeFields = ({
 /** Seed, judge-after and the hard cost cap: the three settings that are
  * about how the run *behaves* rather than what it produces. */
 const ToggleFields = ({
-  judgeAfter,
   maxEstimatedCostUsd,
-  onJudgeAfterChange,
   onMaxCostChange,
   onSeedChange,
   onSeedEnabledChange,
@@ -267,9 +258,7 @@ const ToggleFields = ({
   seedEnabled,
 }: Pick<
   ComposerFieldsProps,
-  | "judgeAfter"
   | "maxEstimatedCostUsd"
-  | "onJudgeAfterChange"
   | "onMaxCostChange"
   | "onSeedChange"
   | "onSeedEnabledChange"
@@ -298,17 +287,6 @@ const ToggleFields = ({
         type="number"
         value={seed}
       />
-    </div>
-
-    <div className="flex items-center gap-2.5">
-      <Switch
-        checked={judgeAfter}
-        id="bench-judge-after"
-        onCheckedChange={onJudgeAfterChange}
-      />
-      <label className="text-[13px] text-muted" htmlFor="bench-judge-after">
-        Judge after
-      </label>
     </div>
 
     <div className="flex items-center gap-2.5">

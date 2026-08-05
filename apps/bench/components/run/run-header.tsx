@@ -4,14 +4,11 @@ import Link from "next/link";
 
 import { RunStatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { isUniformAspect } from "@/lib/aspect";
 import { formatRelativeToNow, formatUsd } from "@/lib/format";
 import type { RunSummary } from "@/lib/runs/types";
 
 interface RunHeaderProps {
-  readonly judgePending: boolean;
-  readonly onJudgeClick: () => void;
   readonly run: RunSummary;
 }
 
@@ -23,11 +20,7 @@ interface RunHeaderProps {
  * left in the URL rather than repeated as chrome. What is shown is what the
  * user chose — models, samples, aspect, resolution, seed — plus what it
  * cost. */
-export const RunHeader = ({
-  judgePending,
-  onJudgeClick,
-  run,
-}: RunHeaderProps) => (
+export const RunHeader = ({ run }: RunHeaderProps) => (
   <header className="flex flex-col gap-4">
     <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-2">
       <Link
@@ -63,23 +56,6 @@ export const RunHeader = ({
         {run.costActualMicros === null ? " est" : ""}
       </span>
       <span>{formatRelativeToNow(run.createdAt)}</span>
-      <Button
-        className="ml-auto"
-        disabled={
-          run.status === "running" ||
-          run.judgingStatus === "running" ||
-          judgePending
-        }
-        onClick={onJudgeClick}
-        size="sm"
-        type="button"
-      >
-        {run.judgingStatus === "running"
-          ? "Judging…"
-          : run.judgingStatus === "done"
-            ? "Re-judge"
-            : "Judge this run"}
-      </Button>
     </div>
 
     {isUniformAspect(run.aspect) ? null : (
