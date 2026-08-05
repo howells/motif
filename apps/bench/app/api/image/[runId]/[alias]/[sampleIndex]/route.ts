@@ -11,8 +11,7 @@
  *
  * `force-dynamic`: reads the database and the filesystem on every request.
  */
-import { readFile } from "node:fs/promises";
-
+import { getSampleImageBytes } from "@/lib/runs/image-store";
 import { getSampleImage } from "@/lib/runs/repository";
 
 export const dynamic = "force-dynamic";
@@ -40,17 +39,21 @@ export async function GET(
     return new Response(null, { status: 404 });
   }
 
-  let bytes: Buffer;
-  try {
-    bytes = await readFile(image.imagePath);
-  } catch {
+  // `image_path` is either a local filesystem path (a pre-Blob row, or a
+  // local run with no token) or a private Blob pathname — `image-store`
+  // resolves whichever it is. This route deliberately survived the move to
+  // Blob: keeping the indirection meant no stored `imageUrl` changed, so the
+  // contact sheet and Aperto needed no edit at all, and rows written before
+  // the store existed still serve.
+  const stored = await getSampleImageBytes(image.imagePath, image.contentType);
+  if (stored === null) {
     return new Response(null, { status: 404 });
   }
 
-  return new Response(new Uint8Array(bytes), {
+  return new Response(stored.bytes, {
     headers: {
       "cache-control": "private, max-age=31536000, immutable",
-      "content-type": image.contentType ?? "application/octet-stream",
+      "content-type": stored.contentType ?? "application/octet-stream",
     },
   });
 }

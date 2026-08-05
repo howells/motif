@@ -15,7 +15,7 @@
  * is unset, before anything else happens — the live engine cannot exist
  * without it.
  */
-import { mkdir, readFile, rename } from "node:fs/promises";
+import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
 import { FalClient } from "@howells/motif-sdk";
@@ -42,6 +42,11 @@ import type {
   EnginePairJudgmentInput,
   RunEngine,
 } from "./engine";
+import {
+  blobPathnameFor,
+  getSampleImageBytes,
+  putSampleImage,
+} from "./image-store";
 
 // ---------------------------------------------------------------------------
 // Per-model generation timeout
@@ -119,6 +124,56 @@ const provisionalImagePath = (
     runId,
     `${encodeURIComponent(alias)}-${sampleIndex}.png`
   );
+
+/** Moves a downloaded image into Blob when a token exists, returning the
+ * pathname to persist; otherwise leaves it on disk and returns the local
+ * path unchanged.
+ *
+ * The local copy is deleted once the upload succeeds. Keeping it would grow
+ * `var/live-runs` without bound for bytes nothing reads any more — the
+ * serving path goes to Blob the moment `image_path` is a Blob pathname. A
+ * failed delete is logged and swallowed: the image is safely stored, and
+ * failing the whole attempt over a stray temp file would throw away a
+ * generation that was already paid for.
+ *
+ * An upload failure is *not* swallowed into a failed sample either — it
+ * falls back to the local path, so a local run whose Blob credentials are
+ * wrong still produces a working sheet rather than 24 broken frames. */
+const persistImage = async (
+  localPath: string,
+  runId: string,
+  alias: string,
+  sampleIndex: number,
+  contentType: string | null
+): Promise<string> => {
+  const extension = path.extname(localPath).replace(".", "") || "png";
+  const pathname = blobPathnameFor(runId, alias, sampleIndex, extension);
+  try {
+    const stored = await putSampleImage(
+      pathname,
+      await readFile(localPath),
+      contentType
+    );
+    if (stored === null) {
+      return localPath;
+    }
+    try {
+      await rm(localPath, { force: true });
+    } catch (error) {
+      console.error(
+        `[bench live-engine] uploaded ${pathname} but could not remove the local copy at ${localPath}`,
+        error
+      );
+    }
+    return stored;
+  } catch (error) {
+    console.error(
+      `[bench live-engine] Blob upload failed for ${pathname}; keeping the local copy, which will not be readable from a serverless deployment`,
+      error
+    );
+    return localPath;
+  }
+};
 
 const EXTENSION_BY_CONTENT_TYPE: Readonly<Record<string, string>> = {
   "image/gif": "gif",
@@ -199,6 +254,17 @@ const buildLiveAttempt = async (
       result.imagePath,
       result.contentType
     );
+    // Downloading from fal immediately is still right — its URLs expire —
+    // only the destination moved. The file has already landed on disk here;
+    // this hands it to Blob and, on success, returns the Blob pathname to
+    // persist instead of the local one.
+    const storedPath = await persistImage(
+      finalPath,
+      runId,
+      alignment.alias,
+      sampleIndex,
+      result.contentType
+    );
 
     return {
       bytes: result.bytes,
@@ -213,7 +279,7 @@ const buildLiveAttempt = async (
       errorCode: null,
       falRequestId: result.falRequestId,
       height: result.height,
-      imagePath: finalPath,
+      imagePath: storedPath,
       ok: true,
       providerMs: result.providerMs,
       queuePolled: alignment.usesQueue,
@@ -590,8 +656,18 @@ const buildLivePairJudgment = async (
 const buildLiveComparativeJudge = (apiKey: string): ComparativeJudge => ({
   judgePair: async (input) => await buildLivePairJudgment(apiKey, input),
   modelLabel: FAL_RANK_JUDGE_MODEL_ID,
-  toJudgeableImageUrl: async (imagePath) =>
-    await uploadImageBytesToFalCdn(apiKey, await readFile(imagePath)),
+  // Reads through `image-store` rather than `readFile`: an `image_path` may
+  // now be a Blob pathname, and a bare `readFile` on one throws ENOENT. The
+  // judge is unreachable from the product path (retired 2026-08-05) but is
+  // still wired and tested, and a store-shape change that silently breaks
+  // dormant code is how it stays broken until someone revives it.
+  toJudgeableImageUrl: async (imagePath) => {
+    const stored = await getSampleImageBytes(imagePath, null);
+    if (stored === null) {
+      throw new Error(`No image bytes available for ${imagePath}`);
+    }
+    return await uploadImageBytesToFalCdn(apiKey, Buffer.from(stored.bytes));
+  },
 });
 
 // ---------------------------------------------------------------------------

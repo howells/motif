@@ -55,6 +55,15 @@ export const envSchema = defineEnv({
     // remote-DB schema push, not persistent config. Validated here so the
     // guard in bench-db reads it through envy like everything else.
     BENCH_SCHEMA_PUSH_TARGET: z.literal("motif-bench-dev").optional(),
+    /** Vercel Blob read-write token for the private `motif-bench-images`
+     * store. Optional, and the one exception to "consumed secrets are
+     * required" above — its absence is not a misconfiguration but a
+     * *capability*: without it the live engine keeps images on local disk,
+     * which is exactly right for a throwaway local sweep and exactly wrong
+     * on Vercel, where the filesystem does not survive the invocation. The
+     * store it belongs to decides where bytes go, so this is a credential,
+     * not behaviour config. */
+    BLOB_READ_WRITE_TOKEN: z.string().trim().min(1).optional(),
     DATABASE_URL: z.url(),
     DIRECT_DATABASE_URL: postgresqlUrl,
     FAL_KEY: z.string().trim().min(1),
