@@ -73,7 +73,7 @@ const useShellSelection = (
 
 /** Keyboard-first is the difference between a tool and a form: `⌘K` focuses
  * the prompt, `⌘↵` runs from anywhere. `Escape` is left to Radix, which owns
- * it for the models popover and the lightbox alike. */
+ * it for the models popover and Aperto's expanded image view alike. */
 const useShellShortcuts = (
   promptRef: RefObject<HTMLInputElement | null>,
   onRun: () => void

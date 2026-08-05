@@ -110,9 +110,10 @@ export const SampleFrame = ({
       apertoIndex !== undefined ? (
         // Aperto owns the trigger and the shared-element transition into the
         // expanded view. The hover outline is the only thing telling you a
-        // frame opens, so it stays: `accent-soft` rather than the forest
-        // accent itself, which would not read against the ground, and drawn
-        // inside the frame so it never crosses the gutter.
+        // frame opens, so it stays: `accent-soft` rather than the accent
+        // itself, so the outline reads as a hover state and not as one of the
+        // two accent-filled elements the shell spec allows. Drawn inside the
+        // frame so it never crosses the gutter.
         <Aperto.Thumbnail
           className="relative block size-full cursor-zoom-in outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 hover:outline-accent-soft focus-visible:outline-plate-ink [&_img]:size-full"
           index={apertoIndex}

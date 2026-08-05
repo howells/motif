@@ -69,17 +69,24 @@ export const renderBenchImage = ({
 export const toApertoMedia = (
   samples: readonly SampleRecord[]
 ): ApertoMediaItem[] =>
-  samples
-    .filter((sample) => sample.status === "completed" && sample.imageUrl)
-    .map((sample) => ({
-      alt: `${sample.modelName ?? sample.modelAlias}, sample ${sample.sampleIndex}`,
-      height: sample.height ?? 1024,
-      id: sample.id,
-      src: sample.imageUrl as string,
-      title: sample.modelName ?? sample.modelAlias,
-      type: "image" as const,
-      width: sample.width ?? 1024,
-    }));
+  samples.flatMap((sample) =>
+    // `flatMap` rather than `filter`+`map`: it narrows `imageUrl` to a string
+    // inside the branch, so the media item needs no assertion to satisfy
+    // `ApertoImageItem["src"]`.
+    sample.status === "completed" && sample.imageUrl !== null
+      ? [
+          {
+            alt: `${sample.modelName ?? sample.modelAlias}, sample ${sample.sampleIndex}`,
+            height: sample.height ?? 1024,
+            id: sample.id,
+            src: sample.imageUrl,
+            title: sample.modelName ?? sample.modelAlias,
+            type: "image" as const,
+            width: sample.width ?? 1024,
+          },
+        ]
+      : []
+  );
 
 /** Sample id → index in the media array. The grid renders every sample
  * including failures, but Aperto only knows about the completed ones, so the
@@ -90,7 +97,7 @@ export const apertoIndexBySampleId = (
   const map = new Map<string, number>();
   let index = 0;
   for (const sample of samples) {
-    if (sample.status === "completed" && sample.imageUrl) {
+    if (sample.status === "completed" && sample.imageUrl !== null) {
       map.set(sample.id, index);
       index += 1;
     }

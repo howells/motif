@@ -7,9 +7,10 @@ import { cn } from "@/lib/utils";
 
 /** shadcn/ui's `dialog` on house tokens, trimmed to the parts this app uses.
  * The stock `shadow-lg` stays (Patternmode keeps it); what is gone is the
- * built-in close button: the only dialog here is the lightbox, which sits on
- * the dark plate and supplies its own plate-toned chrome rather than
- * inheriting paper-toned chrome that would be invisible on it. */
+ * built-in close button. That was for the lightbox, which supplied its own
+ * chrome; Aperto owns the expanded image view now and the only dialog left
+ * is the mobile runs drawer (`runs-rail.tsx`), which dismisses on overlay
+ * tap and `Escape` and carries no close control of its own. */
 export const Dialog = (props: ComponentProps<typeof DialogPrimitive.Root>) => (
   <DialogPrimitive.Root data-slot="dialog" {...props} />
 );
