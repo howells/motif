@@ -25,6 +25,20 @@ import type {
 } from "@/lib/runs/types";
 
 export const queryKeys = {
+  /** Keyed on the four fields the dry run actually reads — models, samples,
+   * aspect, resolution. The prompt is deliberately absent: `buildPreview`
+   * aligns parameters and prices them, and no part of that result depends on
+   * the prompt text, so keying on it would refetch on every keystroke to
+   * produce a byte-identical answer. */
+  preview: (spec: RunSpecInput) =>
+    [
+      "bench",
+      "preview",
+      spec.aspect,
+      spec.resolution,
+      spec.samplesPerModel,
+      spec.models.join(","),
+    ] as const,
   run: (runId: string) => ["bench", "runs", runId] as const,
   runs: () => ["bench", "runs"] as const,
 };
@@ -72,13 +86,25 @@ export { ApiError };
 
 const RUNNING_POLL_MS = 2500;
 
-export const usePreview = () =>
-  useMutation({
-    mutationFn: async (spec: RunSpecInput) =>
+/** The dry run, continuously — no "Preview" button, no wall to scroll past.
+ * The estimate it returns feeds the top bar's live summary line and its
+ * per-model detail feeds the models popover
+ * (`docs/design/specs/design-bench-shell.md`). Still a real dry run: the
+ * route is `previewRun` → `buildPreview`, which aligns parameters and prices
+ * them with **zero fal calls** and zero persistence.
+ *
+ * `staleTime: Infinity` because the answer is a pure function of the spec —
+ * there is nothing on the server that can change it under us. */
+export const usePreview = (spec: RunSpecInput, enabled: boolean) =>
+  useQuery({
+    enabled,
+    queryFn: async () =>
       await requestJson<PreviewResult>("/api/runs/preview", {
         body: JSON.stringify(spec),
         method: "POST",
       }),
+    queryKey: queryKeys.preview(spec),
+    staleTime: Infinity,
   });
 
 export const useCreateRun = () => {

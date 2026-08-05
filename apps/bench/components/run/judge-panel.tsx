@@ -37,12 +37,15 @@ const JudgeState = ({
   readonly judgment: JudgmentRecord | undefined;
   readonly showJudgingIndicator: boolean;
 }) => {
+  // Nothing at all when no judgment exists. The auto-judge is out of the
+  // product path (2026-08-05), so a "not judged" placeholder would now print
+  // on every frame of every run for ever — twenty-four repetitions of a word
+  // about a feature the tool no longer has. The star row below is the
+  // unrated state, and it says so by being empty and interactive.
   if (judgment === undefined) {
-    return (
-      <span className="text-plate-muted">
-        {showJudgingIndicator ? "judging…" : "not judged"}
-      </span>
-    );
+    return showJudgingIndicator ? (
+      <span className="text-plate-muted">judging…</span>
+    ) : null;
   }
 
   if (judgment.status === "inconclusive") {
@@ -94,10 +97,10 @@ const JudgeState = ({
 
 /** Judge states are first-class UI states, not afterthoughts
  * (`docs/arc/bench/BRIEF.md`, UI section): `not-run`, `inconclusive`,
- * `scored`, and manual-override (labelled "manual") — every one of the four
- * renders here, never collapsed into a single "no score" blank. A manual
- * star rating is layered on top of whatever the judge state is; it does not
- * replace the judge's own verdict. */
+ * `scored`, and manual-override (labelled "manual") — each still renders
+ * distinctly for the historical runs that carry judgments. The judge line
+ * disappears entirely when there is none, so a tool whose quality signal is
+ * now the star row does not print a word about judging on every frame. */
 export const JudgePanel = ({
   judgment,
   manualRating,
@@ -120,14 +123,18 @@ export const JudgePanel = ({
     );
   };
 
+  const hasJudgeLine = judgment !== undefined || showJudgingIndicator;
+
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="bench-numeric text-[11px]">
-        <JudgeState
-          judgment={judgment}
-          showJudgingIndicator={showJudgingIndicator}
-        />
-      </span>
+      {hasJudgeLine ? (
+        <span className="bench-numeric text-[11px]">
+          <JudgeState
+            judgment={judgment}
+            showJudgingIndicator={showJudgingIndicator}
+          />
+        </span>
+      ) : null}
       <span className="flex items-center gap-2">
         <StarRating
           disabled={setRating.isPending}

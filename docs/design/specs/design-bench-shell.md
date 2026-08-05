@@ -67,8 +67,9 @@ The current build is a **web page pretending to be a tool**:
 - The images — the actual output — get the largest region on screen, which was
   never true before.
 - The model picker stops being the visual subject. Default selection is the
-  **five cheapest models** so a first-time user can press Run immediately and
-  spend under a penny.
+  **five cheapest models** ($0.063 for a first run — cheap enough to press
+  without thinking, which is the property that matters; an earlier draft of
+  this spec said "under a penny", which was simply wrong arithmetic).
 - Preview stops being a wall: the cost estimate lives in the summary line and
   updates live. The dry-run detail moves inside the Models popover, where the
   decision it informs actually happens.
@@ -135,5 +136,5 @@ worse than allowing it.
 - [ ] Contact sheet scrolls while verdicts stay pinned.
 - [ ] `⌘↵` runs from anywhere; `Esc` closes overlays.
 - [ ] Default selection is the five cheapest models and the summary line reads
-      under $0.01 before any change.
+      $0.063 before any change.
 - [ ] Deep-linking `/runs/[id]` loads the shell with that run selected.

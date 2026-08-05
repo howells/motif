@@ -1,9 +1,8 @@
-import { BENCH_ROUTES } from "@motif/bench-core";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BenchShell } from "@/components/shell/bench-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryProvider } from "@/lib/query-provider";
 
@@ -25,30 +24,18 @@ export const metadata: Metadata = {
   title: "Motif Bench",
 };
 
+/** The shell lives here, not in a page. `/` and `/runs/[id]` share this root
+ * layout, so mounting the shell at this level is what lets a run be selected
+ * without a layout swap — the rail keeps its scroll position and the prompt
+ * keeps its text across the navigation
+ * (`docs/design/specs/design-bench-shell.md`). The pages themselves render
+ * nothing but a `RouteRun`, which is passed straight through as `children`. */
 const RootLayout = ({ children }: { children: ReactNode }) => (
   <html className={inter.variable} lang="en">
     <body>
       <QueryProvider>
         <TooltipProvider>
-          {/* No horizontal-overflow guard here on purpose. An
-              `overflow-x-clip` on this shell was tried and measurably did
-              nothing — the comparison table's overflow reached the document
-              regardless. It is contained at source instead, by `contain:
-              paint` on the table's own scroll container. */}
-          <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-9 px-4 pt-10 pb-24 sm:px-6 sm:pt-14">
-            <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-b border-border pb-4">
-              <h1>
-                <Link className="no-underline" href="/">
-                  Motif Bench
-                </Link>
-              </h1>
-              <p className="text-muted">
-                <span className="bench-numeric">{BENCH_ROUTES.length}</span>{" "}
-                models · fal
-              </p>
-            </header>
-            {children}
-          </div>
+          <BenchShell>{children}</BenchShell>
         </TooltipProvider>
       </QueryProvider>
     </body>

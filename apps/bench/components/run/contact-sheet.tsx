@@ -26,9 +26,10 @@ interface ContactSheetProps {
  * the judgement this page asks for. The plate is near-achromatic for the
  * same reason: any hue in the surround biases the comparison.
  *
- * It is a *surface*, not a card: it bleeds to the shell's edge (`-mx-4`
- * cancels the page gutter) and the frames tile against each other on a 1px
- * gutter rather than sitting in bordered boxes.
+ * It is a *surface*, not a card: it fills its scroll frame edge to edge and
+ * the frames tile against each other on a 1px gutter rather than sitting in
+ * bordered boxes. The frame around it is a `ScrollFrame` owned by the run
+ * pane, so this component sets no height and no overflow of its own.
  *
  * Frames are a fixed 240px square and do not flex. A contact sheet is
  * uniform *small* frames — the point is scanning many at once, and full size
@@ -61,14 +62,14 @@ export const ContactSheet = ({
 
   if (samples.length === 0) {
     return (
-      <p className="-mx-4 bg-plate p-4 py-10 text-center text-[13px] text-plate-muted sm:-mx-6">
+      <p className="bg-plate px-4 py-10 text-[13px] text-plate-muted">
         No samples yet. Frames appear here as each model is dispatched.
       </p>
     );
   }
 
   return (
-    <div className="-mx-4 bg-plate p-4 sm:-mx-6">
+    <div className="bg-plate p-3">
       {/* Fixed 240px tracks (160px on a phone, so the sheet still lands 2-up
           in a 358px column as the spec requires), 1px gutter, packed from the
           start. `auto-fill` keeps the track width constant no matter how few

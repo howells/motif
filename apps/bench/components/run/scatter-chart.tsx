@@ -36,15 +36,15 @@ const buildPoints = (
     if (
       model.cost.totalKnownMicros === null ||
       model.cost.knownCount === 0 ||
-      modelQuality?.meanOverall === null ||
-      modelQuality?.meanOverall === undefined
+      modelQuality?.meanStars === null ||
+      modelQuality?.meanStars === undefined
     ) {
       continue;
     }
     points.push({
       costUsd: model.cost.totalKnownMicros / model.cost.knownCount / 1_000_000,
       modelAlias: model.modelAlias,
-      quality: modelQuality.meanOverall,
+      quality: modelQuality.meanStars,
     });
   }
   return points;
@@ -67,9 +67,9 @@ const paretoFrontier = (points: readonly ScatterPoint[]): ScatterPoint[] =>
     .filter((candidate) => !points.some((other) => dominates(other, candidate)))
     .toSorted((left, right) => left.costUsd - right.costUsd);
 
-/** Gridlines and tick labels. Quality's domain is the rubric's fixed 0–4,
- * not the observed range: rescaling to the data would make a run where every
- * model scored 2.9–3.1 look like a dramatic spread. */
+/** Gridlines and tick labels. Quality's domain is the star scale's fixed
+ * 0–5, not the observed range: rescaling to the data would make a run where
+ * every model was rated 3.9–4.1 look like a dramatic spread. */
 const Axes = ({
   maxCost,
   xFor,
@@ -80,7 +80,7 @@ const Axes = ({
   readonly yFor: (qualityValue: number) => number;
 }) => (
   <>
-    {[0, 1, 2, 3, 4].map((tick) => (
+    {[0, 1, 2, 3, 4, 5].map((tick) => (
       <g key={`y-${tick}`}>
         <line
           className="stroke-border-soft"
@@ -117,8 +117,8 @@ const Axes = ({
 
 /** Cost/quality scatter with the Pareto frontier traced — inline SVG, no
  * chart library (`docs/arc/bench/BRIEF.md`, UI section). Only models with
- * both a known cost and at least one scored judgment plot; everything else
- * is the same pre-judge empty state the verdict band uses.
+ * both a known cost and at least one star rating plot; everything else is
+ * the same pre-rating empty state the verdict strip uses.
  *
  * The accent is spent on the frontier alone: on-frontier models are forest,
  * dominated ones are muted, and the grid is `border-soft` hairlines. Colour
@@ -130,13 +130,14 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
   if (points.length === 0) {
     return (
       <p className="max-w-[52ch] text-[13px] leading-[1.6] text-muted">
-        No cost/quality pairs yet — judge this run to plot the Pareto frontier.
+        No cost/quality pairs yet — rate some images on the Images tab and the
+        Pareto frontier appears here.
       </p>
     );
   }
 
   const maxCost = Math.max(...points.map((point) => point.costUsd), 0.001);
-  const maxQuality = 4;
+  const maxQuality = 5;
   const plotWidth = WIDTH - MARGIN.left - MARGIN.right;
   const plotHeight = HEIGHT - MARGIN.top - MARGIN.bottom;
 
@@ -156,10 +157,10 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* `min-w-0` for the same reason as the table container: a flex item
-          defaults to its content's minimum width, so the fixed-geometry chart
-          would widen the page instead of scrolling inside this box. */}
-      <div className="-mx-4 min-w-0 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+      {/* No scroll container here: the chart keeps its fixed geometry and the
+          run pane's `ScrollFrame` owns both axes, so a viewport narrower than
+          1040px scrolls the pane rather than nesting a second scroller. */}
+      <div>
         <svg
           aria-label="Cost versus quality scatter plot with the Pareto frontier highlighted"
           className="block font-mono tabular-nums"
@@ -172,7 +173,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
           {/* Axis titles sit outside the plot, at the two ends the eye already
               travels to: quality above its scale, cost below its own. */}
           <text className="fill-muted" fontSize={11} x={0} y={11}>
-            quality
+            quality ★
           </text>
           <text
             className="fill-muted"

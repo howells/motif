@@ -9,32 +9,18 @@ import { cn } from "@/lib/utils";
  *
  * Column headers are the one place besides the verdict labels where mono
  * small-caps is allowed (`docs/design/specs/design-bench.md`, Typography). */
+// No scroll container of its own any more. A fourteen-model comparison is
+// 2440px wide and used to need one here, plus `contain: paint` to stop that
+// width reaching the *document's* scrollable overflow in Chromium. Both are
+// gone because the table is now rendered inside the run pane's `ScrollFrame`,
+// which owns the horizontal axis; a second nested scroller would have been a
+// fourth scroll container in a shell the spec allows exactly three.
 export const Table = ({ className, ...props }: ComponentProps<"table">) => (
-  // Two classes here are load-bearing, both about horizontal overflow:
-  //
-  // `min-w-0`, because this box is a flex item and a flex item's automatic
-  // minimum size is its content width — without it the box grows past the
-  // viewport instead of scrolling inside itself.
-  //
-  // `contain:paint`, because a `display: table` box wider than its scroll
-  // container still contributes its full width to the *document's* scrollable
-  // overflow in Chromium, `overflow-x: auto` notwithstanding. A fourteen-model
-  // comparison is 2440px wide, and the page gained 1576px of horizontal scroll
-  // over blank space at 390px. Bisected to this container; `contain: paint` is
-  // the only thing that stopped the propagation (a `w-max` block wrapper and
-  // `overflow-x: clip` on html/body both failed). It clips painting to this
-  // box's padding edge, which is exactly the scroll viewport, so the table
-  // still scrolls normally inside it.
-  <div
-    className="w-full min-w-0 overflow-x-auto [contain:paint]"
-    data-slot="table-container"
-  >
-    <table
-      className={cn("w-full caption-bottom border-collapse", className)}
-      data-slot="table"
-      {...props}
-    />
-  </div>
+  <table
+    className={cn("w-full caption-bottom border-collapse", className)}
+    data-slot="table"
+    {...props}
+  />
 );
 
 export const TableHeader = ({

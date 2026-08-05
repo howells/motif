@@ -16,38 +16,44 @@ import type {
   SampleRecord,
 } from "@/lib/runs/types";
 
+/** Mean quality for one model, on the 1–5 star scale. */
 export interface ModelQuality {
-  readonly meanOverall: number | null;
+  readonly meanStars: number | null;
   readonly modelAlias: string;
-  readonly scoredCount: number;
+  readonly ratedCount: number;
 }
 
+/** Quality is human judgment (2026-08-05): the auto-judge is out of the
+ * product path, so every quality reading in the app — the verdict strip, the
+ * comparison table's quality row, and the cost/quality scatter — is the mean
+ * of *manual star ratings*. Reading judgments here instead would leave both
+ * the table row and the whole scatter permanently empty, since nothing in the
+ * UI can produce a judgment any more. Historical judgments still render on
+ * their own sample frames; they just do not aggregate. */
 export const aggregateQualityByModel = (
   samples: readonly SampleRecord[],
-  judgments: readonly JudgmentRecord[]
+  manualRatings: readonly ManualRatingRecord[]
 ): ModelQuality[] => {
-  const judgmentBySample = new Map(
-    judgments.map((judgment) => [judgment.sampleId, judgment])
+  const starsBySample = new Map(
+    manualRatings.map((rating) => [rating.sampleId, rating.stars])
   );
   const aliases = [
     ...new Set(samples.map((sample) => sample.modelAlias)),
   ].toSorted();
 
   return aliases.map((modelAlias) => {
-    const scores = samples
+    const stars = samples
       .filter((sample) => sample.modelAlias === modelAlias)
-      .map((sample) => judgmentBySample.get(sample.id))
-      .filter((judgment) => judgment?.status === "scored")
-      .map((judgment) => judgment?.overall)
-      .filter((overall) => typeof overall === "number");
+      .map((sample) => starsBySample.get(sample.id))
+      .filter((value) => typeof value === "number");
 
     return {
-      meanOverall:
-        scores.length === 0
+      meanStars:
+        stars.length === 0
           ? null
-          : scores.reduce((sum, value) => sum + value, 0) / scores.length,
+          : stars.reduce((sum, value) => sum + value, 0) / stars.length,
       modelAlias,
-      scoredCount: scores.length,
+      ratedCount: stars.length,
     };
   });
 };

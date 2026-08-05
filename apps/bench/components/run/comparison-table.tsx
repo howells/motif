@@ -45,12 +45,12 @@ const bestKeyFor = (row: Row): string | null => {
 };
 
 /** `null` means different things per row and the label has to say which.
- * "not judged" is only true of the quality row; a model whose every attempt
- * failed has no latency and no cost to report, and calling that "not judged"
- * blames the judge for a generation failure. */
+ * "not rated" is only true of the quality row; a model whose every attempt
+ * failed has no latency and no cost to report, and calling that "not rated"
+ * blames the rater for a generation failure. */
 const formatRowValue = (row: Row, value: number | null): string => {
   if (value === null) {
-    return row.label.startsWith("Quality") ? "not judged" : "no data";
+    return row.label.startsWith("Quality") ? "not rated" : "no data";
   }
   if (row.label.startsWith("Provider") || row.label.startsWith("Total")) {
     return formatMs(value);
@@ -119,11 +119,11 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
     },
     {
       direction: "higher",
-      label: "Quality (mean)",
+      label: "Quality (mean ★)",
       values: new Map(
         aliases.map((alias) => [
           alias,
-          qualityByAlias.get(alias)?.meanOverall ?? null,
+          qualityByAlias.get(alias)?.meanStars ?? null,
         ])
       ),
     },

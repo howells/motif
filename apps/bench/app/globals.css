@@ -6,6 +6,10 @@
 
 @import "tailwindcss";
 @import "tw-animate-css";
+/* The three scroll panes of the shell (runs rail, contact sheet, data pane)
+   are `ScrollFrame`s — measured edge fades, so a part-scrolled pane reads as
+   continuing rather than ending (`docs/design/specs/design-bench-shell.md`). */
+@import "@patternmode/scrollframe/styles.css";
 
 @theme {
   /* ── Inherited from Patternmode (exact) ───────────────────────── */
@@ -90,6 +94,19 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  /* This is an app shell, not a document: the viewport is the frame and the
+     three panes inside it scroll, never the page
+     (`docs/design/specs/design-bench-shell.md` — "the document must never
+     scroll"). Below `md` the rule is lifted deliberately: a phone has no room
+     for independent panes, and fighting that is worse than allowing it. */
+  @media (width >= 48rem) {
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
+  }
+
   body {
     background: var(--color-background);
     color: var(--color-ink);
@@ -164,9 +181,7 @@
 }
 
 /* A page-level `overflow-x: clip` used to live here to stop the comparison
-   table's overflow reaching the document. It is gone deliberately: the real
-   cause was the table's scroll container failing to contain its `display:
-   table` child, now fixed at source with `contain: paint` in
-   `components/ui/table.tsx`. A global clip fixed the symptom but would also
-   have hidden every future horizontal-overflow bug, which on a page of wide
-   data surfaces is the last thing this app wants. */
+   table's overflow reaching the document. It is gone, and so is the
+   `contain: paint` that replaced it: the table now renders inside the run
+   pane's `ScrollFrame`, which owns both axes, so its width never reaches the
+   document in the first place. */
