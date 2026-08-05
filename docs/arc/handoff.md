@@ -53,13 +53,33 @@ degrading the headline speed measurement — which is exactly why `gpt2`'s timin
 carry a ±3s badge today. Check whether `JobStatus.logs[]` timestamps can yield
 real inference time before committing to that route.
 
-## Non-problem: the timeouts
+## Non-problem: the timeouts. Real problem: concurrency (fixed)
 
 Zero `TIMEOUT` failures across 78 real samples — the only failures on record are
 8 `RATE_LIMITED` and 3 `INTERRUPTED`. The preview table prints `timeout floor` in
 the P95 column for the 12 of 24 models with no published `p95Seconds`; it means
 "no speed data, using the 90s default". It reads like an error and is not one.
 **Reword it.**
+
+The question this answers — "shouldn't generation be async?" — is **no**. Nothing
+was timing out; the failures were rate limiting, caused by `concurrency` being
+collected, persisted, badged and enforced by *nothing*. A 23-sample run whose
+per-sample latencies sum to 584s finished in 153s of wall clock. Going
+queue-based would not have fixed that (a queue submits all 24 just as fast) and
+would have cost the measurement: fal returns no inference timing, so polling
+turns `providerMs` into "queue wait + inference + poll granularity" — which is
+why `gpt2` already carries a ±3s badge.
+
+Enforcement landed 2026-08-05 in `lib/runs/pool.ts` + `lib/runs/dispatch.ts`.
+
+**Consequence for the data: every latency recorded before that date is
+contended and was never badged as such.** Treat those runs as indicative, not
+comparable. A clean sweep at `concurrency: 1` is ~10-12 minutes (the serial sum),
+against ~2.5 minutes fully parallel.
+
+**How to run reliably: locally, at `concurrency: 1`.** Not on Vercel — serial
+runs blow past any function ceiling, and there is no `waitUntil` anyway. Retry
+covers whatever still fails.
 
 ## Where things stand
 
@@ -94,7 +114,11 @@ Working, on `main`, deployed:
   version of this caused synthetic data to be persisted as real.
 - **Default aspect is `1:1`** — the only value where all three sizing dialects
   agree. Any other aspect frames models differently and contaminates comparison.
-- **Concurrency defaults to 1** so latency numbers stay trustworthy.
+- **Concurrency defaults to 1** so latency numbers stay trustworthy — and as of
+  2026-08-05 it is genuinely enforced (`lib/runs/pool.ts`). For eight weeks it
+  was not, which is why the runs recorded before that date are contended.
+- **Generation stays synchronous.** See the concurrency section above; the
+  timing fidelity is the whole product.
 
 ## Traps that have already cost hours
 
