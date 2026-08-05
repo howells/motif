@@ -8,12 +8,12 @@ import { getLiveCredentials } from "@motif/bench-env/runtime";
  */
 import { describe, expect, it } from "vitest";
 
-const FULL = {
+const FULL: NodeJS.ProcessEnv = {
   DATABASE_URL: "postgresql://user:pass@db.example.neon.tech/neondb",
   DIRECT_DATABASE_URL:
     "postgresql://user:pass@db-direct.example.neon.tech/neondb",
   FAL_KEY: "fal-key-under-test",
-} as NodeJS.ProcessEnv;
+};
 
 describe("getLiveCredentials", () => {
   it("resolves when every live credential is present", () => {
@@ -23,17 +23,20 @@ describe("getLiveCredentials", () => {
     });
   });
 
-  it.each(["FAL_KEY", "DATABASE_URL", "DIRECT_DATABASE_URL"])(
+  it.each([
+    ["FAL_KEY", { ...FULL, FAL_KEY: undefined }],
+    ["DATABASE_URL", { ...FULL, DATABASE_URL: undefined }],
+    ["DIRECT_DATABASE_URL", { ...FULL, DIRECT_DATABASE_URL: undefined }],
+  ] as const)(
     "returns null (mock mode) when %s is missing — never throws",
-    (key) => {
-      const partial = { ...FULL };
-      delete partial[key];
+    (_key, partial) => {
       expect(getLiveCredentials(partial)).toBeNull();
     }
   );
 
   it("returns null for an empty environment — a fresh clone runs mock", () => {
-    expect(getLiveCredentials({} as NodeJS.ProcessEnv)).toBeNull();
+    const empty: NodeJS.ProcessEnv = {};
+    expect(getLiveCredentials(empty)).toBeNull();
   });
 
   it("rejects a blank FAL_KEY rather than treating it as live", () => {

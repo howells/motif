@@ -31,6 +31,7 @@ export const getLiveCredentials = (
   let source = input;
   if (source === undefined) {
     loadWorkspaceDotenv();
+    // oxlint-disable-next-line no-restricted-properties -- this module IS an env-boundary entrypoint of the env package itself (same standing as ./server.ts); everything it returns has passed the schema
     source = process.env;
   }
   try {
