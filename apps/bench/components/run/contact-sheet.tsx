@@ -3,7 +3,6 @@
 import { useState } from "react";
 
 import type {
-  JudgmentRecord,
   ManualRatingRecord,
   RunSummary,
   SampleRecord,
@@ -13,7 +12,6 @@ import { Lightbox } from "./lightbox";
 import { SampleFrame } from "./sample-frame";
 
 interface ContactSheetProps {
-  readonly judgments: readonly JudgmentRecord[];
   readonly manualRatings: readonly ManualRatingRecord[];
   readonly run: RunSummary;
   readonly samples: readonly SampleRecord[];
@@ -48,15 +46,11 @@ interface ContactSheetProps {
  * no way to read it as a margin. `1fr` spends that on the images, which are
  * the thing the plate exists to show. */
 export const ContactSheet = ({
-  judgments,
   manualRatings,
   run,
   samples,
 }: ContactSheetProps) => {
   const [openSampleId, setOpenSampleId] = useState<string | null>(null);
-  const judgmentBySample = new Map(
-    judgments.map((entry) => [entry.sampleId, entry])
-  );
   const ratingBySample = new Map(
     manualRatings.map((entry) => [entry.sampleId, entry])
   );
@@ -88,7 +82,6 @@ export const ContactSheet = ({
         {samples.map((sample) => (
           <SampleFrame
             contended={run.concurrency > 1}
-            judgment={judgmentBySample.get(sample.id)}
             key={sample.id}
             manualRating={ratingBySample.get(sample.id)}
             onOpen={() => {
@@ -97,7 +90,6 @@ export const ContactSheet = ({
             reserveCoercesLine={anyCoerces}
             reserveDropsLine={anyDrops}
             runId={run.id}
-            runJudgingInFlight={run.judgingStatus === "running"}
             sample={sample}
           />
         ))}

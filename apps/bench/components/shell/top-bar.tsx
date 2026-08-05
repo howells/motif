@@ -53,10 +53,18 @@ const SummaryLine = ({
     <p className="truncate text-[11px] text-muted md:whitespace-nowrap">
       {draft.models.size} model{draft.models.size === 1 ? "" : "s"}
       {draft.samplesPerModel > 1 ? ` × ${draft.samplesPerModel} samples` : ""}
-      {" · "}
-      {draft.aspect}
-      {" · "}
-      {draft.resolution}
+      {/* Framing and size drop out below `xl` and give their width back to the
+          prompt, which is the hero of this bar and was truncating mid-word to
+          make room for them. They are the two least volatile parts of the
+          summary — both are one click away in the Models popover, and both are
+          restated for the *selected* run in the tab bar. The count and the
+          price never drop: the price is the reason this line exists. */}
+      <span className="max-xl:hidden">
+        {" · "}
+        {draft.aspect}
+        {" · "}
+        {draft.resolution}
+      </span>
       {" · "}
       {preview === undefined ? (
         <span>estimating…</span>
@@ -116,6 +124,11 @@ export const TopBar = ({
       }}
       placeholder="Describe the image every model should make…"
       ref={promptRef}
+      // A single-line field scrolls its own content, so a long prompt is
+      // always clipped at *some* width. The title makes the whole of it
+      // readable on hover without spending a second line of the shell's fixed
+      // height — and the selected run's rail entry carries it in full too.
+      title={draft.prompt.length > 0 ? draft.prompt : undefined}
       type="text"
       value={draft.prompt}
     />

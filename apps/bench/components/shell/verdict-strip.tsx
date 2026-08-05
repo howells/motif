@@ -140,6 +140,40 @@ export const VerdictStrip = ({
   readonly data: VerdictStripData | null;
   readonly run: RunSummary | null;
 }) => {
+  // Both quality verdicts derive from the same star ratings, so before any
+  // rating exists they were two cells side by side reading the identical
+  // sentence — the same instruction printed twice, which reads as a rendering
+  // fault rather than as an invitation. Unrated, they collapse into one slot
+  // that asks for the rating once and lets fastest and cheapest take the room.
+  const quality = data?.bestQuality ?? null;
+  const value = data?.bestValue ?? null;
+  const qualityReadouts: Readout[] =
+    quality === null && value === null
+      ? [
+          {
+            emptyLabel: "rate some images to rank them",
+            format: () => "",
+            label: "Quality",
+            pick: null,
+          },
+        ]
+      : [
+          {
+            emptyLabel: "not rated yet",
+            format: (pick) => `★${Number(pick.value).toFixed(1)}`,
+            label: "Best rated",
+            pick: quality,
+          },
+          {
+            emptyLabel: "not rated yet",
+            format: (pick) => Number(pick.value).toFixed(0),
+            label: "Best value",
+            pick: value,
+            secondary: true,
+            unit: "★/$",
+          },
+        ];
+
   const readouts: Readout[] = [
     {
       emptyLabel: "no timings yet",
@@ -153,20 +187,7 @@ export const VerdictStrip = ({
       label: "Cheapest",
       pick: data?.cheapest ?? null,
     },
-    {
-      emptyLabel: "rate some images",
-      format: (pick) => `★${Number(pick.value).toFixed(1)}`,
-      label: "Best rated",
-      pick: data?.bestQuality ?? null,
-    },
-    {
-      emptyLabel: "rate some images",
-      format: (pick) => Number(pick.value).toFixed(0),
-      label: "Best value",
-      pick: data?.bestValue ?? null,
-      secondary: true,
-      unit: "★/$",
-    },
+    ...qualityReadouts,
   ];
 
   return (

@@ -9,11 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { formatDimensions, formatMs, formatUsd } from "@/lib/format";
-import type {
-  JudgmentRecord,
-  ManualRatingRecord,
-  SampleRecord,
-} from "@/lib/runs/types";
+import type { ManualRatingRecord, SampleRecord } from "@/lib/runs/types";
 import { cn } from "@/lib/utils";
 
 import { JudgePanel } from "./judge-panel";
@@ -67,7 +63,6 @@ const ANNOTATION_MIN_HEIGHT = "min-h-[104px]";
 
 interface SampleFrameProps {
   readonly contended: boolean;
-  readonly judgment: JudgmentRecord | undefined;
   readonly manualRating: ManualRatingRecord | undefined;
   readonly onOpen: () => void;
   /** Set when *some* sample in the sheet coerced a param — this frame then
@@ -76,7 +71,6 @@ interface SampleFrameProps {
   readonly reserveCoercesLine: boolean;
   readonly reserveDropsLine: boolean;
   readonly runId: string;
-  readonly runJudgingInFlight: boolean;
   readonly sample: SampleRecord;
 }
 
@@ -98,13 +92,11 @@ interface SampleFrameProps {
  * only the lightbox's full-res view opts out — see `lightbox.tsx`. */
 export const SampleFrame = ({
   contended,
-  judgment,
   manualRating,
   onOpen,
   reserveCoercesLine,
   reserveDropsLine,
   runId,
-  runJudgingInFlight,
   sample,
 }: SampleFrameProps) => (
   <figure className="m-0 flex min-w-0 flex-col bg-plate">
@@ -229,11 +221,9 @@ export const SampleFrame = ({
 
       {sample.status === "completed" ? (
         <JudgePanel
-          judgment={judgment}
           manualRating={manualRating}
           runId={runId}
           sampleId={sample.id}
-          showJudgingIndicator={runJudgingInFlight}
         />
       ) : null}
     </figcaption>

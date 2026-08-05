@@ -171,7 +171,6 @@ export const RunPane = ({
           key="contact-sheet"
         >
           <ContactSheet
-            judgments={detail.judgments}
             manualRatings={detail.manualRatings}
             run={detail.run}
             samples={detail.samples}
