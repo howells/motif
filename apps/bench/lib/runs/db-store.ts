@@ -27,6 +27,7 @@ import {
   routeFor,
 } from "@motif/bench-core";
 import { qualityLevelForScore } from "@motif/bench-core/judge";
+import { RANK_RUBRIC_ID } from "@motif/bench-core/rank-judge";
 import {
   benchJudgments,
   benchRuns,
@@ -42,6 +43,7 @@ import {
   DroppedParamsJsonSchema,
   fromCoercedParamsJson,
   fromLevelsJson,
+  fromRankLevelsJson,
   ModelsJsonSchema,
   RunSpecJsonSchema,
   toCoercedParamsJson,
@@ -220,7 +222,15 @@ const toJudgmentRecord = (
   row: typeof benchJudgments.$inferSelect
 ): JudgmentRecord => {
   const status = JudgmentStatusSchema.parse(row.status);
+  // `rubricId` is the discriminator between the two rubrics that share this
+  // table (`db-json.ts`'s rank mapping table). A rank row's `overall` is a
+  // Bradley-Terry strength, not a quality score, so it never gets bucketed
+  // into a level word — that would read as an absolute verdict it is not.
+  const isRank = row.rubricId === RANK_RUBRIC_ID;
   const { errorCode, levels } = fromLevelsJson(row.levels);
+  const rank = isRank
+    ? fromRankLevelsJson(row.levels)
+    : { rank: null, rankedCount: null };
   return {
     critique: row.critique,
     errorCode,
@@ -228,7 +238,9 @@ const toJudgmentRecord = (
     levels,
     overall: row.overall,
     overallLevel:
-      row.overall === null ? null : qualityLevelForScore(row.overall),
+      isRank || row.overall === null ? null : qualityLevelForScore(row.overall),
+    rank: rank.rank,
+    rankedCount: rank.rankedCount,
     rubricId: row.rubricId,
     rubricVersion: row.rubricVersion,
     sampleId: row.sampleId,

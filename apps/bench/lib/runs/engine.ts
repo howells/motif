@@ -20,6 +20,11 @@
  */
 import type { AlignmentOk } from "@motif/bench-core";
 import type { QualityLevel, RoomJudgeLevels } from "@motif/bench-core/judge";
+import type {
+  PairCriterionWinners,
+  PairStrength,
+  PairWinner,
+} from "@motif/bench-core/rank-judge";
 
 import type { JudgeErrorCodeValue, SampleErrorCode } from "./types";
 
@@ -89,12 +94,50 @@ export interface EngineJudgment {
   readonly status: "inconclusive" | "scored";
 }
 
+export interface EnginePairJudgmentInput {
+  readonly imageUrlA: string;
+  readonly imageUrlB: string;
+  readonly prompt: string;
+}
+
+export interface EnginePairJudgment {
+  readonly criteria: PairCriterionWinners | null;
+  readonly critique: string | null;
+  readonly errorCode: JudgeErrorCodeValue | null;
+  readonly overall: PairWinner | null;
+  readonly status: "inconclusive" | "judged";
+  readonly strength: PairStrength | null;
+}
+
+/**
+ * The comparative-judging capability, `null` on an engine that cannot do it
+ * (the mock engine writes no image to disk, so it has nothing to upload and
+ * nothing for a vision model to compare — `mock-engine.ts`'s synthetic
+ * verdicts stay on the absolute path). Presence of this object is what the
+ * judging driver branches on; there is no separate boolean to keep in sync.
+ *
+ * The upload step is split out from `judgePair` deliberately: a sample takes
+ * part in K comparisons, and re-uploading the same bytes K times would be K−1
+ * wasted round trips. The driver calls `toJudgeableImageUrl` once per sample
+ * and reuses the URL across every pair that sample appears in.
+ */
+export interface ComparativeJudge {
+  readonly modelLabel: string;
+  judgePair: (input: EnginePairJudgmentInput) => Promise<EnginePairJudgment>;
+  /** Local image path → an absolute https URL the vision endpoint can fetch.
+   * Never a `data:` URI (`docs/arc/bench/BRIEF.md` rule 1). */
+  toJudgeableImageUrl: (imagePath: string) => Promise<string>;
+}
+
 /**
  * The composition-root injection seam. `isMock` is read-only data, not a
  * derived guess — each implementation states it once, at its own
  * definition, and every store persists that value verbatim.
  */
 export interface RunEngine {
+  /** `null` when this engine cannot judge comparatively — see
+   * `ComparativeJudge`. */
+  readonly comparativeJudge: ComparativeJudge | null;
   readonly isMock: boolean;
   /** Recorded as `bench_judgments.judge_model` when a run's own completion
    * auto-triggers judging (`db-store.ts`'s `finalizeRunIfDone`) — distinct

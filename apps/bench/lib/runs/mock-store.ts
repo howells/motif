@@ -470,6 +470,11 @@ const judgeOneSample = (
     levels: verdict.levels,
     overall: verdict.overall,
     overallLevel: verdict.overallLevel,
+    // The mock store is absolute-only: `mockRunEngine.comparativeJudge` is
+    // `null` (no image on disk to compare), so a mock judgment never carries
+    // a rank.
+    rank: null,
+    rankedCount: null,
     rubricId: "bench-room-v1",
     rubricVersion: 1,
     sampleId,

@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./execute": "./src/execute.ts",
-    "./judge": "./src/judge.ts"
+    "./judge": "./src/judge.ts",
+    "./rank-judge": "./src/rank-judge.ts"
   },
   "scripts": {
     "lint": "howells-check src",

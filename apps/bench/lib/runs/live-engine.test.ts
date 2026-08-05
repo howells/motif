@@ -13,14 +13,18 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   bufferFromFilePartData,
   buildFalJudgeModelClient,
+  buildFalPairJudgeModelClient,
+  buildFalVisionPairRequestBody,
   buildFalVisionRequestBody,
   createFalGenerationClient,
   createLiveEngine,
   FAL_JUDGE_MODEL_ID,
+  FAL_RANK_JUDGE_MODEL_ID,
   LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS,
   parseFalVisionOutput,
   timeoutMsForAlias,
 } from "./live-engine";
+import { mockRunEngine } from "./mock-engine";
 
 describe("timeoutMsForAlias", () => {
   it("computes p95Seconds × 1.5 for a model with published speed data", () => {
@@ -209,5 +213,111 @@ describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
     await expect(
       client.generateJudgeText({ imagePart, prompt: "judge this room image" })
     ).rejects.toThrow(/upload/iu);
+  });
+});
+
+const PAIR_URL_A = "https://fal.media/files/panda/a.png";
+const PAIR_URL_B = "https://fal.media/files/panda/b.png";
+
+describe("buildFalVisionPairRequestBody", () => {
+  it("carries both CDN URLs in image_urls (plural), A first", () => {
+    const body = buildFalVisionPairRequestBody(
+      "compare these",
+      PAIR_URL_A,
+      PAIR_URL_B
+    );
+    expect(body.image_urls).toStrictEqual([PAIR_URL_A, PAIR_URL_B]);
+    expect(body.model).toBe(FAL_RANK_JUDGE_MODEL_ID);
+  });
+
+  it("uses a stronger judge tier than the absolute pass", () => {
+    expect(FAL_RANK_JUDGE_MODEL_ID).toBe("google/gemini-2.5-flash");
+    expect(FAL_RANK_JUDGE_MODEL_ID).not.toBe(FAL_JUDGE_MODEL_ID);
+  });
+
+  it("never inlines image bytes as base64 or a data URI", () => {
+    const serialized = JSON.stringify(
+      buildFalVisionPairRequestBody("compare these", PAIR_URL_A, PAIR_URL_B)
+    );
+    expect(serialized).not.toMatch(/data:[^,"]+;base64,/iu);
+    expect(serialized).not.toMatch(/"[A-Za-z0-9+/]{200,}={0,2}"/u);
+  });
+});
+
+describe("buildFalPairJudgeModelClient — full flow, network stubbed", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("POSTs one request carrying both URLs — one provider call per pair, no upload, no live fal call", async () => {
+    const uploadSpy = vi.spyOn(FalClient.prototype, "uploadToFalCdn");
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ output: '{"overall":"A"}' }), {
+        status: 200,
+      })
+    );
+
+    const output = await buildFalPairJudgeModelClient(
+      "fal_test_key"
+    ).generatePairJudgeText({
+      imageUrlA: PAIR_URL_A,
+      imageUrlB: PAIR_URL_B,
+      prompt: "compare these two rooms",
+    });
+
+    expect(output).toBe('{"overall":"A"}');
+    // The pair client never re-uploads: the driver uploads each sample once
+    // and reuses the URL across every comparison it appears in.
+    expect(uploadSpy).not.toHaveBeenCalled();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    const [url, requestInit] = fetchSpy.mock.calls[0] ?? [];
+    expect(url).toBe("https://fal.run/fal-ai/any-llm/vision");
+    const body = requestInit?.body;
+    if (typeof body !== "string") {
+      throw new TypeError("expected a JSON string request body");
+    }
+    expect(body).toContain(PAIR_URL_A);
+    expect(body).toContain(PAIR_URL_B);
+    expect(body).toContain("image_urls");
+    expect(body).not.toMatch(/data:[^,"]+;base64,/iu);
+  });
+
+  it("throws on a non-200 so judgePair can report it as inconclusive", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("nope", { status: 503 })
+    );
+
+    await expect(
+      buildFalPairJudgeModelClient("fal_test_key").generatePairJudgeText({
+        imageUrlA: PAIR_URL_A,
+        imageUrlB: PAIR_URL_B,
+        prompt: "compare these two rooms",
+      })
+    ).rejects.toThrow(/503/u);
+  });
+});
+
+describe("comparativeJudge — the engine seam", () => {
+  const originalFalKey = process.env.FAL_KEY;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (originalFalKey === undefined) {
+      delete process.env.FAL_KEY;
+    } else {
+      process.env.FAL_KEY = originalFalKey;
+    }
+  });
+
+  it("is present on the live engine and labelled with the rank judge model", () => {
+    process.env.FAL_KEY = "fal_test_key";
+    expect(createLiveEngine().comparativeJudge?.modelLabel).toBe(
+      FAL_RANK_JUDGE_MODEL_ID
+    );
+  });
+
+  it("is null on the mock engine — nothing on disk to compare", () => {
+    expect(mockRunEngine.comparativeJudge).toBeNull();
   });
 });

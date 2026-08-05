@@ -454,6 +454,12 @@ export const mockRunEngine: RunEngine = {
       status: verdict.status,
     };
   },
+  // A mock sample writes no image to disk (`buildAttempt` above returns
+  // `imagePath: null`), so there is nothing to upload and nothing for a
+  // vision model to compare. Comparative judging is genuinely unavailable
+  // here, not merely switched off — stated as `null` rather than faked, the
+  // same discipline as `isMock` itself.
+  comparativeJudge: null,
   isMock: true,
   judgeModelLabel: "mock-vision-judge-v1",
 };

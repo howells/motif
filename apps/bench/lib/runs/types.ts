@@ -164,8 +164,20 @@ export interface JudgmentRecord {
   readonly errorCode: JudgeErrorCodeValue | null;
   readonly judgeModel: string;
   readonly levels: Record<string, string> | null;
+  /** `overall` means one of two things and `rubricId` is what says which: for
+   * the absolute rubric it is the weighted geometric mean of the six
+   * criterion levels; for the comparative rubric it is the Bradley-Terry
+   * `rankScore`, normalised so the mean of the ranked field is 1.0. */
   readonly overall: number | null;
+  /** Only ever populated for the absolute rubric — a rank score is not a
+   * quality *level*, and bucketing one into `editorial`/`competent`/… would
+   * be a category error. */
   readonly overallLevel: string | null;
+  /** 1-based position in the comparative pass, `null` on an absolute
+   * judgment or on a sample that completed no comparison. */
+  readonly rank: number | null;
+  /** How many samples the rank is out of ("#1 of 24"). */
+  readonly rankedCount: number | null;
   readonly rubricId: string;
   readonly rubricVersion: number;
   readonly sampleId: string;

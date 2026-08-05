@@ -65,11 +65,22 @@ const JudgeState = ({
   }
 
   const critique = judgment.critique ?? "";
-  const label = (
-    <span className="text-plate-ink">
-      {judgment.overallLevel} {judgment.overall?.toFixed(2)}
-    </span>
-  );
+  // A comparative judgment answers a different question from an absolute one
+  // ("which of these is better?" rather than "is this good?"), so it reads as
+  // a position in the field rather than a level word — the number beside it
+  // is the Bradley-Terry strength, where 1.00 is the field's average. Falls
+  // back to the absolute level word whenever no rank data exists.
+  const label =
+    judgment.rank === null ? (
+      <span className="text-plate-ink">
+        {judgment.overallLevel} {judgment.overall?.toFixed(2)}
+      </span>
+    ) : (
+      <span className="text-plate-ink">
+        #{judgment.rank} of {judgment.rankedCount} ·{" "}
+        {judgment.overall?.toFixed(2)}
+      </span>
+    );
 
   return critique.length === 0 ? (
     label

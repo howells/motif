@@ -180,7 +180,12 @@ export interface RoomJudgeVerdict {
   readonly levels: RoomJudgeLevels;
 }
 
-const scalarToString = (value: unknown): string | undefined => {
+/** Exported for `rank-judge.ts`'s pair parser only. The comparative judge
+ * has to be exactly as forgiving of sloppy model output as this one is, and
+ * sharing the three primitives below (rather than re-implementing them) is
+ * what stops the two parsers drifting into different notions of "close
+ * enough". Not part of the package's public vocabulary. */
+export const scalarToString = (value: unknown): string | undefined => {
   if (typeof value === "string") {
     const trimmed = value.trim();
     return trimmed.length > 0 ? trimmed : undefined;
@@ -191,7 +196,7 @@ const scalarToString = (value: unknown): string | undefined => {
   return undefined;
 };
 
-const normalizeToken = (value: string): string =>
+export const normalizeToken = (value: string): string =>
   value
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/gu, "-")
@@ -239,7 +244,7 @@ const unfenceJsonText = (text: string): string => {
 /** Finds the first balanced `{...}` object in (possibly fenced, possibly
  * preamble-prefixed) model output. Returns `null` if none is found — the
  * only way `parseJudgeVerdictText` fails outright. */
-const extractFirstJsonObject = (text: string): string | null => {
+export const extractFirstJsonObject = (text: string): string | null => {
   const unfenced = unfenceJsonText(text);
   const start = unfenced.indexOf("{");
   if (start === -1) {
@@ -333,7 +338,7 @@ const IMAGE_MEDIA_TYPE_BY_EXTENSION: Record<string, string> = {
   webp: "image/webp",
 };
 
-const mediaTypeForImagePath = (imagePath: string): string => {
+export const mediaTypeForImagePath = (imagePath: string): string => {
   const extension = path.extname(imagePath).slice(1).toLowerCase();
   return IMAGE_MEDIA_TYPE_BY_EXTENSION[extension] ?? JPEG_MEDIA_TYPE;
 };

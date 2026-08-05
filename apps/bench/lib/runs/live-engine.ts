@@ -15,7 +15,7 @@
  * is unset, before anything else happens — the live engine cannot exist
  * without it.
  */
-import { mkdir, rename } from "node:fs/promises";
+import { mkdir, readFile, rename } from "node:fs/promises";
 import path from "node:path";
 
 import { FalClient } from "@howells/motif-sdk";
@@ -26,13 +26,18 @@ import type {
   JudgeModelCallInput,
   JudgeModelClient,
 } from "@motif/bench-core/judge";
-import { judgeSample } from "@motif/bench-core/judge";
+import { judgeSample, mediaTypeForImagePath } from "@motif/bench-core/judge";
+import type { PairJudgeModelClient } from "@motif/bench-core/rank-judge";
+import { judgePair } from "@motif/bench-core/rank-judge";
 
 import type {
+  ComparativeJudge,
   EngineAttempt,
   EngineAttemptInput,
   EngineJudgment,
   EngineJudgmentInput,
+  EnginePairJudgment,
+  EnginePairJudgmentInput,
   RunEngine,
 } from "./engine";
 
@@ -328,27 +333,43 @@ export const parseFalVisionOutput = (data: unknown): string => {
  * `JudgeModelClient` seam. `uploadToFalCdn` is reused rather than
  * hand-rolled (team lead's brief) — it is the only piece of this path that
  * already existed. */
+/** Uploads raw image bytes to fal's CDN and returns the public URL. Shared by
+ * the absolute judge (which uploads per judgment) and the comparative judge
+ * (which uploads per *sample* and reuses the URL across every pair that
+ * sample appears in — see `engine.ts`'s `ComparativeJudge`). `bytes` is
+ * always binary, never a base64 string: `bufferFromFilePartData` above is the
+ * one place that narrowing is enforced. */
+const uploadImageBytesToFalCdn = async (
+  apiKey: string,
+  bytes: Buffer,
+  mediaType: string
+): Promise<string> => {
+  const falClient = new FalClient({
+    apiKey,
+    retries: 0,
+    timeout: FAL_JUDGE_TIMEOUT_MS,
+  });
+  const extension = EXTENSION_BY_CONTENT_TYPE[mediaType] ?? "jpg";
+  const uploadResult = await falClient.uploadToFalCdn(bytes, {
+    contentType: mediaType,
+    fileName: `judge-sample.${extension}`,
+  });
+  if (uploadResult.isErr()) {
+    throw new Error(`fal CDN upload failed: ${uploadResult.error.message}`);
+  }
+  return uploadResult.value;
+};
+
 export const buildFalJudgeModelClient = (apiKey: string): JudgeModelClient => ({
   generateJudgeText: async ({ imagePart, prompt, signal }) => {
-    const falClient = new FalClient({
+    const imageUrl = await uploadImageBytesToFalCdn(
       apiKey,
-      retries: 0,
-      timeout: FAL_JUDGE_TIMEOUT_MS,
-    });
-    const bytes = bufferFromFilePartData(imagePart.data);
-    const extension = EXTENSION_BY_CONTENT_TYPE[imagePart.mediaType] ?? "jpg";
-    const uploadResult = await falClient.uploadToFalCdn(bytes, {
-      contentType: imagePart.mediaType,
-      fileName: `judge-sample.${extension}`,
-    });
-    if (uploadResult.isErr()) {
-      throw new Error(`fal CDN upload failed: ${uploadResult.error.message}`);
-    }
+      bufferFromFilePartData(imagePart.data),
+      imagePart.mediaType
+    );
 
     const response = await fetch(FAL_VISION_JUDGE_URL, {
-      body: JSON.stringify(
-        buildFalVisionRequestBody(prompt, uploadResult.value)
-      ),
+      body: JSON.stringify(buildFalVisionRequestBody(prompt, imageUrl)),
       headers: {
         Authorization: `Key ${apiKey}`,
         "content-type": "application/json",
@@ -415,6 +436,114 @@ const buildLiveJudgment = async (
 };
 
 // ---------------------------------------------------------------------------
+// Comparative judging — pairwise A/B over the same any-llm/vision endpoint
+// ---------------------------------------------------------------------------
+
+/** The comparative pass judges **72 pairs** for a 24-model sweep where the
+ * absolute pass judged 24 images, so the model tier is a deliberate,
+ * separately-named choice rather than a reuse of `FAL_JUDGE_MODEL_ID`: the
+ * whole point of comparing is discrimination, and `-lite` is the tier that
+ * produced the 14-way tie this exists to fix (`@motif/bench-core/rank-judge`'s
+ * header). `google/gemini-2.5-flash` — one tier up, still a flash model. */
+export const FAL_RANK_JUDGE_MODEL_ID = "google/gemini-2.5-flash";
+
+interface FalVisionPairRequestBody {
+  readonly image_urls: readonly string[];
+  readonly model: string;
+  readonly prompt: string;
+}
+
+/** `fal-ai/any-llm/vision` accepts `image_urls` (plural) as well as the
+ * singular `image_url` — verified directly against the live endpoint (a
+ * two-URL request was accepted and failed only on fetching the placeholder
+ * URLs used to probe it). That is what makes one comparative judgment a
+ * single provider call carrying both images: no compositing step, no second
+ * request, no new dependency.
+ *
+ * Order is the contract the prompt describes: the first URL is image "A",
+ * the second is image "B" (`buildPairJudgePrompt`). Both are fal CDN URLs —
+ * never inlined image bytes, never a `data:` URI (`BRIEF.md` rule 1). Split
+ * out so a test can assert the shape without a network call. */
+export const buildFalVisionPairRequestBody = (
+  prompt: string,
+  imageUrlA: string,
+  imageUrlB: string
+): FalVisionPairRequestBody => ({
+  image_urls: [imageUrlA, imageUrlB],
+  model: FAL_RANK_JUDGE_MODEL_ID,
+  prompt,
+});
+
+export const buildFalPairJudgeModelClient = (
+  apiKey: string
+): PairJudgeModelClient => ({
+  generatePairJudgeText: async ({ imageUrlA, imageUrlB, prompt, signal }) => {
+    const response = await fetch(FAL_VISION_JUDGE_URL, {
+      body: JSON.stringify(
+        buildFalVisionPairRequestBody(prompt, imageUrlA, imageUrlB)
+      ),
+      headers: {
+        Authorization: `Key ${apiKey}`,
+        "content-type": "application/json",
+      },
+      method: "POST",
+      signal: withJudgeTimeout(signal),
+    });
+    if (!response.ok) {
+      throw new Error(
+        `fal comparative vision judge request failed: ${response.status}`
+      );
+    }
+
+    const data: unknown = await response.json();
+    return parseFalVisionOutput(data);
+  },
+});
+
+const inconclusivePair = (
+  errorCode: EnginePairJudgment["errorCode"]
+): EnginePairJudgment => ({
+  criteria: null,
+  critique: null,
+  errorCode,
+  overall: null,
+  status: "inconclusive",
+  strength: null,
+});
+
+const buildLivePairJudgment = async (
+  apiKey: string,
+  input: EnginePairJudgmentInput
+): Promise<EnginePairJudgment> => {
+  const result = await judgePair(buildFalPairJudgeModelClient(apiKey), {
+    imageUrlA: input.imageUrlA,
+    imageUrlB: input.imageUrlB,
+    prompt: input.prompt,
+  });
+  return result.status === "judged"
+    ? {
+        criteria: result.verdict.criteria,
+        critique: result.verdict.critique,
+        errorCode: null,
+        overall: result.verdict.overall,
+        status: "judged",
+        strength: result.verdict.strength,
+      }
+    : inconclusivePair(result.errorCode);
+};
+
+const buildLiveComparativeJudge = (apiKey: string): ComparativeJudge => ({
+  judgePair: async (input) => await buildLivePairJudgment(apiKey, input),
+  modelLabel: FAL_RANK_JUDGE_MODEL_ID,
+  toJudgeableImageUrl: async (imagePath) =>
+    await uploadImageBytesToFalCdn(
+      apiKey,
+      await readFile(imagePath),
+      mediaTypeForImagePath(imagePath)
+    ),
+});
+
+// ---------------------------------------------------------------------------
 // createLiveEngine
 // ---------------------------------------------------------------------------
 
@@ -436,6 +565,7 @@ export const createLiveEngine = (): RunEngine => {
   return {
     buildAttempt: async (input) => await buildLiveAttempt(apiKey, input),
     buildJudgment: async (input) => await buildLiveJudgment(apiKey, input),
+    comparativeJudge: buildLiveComparativeJudge(apiKey),
     isMock: false,
     judgeModelLabel: FAL_JUDGE_MODEL_ID,
   };

@@ -110,3 +110,81 @@ export const fromLevelsJson = (
     levels: Object.keys(parsed).length > 0 ? parsed : null,
   };
 };
+
+// ---------------------------------------------------------------------------
+// Comparative (rank) judgments — the `bench_judgments` row mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * A comparative pass reuses `bench_judgments` verbatim; no schema change was
+ * needed, and the already-pushed schema can express all of it:
+ *
+ * | column          | carries                                                |
+ * |-----------------|--------------------------------------------------------|
+ * | `judge_model`   | the vision model id (`google/gemini-2.5-flash`)         |
+ * | `rubric_id`     | `RANK_RUBRIC_ID` — distinct from `ROOM_RUBRIC_ID`, so a rank row and an absolute row for the same sample coexist under the `(sample, judge, rubric, version)` unique key instead of overwriting each other |
+ * | `overall`       | the Bradley-Terry `rankScore` (`doublePrecision`, nullable — `null` for a sample with zero completed comparisons, never a fabricated 0) |
+ * | `levels`        | this sample's pair outcomes plus its standings          |
+ * | `status`        | `scored` once a rank score exists, `inconclusive` when the sample completed no comparison |
+ * | `cost_micros`   | `null` — fal's `any-llm/vision` reports no billing field |
+ *
+ * `levels` is CHECK-constrained to a JSON *object* and is read back through
+ * `LevelsJsonSchema` (`Record<string, string>`), so every value written here
+ * is a **string**: reserved `__`-prefixed keys for the standings, and one
+ * entry per opponent keyed by that opponent's sample id with a
+ * `win:clear` / `loss:slight` / `tie` value. Sample ids are UUIDs — not
+ * prompts, not URLs, not model names — so nothing span-unsafe lands in the
+ * column (`docs/arc/bench/BRIEF.md` rules 1 and 3).
+ */
+const RANK_KEYS = {
+  comparisons: "__comparisons",
+  losses: "__losses",
+  of: "__of",
+  rank: "__rank",
+  ties: "__ties",
+  wins: "__wins",
+} as const;
+
+export interface RankLevelsInput {
+  readonly comparisons: number;
+  readonly losses: number;
+  readonly opponents: ReadonlyMap<string, string>;
+  readonly rank: number | null;
+  readonly rankedCount: number;
+  readonly ties: number;
+  readonly wins: number;
+}
+
+export const toRankLevelsJson = (
+  entry: RankLevelsInput
+): Record<string, string> => ({
+  ...Object.fromEntries(entry.opponents),
+  [RANK_KEYS.comparisons]: String(entry.comparisons),
+  [RANK_KEYS.losses]: String(entry.losses),
+  [RANK_KEYS.of]: String(entry.rankedCount),
+  [RANK_KEYS.rank]: entry.rank === null ? "" : String(entry.rank),
+  [RANK_KEYS.ties]: String(entry.ties),
+  [RANK_KEYS.wins]: String(entry.wins),
+});
+
+const positiveIntOrNull = (value: string | undefined): number | null => {
+  if (value === undefined || value === "") {
+    return null;
+  }
+  const parsed = Math.trunc(Number(value));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+/** Reads back only the two fields the UI needs — the rank and the size of the
+ * ranked field. A row written before this shape existed, or one that lost its
+ * standings, degrades to `null`/`null` (the "no rank data" state the judge
+ * panel already renders) rather than throwing. */
+export const fromRankLevelsJson = (
+  value: unknown
+): { rank: number | null; rankedCount: number | null } => {
+  const parsed = LevelsJsonSchema.parse(value ?? {});
+  return {
+    rank: positiveIntOrNull(parsed[RANK_KEYS.rank]),
+    rankedCount: positiveIntOrNull(parsed[RANK_KEYS.of]),
+  };
+};
