@@ -73,24 +73,44 @@ describe("toRankLevelsJson", () => {
 });
 
 describe("fromRankLevelsJson", () => {
-  it("round-trips the rank and the size of the ranked field", () => {
+  it("round-trips the rank, the size of the ranked field, and the pair coverage counts", () => {
     expect(fromRankLevelsJson(rankLevels)).toStrictEqual({
+      comparisons: 6,
+      losses: 1,
       rank: 3,
       rankedCount: 24,
+      ties: 1,
+      wins: 4,
     });
   });
 
-  it("degrades to nulls for a row with no rank standings", () => {
+  it("degrades to nulls/zeros for a row with no rank standings", () => {
     expect(fromRankLevelsJson(toLevelsJson({ errorCode: null, levels: {} }))) //
-      .toStrictEqual({ rank: null, rankedCount: null });
+      .toStrictEqual({
+        comparisons: 0,
+        losses: 0,
+        rank: null,
+        rankedCount: null,
+        ties: 0,
+        wins: 0,
+      });
     expect(fromRankLevelsJson(null)).toStrictEqual({
+      comparisons: 0,
+      losses: 0,
       rank: null,
       rankedCount: null,
+      ties: 0,
+      wins: 0,
     });
   });
 
   it("rejects a non-positive rank rather than reporting #0", () => {
     expect(fromRankLevelsJson({ __of: "24", __rank: "0" }).rank).toBeNull();
     expect(fromRankLevelsJson({ __of: "24", __rank: "nope" }).rank).toBeNull();
+  });
+
+  it("treats an unparseable coverage count as zero, not a thrown error", () => {
+    expect(fromRankLevelsJson({ __comparisons: "nope" }).comparisons).toBe(0);
+    expect(fromRankLevelsJson({ __wins: "-1" }).wins).toBe(0);
   });
 });

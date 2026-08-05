@@ -160,10 +160,17 @@ export interface SampleRecord {
 export type JudgmentStatus = "inconclusive" | "not-run" | "scored";
 
 export interface JudgmentRecord {
+  /** Pair coverage from the Bradley-Terry aggregation — `0` on an absolute
+   * judgment or a comparative sample that completed no comparison, never
+   * `null` (unlike `rank`): "zero comparisons" is itself meaningful, not an
+   * unknown state (`db-json.ts`'s `fromRankLevelsJson`). */
+  readonly comparisons: number;
   readonly critique: string | null;
   readonly errorCode: JudgeErrorCodeValue | null;
   readonly judgeModel: string;
   readonly levels: Record<string, string> | null;
+  /** See `comparisons`. */
+  readonly losses: number;
   /** `overall` means one of two things and `rubricId` is what says which: for
    * the absolute rubric it is the weighted geometric mean of the six
    * criterion levels; for the comparative rubric it is the Bradley-Terry
@@ -182,6 +189,10 @@ export interface JudgmentRecord {
   readonly rubricVersion: number;
   readonly sampleId: string;
   readonly status: JudgmentStatus;
+  /** See `comparisons`. */
+  readonly ties: number;
+  /** See `comparisons`. */
+  readonly wins: number;
 }
 
 export interface ManualRatingRecord {

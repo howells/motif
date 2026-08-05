@@ -464,21 +464,25 @@ const judgeOneSample = (
 ): void => {
   const verdict = buildSyntheticJudgment(sampleId, modelAlias);
   store.judgments.set(sampleId, {
+    // The mock store is absolute-only: `mockRunEngine.comparativeJudge` is
+    // `null` (no image on disk to compare), so a mock judgment never carries
+    // rank standings or pair coverage.
+    comparisons: 0,
     critique: verdict.critique,
     errorCode: verdict.errorCode,
     judgeModel,
     levels: verdict.levels,
+    losses: 0,
     overall: verdict.overall,
     overallLevel: verdict.overallLevel,
-    // The mock store is absolute-only: `mockRunEngine.comparativeJudge` is
-    // `null` (no image on disk to compare), so a mock judgment never carries
-    // a rank.
     rank: null,
     rankedCount: null,
     rubricId: "bench-room-v1",
     rubricVersion: 1,
     sampleId,
     status: verdict.status,
+    ties: 0,
+    wins: 0,
   });
   markJudgingDoneIfSettled(runId);
 };

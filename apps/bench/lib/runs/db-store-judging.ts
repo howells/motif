@@ -13,7 +13,7 @@
 import { randomUUID } from "node:crypto";
 
 import { ROOM_RUBRIC_ID, ROOM_RUBRIC_VERSION } from "@motif/bench-core/judge";
-import type { PairOutcome } from "@motif/bench-core/rank-judge";
+import type { JudgePair, PairOutcome } from "@motif/bench-core/rank-judge";
 import {
   planPairings,
   RANK_RUBRIC_ID,
@@ -25,7 +25,7 @@ import type { BenchDb } from "@motif/bench-db";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 import { RunSpecJsonSchema, toLevelsJson, toRankLevelsJson } from "./db-json";
-import type { ComparativeJudge, RunEngine } from "./engine";
+import type { ComparativeJudge, EnginePairJudgment, RunEngine } from "./engine";
 import { hashUnit } from "./mock-engine";
 import type { JudgingStatus } from "./types";
 
@@ -164,7 +164,12 @@ const judgeOneSample = async (
  * rule 7's spirit — the trustworthy default over the fast one. */
 const JUDGE_PAIR_CONCURRENCY = 4;
 
-interface RankableSample {
+export interface RankableSample {
+  /** Logged alongside every pair-telemetry line (`judgeOnePairWithTelemetry`
+   * below) so a failure trace can be read back to a specific model without
+   * a join — never forwarded to the judge itself, which stays blind to
+   * model identity (`@motif/bench-core/rank-judge`'s header). */
+  readonly alias: string;
   readonly id: string;
   readonly imagePath: string;
 }
@@ -206,7 +211,7 @@ const mapWithConcurrency = async <T, R>(
  * row lands, `BRIEF.md`.) A sample whose upload fails is simply left out of
  * the map, and therefore out of the pairing plan — it is never fatal.
  */
-const resolveJudgeableUrls = async (
+export const resolveJudgeableUrls = async (
   judge: ComparativeJudge,
   samples: readonly RankableSample[]
 ): Promise<Map<string, string>> => {
@@ -226,6 +231,66 @@ const resolveJudgeableUrls = async (
     }
   );
   return new Map(entries.filter((entry) => entry !== null));
+};
+
+/** `judged` status plus non-null `overall`/`strength` is the exact condition
+ * `runComparativePass` already used inline to decide whether a pair verdict
+ * becomes an `outcome` — split out so `judgeOnePairWithTelemetry` and its
+ * log line agree with the aggregation step on what "succeeded" means. */
+const pairOutcomeFrom = (
+  pair: JudgePair,
+  judgment: EnginePairJudgment
+): PairOutcome | null =>
+  judgment.status === "judged" &&
+  judgment.overall !== null &&
+  judgment.strength !== null
+    ? {
+        aSampleId: pair.aSampleId,
+        bSampleId: pair.bSampleId,
+        overall: judgment.overall,
+        strength: judgment.strength,
+      }
+    : null;
+
+/** One pair judgment, with the telemetry the team lead's brief called out as
+ * entirely missing: before this, a pair call left no trace in the app log at
+ * all, so a run full of failed pairs was indistinguishable from a healthy one
+ * from the outside, and pair completion was uncountable. One compact line per
+ * pair — both samples' model aliases (never a prompt, a URL, or image bytes:
+ * `BRIEF.md` rule 3's spirit, applied to logs, not just spans), the outcome
+ * (winner + strength) or the failure code, and how long the call took. Pure
+ * with respect to Postgres — takes an already-resolved URL map and alias map,
+ * so it is testable without a `getDb()` call. */
+export const judgeOnePairWithTelemetry = async (
+  judge: ComparativeJudge,
+  pair: JudgePair,
+  prompt: string,
+  urlBySample: ReadonlyMap<string, string>,
+  aliasBySample: ReadonlyMap<string, string>
+): Promise<PairOutcome | null> => {
+  const imageUrlA = urlBySample.get(pair.aSampleId);
+  const imageUrlB = urlBySample.get(pair.bSampleId);
+  if (imageUrlA === undefined || imageUrlB === undefined) {
+    return null;
+  }
+
+  const aliasA = aliasBySample.get(pair.aSampleId) ?? pair.aSampleId;
+  const aliasB = aliasBySample.get(pair.bSampleId) ?? pair.bSampleId;
+  const startedAt = Date.now();
+  const judgment = await judge.judgePair({ imageUrlA, imageUrlB, prompt });
+  const durationMs = Date.now() - startedAt;
+
+  // A failed pair is skipped, never fatal — the sample simply completes
+  // fewer comparisons, and Bradley-Terry handles an uneven graph.
+  const outcome = pairOutcomeFrom(pair, judgment);
+  const outcomeLabel = outcome
+    ? `${outcome.overall}:${outcome.strength}`
+    : `failed:${judgment.errorCode ?? "UNKNOWN"}`;
+  console.log(
+    `[bench db-store-judging] pair ${aliasA}(A)/${aliasB}(B) -> ${outcomeLabel} (${durationMs}ms)`
+  );
+
+  return outcome;
 };
 
 /** One completed comparison, from the sample's own point of view — the value
@@ -287,33 +352,27 @@ const runComparativePass = async (
     judgeable.map((sample) => sample.id),
     { seed }
   );
+  const aliasBySample = new Map(
+    samples.map((sample) => [sample.id, sample.alias])
+  );
 
   const results = await mapWithConcurrency(
     pairs,
     JUDGE_PAIR_CONCURRENCY,
-    async (pair): Promise<PairOutcome | null> => {
-      const imageUrlA = urlBySample.get(pair.aSampleId);
-      const imageUrlB = urlBySample.get(pair.bSampleId);
-      if (imageUrlA === undefined || imageUrlB === undefined) {
-        return null;
-      }
-      const judgment = await judge.judgePair({ imageUrlA, imageUrlB, prompt });
-      // A failed pair is skipped, never fatal — the sample simply completes
-      // fewer comparisons, and Bradley-Terry handles an uneven graph.
-      return judgment.status === "judged" &&
-        judgment.overall !== null &&
-        judgment.strength !== null
-        ? {
-            aSampleId: pair.aSampleId,
-            bSampleId: pair.bSampleId,
-            overall: judgment.overall,
-            strength: judgment.strength,
-          }
-        : null;
-    }
+    async (pair) =>
+      await judgeOnePairWithTelemetry(
+        judge,
+        pair,
+        prompt,
+        urlBySample,
+        aliasBySample
+      )
   );
 
   const outcomes = results.filter((outcome) => outcome !== null);
+  console.log(
+    `[bench db-store-judging] comparative pass run=${runId}: pairs planned=${pairs.length} completed=${outcomes.length} failed=${pairs.length - outcomes.length}`
+  );
   const ranked = rankSamples(
     judgeable.map((sample) => sample.id),
     outcomes
@@ -422,14 +481,20 @@ export const startComparativeJudging = async (
   }
 
   const rows = await db
-    .select({ id: benchSamples.id, imagePath: benchSamples.imagePath })
+    .select({
+      id: benchSamples.id,
+      imagePath: benchSamples.imagePath,
+      modelAlias: benchSamples.modelAlias,
+    })
     .from(benchSamples)
     .where(
       and(eq(benchSamples.runId, runId), eq(benchSamples.status, "completed"))
     )
     .orderBy(asc(benchSamples.executionOrdinal));
   const samples: RankableSample[] = rows.flatMap((row) =>
-    row.imagePath === null ? [] : [{ id: row.id, imagePath: row.imagePath }]
+    row.imagePath === null
+      ? []
+      : [{ alias: row.modelAlias, id: row.id, imagePath: row.imagePath }]
   );
   if (samples.length < 2) {
     return false;

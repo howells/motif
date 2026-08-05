@@ -26,9 +26,10 @@ import type {
   JudgeModelCallInput,
   JudgeModelClient,
 } from "@motif/bench-core/judge";
-import { judgeSample, mediaTypeForImagePath } from "@motif/bench-core/judge";
+import { judgeSample } from "@motif/bench-core/judge";
 import type { PairJudgeModelClient } from "@motif/bench-core/rank-judge";
 import { judgePair } from "@motif/bench-core/rank-judge";
+import sharp from "sharp";
 
 import type {
   ComparativeJudge,
@@ -327,31 +328,85 @@ export const parseFalVisionOutput = (data: unknown): string => {
   return record.output;
 };
 
+// ---------------------------------------------------------------------------
+// Judge image normalization — every judge image, uniform size, before upload
+// ---------------------------------------------------------------------------
+
+/** Long edge (px) every judge image is downscaled to before CDN upload —
+ * never upscaled. Evidence from a real 24-model sweep: the pairwise judge
+ * was fetching full-resolution originals straight off disk (seedream45
+ * 4096×4096 at 2.7MB, seedream5-lite 3072×3072, flux 2048×2048, versus
+ * 1024×1024 for most other models), and the three oversized models scored
+ * near-bottom (0.21 / 0.48 / 0.26 against a field mean of 1.0) — consistent
+ * with oversized payloads degrading or failing the provider call, with the
+ * loss recorded against the model rather than the payload that caused it.
+ * The user's standing principle applies directly here: the model is never
+ * the problem, the code feeding it is. Normalizing every judge image to the
+ * same size is therefore both a reliability fix (smaller, uniform payloads
+ * the vision provider can actually handle) and a fairness fix (judging 4K
+ * against 1K conflates resolution with quality, not just risks a failed
+ * call). This only touches the copy of the image sent to the judge — the
+ * full-resolution original on disk (generation/archive path) is untouched. */
+export const JUDGE_IMAGE_LONG_EDGE = 1024;
+
+/** JPEG re-encode quality applied alongside `JUDGE_IMAGE_LONG_EDGE` — see
+ * that constant's comment for the evidence motivating normalization at all.
+ * 85 keeps the re-encode visually clean for a vision judge while still
+ * shrinking payload size materially versus a full-resolution PNG/WebP. */
+export const JUDGE_IMAGE_JPEG_QUALITY = 85;
+
+/** Downscales (never upscales) and re-encodes one judge image as JPEG.
+ * `fit: "inside"` + `withoutEnlargement: true` is what makes "long edge"
+ * and "never upscale" hold simultaneously: the image is scaled down to fit
+ * inside a `JUDGE_IMAGE_LONG_EDGE`² box preserving aspect ratio, and a
+ * source already smaller than that box passes through at its own size.
+ * Operates on `Buffer` in, `Buffer` out — sharp reads the input format from
+ * the bytes themselves, so this works uniformly on whatever
+ * `EXTENSION_BY_CONTENT_TYPE` produced upstream (never a base64 string or a
+ * `data:` URI — `BRIEF.md` rule 1, unaffected by this normalization step). */
+export const normalizeJudgeImageForUpload = async (
+  bytes: Buffer
+): Promise<{ readonly bytes: Buffer; readonly mediaType: string }> => ({
+  bytes: await sharp(bytes)
+    .resize(JUDGE_IMAGE_LONG_EDGE, JUDGE_IMAGE_LONG_EDGE, {
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: JUDGE_IMAGE_JPEG_QUALITY })
+    .toBuffer(),
+  mediaType: "image/jpeg",
+});
+
 /** Wraps a real `FalClient` (for the CDN upload) plus a raw `fetch` (for the
  * vision call itself — `FalClient` exposes no generic method for an
  * arbitrary `fal.run/*` endpoint) behind `bench-core/judge`'s narrow
  * `JudgeModelClient` seam. `uploadToFalCdn` is reused rather than
  * hand-rolled (team lead's brief) — it is the only piece of this path that
  * already existed. */
-/** Uploads raw image bytes to fal's CDN and returns the public URL. Shared by
- * the absolute judge (which uploads per judgment) and the comparative judge
- * (which uploads per *sample* and reuses the URL across every pair that
- * sample appears in — see `engine.ts`'s `ComparativeJudge`). `bytes` is
- * always binary, never a base64 string: `bufferFromFilePartData` above is the
- * one place that narrowing is enforced. */
+/** Normalizes (`normalizeJudgeImageForUpload`), then uploads, raw image bytes
+ * to fal's CDN and returns the public URL. Shared by the absolute judge
+ * (which uploads per judgment) and the comparative judge (which uploads per
+ * *sample* and reuses the URL across every pair that sample appears in — see
+ * `engine.ts`'s `ComparativeJudge`, and `db-store-judging.ts`'s
+ * `resolveJudgeableUrls`, which is what makes that reuse one upload per
+ * sample rather than one per pair). `bytes` is always binary, never a
+ * base64 string: `bufferFromFilePartData` above is the one place that
+ * narrowing is enforced. The caller's `mediaType` no longer decides the
+ * upload's content type — every judge image leaves this function as JPEG
+ * regardless of source format, so it is not accepted as a parameter here. */
 const uploadImageBytesToFalCdn = async (
   apiKey: string,
-  bytes: Buffer,
-  mediaType: string
+  bytes: Buffer
 ): Promise<string> => {
+  const normalized = await normalizeJudgeImageForUpload(bytes);
   const falClient = new FalClient({
     apiKey,
     retries: 0,
     timeout: FAL_JUDGE_TIMEOUT_MS,
   });
-  const extension = EXTENSION_BY_CONTENT_TYPE[mediaType] ?? "jpg";
-  const uploadResult = await falClient.uploadToFalCdn(bytes, {
-    contentType: mediaType,
+  const extension = EXTENSION_BY_CONTENT_TYPE[normalized.mediaType] ?? "jpg";
+  const uploadResult = await falClient.uploadToFalCdn(normalized.bytes, {
+    contentType: normalized.mediaType,
     fileName: `judge-sample.${extension}`,
   });
   if (uploadResult.isErr()) {
@@ -364,8 +419,7 @@ export const buildFalJudgeModelClient = (apiKey: string): JudgeModelClient => ({
   generateJudgeText: async ({ imagePart, prompt, signal }) => {
     const imageUrl = await uploadImageBytesToFalCdn(
       apiKey,
-      bufferFromFilePartData(imagePart.data),
-      imagePart.mediaType
+      bufferFromFilePartData(imagePart.data)
     );
 
     const response = await fetch(FAL_VISION_JUDGE_URL, {
@@ -536,11 +590,7 @@ const buildLiveComparativeJudge = (apiKey: string): ComparativeJudge => ({
   judgePair: async (input) => await buildLivePairJudgment(apiKey, input),
   modelLabel: FAL_RANK_JUDGE_MODEL_ID,
   toJudgeableImageUrl: async (imagePath) =>
-    await uploadImageBytesToFalCdn(
-      apiKey,
-      await readFile(imagePath),
-      mediaTypeForImagePath(imagePath)
-    ),
+    await uploadImageBytesToFalCdn(apiKey, await readFile(imagePath)),
 });
 
 // ---------------------------------------------------------------------------

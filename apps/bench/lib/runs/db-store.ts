@@ -41,6 +41,7 @@ import { z } from "zod";
 
 import {
   DroppedParamsJsonSchema,
+  EMPTY_RANK_STANDINGS,
   fromCoercedParamsJson,
   fromLevelsJson,
   fromRankLevelsJson,
@@ -228,14 +229,14 @@ const toJudgmentRecord = (
   // into a level word — that would read as an absolute verdict it is not.
   const isRank = row.rubricId === RANK_RUBRIC_ID;
   const { errorCode, levels } = fromLevelsJson(row.levels);
-  const rank = isRank
-    ? fromRankLevelsJson(row.levels)
-    : { rank: null, rankedCount: null };
+  const rank = isRank ? fromRankLevelsJson(row.levels) : EMPTY_RANK_STANDINGS;
   return {
+    comparisons: rank.comparisons,
     critique: row.critique,
     errorCode,
     judgeModel: row.judgeModel,
     levels,
+    losses: rank.losses,
     overall: row.overall,
     overallLevel:
       isRank || row.overall === null ? null : qualityLevelForScore(row.overall),
@@ -245,6 +246,8 @@ const toJudgmentRecord = (
     rubricVersion: row.rubricVersion,
     sampleId: row.sampleId,
     status,
+    ties: rank.ties,
+    wins: rank.wins,
   };
 };
 

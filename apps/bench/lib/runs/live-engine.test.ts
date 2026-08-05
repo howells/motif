@@ -8,7 +8,8 @@
  * and `globalThis.fetch` — no live fal call is ever made.
  */
 import { err, FalClient, MotifError, ok } from "@howells/motif-sdk";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import sharp from "sharp";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   bufferFromFilePartData,
@@ -20,11 +21,30 @@ import {
   createLiveEngine,
   FAL_JUDGE_MODEL_ID,
   FAL_RANK_JUDGE_MODEL_ID,
+  JUDGE_IMAGE_JPEG_QUALITY,
+  JUDGE_IMAGE_LONG_EDGE,
   LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS,
+  normalizeJudgeImageForUpload,
   parseFalVisionOutput,
   timeoutMsForAlias,
 } from "./live-engine";
 import { mockRunEngine } from "./mock-engine";
+
+/** A real, tiny, decodable PNG — `sharp` (used both by the code under test
+ * and here) refuses the old 4-byte magic-number-only fixture outright
+ * ("Input buffer contains unsupported image format"), so every test that
+ * exercises the judge-image normalization path needs actual pixel data. */
+const tinyPng = async (width: number, height: number): Promise<Buffer> =>
+  await sharp({
+    create: {
+      background: { b: 30, g: 20, r: 10 },
+      channels: 3,
+      height,
+      width,
+    },
+  })
+    .png()
+    .toBuffer();
 
 describe("timeoutMsForAlias", () => {
   it("computes p95Seconds × 1.5 for a model with published speed data", () => {
@@ -156,18 +176,71 @@ describe("parseFalVisionOutput", () => {
   });
 });
 
+describe("normalizeJudgeImageForUpload — the uniform-payload fix", () => {
+  it("downscales an oversized image to a 1024px long edge, never more", async () => {
+    // Deliberately larger than seedream45's real 4096×4096 in the sweep this
+    // exists to fix, kept small here only so the test runs fast.
+    const oversized = await tinyPng(2200, 1400);
+    const { bytes, mediaType } = await normalizeJudgeImageForUpload(oversized);
+    const metadata = await sharp(bytes).metadata();
+
+    expect(mediaType).toBe("image/jpeg");
+    expect(metadata.format).toBe("jpeg");
+    expect(Math.max(metadata.width ?? 0, metadata.height ?? 0)).toBe(
+      JUDGE_IMAGE_LONG_EDGE
+    );
+    // Aspect ratio preserved: 2200x1400 -> long edge 1024 means the short
+    // edge scales to 1024 * (1400/2200), rounded.
+    expect(metadata.width).toBe(JUDGE_IMAGE_LONG_EDGE);
+    expect(metadata.height).toBe(Math.round(1024 * (1400 / 2200)));
+  });
+
+  it("never upscales an image already smaller than the target long edge", async () => {
+    const small = await tinyPng(200, 150);
+    const { bytes } = await normalizeJudgeImageForUpload(small);
+    const metadata = await sharp(bytes).metadata();
+
+    expect(metadata.width).toBe(200);
+    expect(metadata.height).toBe(150);
+    expect(Math.max(metadata.width ?? 0, metadata.height ?? 0)).toBeLessThan(
+      JUDGE_IMAGE_LONG_EDGE
+    );
+  });
+
+  it("re-encodes as JPEG at the named quality regardless of source format", async () => {
+    const png = await tinyPng(64, 64);
+    const { mediaType } = await normalizeJudgeImageForUpload(png);
+    expect(mediaType).toBe("image/jpeg");
+    // Not asserting an exact byte count (JPEG encoders are not that
+    // deterministic across environments) — just that the quality constant is
+    // the one actually threaded through, not a different hardcoded number.
+    expect(JUDGE_IMAGE_JPEG_QUALITY).toBe(85);
+  });
+
+  it("operates on Buffers, never a base64 string or a data: URI", async () => {
+    const png = await tinyPng(10, 10);
+    expect(Buffer.isBuffer(png)).toBe(true);
+    const { bytes } = await normalizeJudgeImageForUpload(png);
+    expect(Buffer.isBuffer(bytes)).toBe(true);
+  });
+});
+
 describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
-  const imagePart = {
-    data: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
-    mediaType: "image/png",
-    type: "file" as const,
-  };
+  let imagePart: { data: Buffer; mediaType: string; type: "file" };
+
+  beforeAll(async () => {
+    imagePart = {
+      data: await tinyPng(4, 4),
+      mediaType: "image/png",
+      type: "file",
+    };
+  });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("uploads the raw Buffer to fal's CDN via uploadToFalCdn, then POSTs the returned URL — never a base64/data URI, and no live fal call", async () => {
+  it("normalizes the Buffer (resized, re-encoded JPEG) before uploading to fal's CDN, then POSTs the returned URL — never a base64/data URI, and no live fal call", async () => {
     const uploadSpy = vi
       .spyOn(FalClient.prototype, "uploadToFalCdn")
       .mockResolvedValue(ok("https://fal.media/files/panda/judge-sample.png"));
@@ -186,8 +259,16 @@ describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
     expect(output).toBe("Elephant");
 
     expect(uploadSpy).toHaveBeenCalledTimes(1);
-    const [uploadedBytes] = uploadSpy.mock.calls[0] ?? [];
-    expect(uploadedBytes).toBe(imagePart.data);
+    const [uploadedBytes, uploadOptions] = uploadSpy.mock.calls[0] ?? [];
+    if (!Buffer.isBuffer(uploadedBytes)) {
+      throw new TypeError("expected the upload call to carry a Buffer");
+    }
+    // Never the raw input bytes unchanged — every judge image is normalized
+    // (downscaled/re-encoded) before it leaves this function.
+    expect(uploadedBytes).not.toBe(imagePart.data);
+    expect(uploadOptions?.contentType).toBe("image/jpeg");
+    const metadata = await sharp(uploadedBytes).metadata();
+    expect(metadata.format).toBe("jpeg");
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     const [url, requestInit] = fetchSpy.mock.calls[0] ?? [];

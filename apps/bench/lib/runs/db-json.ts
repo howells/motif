@@ -175,16 +175,58 @@ const positiveIntOrNull = (value: string | undefined): number | null => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-/** Reads back only the two fields the UI needs — the rank and the size of the
- * ranked field. A row written before this shape existed, or one that lost its
- * standings, degrades to `null`/`null` (the "no rank data" state the judge
- * panel already renders) rather than throwing. */
-export const fromRankLevelsJson = (
-  value: unknown
-): { rank: number | null; rankedCount: number | null } => {
+/** Coverage counts (`__comparisons`/`__wins`/`__losses`/`__ties`) are always
+ * present on a row `toRankLevelsJson` wrote (they default to `0`, not an
+ * absent key — see `runComparativePass`'s fallback tally), so unlike
+ * `__rank` a missing or unparseable value degrades to `0` rather than
+ * `null`: "zero comparisons" is itself meaningful data (a sample that never
+ * got judged), not a distinct "unknown" state. */
+const nonNegativeIntOrZero = (value: string | undefined): number => {
+  const parsed = Math.trunc(Number(value));
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+};
+
+/** Reads back the rank standings the UI needs (`rank`/`rankedCount`) plus the
+ * pair-coverage counts (`comparisons`/`wins`/`losses`/`ties`) — the BT
+ * aggregation writes all six via `toRankLevelsJson`, but until this addition
+ * only the first two were ever read back out, so coverage was invisible
+ * after the fact even though it was already on the row (team lead's brief).
+ * Zod-parsed via the shared `LevelsJsonSchema` per house rule, same as every
+ * other jsonb read in this file. A row written before this shape existed, or
+ * one that lost its standings, degrades to `null`/`null`/`0`/`0`/`0`/`0` (the
+ * "no rank data" state the judge panel already renders for rank/rankedCount)
+ * rather than throwing. */
+export interface RankStandings {
+  readonly comparisons: number;
+  readonly losses: number;
+  readonly rank: number | null;
+  readonly rankedCount: number | null;
+  readonly ties: number;
+  readonly wins: number;
+}
+
+/** The all-null/all-zero `RankStandings` for a judgment row that carries no
+ * rank data at all (the absolute rubric, `db-store.ts`'s `toJudgmentRecord`)
+ * — a named constant rather than a literal at each call site, partly for
+ * `db-store.ts`'s own line budget (`oxlint`'s `max-lines`, already tight
+ * enough that this file was split out of it once already). */
+export const EMPTY_RANK_STANDINGS: RankStandings = {
+  comparisons: 0,
+  losses: 0,
+  rank: null,
+  rankedCount: null,
+  ties: 0,
+  wins: 0,
+};
+
+export const fromRankLevelsJson = (value: unknown): RankStandings => {
   const parsed = LevelsJsonSchema.parse(value ?? {});
   return {
+    comparisons: nonNegativeIntOrZero(parsed[RANK_KEYS.comparisons]),
+    losses: nonNegativeIntOrZero(parsed[RANK_KEYS.losses]),
     rank: positiveIntOrNull(parsed[RANK_KEYS.rank]),
     rankedCount: positiveIntOrNull(parsed[RANK_KEYS.of]),
+    ties: nonNegativeIntOrZero(parsed[RANK_KEYS.ties]),
+    wins: nonNegativeIntOrZero(parsed[RANK_KEYS.wins]),
   };
 };
