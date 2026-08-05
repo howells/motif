@@ -66,7 +66,8 @@ motif auto-detects the output context:
       "ideogram",
       "ideogram4",
       "grok-image",
-      "qwen"
+      "qwen",
+      "qwen3"
     ]
   }
 }
@@ -125,7 +126,7 @@ Flag values override stdin JSON values for the same field.
 ```json
 {
   "prompt": "string (required for generate)",
-  "model": "gpt2 | gpt | banana2 | banana | gemini | gemini3 | seedream4 | seedream45 | seedream5 | seedream5-lite | flux2-max | flux2-pro | flux2-flex | flux2-dev | flux2-turbo | flux | flux-fast | recraft | recraft4 | ideogram | ideogram4 | grok-image | qwen",
+  "model": "gpt2 | gpt | banana2 | banana | gemini | gemini3 | seedream4 | seedream45 | seedream5 | seedream5-lite | flux2-max | flux2-pro | flux2-flex | flux2-dev | flux2-turbo | flux | flux-fast | recraft | recraft4 | ideogram | ideogram4 | grok-image | qwen | qwen3",
   "aspect": "1:1 | 16:9 | 9:16 | 2:3 | 3:2 | 4:3 | 3:4 | 4:5 | 5:4 | 21:9",
   "resolution": "1K | 2K | 4K",
   "numImages": 1,
@@ -266,6 +267,7 @@ motif --history --limit 20 --fields model,cost
 | `flux2-dev` | ~$0.012 | Open FLUX.2, billed per compute second ($0.00167/sec) |
 | `grok-image` | $0.02 | Fast, cheap generation and edits |
 | `qwen` | $0.02/MP | Low-cost open-weight generation |
+| `qwen3` | $0.02/MP (assumed) | Qwen Image 3 - successor to qwen |
 | `seedream4` | $0.03 | Low-cost, high-ranked generation and edits |
 | `flux2-pro` | $0.03/MP | Production FLUX quality per megapixel |
 | `ideogram` | $0.03 | Best text rendering in images |

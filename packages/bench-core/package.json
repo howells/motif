@@ -1,0 +1,29 @@
+{
+  "name": "@motif/bench-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./execute": "./src/execute.ts",
+    "./judge": "./src/judge.ts",
+    "./rank-judge": "./src/rank-judge.ts"
+  },
+  "scripts": {
+    "lint": "howells-check src",
+    "lint:fix": "howells-fix src",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@howells/motif-sdk": "workspace:*",
+    "ai": "^7.0.22"
+  },
+  "devDependencies": {
+    "@howells/lint": "^1.1.0",
+    "@howells/typescript-config": "^0.1.6",
+    "@types/node": "^26.1.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
+}

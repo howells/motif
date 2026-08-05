@@ -155,6 +155,16 @@ export default {
       },
     },
     {
+      // Next.js App Router Route Handlers export their HTTP methods as
+      // uppercase named exports (`GET`/`POST`/`PUT`/...) — a framework
+      // convention, not a style choice, so the general identifier-casing
+      // rule does not apply to this one narrow file shape.
+      files: ["apps/bench/app/**/route.ts"],
+      rules: {
+        "sonarjs/function-name": "off",
+      },
+    },
+    {
       // Test files: the shared preset's test overlay only relaxes
       // size/complexity. Tests also legitimately read env, use temp dirs, `new`,
       // and dynamic imports.
