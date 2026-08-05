@@ -12,27 +12,49 @@
 @import "@patternmode/scrollframe/styles.css";
 
 @theme {
-  /* ── Inherited from Patternmode (exact) ───────────────────────── */
-  --color-background: oklch(0.9875 0.0026 106.4); /* #fbfbf9 warm paper */
-  --color-surface: oklch(1 0 90); /* #ffffff panels */
-  --color-surface-soft: oklch(0.9698 0.0054 95.1); /* #f6f5f1 inset rows */
-  --color-ink: oklch(0.23 0.0038 106.7); /* #1d1d1b */
-  --color-muted: oklch(0.5617 0.0123 95.3); /* #77756d secondary */
-  --color-border: oklch(0.9099 0.0071 88.6); /* #e3e1dc */
-  --color-border-soft: oklch(0.9432 0.007 88.6); /* #eeece7 interior rules */
-  --color-accent: oklch(0.438 0.0563 166.3); /* #315c4b forest */
-  --color-accent-soft: oklch(0.9308 0.0133 159.9); /* #e1ebe5 */
+  /* ── Dark throughout ──────────────────────────────────────────────
+     The app was warm paper with a dark plate cut into it for the images.
+     That split existed for one reason — image quality cannot be judged
+     against white — and a single dark ground satisfies it completely and
+     more simply. So the plate is no longer a region; the whole surface is
+     the plate, and the images now sit on the same ground everywhere.
 
-  /* ── Bench-only: the image plate ──────────────────────────────── */
-  --color-plate: oklch(0.245 0.002 106); /* neutral, near-achromatic */
-  --color-plate-edge: oklch(0.32 0.002 106); /* gutter between frames */
-  --color-plate-ink: oklch(0.92 0.002 106); /* annotation on plate */
-  --color-plate-muted: oklch(0.66 0.002 106);
+     Re-derived, not inverted: the ladder keeps the light theme's contrast
+     *relationships* (ink well clear of ground, muted legible but recessive,
+     borders barely there) rather than flipping lightness values.
 
-  /* ── Semantic ─────────────────────────────────────────────────── */
-  --color-ok: oklch(0.438 0.0563 166.3); /* completed — reuse accent */
-  --color-warn: oklch(0.59 0.1 75); /* partial, contended, inconclusive */
-  --color-bad: oklch(0.51 0.16 27); /* failed */
+     Chroma stays at or below 0.004 on every surface. Any hue in the ground
+     tints the perception of what sits on it, and this tool exists to
+     compare images — so the surround must be as achromatic as the light
+     theme's plate was. Hue 106 is retained so the greys stay very slightly
+     warm rather than clinically blue. */
+  --color-background: oklch(0.185 0.002 106); /* the ground, everywhere */
+  --color-surface: oklch(0.225 0.002 106); /* rail, top bar, popovers */
+  --color-surface-soft: oklch(0.265 0.003 106); /* hover, selected rows */
+  --color-ink: oklch(0.94 0.002 106);
+  --color-muted: oklch(0.68 0.004 106);
+  --color-border: oklch(0.305 0.003 106);
+  --color-border-soft: oklch(0.255 0.003 106); /* interior rules */
+
+  /* Forest lifted from L 0.438 to L 0.62: the light theme's accent is a
+     dark green chosen to read on paper, and it disappears against this
+     ground. Same hue family, re-derived for the new surround. */
+  --color-accent: oklch(0.62 0.075 166);
+  --color-accent-soft: oklch(0.3 0.03 166); /* tinted fill, not a wash */
+
+  /* ── The plate tokens now alias the ground ────────────────────────
+     Kept as names rather than deleted so every component that annotates
+     "on the plate" keeps reading correctly — there is simply no longer a
+     second surface for them to mean. */
+  --color-plate: var(--color-background);
+  --color-plate-edge: var(--color-border);
+  --color-plate-ink: var(--color-ink);
+  --color-plate-muted: var(--color-muted);
+
+  /* ── Semantic — all lifted for a dark surround ────────────────── */
+  --color-ok: oklch(0.62 0.075 166); /* completed — reuse accent */
+  --color-warn: oklch(0.76 0.11 78); /* partial, contended, stale */
+  --color-bad: oklch(0.66 0.16 27); /* failed */
 
   --radius: 8px;
   --radius-frame: 0px; /* image frames never round */

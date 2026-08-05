@@ -72,13 +72,20 @@ export const ContactSheet = ({
   }
 
   return (
-    <div className="bg-plate p-4">
+    <div className="bg-plate p-5">
       {/* Tracks from 160px on a phone (so the sheet still lands 2-up in a
-          358px column as the spec requires) and from 240px above `sm`, 1px
-          gutter, packed from the start. `auto-fill` fixes the column *count*
-          from the minimum; `1fr` then spends the remainder on the frames
-          rather than leaving it dark at the edge. */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-px sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+          358px column as the spec requires) and from 240px above `sm`,
+          packed from the start. `auto-fill` fixes the column *count* from
+          the minimum; `1fr` then spends the remainder on the frames rather
+          than leaving it dark at the edge.
+
+          The gutter is 20px, not the 1px of the original contact sheet. That
+          hairline made sense when the sheet was a dark inset cut into paper —
+          the frames read as one object against a contrasting surround. On a
+          single dark ground there is no contrasting surround, so butted
+          frames merge into one another and the ground has to do the
+          separating instead. */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-5 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
         {samples.map((sample) => (
           <SampleFrame
             contended={run.concurrency > 1}
