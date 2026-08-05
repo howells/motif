@@ -809,6 +809,36 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsSyncMode: true,
     type: "generation",
   },
+  qwen3: {
+    benchmark: {
+      tiers: { price: "budget", quality: "better", speed: "unknown" },
+      useCase: "Qwen Image 3 - successor to qwen; no leaderboard data yet",
+    },
+    endpoint: "fal-ai/qwen-image-3/text-to-image",
+    falPricing: {
+      checkedAt: "2026-08-05",
+      currency: "USD",
+      endpointId: "fal-ai/qwen-image-3/text-to-image",
+      estimatedCostPerImageUsd: 0.02,
+      source: "fal-pricing-api",
+      unit: "megapixels",
+      unitPrice: 0.02,
+    },
+    name: "Qwen Image 3",
+    pricePerImageUsd: 0.02,
+    pricing:
+      "$0.02/MP (assumed from qwen v1; fal pricing page bot-gated at check time)",
+    sizeMode: "image_size_enum",
+    supportsAspect: true,
+    supportsEdit: false,
+    supportsNegativePrompt: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: false,
+    supportsSafetyChecker: true,
+    supportsSeed: true,
+    type: "generation",
+  },
 
   // ─── Video Models ─────────────────────────────────────────────
 
@@ -892,6 +922,7 @@ export const GENERATION_MODELS = [
   "ideogram4",
   "grok-image",
   "qwen",
+  "qwen3",
 ] as const;
 
 /** Models whose fal endpoints support image editing (vary/edit flows). */

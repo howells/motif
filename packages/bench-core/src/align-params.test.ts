@@ -54,8 +54,8 @@ const FORCE_PROBES: Record<string, unknown> = {
 };
 
 describe("GENERATION_MODELS coverage", () => {
-  it("is the 23 aliases the task brief verified — not the plan's stale 18", () => {
-    expect(GENERATION_MODELS).toHaveLength(23);
+  it("is the 24 aliases currently registered (qwen3 added 2026-08-05)", () => {
+    expect(GENERATION_MODELS).toHaveLength(24);
   });
 });
 
