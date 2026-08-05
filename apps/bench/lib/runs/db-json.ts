@@ -9,15 +9,15 @@
 import { z } from "zod";
 
 import type { JudgeErrorCodeValue, PreviewCoercedParam } from "./types";
-import { JUDGE_ERROR_CODES } from "./types";
+import { BENCH_OUTPUT_FORMATS, JUDGE_ERROR_CODES } from "./types";
 
 const JudgeErrorCodeSchema = z.enum(JUDGE_ERROR_CODES);
 const JUDGING_STATUSES = ["done", "not-started", "running"] as const;
 const JudgingStatusSchema = z.enum(JUDGING_STATUSES);
 
-/** `bench_runs.spec` is the run-level source of truth for the two
+/** `bench_runs.spec` is the run-level source of truth for the three
  * `RunSpecInput` fields with no dedicated column (`judgeAfter`,
- * `maxEstimatedCostUsd`) plus judging progress, which has no column either
+ * `maxEstimatedCostUsd`, `outputFormat`) plus judging progress, which has no column either
  * — `judgingStatus` lives here as a mutable key, guarded on write (see
  * `db-store.ts`'s `setJudgingStatus`) rather than a schema column, since the
  * already-pushed schema cannot be altered by this change. `deadlineAt`
@@ -32,6 +32,9 @@ export const RunSpecJsonSchema = z.object({
   judgeAfter: z.boolean(),
   judgingStatus: JudgingStatusSchema,
   maxEstimatedCostUsd: z.number(),
+  // Same tolerance as `deadlineAt`: rows written before this field existed
+  // parse as null, meaning "each model's own default".
+  outputFormat: z.enum(BENCH_OUTPUT_FORMATS).nullable().default(null),
 });
 
 export const ModelsJsonSchema = z.array(z.string());

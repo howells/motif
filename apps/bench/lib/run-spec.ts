@@ -42,6 +42,7 @@ export interface RunDraft {
   readonly concurrency: number;
   readonly maxEstimatedCostUsd: number;
   readonly models: ReadonlySet<string>;
+  readonly outputFormat: RunSpecInput["outputFormat"];
   readonly prompt: string;
   readonly resolution: RunSpecInput["resolution"];
   readonly samplesPerModel: number;
@@ -60,6 +61,9 @@ export const initialRunDraft = (): RunDraft => ({
   concurrency: 1,
   maxEstimatedCostUsd: DEFAULT_MAX_COST_USD,
   models: new Set(cheapestModelAliases(DEFAULT_MODEL_COUNT)),
+  // null = each model's own default. Standardising on one format is opt-in:
+  // making it the default would silently change what every past run meant.
+  outputFormat: null,
   prompt: DEFAULT_PROMPT,
   resolution: "1K",
   samplesPerModel: 1,
@@ -75,6 +79,7 @@ export const specFromDraft = (draft: RunDraft): RunSpecInput => ({
   judgeAfter: false,
   maxEstimatedCostUsd: draft.maxEstimatedCostUsd,
   models: [...draft.models].toSorted(),
+  outputFormat: draft.outputFormat,
   prompt: draft.prompt.trim(),
   resolution: draft.resolution,
   samplesPerModel: draft.samplesPerModel,

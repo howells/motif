@@ -29,6 +29,43 @@ export interface BenchSpec {
   readonly seed: number | null;
 }
 
+/** Whether a model will accept an explicit container format. Two flags, not
+ * one: `supportsOutputFormat` says the dial exists at all, and an optional
+ * `supportedOutputFormats` narrows which values it accepts (undefined means
+ * "any of them"). */
+const acceptsOutputFormat = (
+  config: ModelConfig,
+  format: ImageOutputFormat
+): boolean =>
+  config.supportsOutputFormat === true &&
+  (config.supportedOutputFormats === undefined ||
+    config.supportedOutputFormats.includes(format));
+
+/**
+ * How many of `aliases` would actually receive `format`, and how many would
+ * have it dropped.
+ *
+ * The composer needs this to tell you *before* you spend money that "png
+ * reaches 14 of your 20 models" — and it has to be the same predicate
+ * `alignParams` applies at dispatch, or the preview would promise a
+ * standardisation the run does not deliver. Hence one shared
+ * `acceptsOutputFormat` rather than a second copy of the flag logic in the
+ * UI layer.
+ */
+export const outputFormatReach = (
+  aliases: readonly GenerationModelName[],
+  format: ImageOutputFormat
+): { readonly dropped: number; readonly supported: number } => {
+  let supported = 0;
+  for (const alias of aliases) {
+    const config: ModelConfig | undefined = MODELS[alias];
+    if (config && acceptsOutputFormat(config, format)) {
+      supported += 1;
+    }
+  }
+  return { dropped: aliases.length - supported, supported };
+};
+
 /** A parameter we wanted to send but the model cannot accept. */
 export interface DroppedParam {
   readonly param: string;
@@ -192,10 +229,7 @@ export function alignParams(
 
   // ── Output format ─────────────────────────────────────────────────────────
   if (spec.outputFormat !== null) {
-    const formatAllowed =
-      config.supportsOutputFormat === true &&
-      (config.supportedOutputFormats === undefined ||
-        config.supportedOutputFormats.includes(spec.outputFormat));
+    const formatAllowed = acceptsOutputFormat(config, spec.outputFormat);
 
     if (formatAllowed) {
       options.outputFormat = spec.outputFormat;

@@ -107,8 +107,15 @@ const getDb = async (): Promise<BenchDb> => {
 
 /** Runs a setTimeout-scheduled settle/judge step without letting a failure
  * crash the process — the run simply stays in its current state and shows
- * up as `stale` once `STALE_AFTER_MS` elapses (`toRunSummary` below). */
-const runDetached = (label: string, task: () => Promise<void>): void => {
+ * up as `stale` once `STALE_AFTER_MS` elapses (`toRunSummary` below).
+ *
+ * Exported for `db-store-retry.ts` only. That module is this store's partial
+ * re-run path, split out for the same reason `db-store-judging.ts` was (the
+ * `max-lines` budget), and it re-dispatches through exactly the machinery
+ * below rather than a parallel copy of it — which is the point of exporting
+ * these three at all. Nothing outside this store's own files should reach
+ * for them; `repository.ts` is the seam everything else goes through. */
+export const runDetached = (label: string, task: () => Promise<void>): void => {
   void (async () => {
     try {
       await task();
@@ -145,6 +152,7 @@ const toRunSummary = (row: typeof benchRuns.$inferSelect): RunSummary => {
     judgeAfter: spec.judgeAfter,
     judgingStatus: spec.judgingStatus,
     models,
+    outputFormat: spec.outputFormat,
     prompt: row.prompt,
     resolution: row.resolution,
     samplesPerModel: row.samplesPerModel,
@@ -268,6 +276,10 @@ const cohortHashFor = (spec: RunSpecInput): string => {
     spec.aspect,
     spec.resolution,
     [...spec.models].sort().join(","),
+    // Always a segment, even when null: omitting it for the default would let
+    // a jpeg run and a default run hash identically, and a container format
+    // that costs quality (jpeg) is not the same cohort as one that does not.
+    spec.outputFormat ?? "",
     String(ALIGNMENT_SCHEMA_VERSION),
   ].join("|");
   return hashUnit(parts).toString(36).slice(2);
@@ -306,6 +318,7 @@ export const buildRunInsertRow = (
     judgeAfter: spec.judgeAfter,
     judgingStatus: "not-started",
     maxEstimatedCostUsd: spec.maxEstimatedCostUsd,
+    outputFormat: spec.outputFormat,
   },
   startedAt: now,
   status: "running",
@@ -503,7 +516,7 @@ export const buildSettleFailurePatch = (): {
   status: "failed";
 } => ({ errorCode: "INTERRUPTED", status: "failed" });
 
-const settleSample = async (
+export const settleSample = async (
   sampleId: string,
   runId: string,
   engine: RunEngine
@@ -523,9 +536,13 @@ const settleSample = async (
     return;
   }
 
+  // The requested container format has no column of its own; it rides in the
+  // `spec` jsonb (see `RunSpecJsonSchema`) alongside `judgeAfter`. Parsing it
+  // here rather than passing `null` is what makes the format an actual run
+  // parameter: `alignParams` drops it per-model and records the drop.
   const benchSpec = {
     aspect: run.aspect,
-    outputFormat: null,
+    outputFormat: RunSpecJsonSchema.parse(run.spec).outputFormat,
     prompt: run.prompt,
     resolution: run.resolution,
     seed: run.seed,
@@ -619,7 +636,9 @@ const settleSample = async (
  * and its own `WHERE status = 'running'` guard is what makes calling this
  * twice safe (the second call's `planReconciliation` sees a non-`running`
  * run and returns a no-op plan before any write is attempted). */
-const reconcileRunIfPastDeadline = async (runId: string): Promise<void> => {
+export const reconcileRunIfPastDeadline = async (
+  runId: string
+): Promise<void> => {
   const db = await getDb();
   const [run] = await db
     .select()

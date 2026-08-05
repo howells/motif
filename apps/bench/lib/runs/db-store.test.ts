@@ -26,6 +26,7 @@ const SPEC: RunSpecInput = {
   judgeAfter: false,
   maxEstimatedCostUsd: 5,
   models: ["flux-fast", "grok-image"],
+  outputFormat: null,
   prompt: "A well-lit modern living room with a gray sofa.",
   resolution: "1K",
   samplesPerModel: 1,

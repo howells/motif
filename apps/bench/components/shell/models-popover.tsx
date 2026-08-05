@@ -1,6 +1,6 @@
 "use client";
 
-import { BENCH_ROUTES } from "@motif/bench-core";
+import { BENCH_ROUTES, outputFormatReach } from "@motif/bench-core";
 import { ChevronDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -39,15 +39,27 @@ import type {
   PreviewResult,
   RunSpecInput,
 } from "@/lib/runs/types";
+import { BENCH_OUTPUT_FORMATS } from "@/lib/runs/types";
 import { cn } from "@/lib/utils";
 
 const RESOLUTIONS = ["0.5K", "1K", "2K", "4K"] as const;
+
+/** The sentinel for "no format requested". Radix's Select cannot hold an
+ * empty-string value, and `null` is not a `SelectItem` value either, so the
+ * one draft state that is genuinely absence needs a name on the wire. */
+const FORMAT_DEFAULT = "model-default";
 
 const isBenchAspect = (value: string): value is BenchAspect =>
   (BENCH_ASPECTS as readonly string[]).includes(value);
 
 const isResolution = (value: string): value is RunSpecInput["resolution"] =>
   (RESOLUTIONS as readonly string[]).includes(value);
+
+const toOutputFormat = (value: string): RunSpecInput["outputFormat"] =>
+  (BENCH_OUTPUT_FORMATS as readonly string[]).includes(value)
+    ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- guarded by the includes() on the same line; BENCH_OUTPUT_FORMATS is the enum this narrows to
+      (value as NonNullable<RunSpecInput["outputFormat"]>)
+    : null;
 
 const usdFromDollars = (usd: number): string =>
   formatUsd(Math.round(usd * 1_000_000));
@@ -194,6 +206,30 @@ const AspectCoercionNote = ({ aspect }: { readonly aspect: BenchAspect }) => {
 /** The aggregate reading of the dry run — what the per-chip tooltips say,
  * counted. It never grows with the model count, which is why the popover
  * needs no scroll region of its own at desktop sizes. */
+/** What a requested format actually buys, counted against the current
+ * selection. A format that reaches 14 of 20 models is still worth asking for
+ * — the other 6 report it as a dropped param, which is the comparison this
+ * tool exists to make visible — but you should know that before you spend. */
+const OutputFormatNote = ({ draft }: { readonly draft: RunDraft }) => {
+  if (draft.outputFormat === null) {
+    return null;
+  }
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- draft.models only ever holds aliases toggled from BENCH_ROUTES (see toggleModel), and outputFormatReach ignores anything MODELS has no entry for
+  const aliases = [...draft.models] as Parameters<typeof outputFormatReach>[0];
+  const { dropped, supported } = outputFormatReach(aliases, draft.outputFormat);
+  return (
+    <p className="text-[11px] text-muted">
+      <span className="text-ink">
+        {draft.outputFormat} reaches {supported} of {aliases.length} selected
+        models.
+      </span>{" "}
+      {dropped === 0
+        ? "Every model in this run returns the same container."
+        : `The other ${dropped} have no format control; each will record outputFormat as a dropped param.`}
+    </p>
+  );
+};
+
 const DryRunSummary = ({
   preview,
 }: {
@@ -334,12 +370,12 @@ const ModelGroups = ({
   );
 };
 
-/** The four fields that decide what shape of image comes back. */
+/** The five fields that decide what shape of file comes back. */
 const ShapeFields = ({
   draft,
   onPatch,
 }: Omit<SectionProps, "onToggleModel">) => (
-  <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-3 sm:grid-cols-4">
+  <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-3 sm:grid-cols-5">
     <Field htmlFor="bench-samples" label="Samples per model">
       <Input
         className="h-8"
@@ -413,6 +449,30 @@ const ShapeFields = ({
         </SelectTrigger>
         <SelectContent>
           {RESOLUTIONS.map((value) => (
+            <SelectItem key={value} value={value}>
+              {value}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Field>
+
+    <Field htmlFor="bench-format" label="Format">
+      <Select
+        onValueChange={(value) => {
+          onPatch({ outputFormat: toOutputFormat(value) });
+        }}
+        value={draft.outputFormat ?? FORMAT_DEFAULT}
+      >
+        <SelectTrigger className="h-8" id="bench-format">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {/* Default is a real choice, not an empty state: it is the only
+              setting under which each model returns its own native container,
+              which is what every run before this control did. */}
+          <SelectItem value={FORMAT_DEFAULT}>default</SelectItem>
+          {BENCH_OUTPUT_FORMATS.map((value) => (
             <SelectItem key={value} value={value}>
               {value}
             </SelectItem>
@@ -506,6 +566,7 @@ export const ModelsPopover = ({
       <ShapeFields draft={draft} onPatch={onPatch} />
       <BehaviourFields draft={draft} onPatch={onPatch} />
       <AspectCoercionNote aspect={draft.aspect} />
+      <OutputFormatNote draft={draft} />
       <div className="border-t border-border pt-3">
         <DryRunSummary preview={preview} />
       </div>

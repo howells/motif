@@ -17,8 +17,9 @@ import { getLiveCredentials } from "@motif/bench-env/runtime";
  * where nothing has requested a live run yet.
  *
  * Both store modules export the same surface (`createRun`, `getRun`,
- * `listRuns`, `startJudging`, `setManualRating`, `sampleBelongsToRun`) —
- * `mock-store.ts`'s functions are synchronous, `db-store.ts`'s are async.
+ * `listRuns`, `startJudging`, `retrySamples`, `setManualRating`,
+ * `sampleBelongsToRun`) — `mock-store.ts`'s functions are synchronous,
+ * `db-store.ts`'s are async.
  * Every export below returns a `Promise` regardless of which implementation
  * is selected, so route handlers always `await` and never need to know
  * which one is live. `useMockStore` is checked inline at each call site
@@ -36,6 +37,10 @@ import {
   setManualRating as dbSetManualRating,
   startJudging as dbStartJudging,
 } from "./db-store";
+// Imported straight from the split-out module rather than re-exported through
+// `db-store.ts` (the shape `startJudging` uses): `db-store-retry.ts` imports
+// *from* `db-store.ts`, so routing it back would close an import cycle.
+import { retrySamples as dbRetrySamples } from "./db-store-retry";
 import type { RunEngine } from "./engine";
 import { createLiveEngine } from "./live-engine";
 import { buildPreview, mockRunEngine } from "./mock-engine";
@@ -43,10 +48,12 @@ import {
   createRun as mockCreateRun,
   getRun as mockGetRun,
   listRuns as mockListRuns,
+  retrySamples as mockRetrySamples,
   sampleBelongsToRun as mockSampleBelongsToRun,
   setManualRating as mockSetManualRating,
   startJudging as mockStartJudging,
 } from "./mock-store";
+import type { RetryResult } from "./retry";
 import type {
   ManualRatingRecord,
   PreviewResult,
@@ -132,6 +139,25 @@ export const startJudging = async (
   }
   return true;
 };
+
+/** Re-runs the failed part of a finished run — the recovery path for
+ * transient provider failures, `RATE_LIMITED` above all. `null` means the
+ * run does not exist (the route 404s); a non-null `refusal` means the retry
+ * was declined for a reason from `retry.ts`'s closed set and nothing was
+ * written or dispatched.
+ *
+ * The Postgres branch passes `selectEngine()`, same as `createRun` — and
+ * `planRetry` compares its `isMock` against the run's own persisted flag, so
+ * adding credentials to a machine that already has mock runs on it cannot
+ * quietly start writing real images into a run the whole app believes is
+ * synthetic. */
+export const retrySamples = async (
+  runId: string,
+  only?: readonly string[]
+): Promise<RetryResult | null> =>
+  useMockStore
+    ? mockRetrySamples(runId, only)
+    : await dbRetrySamples(runId, selectEngine(), only);
 
 export const setManualRating = async (input: {
   note?: string | null;

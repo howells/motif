@@ -15,6 +15,7 @@ import {
   renderBenchImage,
   toApertoMedia,
 } from "./aperto-media";
+import { RetryBar } from "./retry-bar";
 import { SampleFrame } from "./sample-frame";
 
 interface ContactSheetProps {
@@ -93,6 +94,7 @@ export const ContactSheet = ({
           single dark ground there is no contrasting surround, so butted
           frames merge into one another and the ground has to do the
           separating instead. */}
+      <RetryBar run={run} samples={samples} />
       <Aperto.Group media={media} renderImage={renderBenchImage}>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-5 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
           {samples.map((sample) => (
@@ -103,6 +105,7 @@ export const ContactSheet = ({
               manualRating={ratingBySample.get(sample.id)}
               reserveCoercesLine={anyCoerces}
               reserveDropsLine={anyDrops}
+              retryable={run.status !== "running"}
               runId={run.id}
               sample={sample}
             />

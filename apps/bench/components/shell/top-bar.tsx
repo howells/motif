@@ -64,6 +64,10 @@ const SummaryLine = ({
         {draft.aspect}
         {" · "}
         {draft.resolution}
+        {/* Only when asked for. The default is every model's own container,
+            which is what this line meant before the control existed, so
+            printing "default" would add a word that says nothing. */}
+        {draft.outputFormat === null ? "" : ` · ${draft.outputFormat}`}
       </span>
       {" · "}
       {preview === undefined ? (

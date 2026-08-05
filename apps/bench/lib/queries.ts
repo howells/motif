@@ -25,11 +25,15 @@ import type {
 } from "@/lib/runs/types";
 
 export const queryKeys = {
-  /** Keyed on the four fields the dry run actually reads — models, samples,
-   * aspect, resolution. The prompt is deliberately absent: `buildPreview`
-   * aligns parameters and prices them, and no part of that result depends on
-   * the prompt text, so keying on it would refetch on every keystroke to
-   * produce a byte-identical answer. */
+  /** Keyed on the five fields the dry run actually reads — models, samples,
+   * aspect, resolution, output format. The prompt is deliberately absent:
+   * `buildPreview` aligns parameters and prices them, and no part of that
+   * result depends on the prompt text, so keying on it would refetch on
+   * every keystroke to produce a byte-identical answer.
+   *
+   * `outputFormat` has to be here even though it changes no price: it changes
+   * which models report a dropped param, and the per-model dry run in the
+   * models popover is exactly where that is read. */
   preview: (spec: RunSpecInput) =>
     [
       "bench",
@@ -38,6 +42,7 @@ export const queryKeys = {
       spec.resolution,
       spec.samplesPerModel,
       spec.models.join(","),
+      spec.outputFormat ?? "default",
     ] as const,
   run: (runId: string) => ["bench", "runs", runId] as const,
   runs: () => ["bench", "runs"] as const,
@@ -176,6 +181,34 @@ export const useJudgeRun = (runId: string) => {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.run(runId) });
+    },
+  });
+};
+
+/** Re-runs the failed part of a run. `null` retries every failed sample
+ * (the sheet-level button); an array narrows to those samples (a single
+ * failed frame retrying itself). `TVariables` is an explicit union rather
+ * than an optional parameter, so both call sites pass a real argument —
+ * TanStack requires one whenever `TVariables` is not `void`, and `null`
+ * says "no narrowing" where a bare `undefined` would only read as "forgot
+ * to pass anything".
+ *
+ * Both caches are invalidated: the detail because its samples just went
+ * back to `pending`, and the list because the run's status went back to
+ * `running`. That second invalidation is what restarts `useRun`'s polling —
+ * its `refetchInterval` is derived from server state, so the retry streams
+ * into the sheet in place, exactly as the original run did. */
+export const useRetrySamples = (runId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (sampleIds: readonly string[] | null) =>
+      await requestJson<{ retried: number }>(`/api/runs/${runId}/retry`, {
+        body: JSON.stringify(sampleIds === null ? {} : { sampleIds }),
+        method: "POST",
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.run(runId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.runs() });
     },
   });
 };

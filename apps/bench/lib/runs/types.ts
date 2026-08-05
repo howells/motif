@@ -55,12 +55,20 @@ export const JUDGE_ERROR_CODES = [
 ] as const;
 export type JudgeErrorCodeValue = (typeof JUDGE_ERROR_CODES)[number];
 
+export const BENCH_OUTPUT_FORMATS = ["jpeg", "png", "webp"] as const;
+export type BenchOutputFormat = (typeof BENCH_OUTPUT_FORMATS)[number];
+
 export interface RunSpecInput {
   readonly aspect: BenchAspect;
   readonly concurrency: number;
   readonly judgeAfter: boolean;
   readonly maxEstimatedCostUsd: number;
   readonly models: readonly string[];
+  /** Requested container format, standardised across every model in the run.
+   * `null` means "whatever each model returns by default" — the honest
+   * pre-existing behaviour. 17 of 24 models accept it; the other 7 report it
+   * as a dropped param, which is the comparison this tool exists to surface. */
+  readonly outputFormat: BenchOutputFormat | null;
   readonly prompt: string;
   readonly resolution: "0.5K" | "1K" | "2K" | "4K";
   readonly samplesPerModel: number;
@@ -118,6 +126,9 @@ export interface RunSummary {
   readonly judgeAfter: boolean;
   readonly judgingStatus: JudgingStatus;
   readonly models: readonly string[];
+  /** What the run *asked* for. Per-model outcomes (kept, dropped) live on
+   * each sample's `droppedParams`; this is the request. */
+  readonly outputFormat: BenchOutputFormat | null;
   readonly prompt: string;
   readonly resolution: string;
   readonly samplesPerModel: number;

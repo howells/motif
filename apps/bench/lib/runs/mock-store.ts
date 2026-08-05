@@ -29,6 +29,8 @@ import {
   simulatedDelayMs,
   usdMicros,
 } from "./mock-engine";
+import { planRetry } from "./retry";
+import type { RetryResult } from "./retry";
 import type {
   JudgingStatus,
   JudgmentRecord,
@@ -82,7 +84,13 @@ interface StoredRun {
   isMock: true;
   judgeAfter: boolean;
   judgingStatus: JudgingStatus;
+  /** Kept so `retrySamples` can hold a partial re-run to the same cap the
+   * composer agreed to, exactly as the Postgres store reads it back out of
+   * `bench_runs.spec` — the guard must not be weaker here just because this
+   * store's money is imaginary. */
+  maxEstimatedCostUsd: number;
   models: readonly string[];
+  outputFormat: RunSpecInput["outputFormat"];
   prompt: string;
   resolution: string;
   samplesPerModel: number;
@@ -133,6 +141,7 @@ const toRunSummary = (run: StoredRun): RunSummary => ({
   judgeAfter: run.judgeAfter,
   judgingStatus: run.judgingStatus,
   models: run.models,
+  outputFormat: run.outputFormat,
   prompt: run.prompt,
   resolution: run.resolution,
   samplesPerModel: run.samplesPerModel,
@@ -220,6 +229,10 @@ const cohortHashFor = (spec: RunSpecInput): string => {
     spec.aspect,
     spec.resolution,
     [...spec.models].sort().join(","),
+    // Always a segment, even when null: omitting it for the default would let
+    // a jpeg run and a default run hash identically, and a container format
+    // that costs quality (jpeg) is not the same cohort as one that does not.
+    spec.outputFormat ?? "",
     String(ALIGNMENT_SCHEMA_VERSION),
   ].join("|");
   return hashUnit(parts).toString(36).slice(2);
@@ -267,7 +280,7 @@ const settleSample = (sampleId: string, runId: string): void => {
 
   const benchSpec = {
     aspect: run.aspect,
-    outputFormat: null,
+    outputFormat: run.outputFormat,
     prompt: run.prompt,
     resolution: run.resolution,
     seed: run.seed,
@@ -400,7 +413,9 @@ export const createRun = (spec: RunSpecInput): CreateRunResult => {
     isMock: true,
     judgeAfter: spec.judgeAfter,
     judgingStatus: "not-started",
+    maxEstimatedCostUsd: spec.maxEstimatedCostUsd,
     models: spec.models,
+    outputFormat: spec.outputFormat,
     prompt: spec.prompt,
     resolution: spec.resolution,
     samplesPerModel: spec.samplesPerModel,
@@ -502,6 +517,91 @@ const markJudgingDoneIfSettled = (runId: string): void => {
     run.judgingStatus = "done";
     run.updatedAt = new Date();
   }
+};
+
+/** Mock-side twin of `db-store.ts`'s `retrySamples`, same contract and the
+ * same pure `planRetry` deciding it — so the refusal a caller sees for a
+ * still-running run, a mismatched engine or an exhausted cost cap is
+ * identical whichever store is live.
+ *
+ * The run goes back to `running` here too. This store's `finalizeRunIfDone`
+ * has no `WHERE status = 'running'` guard to satisfy (it is single-threaded
+ * `Map` mutation), but leaving the run `partial` while its samples
+ * re-settled would still show a stale terminal status in the rail, and
+ * divergence between the two stores' observable behaviour is precisely what
+ * `repository.ts` exists to prevent. */
+export const retrySamples = (
+  runId: string,
+  only?: readonly string[]
+): RetryResult | null => {
+  const run = store.runs.get(runId);
+  if (!run) {
+    return null;
+  }
+
+  const samples = [...store.samples.values()].filter(
+    (sample) => sample.runId === runId
+  );
+  const plan = planRetry({
+    costActualMicros: run.costActualMicros,
+    // This store is only ever selected alongside the mock engine
+    // (`repository.ts` derives both from the same credentials check), so the
+    // mismatch refusal is unreachable here — passing the literal keeps the
+    // planner's contract satisfied without pretending otherwise.
+    engineIsMock: true,
+    maxEstimatedCostUsd: run.maxEstimatedCostUsd,
+    only,
+    runIsMock: run.isMock,
+    runStatus: run.status,
+    samples,
+  });
+  if (plan.refusal !== null) {
+    return { refusal: plan.refusal, retried: 0 };
+  }
+
+  const now = new Date();
+  for (const sampleId of plan.sampleIds) {
+    const sample = store.samples.get(sampleId);
+    if (!sample) {
+      continue;
+    }
+    // Same reset as the Postgres patch: every field the settle path writes
+    // goes back to its pre-attempt state so a stale failure cannot read as
+    // fresh telemetry under a `pending` row.
+    sample.bytes = null;
+    sample.coercedParams = [];
+    sample.contentType = null;
+    sample.costRefinedMicros = null;
+    sample.downloadMs = null;
+    sample.droppedParams = [];
+    sample.errorCode = null;
+    sample.height = null;
+    sample.providerMs = null;
+    sample.queuePolled = false;
+    sample.seedReturned = null;
+    sample.status = "pending";
+    sample.totalMs = null;
+    sample.width = null;
+    store.samples.set(sampleId, sample);
+
+    const delayMs = simulatedDelayMs(
+      `${runId}:${sample.modelAlias}:${sample.sampleIndex}`,
+      routeFor(
+        // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- modelAlias was validated against BENCH_ROUTES_BY_ALIAS in createRun before this sample row was ever written
+        sample.modelAlias as Parameters<typeof routeFor>[0]
+      ).speedP95Seconds
+    );
+    setTimeout(() => {
+      settleSample(sampleId, runId);
+    }, delayMs);
+  }
+
+  run.completedAt = null;
+  run.status = "running";
+  run.updatedAt = now;
+  store.runs.set(runId, run);
+
+  return { refusal: null, retried: plan.sampleIds.length };
 };
 
 export const setManualRating = (input: {

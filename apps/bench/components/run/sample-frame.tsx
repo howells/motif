@@ -72,6 +72,12 @@ interface SampleFrameProps {
    * the same height and the lattice stays aligned. */
   readonly reserveCoercesLine: boolean;
   readonly reserveDropsLine: boolean;
+  /** False while the parent run is still generating — `planRetry` refuses a
+   * retry on a `running` run (a pending sample is in the air and
+   * re-dispatching it would pay for the same image twice), so the frame
+   * hides the control rather than offering one that is guaranteed to be
+   * declined. */
+  readonly retryable: boolean;
   readonly runId: string;
   readonly sample: SampleRecord;
 }
@@ -100,6 +106,7 @@ export const SampleFrame = ({
   apertoIndex,
   reserveCoercesLine,
   reserveDropsLine,
+  retryable,
   runId,
   sample,
 }: SampleFrameProps) => (
@@ -121,7 +128,12 @@ export const SampleFrame = ({
       ) : null}
 
       {sample.status === "failed" ? (
-        <SampleError errorCode={sample.errorCode} />
+        <SampleError
+          errorCode={sample.errorCode}
+          retryable={retryable}
+          runId={runId}
+          sampleId={sample.id}
+        />
       ) : null}
 
       {sample.status === "pending" || sample.status === "running" ? (

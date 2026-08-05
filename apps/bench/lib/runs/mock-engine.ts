@@ -91,7 +91,7 @@ const pick = <T>(identity: string, values: readonly T[]): T => {
 
 const benchSpecFrom = (spec: RunSpecInput): BenchSpec => ({
   aspect: spec.aspect,
-  outputFormat: null,
+  outputFormat: spec.outputFormat,
   prompt: spec.prompt,
   resolution: spec.resolution,
   seed: spec.seed,

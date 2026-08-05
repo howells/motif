@@ -8,6 +8,7 @@ import { GENERATION_MODELS } from "@howells/motif-sdk";
 import { z } from "zod";
 
 import { BENCH_ASPECTS } from "@/lib/aspect";
+import { BENCH_OUTPUT_FORMATS } from "@/lib/runs/types";
 
 export const RunSpecInputSchema = z.object({
   aspect: z.enum(BENCH_ASPECTS),
@@ -17,6 +18,9 @@ export const RunSpecInputSchema = z.object({
   // Bounded by the live registry, not a hand-pinned count — a pinned 23
   // silently rejected full sweeps the day qwen3 became the 24th model.
   models: z.array(z.string().min(1)).min(1).max(GENERATION_MODELS.length),
+  // Nullable with a null default so a client that omits it keeps the
+  // pre-existing "each model's own default" behaviour rather than failing.
+  outputFormat: z.enum(BENCH_OUTPUT_FORMATS).nullable().default(null),
   prompt: z.string().trim().min(1).max(2000),
   resolution: z.enum(["0.5K", "1K", "2K", "4K"]),
   samplesPerModel: z.number().int().min(1).max(4),
@@ -26,6 +30,17 @@ export const RunSpecInputSchema = z.object({
 export const ManualRatingInputSchema = z.object({
   note: z.string().max(500).nullable().optional(),
   stars: z.number().int().min(1).max(5),
+});
+
+export const RetryRunInputSchema = z.object({
+  /** Absent means "every failed sample in this run" — the sheet-level
+   * button. Present narrows to the named samples, which is how a single
+   * failed frame retries just itself. Ids that name a sample which is not
+   * `failed` (or is not in this run at all) are filtered out by `planRetry`
+   * rather than rejected here: what is retryable is a property of the run's
+   * current state, not of the request, and a stale client holding an id that
+   * has since succeeded should get a no-op, not a 400. */
+  sampleIds: z.array(z.string().min(1)).min(1).max(500).optional(),
 });
 
 export const JudgeRunInputSchema = z.object({

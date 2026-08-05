@@ -3,7 +3,11 @@
 // /execute` subpath (see package.json `exports`) so that consumers who only
 // need alignment/pricing/cost-cap/aggregation logic (e.g. a dry-run preview)
 // never pull in Node's `fs`/`fetch` surface.
-export { ALIGNMENT_SCHEMA_VERSION, alignParams } from "./align-params";
+export {
+  ALIGNMENT_SCHEMA_VERSION,
+  alignParams,
+  outputFormatReach,
+} from "./align-params";
 export type {
   AlignmentFailed,
   AlignmentOk,

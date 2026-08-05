@@ -89,7 +89,14 @@ const TabBar = ({
       <span className="ml-auto hidden truncate pl-4 text-[11px] text-muted sm:block">
         {detail.samples.length} sample
         {detail.samples.length === 1 ? "" : "s"} · {detail.run.aspect} ·{" "}
-        {detail.run.resolution} ·{" "}
+        {detail.run.resolution}
+        {/* Same rule as the composer's summary line: printed only when the
+            run asked for a format. Runs created before the control existed
+            parse as null and read exactly as they always did. */}
+        {detail.run.outputFormat === null
+          ? ""
+          : ` · ${detail.run.outputFormat}`}{" "}
+        ·{" "}
         {formatUsd(
           detail.run.costActualMicros ?? detail.run.costEstimatedMicros
         )}

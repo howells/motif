@@ -13,7 +13,7 @@ import {
 import type { GenerateOptions } from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
-import { alignParams } from "./align-params";
+import { alignParams, outputFormatReach } from "./align-params";
 import type { BenchSpec } from "./align-params";
 
 const BASE_PROMPT = "a sunlit mid-century living room, wide angle";
@@ -175,5 +175,56 @@ describe("aspect coercion mappers — no fabricated throws", () => {
       expect(typeof falSize).toBe("string");
       expect(falSize?.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe("outputFormatReach — the composer's promise matches the dispatch", () => {
+  // The composer tells you "png reaches N of your M models" before you spend.
+  // If that count came from a second copy of the capability flags it would
+  // drift, and the preview would promise a standardisation the run does not
+  // deliver. These tests pin the two to each other.
+  const FORMATS = ["jpeg", "png", "webp"] as const;
+
+  it.each(FORMATS)(
+    "%s: reach equals the models alignParams does not drop it for",
+    (format) => {
+      const reach = outputFormatReach(GENERATION_MODELS, format);
+      const kept = GENERATION_MODELS.filter((alias) => {
+        const result = alignParams(
+          alias,
+          {
+            aspect: "1:1",
+            outputFormat: format,
+            prompt: BASE_PROMPT,
+            resolution: "1K",
+            seed: null,
+          },
+          0
+        );
+        return (
+          result.ok &&
+          !result.dropped.some((entry) => entry.param === "outputFormat")
+        );
+      });
+      expect(reach.supported).toBe(kept.length);
+      expect(reach.dropped).toBe(GENERATION_MODELS.length - kept.length);
+    }
+  );
+
+  it("counts every alias exactly once", () => {
+    const reach = outputFormatReach(GENERATION_MODELS, "png");
+    expect(reach.supported + reach.dropped).toBe(GENERATION_MODELS.length);
+  });
+
+  it("is empty for an empty selection rather than throwing", () => {
+    expect(outputFormatReach([], "webp")).toEqual({ dropped: 0, supported: 0 });
+  });
+
+  it("reports a real split — some models take a format and some do not", () => {
+    // Guards the degenerate pass where a broken predicate returns all-or-none
+    // and both sides of the assertion above agree on nonsense.
+    const reach = outputFormatReach(GENERATION_MODELS, "jpeg");
+    expect(reach.supported).toBeGreaterThan(0);
+    expect(reach.dropped).toBeGreaterThan(0);
   });
 });
