@@ -22,7 +22,13 @@ interface StarRatingProps {
  * It lives on the plate, so it uses plate tokens: a filled star is
  * `plate-ink`, an empty one `plate-muted`. Introducing the warm amber the
  * old build used would have put a hue into the image surround, which is the
- * one thing the plate exists to prevent. */
+ * one thing the plate exists to prevent.
+ *
+ * An empty star sits at 40% of `plate-muted` and 12px rather than 14px. At
+ * full strength, twenty-four unrated frames put a hundred and twenty bright
+ * outlines on the plate — visual static competing with the images they are
+ * meant to be judging. Dim, the unrated sheet stays quiet and a rating reads
+ * from across the room, which is the whole point of the mark. */
 export const StarRating = ({
   disabled = false,
   onRate,
@@ -39,7 +45,7 @@ export const StarRating = ({
             "cursor-pointer border-0 bg-transparent p-0 transition-colors duration-150 focus-visible:outline-plate-ink disabled:cursor-not-allowed disabled:opacity-45",
             isFilled
               ? "text-plate-ink"
-              : "text-plate-muted hover:text-plate-ink"
+              : "text-plate-muted/40 hover:text-plate-ink"
           )}
           disabled={disabled}
           key={star}
@@ -49,7 +55,7 @@ export const StarRating = ({
           type="button"
         >
           <StarIcon
-            className="size-3.5"
+            className="size-3"
             fill={isFilled ? "currentColor" : "none"}
           />
         </button>

@@ -76,7 +76,7 @@ const ModelDryRun = ({
   }
   return (
     <span className="flex flex-col gap-1">
-      <span className="font-mono text-[11px]">{row.endpoint}</span>
+      <span className="text-[11px] text-muted">{row.endpoint}</span>
       <span>
         drops{" "}
         {row.dropped.length === 0
@@ -89,7 +89,7 @@ const ModelDryRun = ({
               .map((entry) => `${entry.param} ${entry.from} → ${entry.to}`)
               .join("; ")}
       </span>
-      <span className="bench-numeric">
+      <span>
         {row.speedP95Seconds === null
           ? "timeout floor"
           : `p95 ${row.speedP95Seconds}s`}{" "}
@@ -135,8 +135,8 @@ const ModelChip = ({
           onClick={onToggle}
           type="button"
         >
-          <span className="font-mono text-[11px]">{alias}</span>
-          <span className="bench-numeric text-[11px] text-muted">
+          <span className="text-[11px]">{alias}</span>
+          <span className="text-[11px] text-muted">
             {usdFromDollars(costUsd)}
           </span>
           {altered ? (
@@ -181,15 +181,12 @@ const AspectCoercionNote = ({ aspect }: { readonly aspect: BenchAspect }) => {
   return (
     <p className="rounded-lg border border-border border-l-2 border-l-warn bg-surface-soft px-3 py-2 text-[11px] leading-[1.5] text-muted">
       <span className="text-ink">Aspect coercion is not uniform.</span> At{" "}
-      <span className="bench-numeric">{aspect}</span> the three sizing dialects
-      disagree: aspect_ratio →{" "}
-      <span className="bench-numeric">{dialects.aspectRatio}</span>,
-      image_size_enum →{" "}
-      <span className="bench-numeric">{dialects.falImageSizeEnum}</span>,
-      gpt_size → <span className="bench-numeric">{dialects.gptSize}</span>.
-      Models will be framed differently, so quality comparisons across models
-      are compromised. Use <span className="bench-numeric">1:1</span> for an
-      honest comparison.
+      <span>{aspect}</span> the three sizing dialects disagree: aspect_ratio →{" "}
+      <span>{dialects.aspectRatio}</span>, image_size_enum →{" "}
+      <span>{dialects.falImageSizeEnum}</span>, gpt_size →{" "}
+      <span>{dialects.gptSize}</span>. Models will be framed differently, so
+      quality comparisons across models are compromised. Use <span>1:1</span>{" "}
+      for an honest comparison.
     </p>
   );
 };
@@ -218,23 +215,20 @@ const DryRunSummary = ({
   return (
     <p className="text-[11px] leading-[1.5] text-muted">
       Dry run:{" "}
-      <span className="bench-numeric text-ink">
+      <span className="text-ink">
         {preview.models.length - preview.failedCount}
       </span>{" "}
-      of <span className="bench-numeric">{preview.models.length}</span> align ·{" "}
-      <span className="bench-numeric">{coerces}</span> coerce a parameter ·{" "}
-      <span className="bench-numeric">{drops}</span> drop one
+      of <span>{preview.models.length}</span> align · <span>{coerces}</span>{" "}
+      coerce a parameter · <span>{drops}</span> drop one
       {preview.failedCount > 0 ? (
         <>
           {" · "}
-          <span className="bench-numeric text-warn">
-            {preview.failedCount}
-          </span>{" "}
-          will be excluded
+          <span className="text-warn">{preview.failedCount}</span> will be
+          excluded
         </>
       ) : null}
       {" · "}
-      <span className="bench-numeric text-ink">
+      <span className="text-ink">
         {usdFromDollars(preview.totalWorstCaseCostUsd)}
       </span>{" "}
       worst case. Hover a model for its aligned request. Nothing here reaches a
@@ -262,8 +256,8 @@ const SelectionHeader = ({
     <h2>Models</h2>
     <div className="flex items-center gap-3 text-[11px] text-muted">
       <span>
-        <span className="bench-numeric">{draft.models.size}</span> of{" "}
-        <span className="bench-numeric">{BENCH_ROUTES.length}</span> selected
+        <span>{draft.models.size}</span> of <span>{BENCH_ROUTES.length}</span>{" "}
+        selected
       </span>
       <Button
         className="h-6 px-2 text-[11px]"
@@ -348,7 +342,7 @@ const ShapeFields = ({
   <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-3 sm:grid-cols-4">
     <Field htmlFor="bench-samples" label="Samples per model">
       <Input
-        className="bench-numeric h-8"
+        className="h-8"
         id="bench-samples"
         max={4}
         min={1}
@@ -371,7 +365,7 @@ const ShapeFields = ({
       }
     >
       <Input
-        className="bench-numeric h-8"
+        className="h-8"
         id="bench-concurrency"
         max={8}
         min={1}
@@ -392,12 +386,12 @@ const ShapeFields = ({
         }}
         value={draft.aspect}
       >
-        <SelectTrigger className="bench-numeric h-8" id="bench-aspect">
+        <SelectTrigger className="h-8" id="bench-aspect">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {BENCH_ASPECTS.map((value) => (
-            <SelectItem className="bench-numeric" key={value} value={value}>
+            <SelectItem key={value} value={value}>
               {value}
             </SelectItem>
           ))}
@@ -414,12 +408,12 @@ const ShapeFields = ({
         }}
         value={draft.resolution}
       >
-        <SelectTrigger className="bench-numeric h-8" id="bench-resolution">
+        <SelectTrigger className="h-8" id="bench-resolution">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
           {RESOLUTIONS.map((value) => (
-            <SelectItem className="bench-numeric" key={value} value={value}>
+            <SelectItem key={value} value={value}>
               {value}
             </SelectItem>
           ))}
@@ -450,7 +444,7 @@ const BehaviourFields = ({
       </label>
       <Input
         aria-label="Seed value"
-        className="bench-numeric h-8 w-[80px]"
+        className="h-8 w-[80px]"
         disabled={!draft.seedEnabled}
         onChange={(event) => {
           onPatch({ seed: Number(event.target.value) });
@@ -465,7 +459,7 @@ const BehaviourFields = ({
         Stop above
       </label>
       <Input
-        className="bench-numeric h-8 w-[88px]"
+        className="h-8 w-[88px]"
         id="bench-max-cost"
         min={0.01}
         onChange={(event) => {
@@ -498,7 +492,7 @@ export const ModelsPopover = ({
     <PopoverTrigger asChild>
       <Button size="sm" type="button">
         Models
-        <span className="bench-numeric text-muted">{draft.models.size}</span>
+        <span className="text-muted">{draft.models.size}</span>
         <ChevronDownIcon />
       </Button>
     </PopoverTrigger>

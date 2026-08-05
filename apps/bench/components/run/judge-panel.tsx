@@ -75,11 +75,11 @@ const JudgeState = ({
   // back to the absolute level word whenever no rank data exists.
   const label =
     judgment.rank === null ? (
-      <span className="text-plate-ink">
+      <span className="text-plate-muted">
         {judgment.overallLevel} {judgment.overall?.toFixed(2)}
       </span>
     ) : (
-      <span className="text-plate-ink">
+      <span className="text-plate-muted">
         #{judgment.rank} of {judgment.rankedCount} ·{" "}
         {judgment.overall?.toFixed(2)}
       </span>
@@ -100,7 +100,12 @@ const JudgeState = ({
  * `scored`, and manual-override (labelled "manual") — each still renders
  * distinctly for the historical runs that carry judgments. The judge line
  * disappears entirely when there is none, so a tool whose quality signal is
- * now the star row does not print a word about judging on every frame. */
+ * now the star row does not print a word about judging on every frame.
+ *
+ * Where it does still render, it renders in `plate-muted` rather than
+ * `plate-ink`. It was the brightest thing in the caption after the alias,
+ * which made a retired feature's rank the loudest number under every picture;
+ * it is history, so it reads as history. */
 export const JudgePanel = ({
   judgment,
   manualRating,
@@ -128,7 +133,7 @@ export const JudgePanel = ({
   return (
     <div className="flex flex-col gap-1.5">
       {hasJudgeLine ? (
-        <span className="bench-numeric text-[11px]">
+        <span className="text-[11px]">
           <JudgeState
             judgment={judgment}
             showJudgingIndicator={showJudgingIndicator}
@@ -142,7 +147,7 @@ export const JudgePanel = ({
           value={pendingStars ?? manualRating?.stars ?? null}
         />
         {manualRating ? (
-          <span className="font-mono text-[11px] text-plate-muted">manual</span>
+          <span className="text-[11px] text-plate-muted">manual</span>
         ) : null}
       </span>
     </div>

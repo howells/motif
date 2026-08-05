@@ -27,7 +27,7 @@ export const SampleError = ({
   readonly errorCode: SampleErrorCode | null;
 }) => (
   <div className="flex h-full flex-col items-center justify-center gap-2 bg-plate px-4 py-6 text-center">
-    <span className="font-mono text-[11px] tracking-[0.06em] text-bad">
+    <span className="font-mono text-[11px] text-bad">
       {errorCode ?? "UNKNOWN"}
     </span>
     <p className="max-w-[30ch] text-[11px] leading-[1.5] text-plate-ink">

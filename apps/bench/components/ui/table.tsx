@@ -50,10 +50,20 @@ export const TableRow = ({ className, ...props }: ComponentProps<"tr">) => (
   />
 );
 
+/** Column headers in the body font, sentence case, muted and regular weight.
+ *
+ * They were tracked uppercase mono, which did two bad things: it shouted over
+ * the figures underneath — the only thing in a comparison table anyone reads —
+ * and it destroyed the model aliases, printing `FLUX-FAST` and `SEEDREAM45`
+ * for names whose real casing is lowercase. A header only has to say which
+ * column this is; position and the rule beneath it already do most of that
+ * work. */
 export const TableHead = ({ className, ...props }: ComponentProps<"th">) => (
   <th
     className={cn(
-      "px-2.5 py-2 text-left align-bottom font-mono text-[11px] font-medium tracking-[0.06em] whitespace-nowrap text-muted uppercase first:pl-0 last:pr-0",
+      // `font-[450]` explicitly: `th` is bold in the UA stylesheet, and a
+      // header heavier than its own column of figures inverts the hierarchy.
+      "px-2.5 py-2 text-left align-bottom text-[12px] font-[450] whitespace-nowrap text-muted first:pl-0 last:pr-0",
       className
     )}
     data-slot="table-head"

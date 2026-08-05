@@ -37,11 +37,11 @@ const FirstRunHint = ({ draft }: { readonly draft: RunDraft }) => (
   <div className="flex flex-col gap-3 px-4 py-4">
     <p className="max-w-[56ch] text-[13px] leading-[1.6] text-muted">
       Press <span className="text-ink">Run</span> (or{" "}
-      <span className="bench-numeric text-ink">⌘↵</span>) to send this prompt to
-      the models below. The estimate in the summary line above comes from a real
-      dry run — parameters aligned and priced with nothing sent to a provider.
+      <span className="text-ink">⌘↵</span>) to send this prompt to the models
+      below. The estimate in the summary line above comes from a real dry run —
+      parameters aligned and priced with nothing sent to a provider.
     </p>
-    <p className="flex flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] text-muted">
+    <p className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
       {[...draft.models].toSorted().map((alias) => (
         <span key={alias}>{alias}</span>
       ))}
@@ -58,27 +58,35 @@ const TabBar = ({
   readonly onSelect: (tab: TabId) => void;
   readonly tab: TabId;
 }) => (
-  <div className="order-2 flex h-10 shrink-0 items-center gap-1 border-t border-border px-3 md:order-3 md:px-4">
-    {TABS.map((entry) => (
-      <button
-        aria-current={entry.id === tab ? "true" : undefined}
-        className={cn(
-          "cursor-pointer rounded-md px-2.5 py-1 text-[13px] transition-colors duration-150",
-          entry.id === tab
-            ? "bg-surface-soft text-ink"
-            : "text-muted hover:text-ink"
-        )}
-        key={entry.id}
-        onClick={() => {
-          onSelect(entry.id);
-        }}
-        type="button"
-      >
-        {entry.label}
-      </button>
-    ))}
+  <div className="order-2 flex h-10 shrink-0 items-center border-t border-border px-3 md:order-3 md:px-4">
+    {/* Patternmode's segmented control, verbatim: a pill group on
+        `surface-soft` with the active item filled `ink`. The tabs were three
+        loose text buttons whose active state was a barely-there grey wash —
+        weaker than the tab bar's own top rule, and not a control the house
+        style has anywhere else. This is the shared pattern, so the bench reads
+        as a sibling of the site rather than as a lookalike. */}
+    <div className="flex gap-0.5 rounded-full border border-border-soft bg-surface-soft p-0.5">
+      {TABS.map((entry) => (
+        <button
+          aria-current={entry.id === tab ? "true" : undefined}
+          className={cn(
+            "cursor-pointer rounded-full px-2.5 py-1 text-[13px] leading-none transition-colors duration-150",
+            entry.id === tab
+              ? "bg-ink text-background"
+              : "text-muted hover:text-ink"
+          )}
+          key={entry.id}
+          onClick={() => {
+            onSelect(entry.id);
+          }}
+          type="button"
+        >
+          {entry.label}
+        </button>
+      ))}
+    </div>
     {detail === undefined ? null : (
-      <span className="bench-numeric ml-auto hidden truncate pl-4 text-[11px] text-muted sm:block">
+      <span className="ml-auto hidden truncate pl-4 text-[11px] text-muted sm:block">
         {detail.samples.length} sample
         {detail.samples.length === 1 ? "" : "s"} · {detail.run.aspect} ·{" "}
         {detail.run.resolution} ·{" "}

@@ -43,25 +43,25 @@ const SummaryLine = ({
       </output>
     );
   }
+  // Body font throughout. This is one line of running text — a count, a
+  // ratio, a size and a price, read left to right once — not a column of
+  // figures scanned against anything. Setting it in mono made a caption look
+  // like console output, and it was the same treatment as the verdict labels,
+  // the rail heading and every table header, which is how a screen ends up
+  // with one uniform texture and no emphasis left to spend.
   return (
-    <p className="truncate text-[11px] text-muted">
-      <span className="bench-numeric">{draft.models.size}</span> model
-      {draft.models.size === 1 ? "" : "s"}
-      {draft.samplesPerModel > 1 ? (
-        <>
-          {" × "}
-          <span className="bench-numeric">{draft.samplesPerModel}</span> samples
-        </>
-      ) : null}
+    <p className="truncate text-[11px] text-muted md:whitespace-nowrap">
+      {draft.models.size} model{draft.models.size === 1 ? "" : "s"}
+      {draft.samplesPerModel > 1 ? ` × ${draft.samplesPerModel} samples` : ""}
       {" · "}
-      <span className="bench-numeric">{draft.aspect}</span>
+      {draft.aspect}
       {" · "}
-      <span className="bench-numeric">{draft.resolution}</span>
+      {draft.resolution}
       {" · "}
       {preview === undefined ? (
         <span>estimating…</span>
       ) : (
-        <span className="bench-numeric text-ink">
+        <span className="text-ink">
           ~{formatUsd(Math.round(preview.totalWorstCaseCostUsd * 1_000_000))}
         </span>
       )}
@@ -89,12 +89,22 @@ export const TopBar = ({
   promptRef,
   runError,
 }: TopBarProps) => (
-  <header className="z-20 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-border bg-background px-3 py-2 max-md:sticky max-md:top-0 md:h-14 md:grid-cols-[auto_minmax(0,1fr)_auto] md:content-center md:gap-y-0.5 md:px-4 md:py-0">
-    <h1 className="row-span-2 hidden shrink-0 pr-1 md:block">Motif Bench</h1>
+  <header className="z-20 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-border bg-background px-3 py-2 max-md:sticky max-md:top-0 md:flex md:h-14 md:gap-x-0 md:px-0 md:py-0">
+    {/* The wordmark holds a 220px column with the rail's own hairline on its
+        right edge, so the vertical rule that divides history from results runs
+        the full height of the shell instead of starting below the bar. Before
+        this, nothing in the top bar lined up with anything beneath it. */}
+    <h1 className="hidden h-full shrink-0 items-center border-r border-border px-3 md:flex md:w-[220px]">
+      Motif Bench
+    </h1>
 
+    {/* Borderless: a boxed input 1100px wide was the largest and heaviest
+        object on screen, and it read as a form dropped into a toolbar. The
+        prompt is a sentence you edit in place — it earns its prominence from
+        width and ink, and grows a hairline only on hover and focus. */}
     <Input
       aria-label="Prompt"
-      className="col-span-2 col-start-1 row-start-1 h-8 bg-surface md:col-span-1 md:col-start-2"
+      className="col-span-2 col-start-1 row-start-1 h-9 min-w-0 rounded-none border-0 border-b border-b-transparent bg-transparent px-0 shadow-none hover:border-b-border-soft focus:border-b-ink max-md:h-8 max-md:rounded-md max-md:border max-md:border-border max-md:bg-surface max-md:px-2.5 md:flex-1 md:px-4"
       onChange={(event) => {
         onPatch({ prompt: event.target.value });
       }}
@@ -110,7 +120,10 @@ export const TopBar = ({
       value={draft.prompt}
     />
 
-    <div className="col-span-2 col-start-1 row-start-3 min-w-0 self-center md:col-span-1 md:col-start-2 md:row-start-2">
+    {/* The estimate sits beside the button it prices rather than under the
+        prompt: it is what pressing Run will cost, and hanging it below the
+        field made the bar two half-height rows of unequal weight. */}
+    <div className="col-span-2 col-start-1 row-start-3 min-w-0 self-center md:order-none md:min-w-0 md:shrink-0 md:pr-3 md:pl-4">
       <SummaryLine draft={draft} preview={preview} runError={runError} />
     </div>
 
@@ -118,7 +131,7 @@ export const TopBar = ({
         because sharing a row squeezes the prompt to a few characters and
         truncates the estimate off the end of the summary. Both are the point
         of the bar, so neither yields to the other. */}
-    <div className="col-span-2 col-start-1 row-start-2 flex shrink-0 items-center justify-end gap-2 md:col-span-1 md:col-start-3 md:row-span-2 md:row-start-1">
+    <div className="col-span-2 col-start-1 row-start-2 flex shrink-0 items-center justify-end gap-2 md:pr-4">
       <Button
         className="md:hidden"
         onClick={onOpenRuns}

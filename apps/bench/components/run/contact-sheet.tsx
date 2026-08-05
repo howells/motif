@@ -31,13 +31,22 @@ interface ContactSheetProps {
  * bordered boxes. The frame around it is a `ScrollFrame` owned by the run
  * pane, so this component sets no height and no overflow of its own.
  *
- * Frames are a fixed 240px square and do not flex. A contact sheet is
- * uniform *small* frames — the point is scanning many at once, and full size
- * belongs in the lightbox, which is one click away. That means `auto-fill`
- * with a fixed track, never `auto-fit` with `1fr`: the latter stretches the
- * columns when there are few samples, turning a two-model smoke run into a
- * slideshow. A part-empty bed at two samples is honest, and the bed is what
- * the plate is. */
+ * Frames are square, uniform, and start at 240px. A contact sheet is uniform
+ * *small* frames — the point is scanning many at once, and full size belongs
+ * in the lightbox, which is one click away.
+ *
+ * The track is `auto-fill` with `minmax(240px, 1fr)`. The rule this replaces
+ * was "`auto-fill` with a fixed track, never `auto-fit` with `1fr`", on the
+ * grounds that `1fr` stretches the columns when there are few samples and
+ * turns a two-model smoke run into a slideshow. That is true of **`auto-fit`**
+ * — it collapses the empty tracks, so two samples inherit the whole width. It
+ * is not true of `auto-fill`, which *keeps* the empty tracks: two samples
+ * still occupy two columns of four and the bed stays honestly part-empty.
+ *
+ * Holding the track at exactly 240px instead left a quarter of the plate — a
+ * 225px column of unused near-black down the right-hand edge at 1440px — with
+ * no way to read it as a margin. `1fr` spends that on the images, which are
+ * the thing the plate exists to show. */
 export const ContactSheet = ({
   judgments,
   manualRatings,
@@ -69,12 +78,13 @@ export const ContactSheet = ({
   }
 
   return (
-    <div className="bg-plate p-3">
-      {/* Fixed 240px tracks (160px on a phone, so the sheet still lands 2-up
-          in a 358px column as the spec requires), 1px gutter, packed from the
-          start. `auto-fill` keeps the track width constant no matter how few
-          samples there are. */}
-      <div className="grid grid-cols-[repeat(auto-fill,160px)] justify-start gap-px sm:grid-cols-[repeat(auto-fill,240px)]">
+    <div className="bg-plate p-4">
+      {/* Tracks from 160px on a phone (so the sheet still lands 2-up in a
+          358px column as the spec requires) and from 240px above `sm`, 1px
+          gutter, packed from the start. `auto-fill` fixes the column *count*
+          from the minimum; `1fr` then spends the remainder on the frames
+          rather than leaving it dark at the edge. */}
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-px sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
         {samples.map((sample) => (
           <SampleFrame
             contended={run.concurrency > 1}

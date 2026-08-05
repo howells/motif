@@ -26,30 +26,62 @@ interface Readout {
   readonly unit?: string;
 }
 
+/** One verdict, in two lines that hold the same shape whether or not there is
+ * an answer yet.
+ *
+ * The band used to put the label and the value on one line and the model
+ * underneath, which meant an unrated run had *nothing* on its first line: two
+ * cells carried 16px numerals and two carried empty space above a grey
+ * sentence, so the strip read as half-broken rather than half-answered. Label
+ * above, answer below — the answer line is the value and the model it belongs
+ * to, or the "not yet" sentence sitting on exactly the same baseline. */
 const Cell = ({ readout }: { readonly readout: Readout }) => (
   <div
     className={cn(
-      "flex min-w-0 flex-col justify-center gap-0.5 border-border-soft px-4 first:pl-0 md:border-l md:first:border-l-0",
+      // `flex-1 basis-0` rather than intrinsic width: four intrinsic cells
+      // left roughly 800px of empty band between the last verdict and the run
+      // flags at 1440px, which read as a missing region rather than as space.
+      "flex min-w-0 flex-col justify-center gap-1 border-border-soft md:flex-1 md:basis-0 md:border-l md:px-4 md:first:border-l-0 md:first:pl-0",
       readout.secondary === true ? "md:max-lg:hidden" : ""
     )}
   >
-    <span className="flex items-baseline gap-1.5">
-      <span className="font-mono text-[11px] tracking-[0.08em] text-muted uppercase">
-        {readout.label}
-      </span>
-      {readout.pick ? (
-        <span className="bench-numeric text-[16px] leading-none font-medium text-ink">
-          {readout.format(readout.pick)}
-        </span>
-      ) : null}
-      {readout.pick && readout.unit !== undefined ? (
-        <span className="bench-numeric text-[11px] text-muted">
-          {readout.unit}
-        </span>
-      ) : null}
+    {/* Sentence case in the body font. `FASTEST` / `CHEAPEST` / `BEST` /
+        `VALUE` as tracked uppercase mono put four eyebrows across the widest
+        band on screen, competing with the figures they label — and repeated
+        alongside the rail heading and every table header, the treatment stops
+        being a signal and becomes texture. The label is a caption; the number
+        is the subject, and the 17px mono figure below already says so. */}
+    <span className="text-[12px] leading-[14px] text-muted">
+      {readout.label}
     </span>
-    <span className="truncate font-mono text-[11px] text-muted">
-      {readout.pick ? readout.pick.modelAlias : readout.emptyLabel}
+    {/* A fixed 18px answer line, whether it holds a 17px numeral or the 13px
+        "not yet" sentence. Sized by content, the answered and unanswered cells
+        came out different heights, and `justify-center` then pushed their
+        labels to different baselines — four verdicts of one band sitting on
+        two different lines. */}
+    <span className="flex h-[18px] min-w-0 items-baseline gap-1.5">
+      {readout.pick ? (
+        <>
+          <span className="bench-numeric text-[17px] leading-[18px] font-medium text-ink">
+            {readout.format(readout.pick)}
+          </span>
+          {readout.unit === undefined ? null : (
+            <span className="shrink-0 text-[11px] text-muted">
+              {readout.unit}
+            </span>
+          )}
+          {/* The alias is a name, read on its own — never scanned down a
+              column — so it takes the body font. Only the figure beside it is
+              mono, because only the figure is compared. */}
+          <span className="truncate text-[12px] text-muted">
+            {readout.pick.modelAlias}
+          </span>
+        </>
+      ) : (
+        <span className="truncate text-[13px] leading-[18px] text-muted">
+          {readout.emptyLabel}
+        </span>
+      )}
     </span>
   </div>
 );
@@ -59,7 +91,7 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
  * header block on the old results page; the shell has no header to put them
  * in and they belong beside the verdicts they qualify. */
 const RunFlags = ({ run }: { readonly run: RunSummary }) => (
-  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5 pl-4">
+  <div className="flex shrink-0 flex-wrap items-center gap-1.5 md:justify-end md:pl-4">
     <RunStatusBadge short status={run.status} />
     {run.isMock ? <Badge>mock</Badge> : null}
     {run.concurrency > 1 ? (
@@ -112,25 +144,25 @@ export const VerdictStrip = ({
     {
       emptyLabel: "no timings yet",
       format: (pick) => formatMs(Number(pick.value)),
-      label: "fastest",
+      label: "Fastest",
       pick: data?.fastest ?? null,
     },
     {
       emptyLabel: "no costs yet",
       format: (pick) => formatUsd(Math.round(Number(pick.value))),
-      label: "cheapest",
+      label: "Cheapest",
       pick: data?.cheapest ?? null,
     },
     {
       emptyLabel: "rate some images",
       format: (pick) => `★${Number(pick.value).toFixed(1)}`,
-      label: "best",
+      label: "Best rated",
       pick: data?.bestQuality ?? null,
     },
     {
       emptyLabel: "rate some images",
       format: (pick) => Number(pick.value).toFixed(0),
-      label: "value",
+      label: "Best value",
       pick: data?.bestValue ?? null,
       secondary: true,
       unit: "★/$",
@@ -138,13 +170,19 @@ export const VerdictStrip = ({
   ];
 
   return (
-    <div className="order-1 grid shrink-0 grid-cols-2 gap-y-3 border-b border-border px-3 py-3 md:flex md:h-16 md:items-stretch md:gap-y-0 md:px-4 md:py-0">
+    // Below `md` the cells drop their horizontal padding entirely and let the
+    // grid's own gap do the spacing. `first:pl-0` alone used to indent cells
+    // 3 and 4 by 16px against cells 1 and 2 directly above them, so the two
+    // rows of a 2×2 verdict grid did not share a left edge.
+    <div className="order-1 grid shrink-0 grid-cols-2 gap-x-6 gap-y-4 border-b border-border px-3 py-3.5 md:flex md:h-16 md:items-stretch md:gap-y-0 md:px-4 md:py-0">
       {readouts.map((readout) => (
         <Cell key={readout.label} readout={readout} />
       ))}
-      <div className="col-span-2 ml-auto flex items-center max-md:justify-start">
-        {run === null ? null : <RunFlags run={run} />}
-      </div>
+      {run === null ? null : (
+        <div className="col-span-2 flex items-center md:ml-auto">
+          <RunFlags run={run} />
+        </div>
+      )}
     </div>
   );
 };

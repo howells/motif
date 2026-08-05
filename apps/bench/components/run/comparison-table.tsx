@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatMs, formatPercent, formatUsd } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { ModelQuality } from "@/lib/verdicts";
 
 interface ComparisonTableProps {
@@ -169,7 +170,14 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
                 const value = row.values.get(alias) ?? null;
                 return (
                   <TableCell
-                    className="bench-numeric text-right text-[13px] whitespace-nowrap text-ink"
+                    // Mono only when the cell holds a figure. `not rated` and
+                    // `no data` are sentences standing in for one, and setting
+                    // them in tabular figures makes an absence look like a
+                    // measurement.
+                    className={cn(
+                      "text-right text-[13px] whitespace-nowrap",
+                      value === null ? "text-muted" : "bench-numeric text-ink"
+                    )}
                     key={alias}
                   >
                     {formatRowValue(row, value)}

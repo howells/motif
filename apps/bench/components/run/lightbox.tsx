@@ -59,7 +59,7 @@ export const Lightbox = ({ onClose, sample }: LightboxProps) => {
               width={sample.width ?? 1024}
             />
           </div>
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-plate-edge px-4 py-3 font-mono text-[11px] text-plate-muted">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-plate-edge px-4 py-3 text-[11px] text-plate-muted">
             <span className="text-plate-ink">{sample.modelAlias}</span>
             <span className="bench-numeric">
               {formatDimensions(sample.width, sample.height)}

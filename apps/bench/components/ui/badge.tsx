@@ -8,9 +8,15 @@ import { cn } from "@/lib/utils";
  * is carried by the label text, with colour as reinforcement
  * (`docs/design/specs/design-bench.md`: "Every status carries a text label,
  * never colour alone") — so no variant fills, and the two-accent-fills
- * budget stays free for the page's real actions. */
+ * budget stays free for the page's real actions.
+ *
+ * Body font, not mono. A badge holds a *word* — `partial`, `mock`,
+ * `contended ×2`, `framing not uniform` — and mono buys nothing for a word.
+ * It costs: monospace is emphasis, and emphasis spent on every small label is
+ * the uniform texture that makes an interface read as generated. Mono is kept
+ * for figures that are scanned against each other. */
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center gap-1 rounded-full border px-2 py-px font-mono text-[11px] whitespace-nowrap [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center gap-1 rounded-full border px-2 py-px text-[11px] whitespace-nowrap [&>svg]:size-3",
   {
     defaultVariants: {
       variant: "default",
