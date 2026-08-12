@@ -29,7 +29,11 @@ import { generateVideo } from "./commands/video";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getApiKey, getLastGeneration, loadConfig } from "./utils/config";
 import { exitForErrorCode, handleError } from "./utils/errors";
-import { readStdinJson, reservedPromptSuggestion } from "./utils/input";
+import {
+  readStdinJson,
+  reservedPromptSuggestion,
+  swallowedEditPrompt,
+} from "./utils/input";
 import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
 import type { EmitOptions } from "./utils/output";
 import { firstText, hasText } from "./utils/text";
@@ -363,6 +367,25 @@ export async function runCli(
         format
       );
       exitForErrorCode("RESERVED_PROMPT");
+    }
+  }
+
+  // `-e/--edit` is variadic, so `motif -e img.png "a cat"` swallows the prompt
+  // as a second reference image and falls through to help with no explanation.
+  // Catch it before the API-key gate so the diagnosis is the same with or
+  // without FAL_KEY set.
+  if (options.edit !== undefined && options.edit.length > 0) {
+    const swallowed = swallowedEditPrompt(options.edit);
+    if (swallowed !== null) {
+      emitError(
+        {
+          code: "EDIT_PROMPT_SWALLOWED",
+          details: { editValues: options.edit, swallowed },
+          message: `${JSON.stringify(swallowed)} was consumed by --edit as a reference image, not used as the prompt. --edit takes a list, so the prompt must come before it.`,
+        },
+        format
+      );
+      exitForErrorCode("EDIT_PROMPT_SWALLOWED");
     }
   }
 

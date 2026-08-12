@@ -55,6 +55,12 @@ export const ERROR_CATALOG = {
     isRetriable: true,
     suggestions: [...ERROR_SUGGESTIONS.describe],
   }),
+  EDIT_PROMPT_SWALLOWED: metadata("EDIT_PROMPT_SWALLOWED", 400, {
+    suggestions: [
+      'Put the prompt before the flag: motif "your prompt" -e image.png',
+      'Or pass both via stdin JSON: echo \'{"prompt":"...","editImages":["image.png"]}\' | motif',
+    ],
+  }),
   EMPTY_PROMPT: metadata("EMPTY_PROMPT", 400, {
     suggestions: [...ERROR_SUGGESTIONS.prompt],
   }),

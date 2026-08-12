@@ -551,6 +551,38 @@ describe("CLI contract", () => {
     });
   });
 
+  it("refuses a prompt swallowed by the variadic --edit flag", async () => {
+    const result = await runMotif([
+      "--edit",
+      "reference.png",
+      "a cat on a windowsill",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    const error = parseJsonLine(result.stderr);
+    expect(error).toMatchObject({
+      code: "EDIT_PROMPT_SWALLOWED",
+      details: { swallowed: "a cat on a windowsill" },
+      error: true,
+    });
+  });
+
+  it("does not mistake a missing image path for a swallowed prompt", async () => {
+    const result = await runMotif([
+      "a cat on a windowsill",
+      "--edit",
+      "definitely-missing.png",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    const error = parseJsonLine(result.stderr);
+    expect(error).toMatchObject({ code: "INVALID_EDIT_PATH", error: true });
+  });
+
   it("allows reserved-word prompts via the stdin JSON escape hatch", async () => {
     const result = await runMotif(
       ["--dry-run", "--format", "json", "--model", "banana"],

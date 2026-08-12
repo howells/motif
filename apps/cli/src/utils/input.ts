@@ -60,6 +60,41 @@ export function reservedPromptSuggestion(prompt: string): string | null {
   return RESERVED_PROMPT_WORDS[word] ?? null;
 }
 
+// -- Swallowed prompt after variadic --edit --
+
+/** Reference images may be given as remote URLs rather than local files. */
+const REMOTE_REFERENCE_REGEX = /^(?:https?:\/\/|data:)/i;
+
+/** Extensions `validateEditPath` accepts for a local reference image. */
+const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
+
+/**
+ * `-e/--edit` is variadic, so a prompt written after it is swallowed as another
+ * reference image: `motif -e img.png "a cat"` leaves no positional prompt and
+ * silently prints help. Return the swallowed prompt if one of the edit values
+ * is plainly not an image reference — it doesn't exist on disk, isn't a remote
+ * URL, and carries no image extension — otherwise null.
+ *
+ * A missing-but-plausible path (`-e typo.png`) is deliberately not flagged; it
+ * falls through to the normal INVALID_EDIT_PATH "not found" error.
+ */
+export function swallowedEditPrompt(
+  editValues: readonly string[]
+): string | null {
+  return editValues.find((value) => !looksLikeReferenceImage(value)) ?? null;
+}
+
+function looksLikeReferenceImage(value: string): boolean {
+  if (REMOTE_REFERENCE_REGEX.test(value)) {
+    return true;
+  }
+  const lower = value.toLowerCase();
+  if (IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
+    return true;
+  }
+  return existsSync(resolve(value));
+}
+
 // -- Path traversal defense --
 
 /** Percent-encoded path traversal patterns */
