@@ -117,4 +117,56 @@ describe("generateImage save flow", () => {
       images: [{ path: actualPath }],
     });
   });
+
+  /**
+   * The provider-hosted URL must survive into the structured result.
+   *
+   * Callers that cannot read a local file — design tools, previews, anything
+   * that has to fetch the image itself — depend on this field. Dropping it is
+   * silent: the generation still succeeds and the JSON still parses, so
+   * nothing fails until someone downstream has an image they cannot reach.
+   */
+  it("reports the provider-hosted URL alongside the local path", async () => {
+    const fal = await import("../src/api/fal");
+    const image = await import("../src/utils/image");
+    const { generateImage } = await import("../src/commands/generate");
+
+    const remoteUrl = "https://v3.fal.media/files/b/abc123/out.png";
+    const actualPath = resolve("hosted.png");
+
+    vi.mocked(fal.generate).mockResolvedValue({
+      images: [{ url: remoteUrl }],
+      requestId: "req-2",
+    });
+    vi.mocked(image.downloadImage).mockResolvedValue(actualPath);
+    vi.mocked(image.getImageDimensions).mockResolvedValue({
+      height: 16,
+      width: 16,
+    });
+    vi.mocked(image.getFileSize).mockReturnValue("1.0KB");
+
+    const written: string[] = [];
+    const stdoutSpy = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation((chunk) => {
+        written.push(String(chunk));
+        return true;
+      });
+
+    await generateImage(
+      "a blue square on white",
+      { output: "hosted.png" },
+      null,
+      config,
+      { format: "json", sanitize: true }
+    );
+
+    stdoutSpy.mockRestore();
+    const jsonLine = written.find((chunk) => chunk.trimStart().startsWith("{"));
+    expect(jsonLine).toBeDefined();
+    const payload: unknown = JSON.parse(jsonLine ?? "{}");
+    expect(payload).toMatchObject({
+      images: [{ path: actualPath, remoteUrl }],
+    });
+  });
 });

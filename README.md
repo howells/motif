@@ -521,6 +521,8 @@ motif --describe tool --format json
 
 When stdout is not a TTY, Motif defaults to structured JSON. Human-readable terminal output is used for interactive sessions.
 
+Each entry in `images` carries `path` (the local file), `width`, `height`, `size`, and `remoteUrl` — the provider-hosted HTTPS URL the image was downloaded from. Reach for `remoteUrl` when something downstream cannot read a local file: design tools, previews, or any service that needs to fetch the image itself. The provider expires these, so treat it as a convenience rather than durable storage.
+
 ## Series
 
 Series help keep a consistent style, character, location, or visual system across related images. Series data lives under `~/.motif/series`.

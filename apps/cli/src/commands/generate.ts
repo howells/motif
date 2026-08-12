@@ -69,6 +69,15 @@ import { firstText, hasText } from "../utils/text";
 interface SavedImage {
   height?: number;
   path: string;
+  /**
+   * The provider-hosted URL the image was downloaded from.
+   *
+   * Kept so callers that need an HTTPS source — design tools, previews, anything
+   * that cannot read a local file — do not have to re-upload an image that is
+   * already served somewhere. Absent once the provider expires it, so treat it
+   * as a convenience rather than durable storage.
+   */
+  remoteUrl?: string;
   size: string;
   width?: number;
 }
@@ -127,6 +136,7 @@ async function saveGeneratedImages(
     savedImages.push({
       height: dims?.height,
       path: resolve(path),
+      remoteUrl: images[i]?.url,
       size,
       width: dims?.width,
     });
