@@ -70,3 +70,5 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 - Changing GitHub repo visibility or deleting remote repositories.
 
 Never print or commit a real API key, and never copy private Studio code, private service dependencies, database details, canvas implementation details, or private web app references into this public repo. Don't reintroduce private web app directories or private Studio topology docs. Preserve the strict package `files` allowlists and run `npm pack --dry-run` before publishing changes.
+
+Always publish with `pnpm publish`, never `npm publish`. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`, and only pnpm rewrites that to a real version on publish; `npm publish` ships the literal `workspace:*` and the release is uninstallable. `npm pack --dry-run` does not catch this - it leaves the protocol in place too - so confirm a release with `npm view @howells/motif-cli@<version> dependencies`. This sank 1.8.0, now deprecated on the registry.
