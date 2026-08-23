@@ -1,6 +1,6 @@
 {
   "name": "@howells/motif-sdk",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Public Node SDK for Motif fal.ai generation, editing, utility tools, and model metadata.",
   "keywords": [
     "fal",
