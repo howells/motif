@@ -107,12 +107,11 @@ function validateGenerateOptions(
   if (options.background !== undefined && config.supportsBackground !== true) {
     unsupported(config, "background");
   }
-  if (
-    options.transparent === true &&
-    !(
-      config.supportsBackground === true || config.supportsOutputFormat === true
-    )
-  ) {
+  // Transparency needs a `background` parameter. `supportsOutputFormat` only
+  // buys a PNG container, which is opaque unless the model was asked for an
+  // alpha channel — accepting it here returned an opaque image for a request
+  // that said transparent, and charged for it.
+  if (options.transparent === true && config.supportsBackground !== true) {
     unsupported(config, "transparent output");
   }
   if (options.inputFidelity !== undefined) {

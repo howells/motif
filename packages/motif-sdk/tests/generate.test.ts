@@ -46,6 +46,32 @@ describe("buildGenerateBody", () => {
     });
   });
 
+  it("rejects transparent output on a model with no background parameter", () => {
+    // fal's openai/gpt-image-2 schema has no `background` field, so a PNG
+    // container alone cannot carry alpha. Fail rather than bill for an opaque
+    // image the caller asked to be transparent.
+    expect(() =>
+      buildGenerateBody({
+        model: "gpt2",
+        prompt: "isolated paint chip",
+        transparent: true,
+      })
+    ).toThrow("GPT Image 2 does not support transparent output");
+  });
+
+  it("keeps transparent output on the model that does carry a background parameter", () => {
+    const { body } = buildGenerateBody({
+      model: "gpt",
+      prompt: "isolated paint chip",
+      transparent: true,
+    });
+
+    expect(body).toMatchObject({
+      background: "transparent",
+      output_format: "png",
+    });
+  });
+
   it("normalizes GPT Image 1.5 edit controls and defaults edit size to auto", () => {
     const { endpoint, body } = buildGenerateBody({
       editImageUrls: ["https://example.com/ref.png"],
