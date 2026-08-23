@@ -51,6 +51,7 @@ function metadata(
 }
 
 export const ERROR_CATALOG = {
+  ASK_FAILED: metadata("ASK_FAILED", 502, { isRetriable: true }),
   DESCRIBE_FAILED: metadata("DESCRIBE_FAILED", 500, {
     isRetriable: true,
     suggestions: [...ERROR_SUGGESTIONS.describe],
@@ -64,6 +65,8 @@ export const ERROR_CATALOG = {
   EMPTY_PROMPT: metadata("EMPTY_PROMPT", 400, {
     suggestions: [...ERROR_SUGGESTIONS.prompt],
   }),
+  ENHANCE_FAILED: metadata("ENHANCE_FAILED", 502, { isRetriable: true }),
+  ERASE_FAILED: metadata("ERASE_FAILED", 502, { isRetriable: true }),
   GENERATION_FAILED: metadata("GENERATION_FAILED", 502, {
     isRetriable: true,
     suggestions: [
@@ -88,10 +91,12 @@ export const ERROR_CATALOG = {
   INVALID_TOOL_ID: metadata("INVALID_TOOL_ID", 400, {
     suggestions: [...ERROR_SUGGESTIONS.tools],
   }),
+  LAYERS_FAILED: metadata("LAYERS_FAILED", 502, { isRetriable: true }),
   MISSING_API_KEY: metadata("MISSING_API_KEY", 401, {
     suggestions: [...ERROR_SUGGESTIONS.apiKey],
   }),
   NO_PREVIOUS: metadata("NO_PREVIOUS", 404),
+  REFRAME_FAILED: metadata("REFRAME_FAILED", 502, { isRetriable: true }),
   RESERVED_PROMPT: metadata("RESERVED_PROMPT", 400, {
     suggestions: [
       "Use the flag form of the command (e.g. 'motif --history')",
@@ -99,6 +104,7 @@ export const ERROR_CATALOG = {
     ],
   }),
   RMBG_FAILED: metadata("RMBG_FAILED", 502, { isRetriable: true }),
+  SEGMENT_FAILED: metadata("SEGMENT_FAILED", 502, { isRetriable: true }),
   SERIES_CREATE_FAILED: metadata("SERIES_CREATE_FAILED", 500, {
     suggestions: [...ERROR_SUGGESTIONS.series],
   }),
@@ -134,6 +140,7 @@ export const ERROR_CATALOG = {
     suggestions: [...ERROR_SUGGESTIONS.tools],
   }),
   UPSCALE_FAILED: metadata("UPSCALE_FAILED", 502, { isRetriable: true }),
+  VECTORIZE_FAILED: metadata("VECTORIZE_FAILED", 502, { isRetriable: true }),
   VIDEO_FAILED: metadata("VIDEO_FAILED", 502, { isRetriable: true }),
 } as const satisfies Record<string, ErrorMetadata>;
 

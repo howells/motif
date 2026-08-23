@@ -29,14 +29,20 @@ export { sanitizePrompt } from "@howells/motif-sdk";
  * credits. Prompts passed via stdin JSON bypass this guard deliberately.
  */
 const RESERVED_PROMPT_WORDS: Record<string, string> = {
+  ask: 'motif ask "your question" [image]',
   describe: "motif --describe",
   edit: 'motif -e <image> "prompt"',
+  enhance: "motif enhance [image]",
+  erase: 'motif erase "what to remove" [image]',
   generate: 'motif "your prompt"',
   help: "motif --help",
   history: "motif --history",
   last: "motif --last",
+  layers: "motif layers [image] -o layers/",
   models: "motif --describe generate",
+  reframe: "motif reframe --og [image]",
   rmbg: "motif --rmbg",
+  segment: 'motif segment "what to segment" [image]',
   series: "motif series list",
   studio: "motif studio",
   tool: "motif tool list",
@@ -44,6 +50,7 @@ const RESERVED_PROMPT_WORDS: Record<string, string> = {
   up: "motif --up",
   upscale: "motif --up",
   vary: "motif --vary",
+  vectorize: "motif vectorize [image] -o out.svg",
   version: "motif --version",
   video: 'motif --video "prompt"',
 };

@@ -545,6 +545,30 @@ function videoSchema() {
   };
 }
 
+/**
+ * One line per registered tool, matching what `motif tool list` returns.
+ *
+ * The registry has grown past 70 entries, and the full per-tool config —
+ * default options, output keys, source URL — was being embedded in every
+ * schema fetch. That detail lives one call away in `motif tool describe <id>`,
+ * so the schema carries only what a caller needs to pick a tool.
+ */
+function toolRegistrySummary(): Record<string, unknown> {
+  return Object.fromEntries(
+    FAL_TOOL_IDS.map((id) => [
+      id,
+      {
+        category: FAL_TOOLS[id].category,
+        endpoint: FAL_TOOLS[id].endpoint,
+        inputKind: FAL_TOOLS[id].inputKind,
+        name: FAL_TOOLS[id].name,
+        pricing: FAL_TOOLS[id].pricing,
+        task: FAL_TOOLS[id].task,
+      },
+    ])
+  );
+}
+
 function toolSchema() {
   return {
     checkedAt: FAL_TOOLS_CHECKED_AT,
@@ -590,25 +614,7 @@ function toolSchema() {
     mutating: true,
     subcommands: ["list", "describe", "run"],
     supports_dry_run: true,
-    tools: Object.fromEntries(
-      FAL_TOOL_IDS.map((id) => [
-        id,
-        {
-          category: FAL_TOOLS[id].category,
-          defaultOptions:
-            "defaultOptions" in FAL_TOOLS[id]
-              ? FAL_TOOLS[id].defaultOptions
-              : undefined,
-          endpoint: FAL_TOOLS[id].endpoint,
-          inputKind: FAL_TOOLS[id].inputKind,
-          name: FAL_TOOLS[id].name,
-          outputKeys: FAL_TOOLS[id].outputKeys,
-          pricing: FAL_TOOLS[id].pricing,
-          sourceUrl: FAL_TOOLS[id].sourceUrl,
-          task: FAL_TOOLS[id].task,
-        },
-      ])
-    ),
+    tools: toolRegistrySummary(),
   };
 }
 
@@ -630,6 +636,13 @@ function describeSchema() {
             "history",
             "series",
             "tool",
+            "segment",
+            "ask",
+            "erase",
+            "reframe",
+            "enhance",
+            "layers",
+            "vectorize",
             "describe",
             "errors",
           ],
@@ -778,7 +791,239 @@ function seriesSchema() {
   };
 }
 
+/**
+ * The promoted verbs — the fal capabilities named directly rather than reached
+ * through `motif tool run`.
+ *
+ * Described from one shape because they share one shape: an optional trailing
+ * image that falls back to the last generation, `-o` taking a file or a
+ * trailing-slash directory, and a dry run that prices the call first.
+ */
+const VERB_COMMON_INPUT = {
+  dryRun: { default: false, type: "boolean" },
+  imagePath: {
+    description:
+      "Source image path. Falls back to the last generation when omitted.",
+    type: "string",
+  },
+  noOpen: { default: false, type: "boolean" },
+  output: {
+    description:
+      "Output file (CWD-sandboxed), or a directory ending in / to receive every artefact.",
+    type: "string",
+  },
+};
+
+interface VerbSchemaSpec {
+  command: string;
+  description: string;
+  examples: string[];
+  flags?: Record<string, object>;
+  outputFields?: Record<string, object>;
+  tools: string[];
+  writesFiles?: boolean;
+}
+
+function verbSchema(spec: VerbSchemaSpec): Record<string, unknown> {
+  return {
+    command: spec.command,
+    description: spec.description,
+    examples: spec.examples,
+    input: {
+      properties: { ...VERB_COMMON_INPUT, ...spec.flags },
+      required: [],
+      type: "object",
+    },
+    mutating: true,
+    output: {
+      properties: {
+        cost: {
+          description:
+            "Flat USD estimate, or null when the endpoint is metered or billed per unit",
+          type: ["number", "null"],
+        },
+        ...(spec.writesFiles === false
+          ? {}
+          : {
+              files: { items: { type: "object" }, type: "array" },
+              height: { type: "integer" },
+              path: { type: "string" },
+              size: { type: "string" },
+              width: { type: "integer" },
+            }),
+        ...spec.outputFields,
+      },
+      type: "object",
+    },
+    supports_dry_run: true,
+    tools: spec.tools,
+  };
+}
+
+const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
+  ask: () =>
+    verbSchema({
+      command: "ask",
+      description:
+        "Ask a question about an image and get prose back. Writes no file and records no history.",
+      examples: [
+        'motif ask "what colour is the chair?" room.png',
+        "motif ask --caption room.png",
+        'motif ask --detect "chair" room.png --format json',
+      ],
+      flags: {
+        caption: {
+          description:
+            "Caption the image instead of answering a question. The first positional becomes the image path.",
+          type: "boolean",
+        },
+        detect: {
+          description:
+            "Detect this thing and emit its bounding boxes as `objects`.",
+          type: "string",
+        },
+        point: {
+          description:
+            "Point at every instance of this thing and emit `points`.",
+          type: "string",
+        },
+        question: {
+          description:
+            "The question to answer. Required unless a mode flag is given.",
+          type: "string",
+        },
+      },
+      outputFields: {
+        answer: { description: "The model's prose answer", type: "string" },
+        objects: { items: { type: "object" }, type: "array" },
+        points: { items: { type: "object" }, type: "array" },
+        reasoning: { type: "string" },
+      },
+      tools: [
+        "moondream-query",
+        "moondream-caption",
+        "moondream-detect",
+        "moondream-point",
+      ],
+      writesFiles: false,
+    }),
+  enhance: () =>
+    verbSchema({
+      command: "enhance",
+      description:
+        "Topaz enhancement, one mode at a time. Two modes is an INVALID_OPTION error, not a precedence rule.",
+      examples: [
+        "motif enhance photo.png --dry-run --format json",
+        "motif enhance --denoise photo.png -o clean.png",
+      ],
+      flags: {
+        mode: {
+          default: "upscale",
+          description: "Enhancement mode; pass exactly one as a flag",
+          enum: [
+            "upscale",
+            "generative",
+            "creative",
+            "transparent",
+            "restore",
+            "denoise",
+            "sharpen",
+            "adjust",
+          ],
+          type: "string",
+        },
+      },
+      tools: [
+        "topaz-precision",
+        "topaz-generative",
+        "topaz-creative",
+        "topaz-transparent",
+        "topaz-restore",
+        "topaz-denoise",
+        "topaz-sharpen",
+        "topaz-adjust",
+      ],
+    }),
+  erase: () =>
+    verbSchema({
+      command: "erase",
+      description: "Remove a prompted object from an image and fill the gap.",
+      examples: ['motif erase "the parked car" street.png --dry-run'],
+      flags: {
+        prompt: {
+          description: "What to remove",
+          type: "string",
+        },
+      },
+      tools: ["object-removal"],
+    }),
+  layers: () =>
+    verbSchema({
+      command: "layers",
+      description:
+        "Split an image into stacked RGBA layers. Writes several files, so -o must be a directory ending in /.",
+      examples: ["motif layers poster.png -o layers/ --dry-run"],
+      tools: ["qwen-layered"],
+    }),
+  reframe: () =>
+    verbSchema({
+      command: "reframe",
+      description:
+        "Reframe an existing image to a new ratio, generating the fill. Needs exactly one target preset.",
+      examples: ["motif reframe --og cover.png --dry-run --format json"],
+      flags: {
+        preset: {
+          description: "Target ratio, passed as a flag such as --og",
+          enum: [
+            "cover",
+            "landscape",
+            "og",
+            "portrait",
+            "square",
+            "story",
+            "wide",
+          ],
+          type: "string",
+        },
+      },
+      tools: ["ideogram-reframe"],
+    }),
+  segment: () =>
+    verbSchema({
+      command: "segment",
+      description:
+        "Segment prompted objects out of an image. -o writes the primary output, -o masks/ writes all of them.",
+      examples: [
+        'motif segment "the chair" room.png --dry-run --format json',
+        'motif segment "the chair" room.png -o masks/',
+      ],
+      flags: {
+        prompt: { description: "What to segment", type: "string" },
+        rle: {
+          description:
+            "Return run-length encoded masks as compact JSON rather than mask images",
+          type: "boolean",
+        },
+      },
+      outputFields: {
+        boxes: { items: { type: "array" }, type: "array" },
+        rle: { description: "Present with --rle", type: "array" },
+        scores: { items: { type: "number" }, type: "array" },
+      },
+      tools: ["sam3-image", "sam3-image-rle"],
+    }),
+  vectorize: () =>
+    verbSchema({
+      command: "vectorize",
+      description:
+        "Convert a raster image into a clean SVG. -o must name a .svg file or a directory ending in /.",
+      examples: ["motif vectorize logo.png -o logo.svg --dry-run"],
+      tools: ["recraft-vectorize"],
+    }),
+};
+
 const COMMAND_SCHEMAS: Record<string, () => Record<string, unknown>> = {
+  ...VERB_SCHEMAS,
   describe: describeSchema,
   errors: () => ({
     command: "errors",
@@ -877,7 +1122,7 @@ function fullSchema() {
       "The agent is not a trusted operator. All inputs are validated. Output paths are sandboxed to CWD. Use --dry-run before mutating commands.",
     tools: {
       checkedAt: FAL_TOOLS_CHECKED_AT,
-      registry: toolSchema().tools,
+      registry: toolRegistrySummary(),
     },
     version: PACKAGE_VERSION,
   };

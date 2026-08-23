@@ -1,66 +1,18 @@
-import { resolve } from "node:path";
-
 import {
-  buildFalToolRequest,
   FAL_TOOL_IDS,
   FAL_TOOLS,
   FAL_TOOLS_CHECKED_AT,
   isFalToolId,
 } from "@howells/motif-sdk";
-import type { FalToolRequest } from "@howells/motif-sdk";
 import chalk from "chalk";
 import { Command } from "commander";
 
-import { runTool } from "../api/fal";
 import { handleError } from "../utils/errors";
-import { downloadImage, getFileSize } from "../utils/image";
-import {
-  parseIntegerOption,
-  parseNumberOption,
-  validateOutputPath,
-  validateResourceId,
-} from "../utils/input";
 import { emit, isStructured, resolveFormat } from "../utils/output";
-import type { EmitOptions, OutputFormat } from "../utils/output";
+import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
-
-interface ToolOptions {
-  applyMask?: boolean;
-  backgroundColor?: string;
-  coarse?: boolean;
-  codec?: string;
-  cropToBbox?: boolean;
-  detectionThreshold?: string;
-  dryRun?: boolean;
-  ensembleSize?: string;
-  fields?: string;
-  format?: string;
-  h264?: boolean;
-  includeBoxes?: boolean;
-  includeScores?: boolean;
-  input?: string;
-  inputs?: string[];
-  json?: string;
-  maskOnly?: boolean;
-  maxMasks?: string;
-  minMaskRegionArea?: string;
-  model?: string;
-  numInferenceSteps?: string;
-  operatingResolution?: string;
-  option?: string[];
-  output?: string;
-  outputFormat?: string;
-  pointsPerSide?: string;
-  predIouThresh?: string;
-  preserveAudio?: boolean;
-  prompt?: string;
-  providerOptions?: Record<string, unknown>;
-  returnMultipleMasks?: boolean;
-  scale?: string;
-  stabilityScoreThresh?: string;
-  targetFps?: string;
-  videoOutputType?: string;
-}
+import { runFalTool } from "./tool-run";
+import type { ToolOptions } from "./tool-run";
 
 function emitOptsFromArgs(args: string[]): EmitOptions {
   const format = resolveFormat(
@@ -94,237 +46,6 @@ function stripGlobalFlags(args: string[]): string[] {
     }
     return true;
   });
-}
-
-function parseOptionValue(value: string): unknown {
-  if (value === "true") {
-    return true;
-  }
-  if (value === "false") {
-    return false;
-  }
-  if (value === "null") {
-    return null;
-  }
-  if (/^-?\d+(?:\.\d+)?$/.test(value)) {
-    return Number(value);
-  }
-  try {
-    return JSON.parse(value);
-  } catch {
-    return value;
-  }
-}
-
-function parseOptionPairs(
-  values: string[] | undefined
-): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const pair of values ?? []) {
-    const index = pair.indexOf("=");
-    if (index === -1) {
-      throw new Error(`tool option must be key=value: ${pair}`);
-    }
-    const key = pair.slice(0, index).trim();
-    if (!key) {
-      throw new Error(`tool option key is empty: ${pair}`);
-    }
-    result[key] = parseOptionValue(pair.slice(index + 1).trim());
-  }
-  return result;
-}
-
-/** True when a value is a plain (non-array, non-null) JSON object. */
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-function parseJsonOptions(value: string | undefined): Record<string, unknown> {
-  if (!hasText(value)) {
-    return {};
-  }
-  const parsed: unknown = JSON.parse(value);
-  if (!isPlainRecord(parsed)) {
-    throw new Error("--json must be a JSON object");
-  }
-  return parsed;
-}
-
-function buildOptions(
-  options: ToolOptions,
-  format: OutputFormat
-): Record<string, unknown> {
-  try {
-    return {
-      ...parseJsonOptions(options.json),
-      ...parseOptionPairs(options.option),
-      ...options.providerOptions,
-      ...(hasText(options.prompt) ? { prompt: options.prompt } : {}),
-      ...(hasText(options.outputFormat)
-        ? { output_format: options.outputFormat }
-        : {}),
-      ...(hasText(options.operatingResolution)
-        ? { operating_resolution: options.operatingResolution }
-        : {}),
-      ...(options.applyMask === undefined
-        ? {}
-        : { apply_mask: options.applyMask }),
-      ...(options.cropToBbox === undefined
-        ? {}
-        : { crop_to_bbox: options.cropToBbox }),
-      ...(options.coarse === undefined ? {} : { coarse: options.coarse }),
-      ...(options.maskOnly === undefined
-        ? {}
-        : { mask_only: options.maskOnly }),
-      ...(options.returnMultipleMasks === true
-        ? { return_multiple_masks: true }
-        : {}),
-      ...(options.includeScores === true ? { include_scores: true } : {}),
-      ...(options.includeBoxes === true ? { include_boxes: true } : {}),
-      ...(hasText(options.maxMasks)
-        ? {
-            max_masks: parseIntegerOption(options.maxMasks, "max masks", {
-              max: 50,
-              min: 1,
-            }),
-          }
-        : {}),
-      ...(hasText(options.scale)
-        ? {
-            upscale_factor: parseNumberOption(options.scale, "scale", {
-              max: 8,
-              min: 1,
-            }),
-          }
-        : {}),
-      ...(hasText(options.model) ? { model: options.model } : {}),
-      ...(hasText(options.backgroundColor)
-        ? { background_color: options.backgroundColor }
-        : {}),
-      ...(hasText(options.codec)
-        ? { output_container_and_codec: options.codec }
-        : {}),
-      ...(options.preserveAudio === undefined
-        ? {}
-        : { preserve_audio: options.preserveAudio }),
-      ...(hasText(options.detectionThreshold)
-        ? {
-            detection_threshold: parseNumberOption(
-              options.detectionThreshold,
-              "detection threshold",
-              { max: 1, min: 0 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.pointsPerSide)
-        ? {
-            points_per_side: parseIntegerOption(
-              options.pointsPerSide,
-              "points per side",
-              { min: 1 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.predIouThresh)
-        ? {
-            pred_iou_thresh: parseNumberOption(
-              options.predIouThresh,
-              "predicted IOU threshold",
-              { max: 1, min: 0 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.stabilityScoreThresh)
-        ? {
-            stability_score_thresh: parseNumberOption(
-              options.stabilityScoreThresh,
-              "stability score threshold",
-              { max: 1, min: 0 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.minMaskRegionArea)
-        ? {
-            min_mask_region_area: parseIntegerOption(
-              options.minMaskRegionArea,
-              "minimum mask region area",
-              { min: 0 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.numInferenceSteps)
-        ? {
-            num_inference_steps: parseIntegerOption(
-              options.numInferenceSteps,
-              "number of inference steps",
-              { min: 1 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.ensembleSize)
-        ? {
-            ensemble_size: parseIntegerOption(
-              options.ensembleSize,
-              "ensemble size",
-              { min: 2 }
-            ),
-          }
-        : {}),
-      ...(hasText(options.targetFps)
-        ? {
-            target_fps: parseIntegerOption(options.targetFps, "target FPS", {
-              min: 1,
-            }),
-          }
-        : {}),
-      ...(options.h264 === true ? { H264_output: true } : {}),
-      ...(hasText(options.videoOutputType)
-        ? { video_output_type: options.videoOutputType }
-        : {}),
-    };
-  } catch (error) {
-    handleError(error, "INVALID_OPTION", format);
-  }
-}
-
-/** Extract a string `url` field from an object-shaped value, if present. */
-function extractUrl(value: unknown): string | undefined {
-  if (typeof value === "object" && value !== null && "url" in value) {
-    const { url } = value;
-    if (typeof url === "string") {
-      return url;
-    }
-  }
-  return undefined;
-}
-
-function isUnknownArray(value: unknown): value is unknown[] {
-  return Array.isArray(value);
-}
-
-function primaryUrl(
-  result: Record<string, unknown>,
-  keys: string[]
-): string | undefined {
-  for (const key of keys) {
-    const value = result[key];
-    if (typeof value === "string" && value.startsWith("https://")) {
-      return value;
-    }
-    const directUrl = extractUrl(value);
-    if (directUrl !== undefined) {
-      return directUrl;
-    }
-    if (isUnknownArray(value)) {
-      for (const item of value) {
-        const itemUrl = extractUrl(item);
-        if (itemUrl !== undefined) {
-          return itemUrl;
-        }
-      }
-    }
-  }
-  return undefined;
 }
 
 function listTools(emitOpts: EmitOptions): void {
@@ -381,97 +102,6 @@ function describeTool(toolId: string | undefined, emitOpts: EmitOptions): void {
     },
     emitOpts
   );
-}
-
-async function runFalTool(
-  toolId: string,
-  input: string | undefined,
-  options: ToolOptions,
-  emitOpts: EmitOptions
-): Promise<void> {
-  try {
-    validateResourceId(toolId, "tool");
-  } catch (error) {
-    handleError(error, "INVALID_TOOL_ID", emitOpts.format);
-  }
-  if (!isFalToolId(toolId)) {
-    handleError(
-      new Error(`Unknown fal tool: ${toolId}`),
-      "UNKNOWN_TOOL",
-      emitOpts.format
-    );
-  }
-
-  const inputs =
-    options.inputs !== undefined && options.inputs.length > 0
-      ? options.inputs
-      : hasText(input)
-        ? [input]
-        : undefined;
-  const requestOptions = buildOptions(options, emitOpts.format);
-  let request: FalToolRequest;
-  try {
-    request = buildFalToolRequest({
-      input: inputs?.[0],
-      inputs,
-      options: requestOptions,
-      tool: toolId,
-    });
-  } catch (error) {
-    handleError(error, "INVALID_OPTION", emitOpts.format);
-  }
-
-  if (options.dryRun === true) {
-    emit(
-      {
-        body: request.body,
-        command: "tool.run",
-        dryRun: true,
-        endpoint: request.endpoint,
-        pricing: request.tool.pricing,
-        tool: toolId,
-        toolName: request.tool.name,
-        valid: true,
-      },
-      emitOpts
-    );
-    return;
-  }
-
-  try {
-    const result = await runTool({
-      input: inputs?.[0],
-      inputs,
-      options: requestOptions,
-      tool: toolId,
-    });
-    let saved: { path: string; size: string } | undefined;
-    if (hasText(options.output)) {
-      const outputPath = validateOutputPath(options.output);
-      const url = primaryUrl(result, request.tool.outputKeys);
-      if (!hasText(url)) {
-        throw new Error(`No downloadable output found for ${toolId}`);
-      }
-      const actualOutputPath = await downloadImage(url, outputPath);
-      saved = {
-        path: resolve(actualOutputPath),
-        size: getFileSize(actualOutputPath),
-      };
-    }
-    emit(
-      {
-        command: "tool.run",
-        endpoint: request.endpoint,
-        result,
-        tool: toolId,
-        toolName: request.tool.name,
-        ...(saved ? { saved } : {}),
-      },
-      emitOpts
-    );
-  } catch (error) {
-    handleError(error, "TOOL_FAILED", emitOpts.format);
-  }
 }
 
 export interface ToolStdinPayload extends ToolOptions {
@@ -541,7 +171,10 @@ export async function runTools(args: string[]): Promise<void> {
     .option("--dry-run", "Validate and print request body without an API call")
     .option("-i, --input <url-or-path>", "Input media URL or local path")
     .option("--inputs <items...>", "Multiple input images for batch tools")
-    .option("-o, --output <file>", "Download primary output to this file")
+    .option(
+      "-o, --output <file-or-dir>",
+      "Download output here; a trailing / writes every output, named by key"
+    )
     .option("--prompt <text>", "Prompt for segmentation/reconstruction tools")
     .option("--output-format <format>", "Output format, e.g. jpeg, png, webp")
     .option(

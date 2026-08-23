@@ -84,6 +84,7 @@ Error codes are grouped below. Every code the CLI can emit is listed; the live c
 `EDIT_PROMPT_SWALLOWED` (status `400`, exit `2`) fires when `-e/--edit` — a variadic flag — has eaten the prompt: `motif -e image.png "a cat"` passes both as reference images and leaves no prompt. Put the prompt first (`motif "a cat" -e image.png`), or send both via stdin JSON. A missing-but-plausible path such as `-e typo.png` is not treated as a swallowed prompt; it still reports `INVALID_EDIT_PATH`.
 
 - Tools: `UNKNOWN_TOOL`, `INVALID_TOOL_ID`, `TOOL_FAILED`.
+- Verbs: `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
 ### Exit Codes
@@ -97,7 +98,7 @@ Structured failures exit with a semantic process code derived from the error's R
 | `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `EDIT_PROMPT_SWALLOWED`, `TOO_MANY_REFERENCES` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
-| `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED` |
+| `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED` |
 
 Every structured error still carries the machine-readable `status` field, so the exit code and the JSON envelope always agree. Unstructured crashes (unexpected exceptions the CLI did not classify) still exit `1`.
 
@@ -138,7 +139,7 @@ Flag values override stdin JSON values for the same field.
   "inputFidelity": "low | high",
   "preset": "cover | square | landscape | portrait | story | reel | feed | og | wallpaper | wide | ultra",
   "noOpen": true,
-  "command": "generate | upscale | rmbg | vary | video | last | history | describe",
+  "command": "generate | upscale | rmbg | vary | video | last | history | describe | tool | tool-run | tool-list | tool-describe",
   "limit": 10,
   "offset": 0,
   "imagePath": "path/to/image.png",
@@ -147,6 +148,29 @@ Flag values override stdin JSON values for the same field.
   "generateAudio": true
 }
 ```
+
+### Stdin JSON for fal tools
+
+The four `tool*` commands reach every entry in the registry, including the 40-odd with no promoted verb:
+
+```json
+{
+  "command": "tool-run",
+  "tool": "sam3-image",
+  "input": "path/or/https/url",
+  "inputs": ["a.png", "b.png"],
+  "options": { "maps": ["basecolor", "normal"] },
+  "output": "out/",
+  "outputFormat": "png",
+  "prompt": "the white ceramic bowl",
+  "scale": 2,
+  "dryRun": true
+}
+```
+
+`options` is merged into the fal request body, the same as `--json` on the command line. `tool-list` and `tool-describe` need no input; `tool-describe` takes `tool`.
+
+**The seven promoted verbs are argv-only.** They route on `argv[0]`, so there is no `"command": "segment"`. An unrecognised `command` value is not rejected - it falls through to `generate`, so `{"command":"segment","prompt":"the bowl"}` silently generates an image of a bowl and bills you for it. Invoke a verb as `motif segment ...`, or reach the same endpoint through `tool-run`.
 
 ## Creative Direction
 
@@ -229,30 +253,65 @@ The schema includes:
 
 5. **Never send prompts with control characters.** They are stripped during sanitization, which may change the intended meaning.
 
+### Fal Tool Invariants
+
+1. **`estimatedCost: null` is not free.** It means metered or per-unit billing - the price depends on output megapixels, compute seconds, map count, layer count or tokens, none of which the CLI can know before the call. `estimatedCostPerMegapixel` / `estimatedCostPerSecond` carry the rate where there is one; the `pricing` string carries the full formula. Summing `estimatedCost ?? 0` across a plan will under-budget.
+
+2. **29 of the 71 tools are `queued`.** They routinely exceed fal's 120-second synchronous window, so the CLI submits to the queue and polls. A Topaz restore taking over two minutes is normal. Set harness timeouts in minutes for these, and never retry one that looks stuck - each retry is another billable submission. Check with `--dry-run --fields queued`, or `motif tool describe <id>`.
+
+3. **`-o dir/` writes every artefact; anything else writes only the primary.** Files in directory mode are named by the registry output key (`image.jpg`, `masks.png`), or by declared position labels where the registry has them - `patina -o pbr/` writes `basecolor.jpg`, `normal.jpg`, `roughness.jpg`, `metalness.jpg`, `height.jpg`. A reordered driving option (patina's `maps`) is honoured; a label count that doesn't match the URL count is dropped rather than guessed.
+
+4. **Never hardcode tool ids or prices.** Both move with the registry. Read them from `motif tool list --format json` and `motif tool describe <id> --format json`.
+
+5. **`motif tool run` has no `--no-open`** and never opens a viewer. The seven verbs do open one by default, so they need it in a pipeline.
+
+6. **Some tools take `--inputs`, not a positional path.** Registry entries with `inputKind: "images"` (`got-ocr`, `nsfw`) send an array field. `motif tool describe <id>` reports `inputKind` and `inputField`.
+
 ## Recommended Field Masks
 
 Use `--fields` to limit output to what you need. This protects your context window and reduces token usage in multi-step workflows.
 
 | Workflow | Command | Recommended `--fields` |
 | --- | --- | --- |
-| Generate and confirm | `generate` | `id,path,cost` |
-| Batch exploration | `generate` | `id,path` |
+| Generate and confirm | `generate` | `id,images,cost` |
+| Batch exploration | `generate` | `id,images` |
 | Cost tracking | `generate` | `id,cost,model` |
 | Upscale/rmbg result | `upscale`, `rmbg` | `path,size` |
 | Video result | `video` | `path,duration,cost` |
 | History scan | `history` | `id,prompt,model,cost` |
 | Last generation check | `last` | `id,prompt,output` |
-| Pipeline chaining | `generate` | `path` (minimal — just the file path) |
+| Verb result | `segment`, `erase`, `reframe`, `enhance`, `layers`, `vectorize` | `path,cost` |
+| Verb, every artefact | any verb with `-o dir/` | `files` |
+| Segment geometry only | `segment` | `boxes,scores` (add `rle` with `--rle`) |
+| Ask | `ask` | `answer` (also `reasoning`, `objects`, `points`) |
+| Tool result | `tool run` | `saved` |
+| Tool, every artefact | `tool run -o dir/` | `files` |
+| Tool pricing check | `tool run --dry-run` | `estimatedCost,pricing,queued` |
+
+**The output path is in a different place per family.** Field masks are top-level only, so this matters:
+
+| Family                 | Where the path is | jq                        |
+| ---------------------- | ----------------- | ------------------------- |
+| `generate`, `vary`     | `images[].path`   | `jq -r '.images[0].path'` |
+| The seven verbs        | `path`            | `jq -r .path`             |
+| `tool run`             | `saved.path`      | `jq -r '.saved.path'`     |
+| Either, with `-o dir/` | `files[].path`    | `jq -r '.files[].path'`   |
+
+A dry run has no `path` at all - it reports `output`, the path the file _would_ take.
 
 ### Examples
 
 ```bash
 # Batch: generate 4 images, only get paths
-motif "sunset over mountains" -m flux-fast -n 4 --fields path
+motif "sunset over mountains" -m flux-fast -n 4 --fields images | jq -r '.images[].path'
 
 # Pipeline: generate → upscale (chain by path)
-PATH=$(motif "a cat" -m flux --fields path | jq -r .path)
-motif --up "$PATH" --fields path,size
+IMG=$(motif "a cat" -m flux --fields images | jq -r '.images[0].path')
+motif --up "$IMG" --fields path,size
+
+# Pipeline: verb → verb (verbs put the path at the top level)
+ERASED=$(motif erase "the parked car" street.png -o erased.jpg --no-open --fields path | jq -r .path)
+motif reframe --story "$ERASED" -o story.png --no-open --fields path
 
 # Cost audit: check recent spending
 motif --history --limit 20 --fields model,cost
@@ -305,6 +364,39 @@ motif --history --limit 20 --fields model,cost
 | `kling` (audio off) | $0.112/sec | 5s clip = $0.56 |
 | `kling` (audio on)  | $0.168/sec | 5s clip = $0.84 |
 
+### Fal Tools
+
+71 registry entries, from $0.001 to $0.96. Read live prices from `motif tool list --format json` or `motif tool describe <id> --format json` - do not hardcode this table, it moves.
+
+Three price shapes, and only one of them gives you a number up front:
+
+| Registry `price.kind` | Dry run reports | Example |
+| --- | --- | --- |
+| `call` | `estimatedCost: 0.024` | `object-removal`, `sam3-image`, `recraft-vectorize` |
+| `megapixel` | `estimatedCost: null` plus `estimatedCostPerMegapixel` | every Topaz endpoint, `iclight-v2`, `ddcolor` |
+| `second` | `estimatedCost: null` plus `estimatedCostPerSecond` | `dwpose`, `bria-video-rmbg`, `topaz-video` |
+| `metered` | `estimatedCost: null`, nothing else | Moondream, `patina`, `seedream-layerize`, most preprocessors |
+
+The ones most likely to be reached for:
+
+| Tool | Price | Notes |
+| --- | --- | --- |
+| `nsfw` | metered, listed at $0.001/image | Moderation |
+| `sam3-image` | $0.005/request | Text-prompted segmentation. `sam3-image-rle` is the same price |
+| `image2svg` | $0.005/image | Traced SVG |
+| `bria-rmbg` | $0.018/generation | Commercial-safe background removal |
+| `object-removal` | $0.024/image | Prompted erase. Leaves the object's shadow |
+| `recraft-vectorize` | $0.04/image | Clean SVG. $0.08 with a vector style |
+| `bria-eraser`, `bria-genfill`, `text-removal` | $0.04 | Masked erase, masked generative fill, text removal |
+| `qwen-layered` | metered, listed at $0.05/image | Stacked RGBA layers. Queued |
+| `ideogram-reframe` | $0.06/image | Aspect-ratio reframe. $0.03 turbo, $0.09 quality |
+| `ideogram-layerize-text` | $0.09/image | Type lifted off, plus `text_containers` and `text_html`. Queued |
+| `finegrain-eraser` | $0.27/image | Prompted erase including shadows and reflections. $0.18 express, $0.36 premium |
+| `topaz-precision` | $0.0033/MP ($0.08 per 24 output MP) | Default `motif enhance` mode. Queued |
+| `topaz-restore` | $0.02/MP ($0.48 per 24 output MP) | `motif enhance --restore`. Queued |
+| `topaz-creative` | $0.04/MP ($0.96 per 24 output MP) | Most expensive tool in the registry. Queued |
+| `patina` | metered | $0.01 base plus $0.01/MP per output map. Queued |
+
 **Tip**: Use `--dry-run` to see the exact estimated cost before committing. **Warning**: Video is 5-10x more expensive than images. Always dry-run first.
 
 ## Video Generation
@@ -338,6 +430,33 @@ echo '{"command":"video","imagePath":"image.png","prompt":"zoom in","duration":5
 - **Output is `.mp4`.** Use `--video-no-audio` for silent video (40% cheaper).
 - **Duration range is 3-15 seconds.**
 - **Aspect ratio is determined by the source image dimensions.**
+
+## Promoted Verbs
+
+Seven fal capabilities have a verb of their own rather than living behind `motif tool run`. Each takes an optional trailing image path and falls back to the last generation, and each supports `--dry-run`, `-o/--output`, `--format`, `--fields` and `--no-open`. `-o` ending in `/` writes every artefact into that directory, named by registry output key; anything else writes the primary output only.
+
+```bash
+motif segment "the chair" room.png --dry-run --format json   # SAM 3; --rle for compact JSON masks
+motif ask "what colour is the chair?" room.png               # prose answer, writes no file
+motif ask --caption room.png                                 # also --detect <thing>, --point <thing>
+motif erase "the parked car" street.png                      # remove and fill
+motif reframe --og cover.png                                 # convert an existing image to a new ratio
+motif enhance --denoise photo.png                            # Topaz, one mode at a time
+motif layers poster.png -o layers/                           # several files, so -o must be a directory
+motif vectorize logo.png -o logo.svg                         # raster to SVG
+```
+
+| Verb | fal tool(s) | Notes |
+| --- | --- | --- |
+| `segment "<prompt>" [image]` | `sam3-image`, `sam3-image-rle` (`--rle`) | Emits `boxes` and `scores` alongside the mask files |
+| `ask "<question>" [image]` | `moondream-query`, `-caption`, `-detect`, `-point` | Writes no file and records no history; answer is at `answer`. With a mode flag the first positional is the image |
+| `erase "<prompt>" [image]` | `object-removal` |  |
+| `reframe [image]` | `ideogram-reframe` | Needs one of `--og --square --cover --portrait --landscape --story --wide` |
+| `enhance [image]` | eight Topaz endpoints | `--upscale` (default), `--generative`, `--creative`, `--transparent`, `--restore`, `--denoise`, `--sharpen`, `--adjust`. Two modes is `INVALID_OPTION`. All run through the fal queue |
+| `layers [image] -o dir/` | `qwen-layered` | One file per layer, so `-o` must end in `/` |
+| `vectorize [image] -o out.svg` | `recraft-vectorize` | `-o` must name a `.svg` or end in `/` |
+
+Metered and per-unit endpoints report `cost: null` rather than a guessed number — `ask` is metered by tokens, so it always does. Read each verb's flags and outputs from `motif --describe <verb> --format json`.
 
 ## Pagination
 

@@ -126,8 +126,10 @@ export async function removeBackground(
   return unwrap(await getMotif().removeBackground(options));
 }
 
-/** Run a registered fal utility/tool endpoint, uploading local inputs first. */
-export async function runTool(options: ToolRunOptions): Promise<ToolResponse> {
+/** Upload any local tool inputs to fal and shape them for the tool's input kind. */
+async function withUploadedInputs(
+  options: ToolRunOptions
+): Promise<ToolRunOptions> {
   if (!isFalToolId(options.tool)) {
     throw new Error(`Unknown fal tool: ${options.tool}`);
   }
@@ -143,12 +145,33 @@ export async function runTool(options: ToolRunOptions): Promise<ToolResponse> {
     values.map(async (value) => await upload(value))
   );
 
+  return {
+    ...options,
+    input: tool.inputKind === "images" ? undefined : uploaded[0],
+    inputs: tool.inputKind === "images" ? uploaded : undefined,
+  };
+}
+
+/** Run a registered fal utility/tool endpoint, uploading local inputs first. */
+export async function runTool(options: ToolRunOptions): Promise<ToolResponse> {
+  return unwrap(await getMotif().runTool(await withUploadedInputs(options)));
+}
+
+/**
+ * Run a fal tool through the queue, for registry entries marked `queued`.
+ *
+ * Deliberately separate from `runTool`: neither path falls back to the other,
+ * the caller picks one from the tool's registry entry.
+ */
+export async function runToolQueued(
+  options: ToolRunOptions,
+  onProgress?: (status: string, queuePosition?: number) => void
+): Promise<ToolResponse> {
   return unwrap(
-    await getMotif().runTool({
-      ...options,
-      input: tool.inputKind === "images" ? undefined : uploaded[0],
-      inputs: tool.inputKind === "images" ? uploaded : undefined,
-    })
+    await getMotif().runToolQueued(
+      await withUploadedInputs(options),
+      onProgress
+    )
   );
 }
 

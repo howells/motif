@@ -5,6 +5,7 @@ import { setApiKey } from "./api/fal";
 import { runCli } from "./cli";
 import { runSeries } from "./commands/series";
 import { runTools } from "./commands/tools";
+import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
 import { getApiKey, loadConfig, loadHistory, saveConfig } from "./utils/config";
 import type { MotifConfig } from "./utils/config";
@@ -30,6 +31,13 @@ async function main() {
   // Route to fal utility tools subcommand
   if (args[0] === "tool" || args[0] === "tools") {
     await runTools(args.slice(1));
+    return;
+  }
+
+  // Route to a promoted verb (segment, ask, erase, reframe, enhance, layers,
+  // vectorize) — each a named front door onto one fal capability.
+  if (isVerbName(args[0])) {
+    await runVerbs(args);
     return;
   }
 
