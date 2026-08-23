@@ -2,6 +2,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { estimateCost, estimateVideoCost } from "./cost";
+import { MotifError, toMotifError } from "./errors";
 import {
   asNumber,
   asString,
@@ -16,14 +17,22 @@ import {
 } from "./fal-parse";
 import { buildGenerateBody } from "./generate";
 import { GENERATION_MODELS, MODELS, UTILITY_MODELS } from "./models";
-import { buildFalToolRequest, FAL_TOOLS } from "./tools";
-import type { FalToolRequest } from "./tools";
+import {
+  checkToolStatus as execCheckToolStatus,
+  getToolResult as execGetToolResult,
+  runTool as execRunTool,
+  runToolQueued as execRunToolQueued,
+  submitTool as execSubmitTool,
+} from "./server-tools";
+import type { FalRequestExecutor } from "./server-tools";
+import { FAL_TOOLS } from "./tools";
 import type {
   FalClientConfig,
   GenerateOptions,
   JobStatus,
   MotifResponse,
   QueuedJob,
+  QueuedToolJob,
   RemoveBackgroundOptions,
   Resolution,
   ToolResponse,
@@ -527,28 +536,47 @@ export class FalClient {
   async runTool(
     options: ToolRunOptions
   ): Promise<Result<ToolResponse, MotifError>> {
-    let request: FalToolRequest;
-    try {
-      request = buildFalToolRequest(options);
-    } catch (error) {
-      return err(
-        new MotifError(
-          error instanceof Error ? error.message : String(error),
-          0
-        )
-      );
-    }
+    return await execRunTool(this.toolExecutor, options);
+  }
 
-    const response = await this.request(`${FAL_BASE_URL}/${request.endpoint}`, {
-      body: JSON.stringify(request.body),
-      method: "POST",
-    });
-    if (response.isErr()) {
-      return err(response.error);
-    }
+  /** ─── Queue-Based Tools ───────────────────────────────────── */
 
-    const data: unknown = await response.value.json();
-    return ok(isRecord(data) ? data : {});
+  /**
+   * Submit a tool run to the fal queue. Returns as soon as fal accepts it.
+   *
+   * The queued counterpart to `runTool`, for endpoints that outrun the
+   * synchronous request timeout. Callers choose the path — neither one falls
+   * back to the other.
+   */
+  async submitTool(
+    options: ToolRunOptions
+  ): Promise<Result<QueuedToolJob, MotifError>> {
+    return await execSubmitTool(this.toolExecutor, options);
+  }
+
+  /** Poll one queued tool run. */
+  async checkToolStatus(
+    job: QueuedToolJob
+  ): Promise<Result<JobStatus, MotifError>> {
+    return await execCheckToolStatus(this.toolExecutor, job);
+  }
+
+  /** Fetch the finished payload for a queued tool run. */
+  async getToolResult(
+    job: QueuedToolJob
+  ): Promise<Result<ToolResponse, MotifError>> {
+    return await execGetToolResult(this.toolExecutor, job);
+  }
+
+  /**
+   * Submit, poll to completion, and return the result. The convenience path
+   * for tools whose registry entry sets `queued`.
+   */
+  async runToolQueued(
+    options: ToolRunOptions,
+    onProgress?: (status: string, queuePosition?: number) => void
+  ): Promise<Result<ToolResponse, MotifError>> {
+    return await execRunToolQueued(this.toolExecutor, options, onProgress);
   }
 
   /**
@@ -604,6 +632,18 @@ export class FalClient {
   /** Registered fal utility/tool endpoints. */
   get tools() {
     return FAL_TOOLS;
+  }
+
+  /**
+   * The seam `server-tools.ts` runs against — the client's authenticated fetch
+   * and its queue status parser, exposed without widening the public surface.
+   */
+  private get toolExecutor(): FalRequestExecutor {
+    return {
+      getJobStatus: async (endpoint, requestId) =>
+        await this.getJobStatus(endpoint, requestId),
+      request: async (url, init) => await this.request(url, init),
+    };
   }
 
   /** ─── Private ─────────────────────────────────────────────── */
@@ -725,42 +765,4 @@ export class FalClient {
   }
 }
 
-export class MotifError extends Error {
-  readonly status: number;
-  readonly code?: string;
-  /** fal's request-correlation id (from the `x-fal-request-id` header or the
-   * error body). Ties a failure back to fal's dashboard/support. */
-  readonly requestId?: string;
-
-  constructor(
-    message: string,
-    status: number,
-    code?: string,
-    requestId?: string
-  ) {
-    super(message);
-    this.name = "MotifError";
-    this.status = status;
-    this.code = code;
-    this.requestId = requestId;
-  }
-}
-
-/**
- * Coerce an unknown thrown value into a `MotifError`.
- *
- * Preserves an existing `MotifError`, and lifts a string `code` field (e.g.
- * `CreativeOptionError`'s `"INVALID_OPTION"`) onto the returned error so callers
- * keep structured error metadata. Status `0` marks a non-HTTP local error.
- */
-function toMotifError(error: unknown): MotifError {
-  if (error instanceof MotifError) {
-    return error;
-  }
-  const message = error instanceof Error ? error.message : String(error);
-  const code =
-    error instanceof Error && "code" in error && typeof error.code === "string"
-      ? error.code
-      : undefined;
-  return new MotifError(message, 0, code);
-}
+export { MotifError } from "./errors";

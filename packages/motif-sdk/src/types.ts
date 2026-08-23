@@ -295,6 +295,20 @@ export interface JobStatus {
   status: "queued" | "processing" | "completed" | "failed";
 }
 
+/**
+ * A tool run accepted by the fal queue.
+ *
+ * Returned by `FalClient.submitTool`, and the handle passed back to
+ * `checkToolStatus` / `getToolResult`. The job itself carries no cost: the
+ * rate lives on the registry entry as `FalToolConfig.price`, and for a queued
+ * endpoint it is usually per-megapixel or metered, so the final cost is only
+ * known once the result is in.
+ */
+export interface QueuedToolJob {
+  endpoint: string;
+  requestId: string;
+}
+
 /** ─── Configuration ──────────────────────────────────────────── */
 
 export interface FalClientConfig {

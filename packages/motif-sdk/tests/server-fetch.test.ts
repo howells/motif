@@ -259,4 +259,110 @@ describe("FalClient fetch integration", () => {
       prompt: "shoe",
     });
   });
+
+  it("submits queued tool runs with the same normalized request body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        jsonResponse({
+          request_id: "req_tool_1",
+          response_url:
+            "https://queue.fal.run/fal-ai/sam-3/image/requests/req_tool_1",
+        })
+      )
+    );
+
+    const motif = new FalClient({ apiKey: "test-key", retries: 0 });
+    const result = await motif.submitTool({
+      input: "https://example.com/input.png",
+      options: { max_masks: 2, prompt: "shoe" },
+      tool: "sam3-image",
+    });
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value).toEqual({
+        endpoint: "fal-ai/sam-3/image",
+        requestId: "req_tool_1",
+      });
+    }
+
+    const request = requestAt(0);
+    expect(request.url).toBe("https://queue.fal.run/fal-ai/sam-3/image");
+    expect(request.method).toBe("POST");
+    expect(request.body).toMatchObject({
+      image_url: "https://example.com/input.png",
+      max_masks: 2,
+      prompt: "shoe",
+    });
+  });
+
+  it("polls a queued tool run to completion and returns the raw payload", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          request_id: "req_tool_2",
+          response_url:
+            "https://queue.fal.run/fal-ai/sam-3/image/requests/req_tool_2",
+        })
+      )
+      .mockResolvedValueOnce(jsonResponse({ status: "COMPLETED" }))
+      .mockResolvedValueOnce(
+        jsonResponse({ image: { url: "https://example.com/big.png" } })
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const motif = new FalClient({ apiKey: "test-key", retries: 0 });
+    const progress: string[] = [];
+    const result = await motif.runToolQueued(
+      { input: "https://example.com/input.png", tool: "sam3-image" },
+      (status) => {
+        progress.push(status);
+      }
+    );
+
+    expect(result.isOk()).toBe(true);
+    if (result.isOk()) {
+      expect(result.value).toMatchObject({
+        image: { url: "https://example.com/big.png" },
+      });
+    }
+    expect(progress).toEqual(["completed"]);
+
+    expect(requestAt(1).url).toBe(
+      "https://queue.fal.run/fal-ai/sam-3/image/requests/req_tool_2/status?logs=1"
+    );
+    expect(requestAt(2).url).toBe(
+      "https://queue.fal.run/fal-ai/sam-3/image/requests/req_tool_2"
+    );
+  });
+
+  it("stops polling a queued tool run when fal reports a failure", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        jsonResponse({
+          request_id: "req_tool_3",
+          response_url:
+            "https://queue.fal.run/fal-ai/sam-3/image/requests/req_tool_3",
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({ error: "out of memory", status: "FAILED" })
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const motif = new FalClient({ apiKey: "test-key", retries: 0 });
+    const result = await motif.runToolQueued({
+      input: "https://example.com/input.png",
+      tool: "sam3-image",
+    });
+
+    expect(result.isErr()).toBe(true);
+    const error = result.isErr() ? result.error : undefined;
+    expect(error?.message).toBe("out of memory");
+    expect(error?.requestId).toBe("req_tool_3");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });
