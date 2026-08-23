@@ -6,7 +6,11 @@
  * without stdio, subprocesses, or real fal.ai API calls.
  */
 
-import { EDIT_CAPABLE_MODELS } from "@howells/motif-sdk";
+import {
+  EDIT_CAPABLE_MODELS,
+  FAL_TOOLS,
+  isFalToolId,
+} from "@howells/motif-sdk";
 import type { FalClient } from "@howells/motif-sdk";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
@@ -72,6 +76,8 @@ interface MockMotif {
   estimateCost: Mock;
   generate: Mock;
   removeBackground: Mock;
+  runTool: Mock;
+  runToolQueued: Mock;
   upscale: Mock;
 }
 
@@ -86,6 +92,24 @@ function makeMockMotif(): MockMotif {
       .mockResolvedValue(
         makeOk({ images: [{ url: "https://fal.media/transparent.png" }] })
       ),
+    runTool: vi.fn().mockResolvedValue(
+      makeOk({
+        boxes: [[0, 0, 10, 10]],
+        image: { url: "https://fal.media/masked.png" },
+        masks: [{ url: "https://fal.media/mask-0.png" }],
+        output: "a red fox on snow",
+        scores: [0.92],
+      })
+    ),
+    runToolQueued: vi.fn().mockResolvedValue(
+      makeOk({
+        image: {
+          height: 4096,
+          url: "https://fal.media/enhanced.png",
+          width: 4096,
+        },
+      })
+    ),
     upscale: vi.fn().mockResolvedValue(
       makeOk({
         images: [
@@ -109,8 +133,11 @@ function makeMockMotif(): MockMotif {
  * reads the fields its tool actually returns.
  */
 interface ToolResponsePayload {
+  answer: string;
+  boxes: number[][];
   code: string;
-  cost_estimate: number;
+  cost_estimate: null | number;
+  cost_per_megapixel: number;
   costs: { allTime: number; session: number; today: number };
   error: boolean;
   generations: { filePath: string; prompt: string }[];
@@ -118,8 +145,14 @@ interface ToolResponsePayload {
   images: { url: string }[];
   is_retriable: boolean;
   limit: number;
+  masks: string[];
+  mode: string;
   message: string;
+  objects: unknown[];
   offset: number;
+  points: unknown[];
+  pricing: string;
+  scores: number[];
   seed: number;
   suggestions: string[];
   total: number;
@@ -169,7 +202,7 @@ function schemaPath(start: unknown, ...path: string[]): unknown {
 // ─── Connect client ──────────────────────────────────────────────────
 
 async function makeClient(motif: MockMotif) {
-  // oxlint-disable-next-line no-unsafe-type-assertion -- the mock stands in for FalClient; the server factory only calls the four mocked methods
+  // oxlint-disable-next-line no-unsafe-type-assertion -- the mock stands in for FalClient; the server factory only calls the mocked methods
   const server = createMotifMcpServer(motif as unknown as FalClient);
   const [clientTransport, serverTransport] =
     InMemoryTransport.createLinkedPair();
@@ -182,10 +215,10 @@ async function makeClient(motif: MockMotif) {
 // ─── Tool listing ────────────────────────────────────────────────────
 
 describe("ListTools", () => {
-  it("exposes exactly 5 tools", async () => {
+  it("exposes exactly 8 tools", async () => {
     const client = await makeClient(makeMockMotif());
     const { tools } = await client.listTools();
-    expect(tools).toHaveLength(5);
+    expect(tools).toHaveLength(8);
   });
 
   it("tools have expected names", async () => {
@@ -197,6 +230,9 @@ describe("ListTools", () => {
     expect(names).toContain("remove_background");
     expect(names).toContain("vary");
     expect(names).toContain("history");
+    expect(names).toContain("segment");
+    expect(names).toContain("ask");
+    expect(names).toContain("enhance");
   });
 
   it("all tools have annotations", async () => {
@@ -862,6 +898,411 @@ describe("history tool", () => {
     expect(typeof parsed.costs.allTime).toBe("number");
     expect(typeof parsed.costs.today).toBe("number");
     expect(typeof parsed.costs.session).toBe("number");
+  });
+});
+
+// ─── segment tool ────────────────────────────────────────────────────
+
+describe("segment tool", () => {
+  it("runs sam3-image with the prompt and returns masks, boxes, and scores", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: {
+        imageUrl: "https://example.com/room.png",
+        prompt: "the red chair",
+      },
+      name: "segment",
+    });
+
+    expect(motif.runTool).toHaveBeenCalledWith({
+      input: "https://example.com/room.png",
+      options: { prompt: "the red chair" },
+      tool: "sam3-image",
+    });
+    const parsed = parseToolResponse(result);
+    expect(parsed.masks).toEqual(["https://fal.media/mask-0.png"]);
+    expect(parsed.boxes).toEqual([[0, 0, 10, 10]]);
+    expect(parsed.scores).toEqual([0.92]);
+  });
+
+  it("reports the registry call price rather than a hardcoded number", async () => {
+    const client = await makeClient(makeMockMotif());
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", prompt: "a chair" },
+      name: "segment",
+    });
+
+    const price = FAL_TOOLS["sam3-image"].price;
+    if (price.kind !== "call") {
+      throw new Error("sam3-image is expected to be call-priced");
+    }
+    const parsed = parseToolResponse(result);
+    expect(parsed.cost_estimate).toBe(price.usd);
+    expect(parsed.pricing).toBe(FAL_TOOLS["sam3-image"].pricing);
+  });
+
+  it("passes maxMasks through as max_masks", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    await client.callTool({
+      arguments: {
+        imageUrl: "https://example.com/a.png",
+        maxMasks: 5,
+        prompt: "a chair",
+      },
+      name: "segment",
+    });
+
+    expect(motif.runTool).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: { max_masks: 5, prompt: "a chair" },
+      })
+    );
+  });
+
+  it("rejects a missing prompt without calling fal", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png" },
+      name: "segment",
+    });
+
+    expect(result.isError).toBe(true);
+    expect(parseToolResponse(result).code).toBe("INVALID_PARAMS");
+    expect(motif.runTool).not.toHaveBeenCalled();
+  });
+
+  it("rejects maxMasks out of range without calling fal", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: {
+        imageUrl: "https://example.com/a.png",
+        maxMasks: 500,
+        prompt: "a chair",
+      },
+      name: "segment",
+    });
+
+    expect(result.isError).toBe(true);
+    expect(parseToolResponse(result).code).toBe("INVALID_PARAMS");
+    expect(motif.runTool).not.toHaveBeenCalled();
+  });
+
+  it("returns a structured error when fal fails", async () => {
+    const motif = makeMockMotif();
+    motif.runTool.mockResolvedValue(
+      makeErrWithRequestId("fal.ai 500", "req_seg_1")
+    );
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", prompt: "a chair" },
+      name: "segment",
+    });
+
+    expect(result.isError).toBe(true);
+    const parsed = parseToolResponse(result);
+    expect(parsed.code).toBe("SEGMENT_FAILED");
+    expect(parsed.trace_id).toBe("req_seg_1");
+  });
+});
+
+// ─── ask tool ────────────────────────────────────────────────────────
+
+describe("ask tool", () => {
+  it("defaults to query mode and returns the answer text", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: {
+        imageUrl: "https://example.com/a.png",
+        question: "what animal is this?",
+      },
+      name: "ask",
+    });
+
+    expect(motif.runTool).toHaveBeenCalledWith({
+      input: "https://example.com/a.png",
+      options: { prompt: "what animal is this?" },
+      tool: "moondream-query",
+    });
+    const parsed = parseToolResponse(result);
+    expect(parsed.answer).toBe("a red fox on snow");
+    expect(parsed.mode).toBe("query");
+  });
+
+  it("produces no file: the reply carries no images", async () => {
+    const client = await makeClient(makeMockMotif());
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", mode: "caption" },
+      name: "ask",
+    });
+
+    expect(result.structuredContent).not.toHaveProperty("images");
+    expect(result.structuredContent).not.toHaveProperty("masks");
+  });
+
+  it("allows caption mode without a question", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", mode: "caption" },
+      name: "ask",
+    });
+
+    expect(result.isError).toBeFalsy();
+    expect(motif.runTool).toHaveBeenCalledWith({
+      input: "https://example.com/a.png",
+      options: {},
+      tool: "moondream-caption",
+    });
+  });
+
+  it("returns detected objects in detect mode", async () => {
+    const motif = makeMockMotif();
+    motif.runTool.mockResolvedValue(
+      makeOk({ objects: [{ x_max: 1, x_min: 0, y_max: 1, y_min: 0 }] })
+    );
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: {
+        imageUrl: "https://example.com/a.png",
+        mode: "detect",
+        question: "chairs",
+      },
+      name: "ask",
+    });
+
+    expect(motif.runTool).toHaveBeenCalledWith(
+      expect.objectContaining({ tool: "moondream-detect" })
+    );
+    expect(parseToolResponse(result).objects).toHaveLength(1);
+  });
+
+  it("returns points in point mode", async () => {
+    const motif = makeMockMotif();
+    motif.runTool.mockResolvedValue(makeOk({ points: [{ x: 0.5, y: 0.5 }] }));
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: {
+        imageUrl: "https://example.com/a.png",
+        mode: "point",
+        question: "the chair",
+      },
+      name: "ask",
+    });
+
+    expect(motif.runTool).toHaveBeenCalledWith(
+      expect.objectContaining({ tool: "moondream-point" })
+    );
+    expect(parseToolResponse(result).points).toHaveLength(1);
+  });
+
+  it("reports a metered price as null, never 0", async () => {
+    const client = await makeClient(makeMockMotif());
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", question: "what?" },
+      name: "ask",
+    });
+
+    const parsed = parseToolResponse(result);
+    expect(parsed.cost_estimate).toBeNull();
+    expect(parsed.pricing).toBe(FAL_TOOLS["moondream-query"].pricing);
+  });
+
+  it("routes each mode by the registry's queued flag, not by assumption", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    for (const mode of ["query", "caption", "detect", "point"]) {
+      motif.runTool.mockClear();
+      motif.runToolQueued.mockClear();
+      await client.callTool({
+        arguments: {
+          imageUrl: "https://example.com/a.png",
+          mode,
+          question: "a chair",
+        },
+        name: "ask",
+      });
+      const call: unknown =
+        motif.runTool.mock.calls[0]?.[0] ??
+        motif.runToolQueued.mock.calls[0]?.[0];
+      if (!isRecord(call) || typeof call.tool !== "string") {
+        throw new Error(`ask mode ${mode} called no fal path`);
+      }
+      if (!isFalToolId(call.tool)) {
+        throw new Error(`ask mode ${mode} used an unknown tool id`);
+      }
+      const entry = FAL_TOOLS[call.tool];
+      const queued = "queued" in entry && entry.queued;
+      expect(motif.runToolQueued).toHaveBeenCalledTimes(queued ? 1 : 0);
+      expect(motif.runTool).toHaveBeenCalledTimes(queued ? 0 : 1);
+    }
+  });
+
+  it("rejects an unknown mode cleanly, without calling fal", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", mode: "transcribe" },
+      name: "ask",
+    });
+
+    expect(result.isError).toBe(true);
+    const parsed = parseToolResponse(result);
+    expect(parsed.code).toBe("INVALID_PARAMS");
+    expect(parsed.suggestions.join(" ")).toContain("caption");
+    expect(motif.runTool).not.toHaveBeenCalled();
+  });
+
+  it("rejects query mode with no question", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png" },
+      name: "ask",
+    });
+
+    expect(result.isError).toBe(true);
+    expect(parseToolResponse(result).code).toBe("INVALID_PARAMS");
+    expect(motif.runTool).not.toHaveBeenCalled();
+  });
+
+  it("rejects a missing imageUrl", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { question: "what?" },
+      name: "ask",
+    });
+
+    expect(result.isError).toBe(true);
+    expect(parseToolResponse(result).code).toBe("INVALID_PARAMS");
+    expect(motif.runTool).not.toHaveBeenCalled();
+  });
+});
+
+// ─── enhance tool ────────────────────────────────────────────────────
+
+describe("enhance tool", () => {
+  it("routes through the queue, never the synchronous path", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png" },
+      name: "enhance",
+    });
+
+    expect(motif.runToolQueued).toHaveBeenCalledWith({
+      input: "https://example.com/a.png",
+      tool: "topaz-image",
+    });
+    expect(motif.runTool).not.toHaveBeenCalled();
+  });
+
+  it("every mode maps to a queued registry entry", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+    const { tools } = await client.listTools();
+    const modes = schemaPath(
+      tools.find((t) => t.name === "enhance")?.inputSchema.properties,
+      "mode",
+      "enum"
+    );
+    if (!Array.isArray(modes)) {
+      throw new TypeError("enhance should advertise a mode enum");
+    }
+
+    for (const mode of modes) {
+      motif.runToolQueued.mockClear();
+      await client.callTool({
+        arguments: { imageUrl: "https://example.com/a.png", mode },
+        name: "enhance",
+      });
+      const call: unknown = motif.runToolQueued.mock.calls[0]?.[0];
+      if (!isRecord(call) || typeof call.tool !== "string") {
+        throw new Error(`enhance mode ${String(mode)} did not reach the queue`);
+      }
+      if (!isFalToolId(call.tool)) {
+        throw new Error(`enhance mode ${String(mode)} used an unknown tool id`);
+      }
+      const entry = FAL_TOOLS[call.tool];
+      expect("queued" in entry && entry.queued).toBe(true);
+    }
+  });
+
+  it("reports megapixel pricing as a null estimate plus a unit rate", async () => {
+    const client = await makeClient(makeMockMotif());
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", mode: "restore" },
+      name: "enhance",
+    });
+
+    const price = FAL_TOOLS["topaz-restore"].price;
+    if (price.kind !== "megapixel") {
+      throw new Error("topaz-restore is expected to be megapixel-priced");
+    }
+    const parsed = parseToolResponse(result);
+    expect(parsed.cost_estimate).toBeNull();
+    expect(parsed.cost_per_megapixel).toBe(price.usd);
+  });
+
+  it("returns the enhanced image with its dimensions", async () => {
+    const client = await makeClient(makeMockMotif());
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png" },
+      name: "enhance",
+    });
+
+    const parsed = parseToolResponse(result);
+    expect(parsed.images[0].url).toBe("https://fal.media/enhanced.png");
+    expect(parsed.mode).toBe("upscale");
+  });
+
+  it("rejects an unknown mode cleanly, without calling fal", async () => {
+    const motif = makeMockMotif();
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png", mode: "beautify" },
+      name: "enhance",
+    });
+
+    expect(result.isError).toBe(true);
+    const parsed = parseToolResponse(result);
+    expect(parsed.code).toBe("INVALID_PARAMS");
+    expect(parsed.suggestions.join(" ")).toContain("upscale");
+    expect(motif.runToolQueued).not.toHaveBeenCalled();
+  });
+
+  it("returns a structured error when the queued run fails", async () => {
+    const motif = makeMockMotif();
+    motif.runToolQueued.mockResolvedValue(makeErr("queue timed out"));
+    const client = await makeClient(motif);
+
+    const result = await client.callTool({
+      arguments: { imageUrl: "https://example.com/a.png" },
+      name: "enhance",
+    });
+
+    expect(result.isError).toBe(true);
+    expect(parseToolResponse(result).code).toBe("ENHANCE_FAILED");
   });
 });
 

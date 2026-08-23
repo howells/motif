@@ -35,7 +35,14 @@ import {
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
+import { CAPABILITY_TOOLS, handleCapabilityTool } from "./capability-tools.js";
 import { readHistory } from "./history.js";
+import {
+  enumSuggestion,
+  invalidParams,
+  parseOptionalEnum,
+  toolError,
+} from "./tool-result.js";
 
 // ─── Preset → aspect resolution ─────────────────────────────────────
 
@@ -182,66 +189,6 @@ function resourcePayload(uri: string): unknown {
   }
 }
 
-function toolError(
-  code: string,
-  message: string,
-  options: {
-    isRetriable?: boolean;
-    suggestions?: string[];
-    traceId?: string;
-  } = {}
-) {
-  const structured = {
-    code,
-    error: true,
-    is_retriable: options.isRetriable ?? false,
-    message,
-    suggestions: options.suggestions ?? [],
-    ...(options.traceId === undefined ? {} : { trace_id: options.traceId }),
-  };
-
-  return {
-    content: [{ text: JSON.stringify(structured), type: "text" as const }],
-    isError: true,
-    structuredContent: structured,
-  };
-}
-
-function invalidParams(message: string, suggestions: string[]) {
-  return toolError("INVALID_PARAMS", message, { suggestions });
-}
-
-/**
- * Result of narrowing an optional enum argument.
- *
- * `ok: true` carries the matched member (or `undefined` when the argument was
- * absent); `ok: false` carries the user-facing validation message.
- */
-type ParsedEnum<T> = { error: string; ok: false } | { ok: true; value?: T };
-
-/**
- * Narrow an optional value to a member of `allowed`.
- *
- * Absent values are accepted as `undefined`; present values must match a
- * member exactly, otherwise a validation message is returned. Replaces blind
- * `args as {...}` casts with a real type guard now that MOT-10 added runtime
- * validation upstream.
- */
-function parseOptionalEnum<T extends string>(
-  value: unknown,
-  allowed: readonly T[],
-  field: string
-): ParsedEnum<T> {
-  if (value === undefined) {
-    return { ok: true };
-  }
-  const match = allowed.find((option) => option === value);
-  if (match === undefined) {
-    return { error: `Invalid ${field}: ${JSON.stringify(value)}`, ok: false };
-  }
-  return { ok: true, value: match };
-}
-
 /** Narrow an optional value to a member of `allowed`, or `undefined`. */
 function optionalOneOf<T extends string>(
   value: unknown,
@@ -281,13 +228,6 @@ const OUTPUT_FORMATS: readonly ImageOutputFormat[] = ["jpeg", "png", "webp"];
 const INPUT_FIDELITIES = ["low", "high"] as const;
 const UPSCALE_MODELS = ["clarity", "crystal"] as const;
 const REMOVE_BACKGROUND_MODELS = ["rmbg", "bria"] as const;
-
-/** Build a suggestion string listing valid enum values (truncated if long). */
-function enumSuggestion(field: string, allowed: readonly string[]): string {
-  const shown = allowed.slice(0, 20);
-  const suffix = allowed.length > shown.length ? ", …" : "";
-  return `Valid ${field} values: ${shown.join(", ")}${suffix}`;
-}
 
 function imageContent(image: {
   height?: null | number;
@@ -673,7 +613,13 @@ const TOOLS = [
       type: "object",
     },
   },
+  ...CAPABILITY_TOOLS,
 ];
+
+/** Reject a tool name no handler recognizes. */
+function unknownTool(name: string): never {
+  throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+}
 
 // ─── Server factory ──────────────────────────────────────────────────
 
@@ -1020,7 +966,9 @@ export function createMotifMcpServer(motif: FalClient): Server {
       };
     }
 
-    throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
+    // ── segment / ask / enhance ───────────────────────────────────
+
+    return (await handleCapabilityTool(motif, name, args)) ?? unknownTool(name);
   });
 
   return server;
