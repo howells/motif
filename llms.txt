@@ -9,6 +9,19 @@
 - [Security notes](./docs/security.md) - FAL_KEY handling, MCP trust boundary, local history exposure, and ephemeral generation limits.
 - [Surface scorecard](./docs/surface/scorecard.md) - Current agent-readiness score and dimension summary.
 
+## Fal Tools
+
+71 fal endpoints beyond generation, reached by `motif tool run <id>` or one of seven promoted verbs (`segment`, `ask`, `erase`, `reframe`, `enhance`, `layers`, `vectorize`). Read the live registry from `motif tool list --format json`; never hardcode ids or prices.
+
+- [Understanding images](./docs/tools/understanding-images.md) - segment, ask, detect, OCR, and the segment-then-edit pipeline.
+- [Preprocessors](./docs/tools/preprocessors.md) - depth, pose and edge control maps, and which downstream model consumes each.
+- [Repair and restore](./docs/tools/repair-and-restore.md) - erase vs generative fill vs Topaz, and when the $0.024 eraser beats the $0.27 one.
+- [Layers, vectors and materials](./docs/tools/layers-vectors-materials.md) - what layerize actually returns, generate-then-vectorise, photo-to-PBR.
+- [Pipelines](./docs/tools/pipelines.md) - chained one-liners, field masks, and where each command family puts its output path.
+- [Example regeneration script](./docs/tools/regenerate.sh) - reproduces every example image; prices first, refuses to spend without an explicit flag.
+
+Two invariants: `estimatedCost: null` means metered or per-unit billing, not free; and 29 of the 71 entries are `queued` and route through fal's queue because they outrun the 120-second synchronous window.
+
 ## Packages
 
 - [CLI package](./apps/cli) - `@howells/motif-cli`, the `motif` binary, terminal Studio, CLI tests, and package-specific agent guide.
