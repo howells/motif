@@ -436,27 +436,47 @@ motif --rmbg --output cutout.png
 
 ## Fal Tools
 
-`motif tool` exposes fal utility endpoints with a normalized CLI shape. Local images and videos are uploaded automatically; remote `https://` URLs are passed through.
+Seventy-one fal endpoints beyond generation: segmentation, visual question answering, erasers, upscalers, control-map preprocessors, layer and text extraction, vectorisers, PBR material decomposition, relighting, reframing, 3D reconstruction and moderation. Local images and videos are uploaded automatically; remote `https://` URLs pass through.
+
+Seven of them have a verb of their own. The rest run through `motif tool run <id>`.
 
 ```bash
-# Inspect the registered utility tools
-motif tool list --format json
-motif tool describe sam3-image --format json
+# What is in this image, and where
+motif segment "the white ceramic bowl" shelf.jpg -o segment/   # SAM 3, $0.005
+motif ask "how many bottles are there?" shelf.jpg              # Moondream, prose back, writes no file
 
-# Dry-run the exact fal request body before spending credits
-motif tool sam3-image image.png --prompt "person" --dry-run --format json
+# Take something out, put something back, recut
+motif erase "the parked car" street.jpg                        # $0.024 - leaves cast shadows
+motif reframe --story cover.png                                # $0.06, needs a target ratio
 
-# Run common utilities
-motif tool topaz-image image.png --scale 2 --output upscaled.jpg
-motif tool bria-video-rmbg clip.mp4 --background-color Transparent --output cutout.webm
-motif tool sam2-auto image.png --points-per-side 64 --output masks.png
-motif tool marigold-depth image.png --num-inference-steps 10 --output depth.png
-motif tool nsfw --inputs frame1.png frame2.png --format json
+# Repair and enlarge
+motif enhance --restore old-photo.jpg                          # eight Topaz modes, one per call
+
+# Take a design apart
+motif layers poster.png -o layers/                             # stacked RGBA layers
+motif vectorize logo.png -o logo.svg                           # raster to clean SVG
+
+# Everything else, by registry id
+motif tool list --format json                                  # the live registry
+motif tool describe patina --format json                       # one tool: outputs, pricing, queue behaviour
+motif tool run depth-anything room.jpg -o depth.png            # control map for conditioned generation
+motif tool run patina linen.jpg -o pbr/                        # basecolor, normal, roughness, metalness, height
+motif tool run finegrain-eraser shelf.jpg --prompt "the bottle" -o clean.jpg   # $0.27 - shadows go too
 ```
 
-Shared normalized flags include `--prompt`, `--output-format`, `--scale`, `--model`, `--apply-mask`, `--crop-to-bbox`, `--mask-only`, `--return-multiple-masks`, `--include-scores`, `--include-boxes`, `--max-masks`, `--detection-threshold`, `--operating-resolution`, `--points-per-side`, `--pred-iou-thresh`, `--stability-score-thresh`, `--min-mask-region-area`, `--num-inference-steps`, `--ensemble-size`, `--background-color`, `--codec`, `--preserve-audio`, `--target-fps`, `--h264`, and `--video-output-type`. Provider-specific fields can be passed with `--json '{"field":true}'` or repeatable `--option key=value`.
+`-o` ending in a slash writes every output the tool produced, named by its registry output key. Anything else writes the primary output only.
 
-Utility tool inputs are validated before API calls where constraints are known. For example, `marigold-depth --ensemble-size` must be at least `2`.
+Shared normalized flags include `--prompt`, `--output-format`, `--scale`, `--model`, `--apply-mask`, `--crop-to-bbox`, `--mask-only`, `--return-multiple-masks`, `--include-scores`, `--include-boxes`, `--max-masks`, `--detection-threshold`, `--operating-resolution`, `--points-per-side`, `--pred-iou-thresh`, `--stability-score-thresh`, `--min-mask-region-area`, `--num-inference-steps`, `--ensemble-size`, `--background-color`, `--codec`, `--preserve-audio`, `--target-fps`, `--h264`, and `--video-output-type`. Provider-specific fields go through `--json '{"field":true}'` or repeatable `--option key=value`. Inputs are validated before any API call where the constraint is known - `marigold-depth --ensemble-size` must be at least `2`.
+
+Two things to know before budgeting. Metered and per-unit endpoints report `estimatedCost: null` with `estimatedCostPerMegapixel` or `estimatedCostPerSecond` beside it - the cost genuinely is not knowable before the call, and `null` is not free. And 29 of the 71 entries are marked `queued`: they outrun the 120-second synchronous window and route through fal's queue, so a run taking minutes is normal.
+
+### Guides
+
+- [Understanding images](docs/tools/understanding-images.md) - segment, ask, detect, OCR, and the segment-then-edit pipeline.
+- [Preprocessors](docs/tools/preprocessors.md) - depth, pose and the edge family: which map for which job.
+- [Repair and restore](docs/tools/repair-and-restore.md) - erase vs fill vs Topaz, and when $0.024 beats $0.27.
+- [Layers, vectors and materials](docs/tools/layers-vectors-materials.md) - what layerize is actually for, generate-then-vectorise, photo-to-PBR.
+- [Pipelines](docs/tools/pipelines.md) - chained one-liners, field masks, and where each command puts its output path.
 
 ## Video
 
