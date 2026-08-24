@@ -107,8 +107,24 @@ jobs:
         run: |
           set -euo pipefail
           version=$(node -p "require('./apps/cli/package.json').version")
-          resolved=$(npm view "@howells/motif-cli@$version" dependencies --json \
-            | node -p "JSON.parse(require('fs').readFileSync(0,'utf8'))['@howells/motif-sdk']")
+
+          # A fresh publish takes a moment to reach the read path, so a 404 here
+          # means "not yet", not "not published". Retry before believing it.
+          deps=""
+          for attempt in 1 2 3 4 5 6; do
+            if deps=$(npm view "@howells/motif-cli@$version" dependencies --json 2>/dev/null); then
+              break
+            fi
+            echo "  registry has not caught up yet (attempt $attempt), waiting"
+            sleep 10
+            deps=""
+          done
+          if [ -z "$deps" ]; then
+            echo "::error::@howells/motif-cli@$version not readable from the registry"
+            exit 1
+          fi
+
+          resolved=$(printf '%s' "$deps" | node -pe "JSON.parse(require('fs').readFileSync(0,'utf8'))['@howells/motif-sdk']")
           echo "@howells/motif-cli@$version depends on motif-sdk $resolved"
           case "$resolved" in
             workspace:*|undefined) echo "::error::unresolved workspace protocol published"; exit 1 ;;
