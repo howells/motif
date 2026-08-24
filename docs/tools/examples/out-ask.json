@@ -1,0 +1,12 @@
+{
+  "finish_reason": "stop",
+  "usage_info": {
+    "input_tokens": 744,
+    "output_tokens": 42,
+    "prefill_time_ms": 34.47938399767736,
+    "decode_time_ms": 115.33164600041346,
+    "ttft_ms": 42.56808499849285
+  },
+  "output": "3 bottles and a white ceramic bowl",
+  "reasoning": "I see three bottles. To the right of the bottles, I see a white bowl. The bowl appears to be made of ceramic."
+}

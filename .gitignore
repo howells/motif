@@ -28,3 +28,8 @@ coverage/
 # Phase 0 benchmark spike — local, own tsc+vitest gate; not held to the published-package standard yet (MOT-23)
 /bench/
 .env*
+
+# Demo artefacts that nothing renders; regenerate with scripts/run-demos.mjs
+docs/tools/examples/**/*.glb
+docs/tools/examples/**/*.zip
+docs/tools/examples/**/*.ply

@@ -69,7 +69,15 @@ Run against the apothecary still life, it returns a five-layer stack:
 
 Two things make that more useful than a flat RGBA split.
 
-**Layer 0 is a reconstructed empty set.** Every object removed and the surface behind it inpainted - the plaster wall, the travertine ledge and the raking light all intact. It's the scene with the props taken out, which is the hardest thing to get any other way.
+**Layer 0 is whatever is left over, which is not the same as an empty scene.** It holds the complement of the layers you asked for. Unprompted, as here, the model picks out the objects and layer 0 is the plate behind them - plaster wall, travertine ledge and raking light intact, the scene with the props taken out.
+
+Prompt it, and layer 0 changes with the prompt. Ask an interior for "the ceiling, each wall plane, the skirting board" and layer 0 comes back holding the sofa, the lamp, the floor and the picture: a room full of furniture with no walls. That is correct behaviour and it surprises people, because the name suggests a background and what it actually means is *the residual*.
+
+So: **layer 0 is the background plate only when the layers you asked for are the foreground.** Do not build on it as a clean plate without checking what your own prompt left behind.
+
+**`image_size` moves the reporting frame, not the render resolution.** Layers come back rendered at their own working resolution and reported against a box in frame-space, and the two are not the same number. Measured across `auto` and `auto_1.5K` on the same source, the frame scales but the per-layer factor barely moves: a wide wall arrives at exactly its box, a narrow one at about 2.6x it, in both settings. The scaling is uniform, so resizing back to the box is a clean downsample rather than a correction. `layer.image.width` and `.height` are `null` in the response - use `-o dir/ --fields files`, which reports the dimensions Motif measured on download.
+
+Thanks to the Samplize session, who measured this on production interiors and caught the sign of it before I did.
 
 **Each object layer is cropped to its own bounding box on transparency**, and carries a human-readable `name` and `description` alongside `z_index` and both absolute and normalised coordinates.
 

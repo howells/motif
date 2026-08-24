@@ -1,0 +1,377 @@
+{
+  "note": "Every distinct capability in the fal non-generation catalogue, paired with a source chosen so the effect is actually visible. The trap this guards against: running a restoration tool on a clean image and calling the identical output a demonstration. Where an effect only reads at full magnification, `crop` says so.",
+  "sources": [
+    {
+      "id": "still-life",
+      "have": "docs/tools/examples/source-apothecary.jpg",
+      "for": "segmentation, erase, layers, analysis"
+    },
+    {
+      "id": "interior",
+      "have": "docs/tools/examples/source-interior.jpg",
+      "for": "depth, reframe, expand"
+    },
+    {
+      "id": "linen",
+      "have": "docs/tools/examples/source-linen.jpg",
+      "for": "pbr, tiling"
+    },
+    {
+      "id": "vessel",
+      "have": "docs/tools/examples/source-vessel.jpg",
+      "for": "background removal, relight, 3d, upscale"
+    },
+    {
+      "id": "label",
+      "have": "docs/tools/examples/source-label.jpg",
+      "for": "text removal, type layers, ocr"
+    },
+    {
+      "id": "figure",
+      "model": "banana",
+      "aspect": "--portrait",
+      "prompt": "Full-length editorial photograph of a person standing in a bare plaster room, wearing loose oatmeal linen, arms relaxed and slightly away from the body, one knee bent, head turned three-quarters to camera, raking north light, warm neutral palette, matte, medium format",
+      "for": "pose estimation"
+    },
+    {
+      "id": "monochrome",
+      "model": "banana",
+      "aspect": "--landscape",
+      "prompt": "A genuine black-and-white silver gelatin photograph from the 1950s: a woman in a wool coat standing beside a parked car on a wet cobbled street, soft grey tonal range, visible film grain, absolutely no colour anywhere in the frame, documentary photography",
+      "for": "colourisation"
+    },
+    {
+      "id": "noisy",
+      "model": "banana",
+      "aspect": "--landscape",
+      "prompt": "A very high-ISO night photograph of a dimly lit bar interior, heavy luminance and chroma noise across the whole frame, grainy shadows, muddy dark tones, handheld, ISO 12800, visibly noisy digital photograph",
+      "for": "denoise"
+    },
+    {
+      "id": "harsh",
+      "model": "banana",
+      "aspect": "--square",
+      "prompt": "A stoneware bottle on a white surface lit by a single hard undiffused flash from the upper right, producing a harsh black shadow with a razor edge, blown highlights on the shoulder of the bottle, unflattering direct light, product photograph badly lit",
+      "for": "remove lighting, relight"
+    },
+    {
+      "id": "mark",
+      "model": "banana",
+      "aspect": "--square",
+      "prompt": "A simple flat vector wordmark on a plain bone-white ground: the word SALVAGE in a heavy geometric sans-serif, deep olive, beneath it a single horizontal rule and a small circular monogram, absolutely flat solid colour with no gradients, no texture, no photography, logo artwork",
+      "for": "vectorization"
+    }
+  ],
+  "demos": [
+    {
+      "plate": "segment",
+      "tool": "sam3-image",
+      "source": "still-life",
+      "opts": {
+        "prompt": "the white ceramic bowl"
+      },
+      "dir": true,
+      "why": "A mask from a description, with no clicking and no hand-drawn box. It feeds straight into an edit call's mask parameter, which is what makes the rest of the catalogue composable.",
+      "section": "select",
+      "title": "A mask from a phrase"
+    },
+    {
+      "plate": "segment-auto",
+      "tool": "sam2-auto",
+      "source": "still-life",
+      "dir": true,
+      "why": "Every region at once rather than one you named. Use it to inventory an unfamiliar image before deciding what to act on.",
+      "section": "select",
+      "title": "Every region at once"
+    },
+    {
+      "plate": "ask",
+      "tool": "moondream-query",
+      "source": "still-life",
+      "opts": {
+        "prompt": "How many bottles are there, and what is the vessel on the right made of?"
+      },
+      "json": true,
+      "why": "Reads an image into an answer. The cheapest way to branch a pipeline on what a picture actually contains.",
+      "section": "read",
+      "title": "Ask a question about a picture"
+    },
+    {
+      "plate": "detect",
+      "tool": "moondream-detect",
+      "source": "still-life",
+      "opts": {
+        "prompt": "bottle"
+      },
+      "json": true,
+      "why": "Open-vocabulary detection: boxes for anything you can name, without training a detector for it.",
+      "section": "read",
+      "title": "Find anything you can name"
+    },
+    {
+      "plate": "ocr",
+      "tool": "got-ocr",
+      "source": "label",
+      "json": true,
+      "why": "Type out of a photograph as text. The step before you can search, index or re-set what a picture says.",
+      "section": "read",
+      "title": "Read the type off a photograph"
+    },
+    {
+      "plate": "depth",
+      "tool": "depth-anything",
+      "source": "interior",
+      "why": "Distance encoded as brightness. Feed it to a ControlNet-style model to regenerate a scene while keeping its geometry.",
+      "section": "structure",
+      "title": "Distance as brightness"
+    },
+    {
+      "plate": "pose",
+      "tool": "dwpose",
+      "source": "figure",
+      "why": "A body reduced to a skeleton. Hold a figure's stance steady while everything else about the image changes.",
+      "section": "structure",
+      "title": "A body as a skeleton"
+    },
+    {
+      "plate": "lineart",
+      "tool": "lineart",
+      "source": "vessel",
+      "why": "Contour without tone or colour. Carries composition into a restyle that would otherwise drag the original palette with it.",
+      "section": "structure",
+      "title": "Contour without colour"
+    },
+    {
+      "plate": "normals",
+      "tool": "midas-preprocessor",
+      "source": "linen",
+      "why": "Surface direction per pixel. The input a renderer needs to light a flat photograph as though it had relief.",
+      "section": "structure",
+      "title": "Surface direction per pixel"
+    },
+    {
+      "plate": "rmbg",
+      "tool": "birefnet",
+      "source": "vessel",
+      "png": true,
+      "why": "A cut-out on transparency. The first step of any composite, and the reason alpha matters more than resolution here.",
+      "section": "select",
+      "title": "Cut out to transparency"
+    },
+    {
+      "plate": "erase-cheap",
+      "tool": "object-removal",
+      "source": "still-life",
+      "opts": {
+        "prompt": "the smallest amber bottle"
+      },
+      "why": "Take an object out and rebuild what was behind it. Cheap, and it leaves what the object did to the light.",
+      "section": "remove",
+      "title": "Remove an object for $0.024"
+    },
+    {
+      "plate": "erase-good",
+      "tool": "finegrain-eraser",
+      "source": "still-life",
+      "opts": {
+        "prompt": "the smallest amber bottle"
+      },
+      "why": "The same removal including the object's shadow and its caustic. Eleven times the price, and the only version that survives a second look.",
+      "section": "remove",
+      "title": "Remove its shadow too, for $0.27"
+    },
+    {
+      "plate": "text-removal",
+      "tool": "text-removal",
+      "source": "label",
+      "why": "Strip the words and keep the surface. Useful when the artwork is right and the copy is not.",
+      "section": "remove",
+      "title": "Strip the words, keep the surface"
+    },
+    {
+      "plate": "expand",
+      "tool": "bria-expand",
+      "source": "interior",
+      "opts": {
+        "canvas_size": [1536, 1536]
+      },
+      "why": "Invent canvas beyond the frame. For when a crop is tight and reframing would cut something you need.",
+      "section": "reshape",
+      "title": "Invent canvas beyond the frame"
+    },
+    {
+      "plate": "reframe",
+      "tool": "ideogram-reframe",
+      "source": "interior",
+      "opts": {
+        "image_size": {
+          "height": 1536,
+          "width": 1024
+        }
+      },
+      "why": "One image into another ratio without regenerating it. Regenerating gives you a different picture; this gives you the same one, differently shaped.",
+      "section": "reshape",
+      "title": "A new ratio, the same picture"
+    },
+    {
+      "plate": "upscale",
+      "tool": "topaz-precision",
+      "source": "vessel",
+      "derive": "shrink-360",
+      "crop": true,
+      "why": "Detail recovered rather than pixels stretched. Judge it at full magnification or you are judging the thumbnail.",
+      "section": "repair",
+      "title": "Detail recovered, not stretched"
+    },
+    {
+      "plate": "denoise",
+      "tool": "topaz-denoise",
+      "source": "noisy",
+      "crop": true,
+      "why": "Sensor noise removed without taking the texture with it. The failure mode of a bad denoiser is wax, so look at the grain, not the whole frame.",
+      "section": "repair",
+      "title": "Noise gone, texture kept"
+    },
+    {
+      "plate": "colourise",
+      "tool": "ddcolor",
+      "source": "monochrome",
+      "why": "Plausible colour for a monochrome original. It is an interpretation, not a recovery: nothing in the negative knows what colour the coat was.",
+      "section": "repair",
+      "title": "Colour for a monochrome original"
+    },
+    {
+      "plate": "unlight",
+      "tool": "remove-lighting",
+      "source": "harsh",
+      "why": "Harsh directional light flattened to an even base. What you want before compositing a product into a scene with different lighting.",
+      "section": "relight",
+      "title": "Take the light out"
+    },
+    {
+      "plate": "relight",
+      "tool": "iclight-v2",
+      "source": "harsh",
+      "opts": {
+        "prompt": "soft diffused north window light from the left, gentle falloff, no hard shadow"
+      },
+      "why": "Light the shot again after it was taken. Cheaper than reshooting and the only option when the subject is gone.",
+      "section": "relight",
+      "title": "Put different light back"
+    },
+    {
+      "plate": "layers-objects",
+      "tool": "seedream-layerize",
+      "source": "still-life",
+      "dir": true,
+      "why": "A scene taken apart into named objects plus the emptied room behind them. Re-compose without regenerating anything.",
+      "section": "decompose",
+      "title": "A scene as named objects"
+    },
+    {
+      "plate": "layers-type",
+      "tool": "ideogram-layerize-text",
+      "source": "label",
+      "dir": true,
+      "why": "The plate with the type lifted off, and the type returned as positions and fonts. For changing what a finished design says.",
+      "section": "decompose",
+      "title": "Type lifted off a design"
+    },
+    {
+      "plate": "vectorize",
+      "tool": "recraft-vectorize",
+      "source": "mark",
+      "svg": true,
+      "why": "Pixels to paths. Scales to any size, edits as shapes, and prints without a resolution argument.",
+      "section": "material",
+      "title": "Pixels to paths"
+    },
+    {
+      "plate": "pbr",
+      "tool": "patina",
+      "source": "linen",
+      "dir": true,
+      "why": "A photograph of a surface becomes the five maps a renderer needs to light it. Photograph a material once, use it in 3D forever.",
+      "section": "material",
+      "title": "Five maps from one photograph"
+    },
+    {
+      "plate": "tiling",
+      "tool": "ideogram-tiling",
+      "source": "linen",
+      "opts": {
+        "prompt": "seamless undyed linen weave, natural oat, flat even light"
+      },
+      "why": "A texture that repeats without a visible seam. The difference between a photograph of fabric and a material you can apply.",
+      "section": "material",
+      "title": "A texture that repeats"
+    },
+    {
+      "plate": "3d",
+      "tool": "trellis-2",
+      "source": "vessel",
+      "dir": true,
+      "why": "A mesh from a single photograph. Not a scan, but enough geometry to place a real object into a rendered scene. The mesh itself is not kept in the repository - it is 15MB of geometry that nothing on a page can render. Regenerate it with scripts/run-demos.mjs.",
+      "section": "material",
+      "title": "A mesh from a single photograph",
+      "artefactNotRetained": true
+    },
+    {
+      "plate": "nsfw",
+      "tool": "nsfw",
+      "source": "still-life",
+      "json": true,
+      "inputs": true,
+      "why": "A sub-cent gate for a pipeline that publishes what it generates. Returns a probability, not a decision.",
+      "section": "read",
+      "title": "Gate a pipeline for a fraction of a penny"
+    }
+  ],
+  "sections": [
+    {
+      "id": "read",
+      "title": "Read an image",
+      "standfirst": "Tools that return data rather than pixels. Everything here can gate a pipeline in CI, because the answer is checkable without looking."
+    },
+    {
+      "id": "select",
+      "title": "Select part of it",
+      "standfirst": "Getting a region out, by name or automatically. The mask is what makes everything downstream composable."
+    },
+    {
+      "id": "structure",
+      "title": "Describe its structure",
+      "standfirst": "Conditioning inputs. None of these is useful alone; each is the first step of a controlled generation."
+    },
+    {
+      "id": "remove",
+      "title": "Take something out",
+      "standfirst": "Removal, and the question of what an object leaves behind when it goes."
+    },
+    {
+      "id": "reshape",
+      "title": "Change its shape",
+      "standfirst": "More canvas, or a different ratio, without regenerating the picture."
+    },
+    {
+      "id": "repair",
+      "title": "Repair it",
+      "standfirst": "Recovering what compression, noise or age destroyed. Judge these at full magnification or you are judging a thumbnail."
+    },
+    {
+      "id": "relight",
+      "title": "Light it again",
+      "standfirst": "Separating a surface from the light falling on it, then putting light back."
+    },
+    {
+      "id": "decompose",
+      "title": "Take it apart",
+      "standfirst": "Two tools called layerize, doing two genuinely different jobs."
+    },
+    {
+      "id": "material",
+      "title": "Turn it into a material",
+      "standfirst": "A photograph becomes something a renderer can light, tile or scale."
+    }
+  ]
+}
