@@ -69,6 +69,22 @@ describe("createFalGenerationClient", () => {
   });
 });
 
+/**
+ * A complete, valid server env.
+ *
+ * `createLiveEngine()` resolves credentials through `getLiveCredentials()`,
+ * which parses the *entire* server schema and returns null if any field is
+ * missing — so setting `FAL_KEY` alone is not enough to construct the engine.
+ * Handing in a whole env keeps these tests hermetic; mutating `process.env`
+ * only ever passed because a developer's local `.env` supplied the database
+ * URLs, and the same tests failed in CI where it does not exist.
+ */
+const LIVE_ENV: NodeJS.ProcessEnv = {
+  DATABASE_URL: "postgres://user:pass@ep-foo-pooler.us-east-1.aws.neon.tech/db",
+  DIRECT_DATABASE_URL: "postgres://user:pass@ep-foo.us-east-1.aws.neon.tech/db",
+  FAL_KEY: "fal_test_key",
+};
+
 describe("createLiveEngine", () => {
   const originalFalKey = process.env.FAL_KEY;
 
@@ -89,9 +105,8 @@ describe("createLiveEngine", () => {
     expect(() => createLiveEngine({ FAL_KEY: "" })).toThrow(/requires FAL_KEY/);
   });
 
-  it("constructs successfully, flagged isMock: false, once FAL_KEY is present", () => {
-    process.env.FAL_KEY = "fal_test_key";
-    const engine = createLiveEngine();
+  it("constructs successfully, flagged isMock: false, given a complete env", () => {
+    const engine = createLiveEngine(LIVE_ENV);
     expect(engine.isMock).toBe(false);
     expect(engine.judgeModelLabel).toBe(FAL_JUDGE_MODEL_ID);
   });
@@ -391,8 +406,7 @@ describe("comparativeJudge — the engine seam", () => {
   });
 
   it("is present on the live engine and labelled with the rank judge model", () => {
-    process.env.FAL_KEY = "fal_test_key";
-    expect(createLiveEngine().comparativeJudge?.modelLabel).toBe(
+    expect(createLiveEngine(LIVE_ENV).comparativeJudge?.modelLabel).toBe(
       FAL_RANK_JUDGE_MODEL_ID
     );
   });
