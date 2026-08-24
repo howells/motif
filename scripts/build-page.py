@@ -988,7 +988,7 @@ def build():
 {BUGS}
 
   <footer>
-    <div>@howells/motif-sdk 1.2.0 &middot; @howells/motif-cli 1.9.0 &middot; @howells/motif-mcp 0.4.0</div>
+    <div>@howells/motif-sdk 1.3.0 &middot; @howells/motif-cli 1.10.0</div>
     <div>Every plate produced through the CLI against the source beside it, and checked by
       scripts/verify-demos.py to have measurably changed the picture. Source photography made
       for this page. Prices are the registry's; per-run figures are the CLI's own history.</div>

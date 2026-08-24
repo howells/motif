@@ -177,15 +177,5 @@ describe("package smoke", () => {
       "dist/index.js",
       "package.json",
     ]);
-
-    const mcpPack = await npmPackDryRun(
-      resolve(repoRoot, "packages/motif-mcp")
-    );
-    expectPublicPackage(mcpPack, [
-      "README.md",
-      "bin/motif-mcp",
-      "dist/index.js",
-      "package.json",
-    ]);
   }, 30_000);
 });

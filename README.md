@@ -4,11 +4,11 @@
 <h1 align="center">Motif</h1>
 
 <p align="center">
-  Public SDK, CLI, and MCP server for <a href="https://fal.ai">fal.ai</a> image, video, editing, and utility endpoints<br>
-  <code>npm install @howells/motif-sdk</code> · <code>npm install -g @howells/motif-cli</code> · <code>npm install -g @howells/motif-mcp</code>
+  Public SDK and CLI for <a href="https://fal.ai">fal.ai</a> image, video, editing, and utility endpoints<br>
+  <code>npm install @howells/motif-sdk</code> · <code>npm install -g @howells/motif-cli</code>
 </p>
 
-Motif is a public TypeScript toolkit for fal.ai. It provides a Node SDK, an agent-friendly CLI, and a local MCP server over the same model registry, request normalization, cost estimates, utility tools, and benchmark metadata.
+Motif is a public TypeScript toolkit for fal.ai. It provides a Node SDK and an agent-friendly CLI over the same model registry, request normalization, cost estimates, utility tools, and benchmark metadata.
 
 ## Quick Start
 
@@ -67,26 +67,6 @@ motif "futuristic city map" --model ideogram --style DESIGN --dry-run --format j
 
 Run `motif` with no arguments to show help. Use `motif studio` to launch the interactive terminal studio.
 
-### MCP
-
-```bash
-npm install -g @howells/motif-mcp
-```
-
-```json
-{
-  "mcpServers": {
-    "motif": {
-      "command": "npx",
-      "args": ["-y", "@howells/motif-mcp"],
-      "env": {
-        "FAL_KEY": "${FAL_KEY}"
-      }
-    }
-  }
-}
-```
-
 ## Install
 
 SDK:
@@ -107,12 +87,6 @@ Or run without installing:
 npx @howells/motif-cli "your prompt"
 ```
 
-MCP:
-
-```bash
-npm install -g @howells/motif-mcp
-```
-
 For local development:
 
 ```bash
@@ -127,15 +101,14 @@ pnpm link --global
 
 - SDK: `createMotifImage` (`@howells/motif-sdk/image`) is the primary image API — a provider-agnostic generate/edit/best-of-N layer over google, openai, replicate, and fal with per-call cost tracking. The low-level `FalClient` covers fal-native extras (upscaling, background removal, video jobs, fal utility tools, queue polling, CDN upload, and payload cleanup), alongside `buildGenerateBody`, model/tool registries, leaderboard snapshots, sizing helpers, and cost estimates.
 - CLI: text-to-image, reference-image editing, upscaling, background removal, image-to-video, local history and costs, series management, terminal Studio, CWD-sandboxed output paths, and validated inputs.
-- MCP: local stdio tools for `generate`, `upscale`, `remove_background`, `vary`, and `history`, plus read-only `motif://models`, `motif://tools`, `motif://leaderboards`, and `motif://history/schema` resources.
-- Agent interfaces: `--format json`, `--format ndjson`, `--fields`, `--dry-run`, stdin JSON, `--describe`, structured errors, and MCP structured content.
+- Agent interfaces: `--format json`, `--format ndjson`, `--fields`, `--dry-run`, stdin JSON, `--describe`, and structured errors.
 - Model coverage: OpenAI, Gemini, FLUX, Recraft, Ideogram, Nano Banana, Seedream, Grok, Qwen, Kling video, and fal utility endpoints.
 
 ## Agent Entry Points
 
 - `AGENTS.md` - repo commands, package map, architecture boundaries, and permission rules.
 - `llms.txt` - compact agent-readable index of docs, package surfaces, tests, and source entrypoints.
-- `docs/security.md` - `FAL_KEY`, MCP trust boundaries, local history exposure, and `--ephemeral` caveats.
+- `docs/security.md` - `FAL_KEY`, local history exposure, and `--ephemeral` caveats.
 - `docs/surface/scorecard.md` - current agent-readiness scorecard.
 - `motif --describe --format json` - live CLI schema for commands, models, tools, leaderboards, and errors.
 
@@ -178,16 +151,6 @@ const result = await fal.generate(options);
 ```
 
 The SDK exports `createMotifImage` (the primary image API) plus `FalClient`, `buildGenerateBody`, model/tool registries, leaderboard snapshots, sizing helpers, cost estimators, `FAL_KEY` parsing, public option/response types, and `neverthrow` `Result` helpers. `FalClient` is the fal-native client: sync and queued generation, upscaling, background removal, Kling video queue jobs, fal CDN upload, utility tools, and fal request payload deletion.
-
-## MCP
-
-Install the MCP server when you want local MCP clients to call Motif:
-
-```bash
-npm install -g @howells/motif-mcp
-```
-
-It exposes mutating tools for `generate`, `upscale`, `remove_background`, and `vary`, plus a read-only `history` tool. Read-only MCP resources expose `motif://models`, `motif://tools`, `motif://leaderboards`, and `motif://history/schema`.
 
 ## Models
 

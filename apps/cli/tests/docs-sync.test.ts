@@ -11,7 +11,6 @@ const repoRoot = resolve(testDir, "../../..");
 
 const cliAgentsPath = resolve(testDir, "../AGENTS.md");
 const readmePath = resolve(repoRoot, "README.md");
-const mcpReadmePath = resolve(repoRoot, "packages/motif-mcp/README.md");
 
 function read(path: string): string {
   return readFileSync(path, "utf-8");
@@ -36,7 +35,6 @@ describe("docs sync", () => {
     const docs: [string, string][] = [
       ["README.md", readmePath],
       ["apps/cli/AGENTS.md", cliAgentsPath],
-      ["packages/motif-mcp/README.md", mcpReadmePath],
     ];
     for (const [label, path] of docs) {
       expect(

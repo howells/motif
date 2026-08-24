@@ -22,7 +22,7 @@ Last audited: 2026-08-24
   11. Data Retrievability [---]  N/A   No retrievable knowledge/RAG surface
 
 ==============================================================================
-  TOTAL: 22/24 (scaled: 27/30)
+  TOTAL: 19/21 (scaled: 27/30)
   RATING: Agent-first
 
   Human-only        Agent-tolerant      Agent-ready        Agent-first
@@ -40,6 +40,14 @@ Last audited: 2026-08-24
 
 - Error Handling 2→3: SURF-5 completed — fal's `x-fal-request-id` now surfaces as RFC 7807 `instance` (CLI) and `trace_id` (MCP) on fal-originated failures.
 - Full type-aware lint enabled across the workspace (667 findings cleared); Studio settings save failures now surface.
+
+## MCP retired, 2026-08-24
+
+`@howells/motif-mcp` was removed from the repo and deprecated on npm. It scored 3/3 the
+same day, so this is a scope decision rather than a quality one: the package's only real
+audience was clients with no shell, and every capability it exposed is reachable through
+the CLI, which is agent-first by design. Raw total drops 22/24 → 19/21 as a dimension
+becomes N/A; the scaled score and rating are unchanged.
 
 ## Remaining (deliberate, not gaps in scope)
 

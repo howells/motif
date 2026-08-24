@@ -1,14 +1,13 @@
 # Motif
 
-Motif is the public SDK, CLI, and MCP server for fal.ai image, video, editing, and utility endpoints. This repo is public.
+Motif is the public SDK and CLI for fal.ai image, video, editing, and utility endpoints. This repo is public.
 
-`apps/cli/AGENTS.md` is the detailed CLI and MCP operating guide - read it before changing CLI behaviour or driving the CLI in anger. `CONTEXT.md` holds the domain language (Series, Series Run, Reference, Theme, Scene Prompt).
+`apps/cli/AGENTS.md` is the detailed CLI operating guide - read it before changing CLI behaviour or driving the CLI in anger. `CONTEXT.md` holds the domain language (Series, Series Run, Reference, Theme, Scene Prompt).
 
 ## Packages
 
 - `apps/cli` - `@howells/motif-cli`, the `motif` command and terminal Studio.
 - `packages/motif-sdk` - `@howells/motif-sdk`, the canonical Node SDK and fal request normalisation.
-- `packages/motif-mcp` - `@howells/motif-mcp`, local stdio MCP tools backed by the SDK.
 
 ## Commands
 
@@ -45,21 +44,19 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 
 ## Architecture rules
 
-- Dependencies flow toward `packages/motif-sdk`. Never import CLI, MCP, local history, or filesystem helpers into the SDK.
+- Dependencies flow toward `packages/motif-sdk`. Never import CLI, local history, or filesystem helpers into the SDK.
 - Keep fal endpoint normalisation and model metadata in `packages/motif-sdk`.
 - Keep local paths, downloads, history, and terminal UX in `apps/cli`.
-- Keep MCP handlers thin and backed by SDK methods or read-only local history helpers.
 
 ## Public surface
 
 - SDK image layer, the primary image API: `@howells/motif-sdk/image` (ESM-only subpath). `createMotifImage(config?)` returns a client with `generate()` (text to image) and `edit()` (multi-image plus optional mask) over four providers - google, openai, replicate, fal - each returning `Result<MotifImageResult, MotifError>` with per-call cost tracking. This is THE documented way to generate and edit images.
 - SDK: `FalClient` for fal-specific extras (upscale, background removal, video, utility tools, queue, upload), plus `buildGenerateBody`, model metadata, and Result-returning methods.
-- MCP: stdio server exposing generate, upscale, remove background, vary, history, and read-only registry resources.
 - Discovery: `README.md`, `llms.txt`, `docs/security.md`, `docs/surface/`.
 
 ## Environment
 
-`FAL_KEY` is the primary public Motif variable, used by `FalClient`, the CLI, and MCP. The CLI can also read `apiKey` from `~/.motif/config.json`; environment values win.
+`FAL_KEY` is the primary public Motif variable, used by `FalClient` and the CLI. The CLI can also read `apiKey` from `~/.motif/config.json`; environment values win.
 
 `@howells/motif-sdk/image` reads one key per adapter: `GOOGLE_GENERATIVE_AI_API_KEY`, `OPENAI_API_KEY`, `REPLICATE_API_TOKEN`, and `FAL_KEY`. Each is optional per call - only the key for the provider in use is required - and each falls back from `MotifImageConfig` overrides to the env var.
 
@@ -71,4 +68,8 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 
 Never print or commit a real API key, and never copy private Studio code, private service dependencies, database details, canvas implementation details, or private web app references into this public repo. Don't reintroduce private web app directories or private Studio topology docs. Preserve the strict package `files` allowlists and run `npm pack --dry-run` before publishing changes.
 
-Always publish with `pnpm publish`, never `npm publish`. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`, and only pnpm rewrites that to a real version on publish; `npm publish` ships the literal `workspace:*` and the release is uninstallable. `npm pack --dry-run` does not catch this - it leaves the protocol in place too - so confirm a release with `npm view @howells/motif-cli@<version> dependencies`. This sank 1.8.0, now deprecated on the registry.
+Releases go through `.github/workflows/release.yml`, never from a laptop. It uses npm Trusted Publishing: GitHub Actions proves the repo's identity over OIDC and npm mints a short-lived token for that one publish, so no npm token exists in the repo, in Actions secrets, or on anyone's machine, and there is no 2FA prompt.
+
+To release: bump the version in `package.json`, merge to `main`, then run the workflow (`gh workflow run release.yml`, or the Actions tab). It publishes only versions the registry does not already have, so re-running after a partial failure is safe.
+
+The workflow packs with pnpm and publishes with npm, and that split is load-bearing. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`; only pnpm rewrites that to a real version, and `npm pack` ships the literal string, making the release uninstallable. pnpm in turn has no OIDC support, so it cannot authenticate. The workflow greps the packed `package.json` for a surviving `workspace:` before publishing and reads the published dependencies back afterwards, because `npm pack --dry-run` does not catch this. It sank 1.8.0, now deprecated on the registry.

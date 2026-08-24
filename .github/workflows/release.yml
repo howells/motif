@@ -1,0 +1,115 @@
+name: Release
+
+# Publishes to npm with Trusted Publishing: GitHub Actions proves this repo's
+# identity over OIDC and npm mints a short-lived token for the one publish.
+# There is no npm token anywhere in this repo, in Actions secrets, or on anyone's
+# laptop, and no 2FA prompt to answer.
+#
+# Releasing means: bump the version in package.json, merge to main, run this.
+# It publishes only what the registry does not already have, so re-running after
+# a partial failure is safe.
+#
+# One-time setup per package, on npmjs.com → package → Settings → Trusted publisher:
+#   Organization or user : howells
+#   Repository           : motif
+#   Workflow filename    : release.yml
+#   Environment          : (leave empty)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Pack and verify without publishing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write # required: lets npm verify this workflow over OIDC
+
+jobs:
+  release:
+    name: Publish changed packages
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .node-version
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      # Trusted Publishing needs npm >= 11.5.1. Node 24.15 ships a new enough
+      # npm today; pinning the major keeps that true if the base image drifts.
+      - run: npm install -g npm@^11
+
+      - run: pnpm install --frozen-lockfile
+
+      # The full gate. A release that skips this is how a broken publish happens,
+      # and unpublishing is not available after 72 hours.
+      - run: pnpm check
+
+      # pnpm packs, npm publishes. This split is not incidental:
+      #
+      #   - @howells/motif-cli depends on @howells/motif-sdk as `workspace:*`.
+      #     Only pnpm rewrites that protocol to a real version number. `npm pack`
+      #     ships the literal string and the release is uninstallable — this sank
+      #     1.8.0, which is deprecated on the registry because of it.
+      #   - pnpm has no OIDC support, so it cannot do Trusted Publishing.
+      #
+      # So each package is packed by pnpm (correct dependencies) and the
+      # resulting tarball is handed to npm (correct authentication).
+      - name: Pack and publish
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          published=0
+          # Dependency order: the SDK must exist on the registry before the CLI
+          # that resolves a real version of it.
+          for dir in packages/motif-sdk apps/cli; do
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "= $name@$version already on the registry, skipping"
+              continue
+            fi
+
+            echo "→ packing $name@$version"
+            tarball=$(cd "$dir" && pnpm pack --pack-destination "$RUNNER_TEMP" | tail -1)
+
+            # Guard the exact failure that sank 1.8.0, before it reaches npm.
+            if tar -xzOf "$tarball" package/package.json | grep -q '"workspace:'; then
+              echo "::error::$name@$version still contains a workspace: protocol dependency"
+              exit 1
+            fi
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "  dry run: would publish $tarball"
+              continue
+            fi
+
+            npm publish "$tarball" --access public
+            published=$((published + 1))
+          done
+          echo "published=$published" >> "$GITHUB_STEP_SUMMARY"
+
+      # Prove the release is installable rather than assuming it. `npm pack
+      # --dry-run` does not catch a leaked workspace: protocol; reading the
+      # published metadata back does.
+      - name: Verify published metadata
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          version=$(node -p "require('./apps/cli/package.json').version")
+          resolved=$(npm view "@howells/motif-cli@$version" dependencies --json \
+            | node -p "JSON.parse(require('fs').readFileSync(0,'utf8'))['@howells/motif-sdk']")
+          echo "@howells/motif-cli@$version depends on motif-sdk $resolved"
+          case "$resolved" in
+            workspace:*|undefined) echo "::error::unresolved workspace protocol published"; exit 1 ;;
+          esac
