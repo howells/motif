@@ -50,19 +50,33 @@ export interface FalToolConfig {
    * files: without it a PBR set lands as images-2.png, images-3.png and the
    * caller cannot tell a roughness map from a normal map.
    *
-   * `fromOption` names the request option that actually determines the order —
-   * read the resolved request body first and use its value when present, since
-   * a caller may reorder or subset it. `fallback` is the endpoint's schema
-   * default, used when the option is absent. Whichever is used, check the label
-   * count against the URL count before applying it: a mislabelled map is worse
-   * than a positional one, because it reads as authoritative.
+   * Two rule shapes, because the names come from two different places.
    *
-   * Only set this where the order is actually determined — by a request option
-   * or by the schema. Leave genuinely unordered arrays unlabelled.
+   * Request-driven: `fromOption` names the request option that actually
+   * determines the order — read the resolved request body first and use its
+   * value when present, since a caller may reorder or subset it. `fallback` is
+   * the endpoint's schema default, used when the option is absent.
+   *
+   * Response-driven: `fromItem` reads the name off each element of the output
+   * array itself, for endpoints that label what they produced (seedream's
+   * layer stack names every layer). `nameField` holds the name and
+   * `orderField`, when set, holds a non-negative integer that prefixes it so
+   * the files sort in stack order. These strings come from a model, so the
+   * consumer slugifies them into a filename and keeps positional naming when
+   * nothing usable survives.
+   *
+   * Whichever is used, check the label count against the URL count before
+   * applying it: a mislabelled map is worse than a positional one, because it
+   * reads as authoritative.
+   *
+   * Only set this where the order or the naming is actually determined — by a
+   * request option, by the schema, or by the response. Leave genuinely
+   * unordered, unnamed arrays unlabelled.
    */
   outputLabels?: Record<
     string,
-    { fallback: readonly string[]; fromOption?: string }
+    | { fallback: readonly string[]; fromOption?: string }
+    | { fromItem: { nameField: string; orderField?: string } }
   >;
   price: FalToolPrice;
   pricing: string;

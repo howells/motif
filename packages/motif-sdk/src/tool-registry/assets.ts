@@ -241,6 +241,13 @@ export const ASSET_TOOLS = {
     inputKind: "image",
     name: "Seedream v5 Pro Layerize",
     outputKeys: ["layers", "images"],
+    // Every element of `layers` carries its own `name` ("Left amber glass
+    // bottle") and a `z_index` that orders the stack, verified live. Without
+    // this the stack lands as layers.png … layers-5.png and the only way to
+    // tell the reconstructed background plate from an object is to open them.
+    outputLabels: {
+      layers: { fromItem: { nameField: "name", orderField: "z_index" } },
+    },
     price: { kind: "metered" },
     pricing:
       "$0.03375 per generated layer below 1536x1536 total area, $0.0675 per layer above; the listed rate is per layer, not per call",

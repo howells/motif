@@ -65,7 +65,6 @@ export interface FalPricing {
 
 export interface LeaderboardMetric {
   elo: number;
-  pricePer1k?: number | null;
   rank: number;
   winRate?: number;
 }

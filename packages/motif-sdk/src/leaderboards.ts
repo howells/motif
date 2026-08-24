@@ -1,4 +1,9 @@
 export interface LeaderboardEntry {
+  /**
+   * What the model's own vendor charges to run it through their API, as Artificial Analysis
+   * quoted it. Not what fal charges us - fal resells several of these for a fraction of the
+   * price. For our cost, read `falPricing` on the model in `models.ts`.
+   */
   apiPricing?: string;
   creator: string;
   elo: number;

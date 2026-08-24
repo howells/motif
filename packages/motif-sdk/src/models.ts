@@ -16,10 +16,10 @@ export const MODELS: Record<string, ModelConfig> = {
   gpt2: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1256, pricePer1k: 211, rank: 3 },
+        editing: { elo: 1256, rank: 3 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1369, pricePer1k: 211, rank: 1 },
+        textToImage: { elo: 1369, rank: 1 },
       },
       speed: {
         medianSeconds: 200.7,
@@ -59,10 +59,10 @@ export const MODELS: Record<string, ModelConfig> = {
   gpt: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1250, pricePer1k: 133, rank: 5 },
+        editing: { elo: 1250, rank: 5 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1310, pricePer1k: 133, rank: 4 },
+        textToImage: { elo: 1310, rank: 4 },
       },
       speed: {
         medianSeconds: 34.6,
@@ -102,10 +102,10 @@ export const MODELS: Record<string, ModelConfig> = {
   banana2: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1249, pricePer1k: 67, rank: 7 },
+        editing: { elo: 1249, rank: 7 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1320, pricePer1k: 67, rank: 3 },
+        textToImage: { elo: 1320, rank: 3 },
       },
       tiers: { price: "premium", quality: "frontier", speed: "unknown" },
       useCase: "Best balance of quality, edit support, web search, and cost",
@@ -143,10 +143,10 @@ export const MODELS: Record<string, ModelConfig> = {
   banana: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1245, pricePer1k: 134, rank: 9 },
+        editing: { elo: 1245, rank: 9 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1297, pricePer1k: 134, rank: 6 },
+        textToImage: { elo: 1297, rank: 6 },
       },
       speed: {
         medianSeconds: 19.2,
@@ -188,7 +188,7 @@ export const MODELS: Record<string, ModelConfig> = {
   gemini: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1180, pricePer1k: 39, rank: 29 },
+        editing: { elo: 1180, rank: 29 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
       },
@@ -222,10 +222,10 @@ export const MODELS: Record<string, ModelConfig> = {
   gemini3: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1245, pricePer1k: 134, rank: 9 },
+        editing: { elo: 1245, rank: 9 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1297, pricePer1k: 134, rank: 6 },
+        textToImage: { elo: 1297, rank: 6 },
       },
     },
     editEndpoint: "fal-ai/gemini-3-pro-image-preview/edit",
@@ -258,10 +258,10 @@ export const MODELS: Record<string, ModelConfig> = {
   seedream4: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1185, pricePer1k: 30, rank: 28 },
+        editing: { elo: 1185, rank: 28 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1226, pricePer1k: 30, rank: 16 },
+        textToImage: { elo: 1226, rank: 16 },
       },
       speed: {
         medianSeconds: 14.3,
@@ -298,10 +298,10 @@ export const MODELS: Record<string, ModelConfig> = {
   seedream45: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1186, pricePer1k: 40, rank: 26 },
+        editing: { elo: 1186, rank: 26 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1203, pricePer1k: 40, rank: 32 },
+        textToImage: { elo: 1203, rank: 32 },
       },
       speed: {
         medianSeconds: 18.2,
@@ -338,10 +338,10 @@ export const MODELS: Record<string, ModelConfig> = {
   seedream5: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1248, pricePer1k: 90, rank: 8 },
+        editing: { elo: 1248, rank: 8 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1279, pricePer1k: 90, rank: 10 },
+        textToImage: { elo: 1279, rank: 10 },
       },
     },
     name: "Seedream 5.0 Pro",
@@ -372,7 +372,7 @@ export const MODELS: Record<string, ModelConfig> = {
   "seedream5-lite": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1169, pricePer1k: 35, rank: 32 },
+        editing: { elo: 1169, rank: 32 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
       },
@@ -405,10 +405,10 @@ export const MODELS: Record<string, ModelConfig> = {
   "flux2-max": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1201, pricePer1k: 140, rank: 19 },
+        editing: { elo: 1201, rank: 19 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1225, pricePer1k: 70, rank: 17 },
+        textToImage: { elo: 1225, rank: 17 },
       },
       speed: {
         medianSeconds: 31.6,
@@ -448,10 +448,10 @@ export const MODELS: Record<string, ModelConfig> = {
   "flux2-pro": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1170, pricePer1k: 45, rank: 31 },
+        editing: { elo: 1170, rank: 31 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1207, pricePer1k: 30, rank: 30 },
+        textToImage: { elo: 1207, rank: 30 },
       },
       speed: {
         medianSeconds: 16.1,
@@ -493,7 +493,7 @@ export const MODELS: Record<string, ModelConfig> = {
       artificialAnalysis: {
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1223, pricePer1k: 60, rank: 18 },
+        textToImage: { elo: 1223, rank: 18 },
       },
       speed: {
         medianSeconds: 15.3,
@@ -686,10 +686,10 @@ export const MODELS: Record<string, ModelConfig> = {
         // #2 on BOTH boards, which almost nothing else manages - the top text-to-image model
         // (GPT Image 2) drops to 3rd for editing, and the top editor (MAI-Image-2.5-Pro) is not
         // on fal at all. Reve is the best editor motif can actually reach.
-        editing: { elo: 1263, pricePer1k: 200, rank: 2 },
+        editing: { elo: 1263, rank: 2 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1322, pricePer1k: 200, rank: 2 },
+        textToImage: { elo: 1322, rank: 2 },
       },
       tiers: { price: "premium", quality: "frontier", speed: "unknown" },
       useCase:
@@ -727,7 +727,7 @@ export const MODELS: Record<string, ModelConfig> = {
       artificialAnalysis: {
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1215, pricePer1k: 35, rank: 25 },
+        textToImage: { elo: 1215, rank: 25 },
       },
     },
     endpoint: "fal-ai/recraft/v4/text-to-image",
@@ -784,7 +784,7 @@ export const MODELS: Record<string, ModelConfig> = {
       artificialAnalysis: {
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1220, pricePer1k: 60, rank: 19 },
+        textToImage: { elo: 1220, rank: 19 },
       },
     },
     name: "Ideogram V4",
@@ -819,10 +819,10 @@ export const MODELS: Record<string, ModelConfig> = {
   "grok-image": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1214, pricePer1k: 20, rank: 16 },
+        editing: { elo: 1214, rank: 16 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1216, pricePer1k: 20, rank: 23 },
+        textToImage: { elo: 1216, rank: 23 },
       },
       speed: {
         medianSeconds: 5.1,
@@ -896,10 +896,10 @@ export const MODELS: Record<string, ModelConfig> = {
   qwen3: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1218, pricePer1k: 33, rank: 15 },
+        editing: { elo: 1218, rank: 15 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1272, pricePer1k: 30, rank: 11 },
+        textToImage: { elo: 1272, rank: 11 },
       },
       tiers: { price: "budget", quality: "better", speed: "unknown" },
       useCase: "Strong quality per dollar - 11th on text-to-image at $30/1k",

@@ -85,6 +85,25 @@ export {
   type FalToolRunOptions,
   isFalToolId,
 } from "./tools";
+export {
+  formatCost,
+  measuredToolCost,
+  projectedToolCost,
+  sumCosts,
+} from "./tool-cost";
+export type { OutputDimensions, ResolvedCost } from "./tool-cost";
+export {
+  FAL_TOOL_PARAMETERS,
+  falToolParameters,
+} from "./tool-parameters.generated";
+export type { FalToolParameter } from "./tool-parameters.generated";
+export {
+  describeModelOutput,
+  losslessAvailability,
+  MODEL_OUTPUT,
+  modelOutput,
+} from "./model-output";
+export type { LosslessAvailability, ModelOutputShape } from "./model-output";
 
 // ─── Types ───────────────────────────────────────────────────────
 export type {
