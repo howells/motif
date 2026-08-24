@@ -231,7 +231,7 @@ describe("promoted verbs — dry-run payloads", () => {
    */
   it("requests exactly the ratio it reports, for every preset", async () => {
     const image = fixtureImage();
-    for (const preset of [
+    const presets = [
       "cover",
       "landscape",
       "og",
@@ -239,8 +239,17 @@ describe("promoted verbs — dry-run payloads", () => {
       "square",
       "story",
       "wide",
-    ]) {
-      const payload = await dryRun(["reframe", image, `--${preset}`]);
+    ];
+    // Each preset is an independent dry run, so spawn them together rather than
+    // paying seven process startups end to end.
+    const payloads = await Promise.all(
+      presets.map(
+        async (preset) => await dryRun(["reframe", image, `--${preset}`])
+      )
+    );
+
+    for (const [index, payload] of payloads.entries()) {
+      const preset = presets[index];
       const size = payload.imageSize;
       if (!isRecord(size)) {
         throw new Error(`${preset}: expected an explicit image size`);
