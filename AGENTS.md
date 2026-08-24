@@ -73,3 +73,17 @@ Releases go through `.github/workflows/release.yml`, never from a laptop. It use
 To release: bump the version in `package.json`, merge to `main`, then run the workflow (`gh workflow run release.yml`, or the Actions tab). It publishes only versions the registry does not already have, so re-running after a partial failure is safe.
 
 The workflow packs with pnpm and publishes with npm, and that split is load-bearing. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`; only pnpm rewrites that to a real version, and `npm pack` ships the literal string, making the release uninstallable. pnpm in turn has no OIDC support, so it cannot authenticate. The workflow greps the packed `package.json` for a surviving `workspace:` before publishing and reads the published dependencies back afterwards, because `npm pack --dry-run` does not catch this. It sank 1.8.0, now deprecated on the registry.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in **Linear**, team `MOT` in the `howells` workspace - not GitHub, which has none. Reach it through the GraphQL API, never the Linear MCP (it is connected to a different workspace). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical roles, unchanged: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. All already exist in the workspace. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: `CONTEXT.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
