@@ -3,10 +3,11 @@
  * Supports NDJSON streaming for large histories.
  */
 
-import { MODELS } from "@howells/motif-sdk";
+import { formatCost, MODELS } from "@howells/motif-sdk";
 import chalk from "chalk";
 
 import { loadHistory } from "../utils/config";
+import { formatTotal } from "../utils/cost";
 import { emit, emitStream, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 
@@ -77,15 +78,16 @@ export async function runHistory(
       `  ${chalk.dim(gen.id.slice(0, 8))} ${chalk.cyan(gen.prompt.slice(0, 50))}${gen.prompt.length > 50 ? "..." : ""}`
     );
     console.log(
-      `    ${chalk.green(modelName)} | ${gen.aspect} | $${gen.cost.toFixed(3)} | ${chalk.dim(date)}`
+      `    ${chalk.green(modelName)} | ${gen.aspect} | ${formatCost(gen.cost)} | ${chalk.dim(date)}`
     );
     console.log(`    ${chalk.dim(gen.output)}`);
     console.log();
   }
 
+  const totals = history.totalCost;
   console.log(
     chalk.dim(
-      `Session: $${history.totalCost.session.toFixed(2)} | Today: $${history.totalCost.today.toFixed(2)} | All time: $${history.totalCost.allTime.toFixed(2)}`
+      `Session: ${formatTotal(totals.session, totals.unknown.session)} | Today: ${formatTotal(totals.today, totals.unknown.today)} | All time: ${formatTotal(totals.allTime, totals.unknown.allTime)}`
     )
   );
 

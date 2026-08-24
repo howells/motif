@@ -15,7 +15,11 @@ import {
   EDIT_CAPABLE_MODELS,
   FAL_TOOL_IDS,
   FAL_TOOLS,
+  describeModelOutput,
+  losslessAvailability,
+  modelOutput,
   FAL_TOOLS_CHECKED_AT,
+  falToolParameters,
   GENERATION_MODELS,
   IMAGE_EDITING_TOP_20,
   IMAGE_TEXT_TO_IMAGE_TOP_20,
@@ -546,6 +550,15 @@ function videoSchema() {
 }
 
 /**
+ * Pointer rather than payload: the arguments themselves are deliberately not
+ * embedded here. `parameterCount` says how many an endpoint takes; the list
+ * itself is one call away, and inlining 71 of them would undo the trim that
+ * kept this schema fetchable.
+ */
+const TOOL_PARAMETERS_NOTE =
+  "Every argument a tool accepts is at `motif tool describe <id>`, and anything in that list can be passed with `motif tool run <id> --json '{...}'`. There, `fallback` is fal's own default and `motifDefault` is Motif's override.";
+
+/**
  * One line per registered tool, matching what `motif tool list` returns.
  *
  * The registry has grown past 70 entries, and the full per-tool config —
@@ -562,6 +575,7 @@ function toolRegistrySummary(): Record<string, unknown> {
         endpoint: FAL_TOOLS[id].endpoint,
         inputKind: FAL_TOOLS[id].inputKind,
         name: FAL_TOOLS[id].name,
+        parameterCount: falToolParameters(id).length,
         pricing: FAL_TOOLS[id].pricing,
         task: FAL_TOOLS[id].task,
       },
@@ -612,6 +626,7 @@ function toolSchema() {
       type: "object",
     },
     mutating: true,
+    parametersNote: TOOL_PARAMETERS_NOTE,
     subcommands: ["list", "describe", "run"],
     supports_dry_run: true,
     tools: toolRegistrySummary(),
@@ -1112,6 +1127,17 @@ function fullSchema() {
           },
           falPricing: config.falPricing,
           name: config.name,
+          // What comes back, measured from real bytes, not what the endpoint
+          // accepts. `capabilities.outputFormat` says whether the argument is
+          // allowed; this says whether a lossless file is obtainable at all and
+          // what arrives if you ask for nothing.
+          output: modelOutput(key)
+            ? {
+                ...modelOutput(key),
+                lossless: losslessAvailability(key),
+                summary: describeModelOutput(key),
+              }
+            : undefined,
           pricing: config.pricing,
           type: config.type,
         },
@@ -1122,6 +1148,7 @@ function fullSchema() {
       "The agent is not a trusted operator. All inputs are validated. Output paths are sandboxed to CWD. Use --dry-run before mutating commands.",
     tools: {
       checkedAt: FAL_TOOLS_CHECKED_AT,
+      parametersNote: TOOL_PARAMETERS_NOTE,
       registry: toolRegistrySummary(),
     },
     version: PACKAGE_VERSION,

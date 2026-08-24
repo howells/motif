@@ -223,8 +223,10 @@ function artifactFilename(
 }
 
 /**
- * Semantic names for the positions of an array-valued output key, as published
- * by the SDK registry's `outputLabels`.
+ * Semantic names for the positions of an array-valued output key, resolved
+ * from the SDK registry's `outputLabels`. Each name is used verbatim as a
+ * filename stem, so a name derived from anything untrusted must already be
+ * slugified by the resolver — see `commands/output-labels.ts`.
  */
 export type OutputLabels = Record<string, readonly string[]>;
 

@@ -269,34 +269,87 @@ export function validateEditPath(editPath: string): string {
  * Read JSON from stdin if data is being piped.
  * Returns null if stdin is a TTY (interactive).
  */
-export async function readStdinJson<T>(): Promise<T | null> {
+/**
+ * How long to wait for the first byte on a non-TTY stdin before giving up.
+ *
+ * A shell pipeline closes the write end when the producer finishes, so `end`
+ * fires and this never matters. A parent that spawns the CLI programmatically —
+ * `execFile`, `spawn` without `stdio: "ignore"` — holds the write end open
+ * forever, so `end` never arrives and the process hangs with no output and no
+ * error. That is the worst failure a CLI built for agents can have, and it is
+ * the exact shape reported from a batch script that stalled twice.
+ *
+ * Nothing can distinguish "the parent will send data in a moment" from "the
+ * parent will never send anything", so a wait is unavoidable. This bounds it:
+ * silence for this long means proceed without stdin. Only the *first* byte is
+ * raced — once input starts arriving the read runs to completion with no
+ * timeout, so a large or slow payload can never be truncated.
+ */
+const STDIN_FIRST_BYTE_TIMEOUT_MS = 250;
+
+/**
+ * @param waitIndefinitely
+ *   True when argv gave the CLI nothing to do, so stdin is the only possible
+ *   input and a slow producer must not be cut off. False when argv already
+ *   determines the action and stdin would merely supplement it — that is the
+ *   case a programmatic parent hits, and where the grace period applies.
+ */
+export async function readStdinJson<T>(
+  waitIndefinitely = true
+): Promise<T | null> {
   if (process.stdin.isTTY) {
     return null;
   }
 
   return await new Promise((resolve, reject) => {
     let data = "";
+    let started = false;
+
+    const giveUp = waitIndefinitely
+      ? undefined
+      : setTimeout(() => {
+          if (!started) {
+            process.stdin.pause();
+            resolve(null);
+          }
+        }, STDIN_FIRST_BYTE_TIMEOUT_MS);
+
+    const finish = (run: () => void) => {
+      clearTimeout(giveUp);
+      run();
+    };
+
     process.stdin.setEncoding("utf-8");
     process.stdin.on("data", (chunk) => {
+      // The first byte proves a writer exists, so stop racing the clock and
+      // read to completion however long that takes.
+      started = true;
+      clearTimeout(giveUp);
       // setEncoding("utf-8") guarantees string chunks; toString() is a no-op
       // for strings and a utf-8 decode for the Buffer half of the type.
       data += chunk.toString();
     });
     process.stdin.on("end", () => {
-      if (!data.trim()) {
-        resolve(null);
-        return;
-      }
-      try {
-        resolve(parseJsonAs<T>(data));
-      } catch (error) {
-        reject(
-          new Error(
-            `Invalid JSON on stdin: ${error instanceof Error ? error.message : String(error)}`
-          )
-        );
-      }
+      finish(() => {
+        if (!data.trim()) {
+          resolve(null);
+          return;
+        }
+        try {
+          resolve(parseJsonAs<T>(data));
+        } catch (error) {
+          reject(
+            new Error(
+              `Invalid JSON on stdin: ${error instanceof Error ? error.message : String(error)}`
+            )
+          );
+        }
+      });
     });
-    process.stdin.on("error", reject);
+    process.stdin.on("error", (error) => {
+      finish(() => {
+        reject(error);
+      });
+    });
   });
 }

@@ -10,7 +10,7 @@ import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-import { getFalKeyFromEnv } from "@howells/motif-sdk";
+import { getFalKeyFromEnv, sumCosts } from "@howells/motif-sdk";
 import type { AspectRatio, Resolution } from "@howells/motif-sdk";
 
 import { parseJsonAs } from "./json";
@@ -33,7 +33,12 @@ export interface MotifConfig {
 
 export interface Generation {
   aspect: AspectRatio;
-  cost: number;
+  /**
+   * USD actually billed for this run, or null where nothing knows the figure —
+   * a per-second or metered endpoint. Never 0 for unknown: a zero meaning
+   * "we don't know" is indistinguishable from one meaning "free".
+   */
+  cost: number | null;
   editedFrom?: string;
   id: string;
   model: string;
@@ -43,14 +48,29 @@ export interface Generation {
   timestamp: string;
 }
 
-export interface History {
-  generations: Generation[];
-  lastSessionDate: string;
-  totalCost: {
+/**
+ * Running spend, in two halves.
+ *
+ * `session`, `today` and `allTime` sum only the runs whose cost is known.
+ * `unknown` counts, per the same three windows, the runs that were left out, so
+ * a total can say "$1.23 plus 4 metered runs" instead of quietly reading as
+ * complete.
+ */
+export interface TotalCost {
+  session: number;
+  today: number;
+  allTime: number;
+  unknown: {
     session: number;
     today: number;
     allTime: number;
   };
+}
+
+export interface History {
+  generations: Generation[];
+  lastSessionDate: string;
+  totalCost: TotalCost;
 }
 
 const DEFAULT_CONFIG: MotifConfig = {
@@ -62,14 +82,17 @@ const DEFAULT_CONFIG: MotifConfig = {
   upscaler: "clarity",
 };
 
+const emptyTotalCost = (): TotalCost => ({
+  allTime: 0,
+  session: 0,
+  today: 0,
+  unknown: { allTime: 0, session: 0, today: 0 },
+});
+
 const DEFAULT_HISTORY: History = {
   generations: [],
   lastSessionDate: new Date().toISOString().split("T")[0] ?? "",
-  totalCost: {
-    allTime: 0,
-    session: 0,
-    today: 0,
-  },
+  totalCost: emptyTotalCost(),
 };
 
 function ensureMotifDir(): void {
@@ -157,22 +180,50 @@ export async function saveConfig(config: Partial<MotifConfig>): Promise<void> {
   await atomicWrite(CONFIG_PATH, JSON.stringify(merged, null, 2));
 }
 
+/** A history file's totals, whose unknown counts predate MOT-38 and may be absent. */
+type StoredTotalCost = Omit<TotalCost, "unknown"> &
+  Partial<Pick<TotalCost, "unknown">>;
+
+/**
+ * Fill in the unknown-run counts a history file written before MOT-38 has no
+ * field for. Those files recorded metered runs as costing zero, so nothing in
+ * them can say how many there were: they load as zero rather than as a guess,
+ * and the counts become accurate from the next run on.
+ */
+function withUnknownCounts(totals: StoredTotalCost | undefined): TotalCost {
+  if (totals === undefined) {
+    return emptyTotalCost();
+  }
+  return {
+    allTime: totals.allTime,
+    session: totals.session,
+    today: totals.today,
+    unknown: totals.unknown ?? { allTime: 0, session: 0, today: 0 },
+  };
+}
+
 export async function loadHistory(): Promise<History> {
   ensureMotifDir();
 
   if (!existsSync(HISTORY_PATH)) {
-    return { ...DEFAULT_HISTORY };
+    return { ...DEFAULT_HISTORY, totalCost: emptyTotalCost() };
   }
 
   try {
     const raw = await readFile(HISTORY_PATH, "utf-8");
-    const history = parseJsonAs<History>(raw);
+    const parsed = parseJsonAs<History>(raw);
+    const history: History = {
+      ...parsed,
+      totalCost: withUnknownCounts(parsed.totalCost),
+    };
 
     // Reset session/daily costs if it's a new day
     const today = new Date().toISOString().split("T")[0] ?? "";
     if (history.lastSessionDate !== today) {
       history.totalCost.session = 0;
       history.totalCost.today = 0;
+      history.totalCost.unknown.session = 0;
+      history.totalCost.unknown.today = 0;
       history.lastSessionDate = today;
     }
 
@@ -182,7 +233,7 @@ export async function loadHistory(): Promise<History> {
       `Warning: Failed to load history from ${HISTORY_PATH}: ${error instanceof Error ? error.message : String(error)}`
     );
     console.error("Starting with empty history.");
-    return { ...DEFAULT_HISTORY };
+    return { ...DEFAULT_HISTORY, totalCost: emptyTotalCost() };
   }
 }
 
@@ -202,12 +253,16 @@ export async function addGenerations(generations: Generation[]): Promise<void> {
 
   const history = await loadHistory();
 
-  for (const generation of generations) {
-    history.generations.push(generation);
-    history.totalCost.session += generation.cost;
-    history.totalCost.today += generation.cost;
-    history.totalCost.allTime += generation.cost;
-  }
+  // Runs whose cost is unknown are counted, not summed as zero: adding them in
+  // as free is what made the session total under-report real spend. MOT-38.
+  const { known, unknown } = sumCosts(generations.map((g) => g.cost));
+  history.generations.push(...generations);
+  history.totalCost.session += known;
+  history.totalCost.today += known;
+  history.totalCost.allTime += known;
+  history.totalCost.unknown.session += unknown;
+  history.totalCost.unknown.today += unknown;
+  history.totalCost.unknown.allTime += unknown;
 
   history.lastSessionDate = new Date().toISOString().split("T")[0] ?? "";
 

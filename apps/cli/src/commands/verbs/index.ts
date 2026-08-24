@@ -14,6 +14,7 @@ import { Command } from "commander";
 
 import { loadConfig } from "../../utils/config";
 import type { MotifConfig } from "../../utils/config";
+import { formatForParseErrors, routeCommanderErrors } from "../../utils/errors";
 import { ask } from "./ask";
 import { enhance } from "./enhance";
 import { erase, layers, reframe, segment, vectorize } from "./image-verbs";
@@ -54,9 +55,12 @@ function withCommonOptions(command: Command): Command {
 
 export async function runVerbs(args: string[]): Promise<void> {
   const config = await loadConfig();
-  const program = new Command()
-    .name("motif")
-    .description("Promoted fal capabilities with a verb of their own");
+  const program = routeCommanderErrors(
+    new Command()
+      .name("motif")
+      .description("Promoted fal capabilities with a verb of their own"),
+    formatForParseErrors(args)
+  );
 
   registerAsk(program, config);
   registerEnhance(program, config);

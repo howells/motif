@@ -10,10 +10,13 @@ import {
   CREATIVE_FIELDS,
   CREATIVE_TAXONOMY,
   EDIT_CAPABLE_MODELS,
+  FAL_TOOL_IDS,
   FAL_TOOLS,
+  falToolParameters,
   GENERATION_MODELS,
   IMAGE_EDITING_TOP_20,
   IMAGE_TEXT_TO_IMAGE_TOP_20,
+  isFalToolId,
   MODELS,
   RESOLUTIONS,
   VIDEO_IMAGE_TO_VIDEO_TOP_15,
@@ -23,6 +26,9 @@ import type {
   AspectRatio,
   CreativeDirection,
   FalClient,
+  FalToolConfig,
+  FalToolId,
+  FalToolParameter,
   ImageOutputFormat,
 } from "@howells/motif-sdk";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -30,6 +36,7 @@ import {
   CallToolRequestSchema,
   ErrorCode,
   ListResourcesRequestSchema,
+  ListResourceTemplatesRequestSchema,
   ListToolsRequestSchema,
   McpError,
   ReadResourceRequestSchema,
@@ -89,15 +96,24 @@ const HISTORY_SCHEMA = {
         allTime: { type: "number" },
         session: { type: "number" },
         today: { type: "number" },
+        unknown: {
+          properties: {
+            allTime: { type: "number" },
+            session: { type: "number" },
+            today: { type: "number" },
+          },
+          required: ["allTime", "session", "today"],
+          type: "object",
+        },
       },
-      required: ["allTime", "session", "today"],
+      required: ["allTime", "session", "today", "unknown"],
       type: "object",
     },
     generations: {
       items: {
         properties: {
           aspect: { type: "string" },
-          cost: { type: "number" },
+          cost: { type: ["number", "null"] },
           editedFrom: { type: "string" },
           filePath: { type: "string" },
           id: { type: "string" },
@@ -140,7 +156,7 @@ const RESOURCES = [
   },
   {
     description:
-      "Read-only registry of normalized fal utility tools exposed by the SDK.",
+      "Read-only registry of normalized fal utility tools exposed by the SDK. Carries a parameter count per tool; read motif://tools/{id} for the arguments themselves.",
     mimeType: "application/json",
     name: "tools",
     title: "Motif Fal Utility Tool Registry",
@@ -164,13 +180,73 @@ const RESOURCES = [
   },
 ];
 
+const RESOURCE_TEMPLATES = [
+  {
+    description:
+      "Every argument one fal utility tool accepts. `fallback` is fal's own default, applied when nobody sends the argument; `motifDefault` is Motif's own value, sent on every call and overriding fal's default. Everything else is caller-supplied.",
+    mimeType: "application/json",
+    name: "tool_detail",
+    title: "Motif Fal Utility Tool Detail",
+    uriTemplate: "motif://tools/{id}",
+  },
+];
+
+/** A fal argument, annotated with Motif's own value for it where there is one. */
+interface DescribedToolParameter extends FalToolParameter {
+  motifDefault?: unknown;
+}
+
+function describedParameters(tool: FalToolId): DescribedToolParameter[] {
+  const config: FalToolConfig = FAL_TOOLS[tool];
+  const motifDefaults = config.defaultOptions;
+  return falToolParameters(tool).map((parameter) =>
+    motifDefaults !== undefined && parameter.key in motifDefaults
+      ? { ...parameter, motifDefault: motifDefaults[parameter.key] }
+      : parameter
+  );
+}
+
+/**
+ * The listing stays terse — a count and a pointer per tool — so an agent can
+ * see that arguments exist without pulling every one of them, and reads
+ * `motif://tools/{id}` for the tool it settled on.
+ */
+function toolRegistryPayload(): Record<string, unknown> {
+  return Object.fromEntries(
+    FAL_TOOL_IDS.map((id) => [
+      id,
+      {
+        ...FAL_TOOLS[id],
+        parameterCount: falToolParameters(id).length,
+        parametersUri: `motif://tools/${id}`,
+      },
+    ])
+  );
+}
+
+function toolDetailPayload(uri: string): unknown {
+  const id = uri.slice("motif://tools/".length);
+  if (!isFalToolId(id)) {
+    return null;
+  }
+  return {
+    id,
+    ...FAL_TOOLS[id],
+    parameters: describedParameters(id),
+  };
+}
+
 function resourcePayload(uri: string): unknown {
+  if (uri.startsWith("motif://tools/")) {
+    return toolDetailPayload(uri);
+  }
+
   switch (uri) {
     case "motif://models": {
       return MODELS;
     }
     case "motif://tools": {
-      return FAL_TOOLS;
+      return toolRegistryPayload();
     }
     case "motif://leaderboards": {
       return {
@@ -537,18 +613,31 @@ const TOOLS = [
     outputSchema: {
       properties: {
         costs: {
+          description:
+            "Spend in two halves: the summed figures cover only runs whose cost is known, and `unknown` counts the metered runs left out of them.",
           properties: {
             allTime: {
-              description: "Total spend across all time (USD)",
+              description: "Total known spend across all time (USD)",
               type: "number",
             },
             session: {
-              description: "Spend in the current session (USD)",
+              description: "Known spend in the current session (USD)",
               type: "number",
             },
-            today: { description: "Spend today (USD)", type: "number" },
+            today: { description: "Known spend today (USD)", type: "number" },
+            unknown: {
+              description:
+                "Count of runs whose cost is unknown, excluded from the sums above.",
+              properties: {
+                allTime: { type: "number" },
+                session: { type: "number" },
+                today: { type: "number" },
+              },
+              required: ["allTime", "session", "today"],
+              type: "object",
+            },
           },
-          required: ["allTime", "session", "today"],
+          required: ["allTime", "session", "today", "unknown"],
           type: "object",
         },
         generations: {
@@ -557,8 +646,9 @@ const TOOLS = [
             properties: {
               aspect: { description: "Aspect ratio used", type: "string" },
               cost: {
-                description: "Cost of this generation (USD)",
-                type: "number",
+                description:
+                  "Cost of this generation (USD), or null where the endpoint is metered or per-second and no figure is knowable. Never 0 for unknown.",
+                type: ["number", "null"],
               },
               editedFrom: {
                 description:
@@ -645,6 +735,12 @@ export function createMotifMcpServer(motif: FalClient): Server {
 
   server.setRequestHandler(ListResourcesRequestSchema, () => ({
     resources: RESOURCES,
+  }));
+
+  // ── List resource templates ───────────────────────────────────────
+
+  server.setRequestHandler(ListResourceTemplatesRequestSchema, () => ({
+    resourceTemplates: RESOURCE_TEMPLATES,
   }));
 
   // ── Read resource ─────────────────────────────────────────────────

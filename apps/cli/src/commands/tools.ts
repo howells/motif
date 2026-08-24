@@ -2,12 +2,18 @@ import {
   FAL_TOOL_IDS,
   FAL_TOOLS,
   FAL_TOOLS_CHECKED_AT,
+  falToolParameters,
   isFalToolId,
+} from "@howells/motif-sdk";
+import type {
+  FalToolConfig,
+  FalToolId,
+  FalToolParameter,
 } from "@howells/motif-sdk";
 import chalk from "chalk";
 import { Command } from "commander";
 
-import { handleError } from "../utils/errors";
+import { handleError, routeCommanderErrors } from "../utils/errors";
 import { emit, isStructured, resolveFormat } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
@@ -48,11 +54,16 @@ function stripGlobalFlags(args: string[]): string[] {
   });
 }
 
+/** Where the full argument list lives, since the listings carry only counts. */
+const PARAMETERS_POINTER =
+  "Every argument a tool accepts, with fal's own default and Motif's override, is at `motif tool describe <id>`.";
+
 function listTools(emitOpts: EmitOptions): void {
   emit(
     {
       checkedAt: FAL_TOOLS_CHECKED_AT,
       command: "tool.list",
+      parametersNote: PARAMETERS_POINTER,
       tools: Object.fromEntries(
         FAL_TOOL_IDS.map((id) => [
           id,
@@ -61,6 +72,7 @@ function listTools(emitOpts: EmitOptions): void {
             endpoint: FAL_TOOLS[id].endpoint,
             inputKind: FAL_TOOLS[id].inputKind,
             name: FAL_TOOLS[id].name,
+            parameterCount: falToolParameters(id).length,
             pricing: FAL_TOOLS[id].pricing,
             task: FAL_TOOLS[id].task,
           },
@@ -78,6 +90,69 @@ function listTools(emitOpts: EmitOptions): void {
         `${chalk.green(id)}  ${tool.name}  ${chalk.dim(tool.pricing)}`
       );
     }
+    console.log(chalk.dim(`\n${PARAMETERS_POINTER}`));
+  }
+}
+
+/**
+ * How to read the `parameters` list, spelled out because conflating the two
+ * kinds of default is what left 36 arguments undiscoverable in the first place.
+ */
+const PARAMETERS_NOTE =
+  "`fallback` is fal's own default, applied when nobody sends the argument. `motifDefault` is Motif's own value, sent on every call and overriding fal's default. Everything else is caller-supplied. Any key here can be passed with `motif tool run <id> --json '{...}'`.";
+
+/** A fal argument, annotated with Motif's own value for it where there is one. */
+interface DescribedToolParameter extends FalToolParameter {
+  motifDefault?: unknown;
+}
+
+function describedParameters(toolId: FalToolId): DescribedToolParameter[] {
+  const config: FalToolConfig = FAL_TOOLS[toolId];
+  const motifDefaults = config.defaultOptions;
+  return falToolParameters(toolId).map((parameter) =>
+    motifDefaults !== undefined && parameter.key in motifDefaults
+      ? { ...parameter, motifDefault: motifDefaults[parameter.key] }
+      : parameter
+  );
+}
+
+function parameterNotes(parameter: DescribedToolParameter): string {
+  const notes: string[] = [];
+  if (parameter.required === true) {
+    notes.push("required");
+  }
+  if (parameter.fallback !== undefined) {
+    notes.push(`fal default ${JSON.stringify(parameter.fallback)}`);
+  }
+  if (parameter.motifDefault !== undefined) {
+    notes.push(`Motif sends ${JSON.stringify(parameter.motifDefault)}`);
+  }
+  return notes.length > 0 ? chalk.dim(`  ${notes.join(" · ")}`) : "";
+}
+
+function printTool(
+  toolId: FalToolId,
+  parameters: DescribedToolParameter[]
+): void {
+  const tool = FAL_TOOLS[toolId];
+  console.log(`\n${chalk.bold(toolId)}  ${tool.name}`);
+  console.log(
+    `${tool.task}\n${chalk.dim(`${tool.endpoint}  ${tool.pricing}`)}`
+  );
+
+  if (parameters.length === 0) {
+    console.log(chalk.dim("\nNo arguments beyond the input media."));
+    return;
+  }
+
+  console.log(
+    `\n${chalk.bold(`Arguments (${parameters.length})`)}  ${chalk.dim("pass any of these with --json '{...}'")}\n`
+  );
+  const keyWidth = Math.max(...parameters.map((p) => p.key.length));
+  for (const parameter of parameters) {
+    console.log(
+      `  ${chalk.green(parameter.key.padEnd(keyWidth))}  ${parameter.type}${parameterNotes(parameter)}`
+    );
   }
 }
 
@@ -93,15 +168,23 @@ function describeTool(toolId: string | undefined, emitOpts: EmitOptions): void {
       emitOpts.format
     );
   }
+
+  const parameters = describedParameters(toolId);
   emit(
     {
       checkedAt: FAL_TOOLS_CHECKED_AT,
       command: "tool.describe",
       id: toolId,
       ...FAL_TOOLS[toolId],
+      parameters,
+      parametersNote: PARAMETERS_NOTE,
     },
     emitOpts
   );
+
+  if (!isStructured(emitOpts.format)) {
+    printTool(toolId, parameters);
+  }
 }
 
 export interface ToolStdinPayload extends ToolOptions {
@@ -147,9 +230,10 @@ export async function runTools(args: string[]): Promise<void> {
     filteredArgs.unshift("run");
   }
 
-  const program = new Command()
-    .name("motif tool")
-    .description("Run fal.ai utility tools");
+  const program = routeCommanderErrors(
+    new Command().name("motif tool").description("Run fal.ai utility tools"),
+    emitOpts.format
+  );
 
   program
     .command("list")

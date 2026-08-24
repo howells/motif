@@ -1,7 +1,8 @@
 import { Box, Text, useApp, useInput } from "ink";
 import { useState } from "react";
 
-import type { History, MotifConfig } from "../utils/config";
+import type { History, MotifConfig, TotalCost } from "../utils/config";
+import { formatTotal } from "../utils/cost";
 import { hasText } from "../utils/text";
 import { EditScreen } from "./screens/edit";
 import { GalleryScreen } from "./screens/gallery";
@@ -16,6 +17,26 @@ interface AppProps {
   history: History;
   onConfigChange: (config: Partial<MotifConfig>) => Promise<void>;
   onHistoryChange: () => Promise<void>;
+}
+
+/**
+ * Running spend across the three windows.
+ *
+ * Each figure carries the count of runs it could not price, so a session that
+ * spent real money on metered endpoints does not read as free.
+ */
+function SpendFooter({ totals }: { totals: TotalCost }) {
+  return (
+    <Box marginTop={1}>
+      <Text color="magenta">◆</Text>
+      <Text dimColor>
+        {" "}
+        {formatTotal(totals.session, totals.unknown.session)} session │{" "}
+        {formatTotal(totals.today, totals.unknown.today)} today │{" "}
+        {formatTotal(totals.allTime, totals.unknown.allTime)} total
+      </Text>
+    </Box>
+  );
 }
 
 export function App({
@@ -149,15 +170,7 @@ export function App({
 
       {renderScreen()}
 
-      <Box marginTop={1}>
-        <Text color="magenta">◆</Text>
-        <Text dimColor>
-          {" "}
-          ${history.totalCost.session.toFixed(2)} session │ $
-          {history.totalCost.today.toFixed(2)} today │ $
-          {history.totalCost.allTime.toFixed(2)} total
-        </Text>
-      </Box>
+      <SpendFooter totals={history.totalCost} />
     </Box>
   );
 }

@@ -34,7 +34,11 @@ import {
 } from "../utils/config";
 import type { Generation } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
-import { exitForErrorCode, handleError } from "../utils/errors";
+import {
+  exitForErrorCode,
+  handleError,
+  routeCommanderErrors,
+} from "../utils/errors";
 import {
   downloadImage,
   getFileSize,
@@ -1090,9 +1094,12 @@ export async function runSeries(args: string[]): Promise<void> {
     return;
   }
 
-  const program = new Command()
-    .name("motif series")
-    .description("Manage image series for consistent styling");
+  const program = routeCommanderErrors(
+    new Command()
+      .name("motif series")
+      .description("Manage image series for consistent styling"),
+    emitOpts.format
+  );
 
   program
     .command("create <name>")

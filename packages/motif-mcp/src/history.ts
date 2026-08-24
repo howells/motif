@@ -14,7 +14,12 @@ const HISTORY_PATH = join(homedir(), ".motif", "history.json");
 
 export interface HistoryEntry {
   aspect: string;
-  cost: number;
+  /**
+   * USD billed, or null where the endpoint is metered or per-second and no
+   * figure is knowable. Never 0 for unknown — a caller summing these would
+   * otherwise read a metered Topaz run as free.
+   */
+  cost: number | null;
   editedFrom?: string;
   filePath: string;
   id: string;
@@ -25,11 +30,12 @@ export interface HistoryEntry {
 }
 
 export interface HistoryResult {
-  costs: {
-    allTime: number;
-    session: number;
-    today: number;
-  };
+  /**
+   * Spend in two halves: `allTime`/`session`/`today` sum only the runs whose
+   * cost is known, and `unknown` counts, per the same windows, the runs left
+   * out of those sums.
+   */
+  costs: HistoryCosts;
   generations: HistoryEntry[];
   hasMore: boolean;
   limit: number;
@@ -37,9 +43,20 @@ export interface HistoryResult {
   total: number;
 }
 
+export interface HistoryCosts {
+  allTime: number;
+  session: number;
+  today: number;
+  unknown: {
+    allTime: number;
+    session: number;
+    today: number;
+  };
+}
+
 interface RawGeneration {
   aspect: string;
-  cost: number;
+  cost: number | null;
   editedFrom?: string;
   id: string;
   model: string;
@@ -51,11 +68,17 @@ interface RawGeneration {
 
 interface RawHistory {
   generations: RawGeneration[];
-  totalCost: { allTime: number; session: number; today: number };
+  totalCost: Omit<HistoryCosts, "unknown"> &
+    Partial<Pick<HistoryCosts, "unknown">>;
 }
 
 const emptyResult = (limit: number, offset: number): HistoryResult => ({
-  costs: { allTime: 0, session: 0, today: 0 },
+  costs: {
+    allTime: 0,
+    session: 0,
+    today: 0,
+    unknown: { allTime: 0, session: 0, today: 0 },
+  },
   generations: [],
   hasMore: false,
   limit,
@@ -104,7 +127,19 @@ export function readHistory(limit = 10, offset = 0): HistoryResult {
   const page = all.slice(offset, offset + limit);
 
   return {
-    costs: history.totalCost,
+    costs: {
+      allTime: history.totalCost.allTime,
+      session: history.totalCost.session,
+      today: history.totalCost.today,
+      // Absent in files written before the CLI counted metered runs. Zero is
+      // the honest reading there: those files recorded metered runs as $0 and
+      // kept no record of how many.
+      unknown: history.totalCost.unknown ?? {
+        allTime: 0,
+        session: 0,
+        today: 0,
+      },
+    },
     generations: page.map((g) => ({
       aspect: g.aspect,
       cost: g.cost,

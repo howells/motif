@@ -8,6 +8,7 @@
 
 import {
   ASPECT_RATIOS,
+  formatCost,
   GENERATION_MODELS,
   MODELS,
   RESOLUTIONS,
@@ -28,7 +29,12 @@ import { runToolPayload } from "./commands/tools";
 import { generateVideo } from "./commands/video";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getApiKey, getLastGeneration, loadConfig } from "./utils/config";
-import { exitForErrorCode, handleError } from "./utils/errors";
+import {
+  exitForErrorCode,
+  formatForParseErrors,
+  handleError,
+  routeCommanderErrors,
+} from "./utils/errors";
 import {
   readStdinJson,
   reservedPromptSuggestion,
@@ -73,7 +79,7 @@ async function showLastGeneration(emitOpts: EmitOptions): Promise<void> {
   );
   console.log(`  Aspect: ${last.aspect} | Resolution: ${last.resolution}`);
   console.log(`  Output: ${chalk.dim(last.output)}`);
-  console.log(`  Cost:   ${chalk.yellow(`$${last.cost.toFixed(3)}`)}`);
+  console.log(`  Cost:   ${chalk.yellow(formatCost(last.cost))}`);
   console.log(`  Time:   ${new Date(last.timestamp).toLocaleString()}`);
 }
 
@@ -247,10 +253,30 @@ export async function runCli(
     .option("--limit <n>", "History: number of entries (default 10)")
     .option("--offset <n>", "History: skip first N entries");
 
+  // Commander's own parse failures (unknown option, missing argument) must
+  // honour the same error contract as everything else the CLI emits.
+  routeCommanderErrors(program, formatForParseErrors(args));
+
   program.parse(args);
 
   const options = program.opts<CliOptions>();
   const prompt = program.args[0];
+
+  /**
+   * Whether argv alone says what to do. When it does, stdin can only add to a
+   * decided action, so waiting on it forever is what made the CLI hang under
+   * `execFile` — a parent that holds the write end open never sends EOF. When
+   * it does not, stdin is the whole input and must not be cut short.
+   */
+  const argvDecidesAction =
+    prompt !== undefined ||
+    options.describe !== undefined ||
+    options.history === true ||
+    options.last === true ||
+    options.vary === true ||
+    options.up === true ||
+    options.rmbg === true ||
+    options.video === true;
 
   // Resolve output format (TTY detection + explicit flag)
   const format = resolveFormat(options.format);
@@ -263,7 +289,7 @@ export async function runCli(
   // -- Read stdin JSON if piped --
   let stdinData: StdinPayload | null = null;
   try {
-    stdinData = await readStdinJson<StdinPayload>();
+    stdinData = await readStdinJson<StdinPayload>(!argvDecidesAction);
   } catch (error) {
     handleError(error, "INVALID_STDIN", format);
   }

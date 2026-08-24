@@ -1,8 +1,9 @@
 import { MotifError } from "@howells/motif-sdk";
+import type { Command } from "commander";
 
 import { getErrorMetadata } from "./error-catalog";
 import { validateOutputPath } from "./input";
-import { emitError } from "./output";
+import { emitError, resolveFormat } from "./output";
 import type { OutputFormat } from "./output";
 
 /** Build the RFC 7807 `instance` URN from a fal request id, if the error carries one. */
@@ -124,4 +125,70 @@ export function handleError(
     format
   );
   process.exit(exitCodeForStatus(metadata.status));
+}
+
+/**
+ * Commander raises `--help` and `--version` through the same channel as parse
+ * failures. These are the codes that mean "printed and done", not "failed".
+ */
+const COMMANDER_SUCCESS_CODES = new Set([
+  "commander.help",
+  "commander.helpDisplayed",
+  "commander.version",
+]);
+
+/**
+ * Resolve `--format` straight from argv, before commander parses it.
+ *
+ * A parse failure never reaches the parsed options, so the envelope's shape
+ * has to be decided from the raw arguments.
+ */
+export function formatForParseErrors(args: string[]): OutputFormat {
+  const inline = args.find((arg) => arg.startsWith("--format="));
+  if (inline !== undefined) {
+    return resolveFormat(inline.slice("--format=".length));
+  }
+  const index = args.indexOf("--format");
+  return resolveFormat(index === -1 ? undefined : args[index + 1]);
+}
+
+/**
+ * Swallow commander's own plain-English error line.
+ *
+ * The RFC 7807 envelope carries the same message, and a second bare line on
+ * stderr breaks a caller parsing that stream as JSON. Commander prints nothing
+ * when this hook declines to call `write`.
+ */
+function discardCommanderErrorLine(message: string): void {
+  void message;
+}
+
+/**
+ * Route commander's own parse failures through the CLI error envelope.
+ *
+ * Commander defaults to a bare English line on stderr and exit `1`, which
+ * breaks both halves of the agent contract: invalid input must exit `2`, and
+ * every failure must be an RFC 7807 object. Commander's diagnosis ("missing
+ * required argument 'prompt'") is the useful part, so it becomes the
+ * envelope's `message`.
+ *
+ * Call this before registering subcommands — commander copies the exit
+ * callback and output configuration into each subcommand as it is created.
+ */
+export function routeCommanderErrors(
+  program: Command,
+  format: OutputFormat
+): Command {
+  return program
+    .configureOutput({ outputError: discardCommanderErrorLine })
+    .exitOverride((err) => {
+      if (COMMANDER_SUCCESS_CODES.has(err.code)) {
+        process.exit(err.exitCode);
+      }
+      handleError(
+        new Error(err.message.replace(/^error: /, "")),
+        "INVALID_OPTION",
+        format
+      );
+    });
 }

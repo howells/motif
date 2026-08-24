@@ -14,6 +14,7 @@ import {
   estimateCost,
   GENERATION_MODELS,
   MODELS,
+  sumCosts,
 } from "@howells/motif-sdk";
 import type {
   AspectRatio,
@@ -32,6 +33,7 @@ import {
   loadHistory,
 } from "../utils/config";
 import type { Generation } from "../utils/config";
+import { formatTotal } from "../utils/cost";
 import { resolveCreativeDirection } from "../utils/creative";
 import { exitForErrorCode, handleError, validateOption } from "../utils/errors";
 import {
@@ -167,15 +169,19 @@ async function saveGeneratedImages(
     await addGenerations(generations);
   }
 
-  const totalCost = generations.reduce((sum, g) => sum + g.cost, 0);
+  // Generation models are all flat-priced, so nothing here is unknown — but the
+  // sum goes through `sumCosts` rather than adding the field up directly, so a
+  // null arriving later reports as metered instead of poisoning the total.
+  const { known: totalCost } = sumCosts(generations.map((g) => g.cost));
   // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since images is non-empty
   const lastGen = generations.at(-1)!;
 
   if (historyRecorded && !isStructured(emitOpts.format)) {
     const history = await loadHistory();
+    const totals = history.totalCost;
     console.log(
       chalk.dim(
-        `\nSession: $${history.totalCost.session.toFixed(2)} | Today: $${history.totalCost.today.toFixed(2)}`
+        `\nSession: ${formatTotal(totals.session, totals.unknown.session)} | Today: ${formatTotal(totals.today, totals.unknown.today)}`
       )
     );
   }

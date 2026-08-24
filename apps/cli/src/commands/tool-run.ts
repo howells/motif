@@ -6,7 +6,12 @@
  * so neither file outgrows the 600-line ceiling.
  */
 
-import { buildFalToolRequest, isFalToolId } from "@howells/motif-sdk";
+import {
+  buildFalToolRequest,
+  isFalToolId,
+  measuredToolCost,
+  projectedToolCost,
+} from "@howells/motif-sdk";
 import type {
   FalToolConfig,
   FalToolRequest,
@@ -28,6 +33,7 @@ import {
 import { emit, isStructured } from "../utils/output";
 import type { EmitOptions, OutputFormat } from "../utils/output";
 import { hasText } from "../utils/text";
+import { resolveOutputLabels } from "./output-labels";
 
 export interface ToolOptions {
   applyMask?: boolean;
@@ -273,16 +279,14 @@ interface ToolCostEstimate {
  * leave `estimatedCost` null rather than inventing a multiplier.
  */
 function estimateToolCost(price: FalToolConfig["price"]): ToolCostEstimate {
-  if (price.kind === "call") {
-    return { estimatedCost: price.usd };
-  }
+  const estimatedCost = projectedToolCost(price).usd;
   if (price.kind === "megapixel") {
-    return { estimatedCost: null, estimatedCostPerMegapixel: price.usd };
+    return { estimatedCost, estimatedCostPerMegapixel: price.usd };
   }
   if (price.kind === "second") {
-    return { estimatedCost: null, estimatedCostPerSecond: price.usd };
+    return { estimatedCost, estimatedCostPerSecond: price.usd };
   }
-  return { estimatedCost: null };
+  return { estimatedCost };
 }
 
 /** Nearest resolution bucket for a written file; 1K when it carries no dimensions. */
@@ -298,41 +302,6 @@ function resolutionOf(file: WrittenFile): Resolution {
     return "1K";
   }
   return "2K";
-}
-
-/** The value at `key` in the request body, when it is an array of strings. */
-function stringArrayOption(
-  body: Record<string, unknown>,
-  key: string
-): string[] | undefined {
-  const value = body[key];
-  return Array.isArray(value) && value.every((it) => typeof it === "string")
-    ? value
-    : undefined;
-}
-
-/**
- * Resolve each output key's position names against the request that produced
- * them. The request wins: a caller who reorders or subsets the driving option
- * (patina's `maps`) would otherwise get the schema default's names applied to
- * a different order, which is silently wrong rather than merely unhelpful.
- */
-export function resolveOutputLabels(
-  tool: FalToolConfig,
-  body: Record<string, unknown>
-) {
-  const declared = "outputLabels" in tool ? tool.outputLabels : undefined;
-  if (declared === undefined) {
-    return;
-  }
-  return Object.fromEntries(
-    Object.entries(declared).map(([key, { fallback, fromOption }]) => [
-      key,
-      (fromOption === undefined
-        ? undefined
-        : stringArrayOption(body, fromOption)) ?? fallback,
-    ])
-  );
 }
 
 /** Download every artefact when `--output` names a directory, else just the first. */
@@ -355,7 +324,7 @@ async function saveToolOutputs(
     return await downloadAll(
       artifacts,
       outputPath,
-      resolveOutputLabels(tool, body)
+      resolveOutputLabels(tool, body, result)
     );
   }
   return [await writeArtifact(first.key, first.url, outputPath)];
@@ -371,7 +340,7 @@ async function recordToolRun(
   files: WrittenFile[],
   source: string | undefined,
   prompt: string,
-  cost: number
+  cost: number | null
 ): Promise<void> {
   const primary = files[0];
   if (primary === undefined) {
@@ -437,14 +406,17 @@ async function executeTool(
  * Emit a finished run, listing every file only in directory mode.
  *
  * Carries the same cost fields as `--dry-run` so an agent tracking spend
- * parses one shape whether it priced the run or actually made it.
+ * parses one shape whether it priced the run or actually made it, plus `cost`:
+ * what the run actually billed, measured against the files it wrote. That is a
+ * real figure where `estimatedCost` had to be null, and null only where nothing
+ * can know it.
  */
 function emitRunResult(
   toolId: string,
   request: FalToolRequest,
   result: Record<string, unknown>,
   files: WrittenFile[],
-  cost: ToolCostEstimate,
+  cost: ToolCostEstimate & { cost: number | null },
   options: ToolOptions,
   emitOpts: EmitOptions
 ): void {
@@ -552,19 +524,28 @@ export async function runFalTool(
         )
       : [];
 
-    // A recorded cost of 0 means UNKNOWN, not free. `Generation.cost` is a
-    // non-nullable number, so `megapixel`, `second` and `metered` tools — the
-    // Topaz suite among them — all land here as 0 and under-report the session
-    // total. Only `call`-priced tools record a real figure.
+    // The files exist now, so a per-megapixel rate resolves exactly — most of
+    // the Topaz suite records its real cost here rather than the null it had to
+    // report at dry-run time. Only per-second and metered endpoints stay
+    // unknown, and those record null rather than a zero that reads as free.
+    const measured = measuredToolCost(request.tool.price, files);
     await recordToolRun(
       toolId,
       files,
       inputs?.[0],
       historyPrompt(options, request.tool),
-      cost.estimatedCost ?? 0
+      measured.usd
     );
 
-    emitRunResult(toolId, request, result, files, cost, options, emitOpts);
+    emitRunResult(
+      toolId,
+      request,
+      result,
+      files,
+      { ...cost, cost: measured.usd },
+      options,
+      emitOpts
+    );
   } catch (error) {
     handleError(error, "TOOL_FAILED", emitOpts.format);
   }

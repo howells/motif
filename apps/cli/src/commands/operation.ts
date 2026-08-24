@@ -18,7 +18,8 @@
  *     Those emit and skip both download and history.
  */
 
-import type { AspectRatio, Resolution } from "@howells/motif-sdk";
+import { FAL_TOOLS, isFalToolId, measuredToolCost } from "@howells/motif-sdk";
+import type { AspectRatio, FalToolPrice, Resolution } from "@howells/motif-sdk";
 import chalk from "chalk";
 import ora from "ora";
 import type { Ora } from "ora";
@@ -71,8 +72,11 @@ interface OperationPresentation {
    * `null` where the registry price is metered or per-unit and the real cost
    * depends on output size — unknown before the call, and deliberately not
    * guessed. Rendered as "metered", never as $0.000: a zero that means
-   * "we don't know" is indistinguishable from one that means "free". See
-   * MOT-38 for the history side of the same problem.
+   * "we don't know" is indistinguishable from one that means "free".
+   *
+   * This is the dry-run figure only. Once the files exist they are measured
+   * against the registry rate, and it is that number, not this one, that
+   * reaches history and the success payload.
    */
   estimatedCost: number | null;
   /** Error code passed to `handleError` when `run` throws. */
@@ -360,19 +364,50 @@ function requireArtifacts(
   return artifacts;
 }
 
+/**
+ * The registry rate for a verb's endpoint.
+ *
+ * Every promoted verb names a fal tool as its `model`, so the rate it will be
+ * billed at is already in the registry and needs no second copy on the spec.
+ * Operations priced outside the registry — the postprocess pair, video, series
+ * — name a model rather than a tool and get `undefined`; their `estimatedCost`
+ * is a flat figure and is already the whole answer.
+ */
+function registryPrice(model: string): FalToolPrice | undefined {
+  return isFalToolId(model) ? FAL_TOOLS[model].price : undefined;
+}
+
+/**
+ * What the run actually billed.
+ *
+ * A per-megapixel rate could not be projected before the call but resolves
+ * exactly against the files it wrote, so an upscale records its real cost
+ * rather than the null it showed at dry-run time.
+ */
+function billedCost(
+  spec: OperationPresentation,
+  written: WrittenFile[]
+): number | null {
+  const price = registryPrice(spec.model);
+  return price === undefined
+    ? spec.estimatedCost
+    : measuredToolCost(price, written).usd;
+}
+
 /** Record the primary output in history so later commands can chain off it. */
 async function recordOperation(
   spec: OperationPresentation,
   source: ResolvedSource,
-  primary: WrittenFile | undefined
+  written: WrittenFile[],
+  cost: number | null
 ): Promise<void> {
+  const primary = written[0];
   if (!primary) {
     return;
   }
   await addGeneration({
     aspect: source.aspect,
-    // 0 stands in for unknown: `Generation.cost` is non-nullable. MOT-38.
-    cost: spec.estimatedCost ?? 0,
+    cost,
     editedFrom: source.path,
     id: generateId(),
     model: spec.model,
@@ -417,12 +452,13 @@ export async function runImageOperation<TResult>(
     }
 
     const primary = written[0];
-    await recordOperation(spec, source, primary);
+    const cost = billedCost(spec, written);
+    await recordOperation(spec, source, written, cost);
 
     emit(
       {
         command: spec.command,
-        cost: spec.estimatedCost,
+        cost,
         files: written,
         model: spec.model,
         source: source.path,
