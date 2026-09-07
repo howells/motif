@@ -42,7 +42,7 @@ export const StarRating = ({
         <button
           aria-label={`Rate ${star} star${star === 1 ? "" : "s"}`}
           className={cn(
-            "cursor-pointer border-0 bg-transparent p-0 transition-colors duration-150 focus-visible:outline-plate-ink disabled:cursor-not-allowed disabled:opacity-45",
+            "focus-visible:outline-plate-ink cursor-pointer border-0 bg-transparent p-0 transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
             isFilled
               ? "text-plate-ink"
               : "text-plate-muted/40 hover:text-plate-ink"

@@ -25,7 +25,7 @@ type TabId = (typeof TABS)[number]["id"];
  * shell never blanks a region it has already drawn
  * (`docs/design/specs/design-bench-shell.md`). */
 const PaneNote = ({ children }: { readonly children: React.ReactNode }) => (
-  <p className="max-w-[56ch] px-4 py-4 text-[13px] leading-[1.6] text-muted">
+  <p className="text-muted max-w-[56ch] px-4 py-4 text-[13px] leading-[1.6]">
     {children}
   </p>
 );
@@ -35,13 +35,13 @@ const PaneNote = ({ children }: { readonly children: React.ReactNode }) => (
  * obvious. */
 const FirstRunHint = ({ draft }: { readonly draft: RunDraft }) => (
   <div className="flex flex-col gap-3 px-4 py-4">
-    <p className="max-w-[56ch] text-[13px] leading-[1.6] text-muted">
+    <p className="text-muted max-w-[56ch] text-[13px] leading-[1.6]">
       Press <span className="text-ink">Run</span> (or{" "}
       <span className="text-ink">⌘↵</span>) to send this prompt to the models
       below. The estimate in the summary line above comes from a real dry run —
       parameters aligned and priced with nothing sent to a provider.
     </p>
-    <p className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] text-muted">
+    <p className="text-muted flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
       {[...draft.models].toSorted().map((alias) => (
         <span key={alias}>{alias}</span>
       ))}
@@ -58,14 +58,14 @@ const TabBar = ({
   readonly onSelect: (tab: TabId) => void;
   readonly tab: TabId;
 }) => (
-  <div className="order-2 flex h-10 shrink-0 items-center border-t border-border px-3 md:order-3 md:px-4">
+  <div className="border-border order-2 flex h-10 shrink-0 items-center border-t px-3 md:order-3 md:px-4">
     {/* Patternmode's segmented control, verbatim: a pill group on
         `surface-soft` with the active item filled `ink`. The tabs were three
         loose text buttons whose active state was a barely-there grey wash —
         weaker than the tab bar's own top rule, and not a control the house
         style has anywhere else. This is the shared pattern, so the bench reads
         as a sibling of the site rather than as a lookalike. */}
-    <div className="flex gap-0.5 rounded-full border border-border-soft bg-surface-soft p-0.5">
+    <div className="border-border-soft bg-surface-soft flex gap-0.5 rounded-full border p-0.5">
       {TABS.map((entry) => (
         <button
           aria-current={entry.id === tab ? "true" : undefined}
@@ -86,7 +86,7 @@ const TabBar = ({
       ))}
     </div>
     {detail === undefined ? null : (
-      <span className="ml-auto hidden truncate pl-4 text-[11px] text-muted sm:block">
+      <span className="text-muted ml-auto hidden truncate pl-4 text-[11px] sm:block">
         {detail.samples.length} sample
         {detail.samples.length === 1 ? "" : "s"} · {detail.run.aspect} ·{" "}
         {detail.run.resolution}
@@ -172,7 +172,7 @@ export const RunPane = ({
       return (
         <ScrollFrame
           aria-label="Contact sheet"
-          className="size-full bg-plate"
+          className="bg-plate size-full"
           fadeColor="var(--color-plate)"
           fadeSize={28}
           key="contact-sheet"

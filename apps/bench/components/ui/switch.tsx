@@ -18,14 +18,14 @@ export const Switch = ({
 }: ComponentProps<typeof SwitchPrimitive.Root>) => (
   <SwitchPrimitive.Root
     className={cn(
-      "peer inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full border border-border shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:border-ink data-[state=checked]:bg-ink data-[state=unchecked]:bg-surface-soft",
+      "peer border-border data-[state=checked]:border-ink data-[state=checked]:bg-ink data-[state=unchecked]:bg-surface-soft inline-flex h-[18px] w-8 shrink-0 cursor-pointer items-center rounded-full border shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     data-slot="switch"
     {...props}
   >
     <SwitchPrimitive.Thumb
-      className="pointer-events-none block size-3.5 translate-x-px rounded-full bg-surface transition-transform duration-150 data-[state=checked]:translate-x-[15px] data-[state=unchecked]:bg-muted"
+      className="bg-surface data-[state=unchecked]:bg-muted pointer-events-none block size-3.5 translate-x-px rounded-full transition-transform duration-150 data-[state=checked]:translate-x-[15px]"
       data-slot="switch-thumb"
     />
   </SwitchPrimitive.Root>

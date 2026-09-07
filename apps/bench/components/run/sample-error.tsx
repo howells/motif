@@ -48,11 +48,11 @@ export const SampleError = ({
   const retry = useRetrySamples(runId);
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 bg-plate px-4 py-6 text-center">
-      <span className="font-mono text-[11px] text-bad">
+    <div className="bg-plate flex h-full flex-col items-center justify-center gap-2 px-4 py-6 text-center">
+      <span className="text-bad font-mono text-[11px]">
         {errorCode ?? "UNKNOWN"}
       </span>
-      <p className="max-w-[30ch] text-[11px] leading-[1.5] text-plate-ink">
+      <p className="text-plate-ink max-w-[30ch] text-[11px] leading-[1.5]">
         {errorCode
           ? ERROR_COPY[errorCode]
           : "This attempt failed for an unrecorded reason."}
@@ -80,7 +80,7 @@ export const SampleError = ({
           its resting label with nothing else happening is the "started: true
           while doing nothing" failure in miniature. */}
       {retry.error === null ? null : (
-        <p className="max-w-[30ch] text-[11px] leading-[1.5] text-bad">
+        <p className="text-bad max-w-[30ch] text-[11px] leading-[1.5]">
           {retry.error.message}
         </p>
       )}

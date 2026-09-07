@@ -71,10 +71,10 @@ const RunEntry = ({
     <button
       aria-current={isSelected ? "true" : undefined}
       className={cn(
-        "flex w-full cursor-pointer flex-col gap-0.5 border-t border-l-2 border-t-border-soft px-3 py-2 text-left transition-colors duration-150",
+        "border-t-border-soft flex w-full cursor-pointer flex-col gap-0.5 border-t border-l-2 px-3 py-2 text-left transition-colors duration-150",
         isSelected
           ? "border-l-accent bg-surface-soft"
-          : "border-l-transparent hover:bg-surface-soft"
+          : "hover:bg-surface-soft border-l-transparent"
       )}
       onClick={() => {
         onSelect(run.id);
@@ -83,7 +83,7 @@ const RunEntry = ({
     >
       <span className="flex w-full items-center gap-1.5">
         <StatusDot status={run.status} />
-        <span className="text-[13px] text-ink">
+        <span className="text-ink text-[13px]">
           {run.models.length} model{run.models.length === 1 ? "" : "s"}
         </span>
         {/* The one figure in the rail that keeps mono. Costs right-align into
@@ -91,7 +91,7 @@ const RunEntry = ({
             "which run was the expensive one" is the question the column
             answers, and tabular figures are what let you answer it by
             scanning. Everything else here is read one row at a time. */}
-        <span className="bench-numeric ml-auto text-[11px] text-muted">
+        <span className="bench-numeric text-muted ml-auto text-[11px]">
           {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
           {run.costActualMicros === null ? " est" : ""}
         </span>
@@ -99,7 +99,7 @@ const RunEntry = ({
 
       {/* Indented past the disc so the meta line hangs off the count above it
           rather than starting a second column. */}
-      <span className="flex flex-wrap items-baseline gap-x-1.5 pl-[11px] text-[11px] text-muted">
+      <span className="text-muted flex flex-wrap items-baseline gap-x-1.5 pl-[11px] text-[11px]">
         <span>
           {progress === null
             ? run.status
@@ -125,7 +125,7 @@ const RunEntry = ({
           own subject appears once the composer above became a forward-looking
           draft rather than a description of what is on screen. */}
       {isSelected ? (
-        <span className="line-clamp-2 pl-[11px] text-[12px] leading-[1.45] text-muted">
+        <span className="text-muted line-clamp-2 pl-[11px] text-[12px] leading-[1.45]">
           {run.prompt}
         </span>
       ) : null}
@@ -138,17 +138,17 @@ const RunList = ({ onSelect, progress, selectedRunId }: RunsRailProps) => {
   const runs = data?.runs ?? [];
 
   if (isLoading) {
-    return <p className="px-3 py-2.5 text-[11px] text-muted">Loading runs…</p>;
+    return <p className="text-muted px-3 py-2.5 text-[11px]">Loading runs…</p>;
   }
   if (isError) {
     return (
-      <p className="px-3 py-2.5 text-[11px] leading-[1.5] text-muted">
+      <p className="text-muted px-3 py-2.5 text-[11px] leading-[1.5]">
         Could not load runs. The app&apos;s own store may be unavailable.
       </p>
     );
   }
   if (runs.length === 0) {
-    return <p className="px-3 py-2.5 text-[11px] text-muted">No runs yet.</p>;
+    return <p className="text-muted px-3 py-2.5 text-[11px]">No runs yet.</p>;
   }
 
   return (
@@ -175,10 +175,10 @@ const RailHeading = () => {
   const { data } = useRuns();
   const count = data?.runs.length;
   return (
-    <span className="flex items-baseline gap-1.5 text-[13px] text-ink">
+    <span className="text-ink flex items-baseline gap-1.5 text-[13px]">
       Runs
       {count === undefined ? null : (
-        <span className="text-[11px] text-muted">{count}</span>
+        <span className="text-muted text-[11px]">{count}</span>
       )}
     </span>
   );
@@ -192,8 +192,8 @@ const RailHeading = () => {
  * Its 64px header is deliberately the verdict strip's height, so the rule
  * under it continues the rule under the verdicts straight across the shell. */
 export const RunsRail = (props: RunsRailProps) => (
-  <aside className="hidden w-[220px] shrink-0 flex-col border-r border-border md:flex">
-    <div className="flex h-16 shrink-0 items-center border-b border-border px-3">
+  <aside className="border-border hidden w-[220px] shrink-0 flex-col border-r md:flex">
+    <div className="border-border flex h-16 shrink-0 items-center border-b px-3">
       <RailHeading />
     </div>
     <ScrollFrame
@@ -220,7 +220,7 @@ export const RunsSheet = ({
 }) => (
   <Dialog onOpenChange={onOpenChange} open={open}>
     <DialogContent className="top-0 left-0 h-dvh w-[300px] max-w-[85vw] translate-x-0 translate-y-0 gap-0 rounded-none border-y-0 border-l-0 p-0">
-      <DialogTitle className="flex h-14 shrink-0 items-center border-b border-border px-3">
+      <DialogTitle className="border-border flex h-14 shrink-0 items-center border-b px-3">
         <RailHeading />
       </DialogTitle>
       <div className="min-h-0 flex-1 overflow-y-auto">

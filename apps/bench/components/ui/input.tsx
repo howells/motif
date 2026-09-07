@@ -14,7 +14,7 @@ export const Input = ({
 }: ComponentProps<"input">) => (
   <input
     className={cn(
-      "h-[34px] w-full min-w-0 rounded-md border border-border bg-surface-soft px-2.5 text-ink shadow-xs transition-colors duration-150 placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-45",
+      "border-border bg-surface-soft text-ink placeholder:text-muted h-[34px] w-full min-w-0 rounded-md border px-2.5 shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     data-slot="input"

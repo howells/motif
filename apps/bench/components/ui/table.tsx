@@ -28,7 +28,7 @@ export const TableHeader = ({
   ...props
 }: ComponentProps<"thead">) => (
   <thead
-    className={cn("[&_tr]:border-b [&_tr]:border-border", className)}
+    className={cn("[&_tr]:border-border [&_tr]:border-b", className)}
     data-slot="table-header"
     {...props}
   />
@@ -44,7 +44,7 @@ export const TableBody = ({ className, ...props }: ComponentProps<"tbody">) => (
 
 export const TableRow = ({ className, ...props }: ComponentProps<"tr">) => (
   <tr
-    className={cn("border-b border-border-soft", className)}
+    className={cn("border-border-soft border-b", className)}
     data-slot="table-row"
     {...props}
   />
@@ -63,7 +63,7 @@ export const TableHead = ({ className, ...props }: ComponentProps<"th">) => (
     className={cn(
       // `font-[450]` explicitly: `th` is bold in the UA stylesheet, and a
       // header heavier than its own column of figures inverts the hierarchy.
-      "px-2.5 py-2 text-left align-bottom text-[12px] font-[450] whitespace-nowrap text-muted first:pl-0 last:pr-0",
+      "text-muted px-2.5 py-2 text-left align-bottom text-[12px] font-[450] whitespace-nowrap first:pl-0 last:pr-0",
       className
     )}
     data-slot="table-head"
@@ -84,7 +84,7 @@ export const TableCaption = ({
   ...props
 }: ComponentProps<"caption">) => (
   <caption
-    className={cn("mt-3 text-left text-[13px] text-muted", className)}
+    className={cn("text-muted mt-3 text-left text-[13px]", className)}
     data-slot="table-caption"
     {...props}
   />

@@ -34,15 +34,15 @@ const buttonVariants = cva(
       },
       variant: {
         accent:
-          "border border-accent bg-accent font-medium text-background shadow-xs hover:bg-accent/90",
+          "border-accent bg-accent text-background hover:bg-accent/90 border font-medium shadow-xs",
         ghost: "text-muted hover:bg-surface-soft hover:text-ink",
         link: "text-accent underline-offset-4 hover:underline",
         outline:
-          "border border-border bg-surface text-ink shadow-xs hover:border-ink",
+          "border-border bg-surface text-ink hover:border-ink border shadow-xs",
         // The plate is the one dark surface; its controls cannot borrow the
         // paper palette or they vanish into it.
         plate:
-          "border border-plate-edge bg-transparent text-plate-ink hover:bg-plate-edge focus-visible:outline-plate-ink",
+          "border-plate-edge text-plate-ink hover:bg-plate-edge focus-visible:outline-plate-ink border bg-transparent",
       },
     },
   }

@@ -109,7 +109,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "a bare concrete wall" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.images[0]?.uint8Array.length).toBeGreaterThan(0);
@@ -137,7 +137,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.requestId).toBe("req_123");
     }
@@ -161,8 +161,8 @@ describe("createMotifImage.generate", () => {
       model: "custom-model-x",
     });
 
-    expect(result.isOk()).toBe(true);
-    expect(seen).toEqual([{ provider: "google", modelId: "custom-model-x" }]);
+    expect(result.isOk()).toBeTruthy();
+    expect(seen).toStrictEqual([{ provider: "google", modelId: "custom-model-x" }]);
     if (result.isOk()) {
       expect(result.value.model).toBe("custom-model-x");
     }
@@ -190,8 +190,8 @@ describe("createMotifImage.generate", () => {
 
       const result = await img.generate({ prompt: "x", tier });
 
-      expect(result.isOk()).toBe(true);
-      expect(seen).toEqual([modelId]);
+      expect(result.isOk()).toBeTruthy();
+      expect(seen).toStrictEqual([modelId]);
     }
   });
 
@@ -211,7 +211,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x", tier: "fast" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.cost.source).toBe("provider-metadata");
       expect(result.value.cost.usd).toBe(0.5);
@@ -226,7 +226,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x", tier: "fast" });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -248,7 +248,7 @@ describe("createMotifImage.generate", () => {
         }
       );
       const result = await img.generate({ prompt: "x" });
-      expect(result.isErr()).toBe(true);
+      expect(result.isErr()).toBeTruthy();
       if (result.isErr()) {
         expect(result.error).toBeInstanceOf(MotifError);
         expect(result.error.message).toContain("GOOGLE_GENERATIVE_AI_API_KEY");
@@ -276,7 +276,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "a bare concrete wall" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     expect(captured?.prompt).toBe("a bare concrete wall");
     // A text→image call carries no input files.
     expect(captured?.files).toBeUndefined();
@@ -287,7 +287,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x", provider: "not-real" });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("not-real");
@@ -318,12 +318,12 @@ describe("createMotifImage.generate", () => {
       providerOptions: { google: { style: "vivid" } },
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     expect(call?.n).toBe(3);
     expect(call?.size).toBe("512x512");
     expect(call?.seed).toBe(42);
     expect(call?.abortSignal).toBe(controller.signal);
-    expect(call?.providerOptions).toEqual({ google: { style: "vivid" } });
+    expect(call?.providerOptions).toStrictEqual({ google: { style: "vivid" } });
   });
 
   it("forwards aspectRatio to generateImage", async () => {
@@ -342,7 +342,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x", aspectRatio: "16:9" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     expect(call?.aspectRatio).toBe("16:9");
   });
 
@@ -369,7 +369,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.requestId).toBe("goog_req_9");
     }
@@ -383,7 +383,7 @@ describe("createMotifImage.generate", () => {
       model: "totally-unpriced-model",
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.cost.source).toBe("unknown");
       expect(result.value.cost.usd).toBe(0);
@@ -413,7 +413,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.warnings).toHaveLength(2);
       expect(result.value.warnings?.[0]).toContain("size");
@@ -429,7 +429,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x" });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.warnings).toBeUndefined();
     }
@@ -446,7 +446,7 @@ describe("createMotifImage.generate", () => {
       providerOptions: { google: { big: 10n } },
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("providerOptions");
@@ -464,7 +464,7 @@ describe("createMotifImage.generate", () => {
       providerOptions: { google: { cb: () => 1 } },
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -484,7 +484,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x" });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       // Callers branch on `error.status === 429`, not the message text.
@@ -507,7 +507,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({ prompt: "x" });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error.status).toBe(0);
       expect(result.error.message).toBe("local failure");
@@ -533,8 +533,8 @@ describe("createMotifImage.generate", () => {
       headers: { "X-Fal-Store-IO": "0" },
     });
 
-    expect(result.isOk()).toBe(true);
-    expect(call?.headers).toEqual({ "X-Fal-Store-IO": "0" });
+    expect(result.isOk()).toBeTruthy();
+    expect(call?.headers).toStrictEqual({ "X-Fal-Store-IO": "0" });
   });
 });
 
@@ -565,12 +565,12 @@ describe("createMotifImage.edit", () => {
       mask: maskBytes,
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (!lastCall || typeof lastCall.prompt === "string") {
       throw new Error("expected an object prompt with images/text/mask");
     }
     const { prompt } = lastCall;
-    expect(prompt.images).toEqual([roomBytes, tileBytes]);
+    expect(prompt.images).toStrictEqual([roomBytes, tileBytes]);
     expect(prompt.text).toBe(
       "Apply the oak texture from image 2 onto the wall in image 1."
     );
@@ -588,7 +588,7 @@ describe("createMotifImage.edit", () => {
       instruction: "brighten the wall",
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.provider).toBe("google");
@@ -619,7 +619,7 @@ describe("createMotifImage.edit", () => {
       mask: maskBytes,
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     expect(captured?.prompt).toBe(
       "Apply the oak texture from image 2 onto image 1."
     );
@@ -651,7 +651,7 @@ describe("createMotifImage.edit", () => {
       instruction: "brighten the wall",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -677,8 +677,8 @@ describe("createMotifImage.edit", () => {
       headers: { "X-Fal-Store-IO": "0" },
     });
 
-    expect(result.isOk()).toBe(true);
-    expect(call?.headers).toEqual({ "X-Fal-Store-IO": "0" });
+    expect(result.isOk()).toBeTruthy();
+    expect(call?.headers).toStrictEqual({ "X-Fal-Store-IO": "0" });
   });
 });
 
@@ -695,7 +695,7 @@ describe("createMotifImage — fal explicit-model pricing", () => {
       model: "fal-ai/flux/schnell",
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.model).toBe("fal-ai/flux/schnell");
       expect(result.value.cost.source).toBe("table");
@@ -772,7 +772,7 @@ describe.each(PROVIDER_CASES)(
       const adapter = PROVIDERS[provider];
       expect(adapter).toBeDefined();
       expect(adapter?.id).toBe(provider);
-      expect(adapter?.tierModels).toEqual(tierModels);
+      expect(adapter?.tierModels).toStrictEqual(tierModels);
     });
 
     it("dispatches each tier through the registry to the right model id", async () => {
@@ -788,8 +788,8 @@ describe.each(PROVIDER_CASES)(
 
         const result = await img.generate({ prompt: "x", provider, tier });
 
-        expect(result.isOk()).toBe(true);
-        expect(seen).toEqual([{ provider, modelId: tierModels[tier] }]);
+        expect(result.isOk()).toBeTruthy();
+        expect(seen).toStrictEqual([{ provider, modelId: tierModels[tier] }]);
       }
     });
 
@@ -808,8 +808,8 @@ describe.each(PROVIDER_CASES)(
         instruction: "apply texture",
       });
 
-      expect(result.isOk()).toBe(true);
-      expect(seen).toEqual([{ provider, modelId: defaultModel }]);
+      expect(result.isOk()).toBeTruthy();
+      expect(seen).toStrictEqual([{ provider, modelId: defaultModel }]);
       if (result.isOk()) {
         expect(result.value.provider).toBe(provider);
         expect(result.value.model).toBe(defaultModel);
@@ -823,7 +823,7 @@ describe.each(PROVIDER_CASES)(
 
       const result = await img.generate({ prompt: "x", provider });
 
-      expect(result.isOk()).toBe(true);
+      expect(result.isOk()).toBeTruthy();
       if (result.isOk()) {
         expect(result.value.cost.source).toBe("table");
         expect(result.value.cost.usd).toBe(priceUsd);
@@ -848,7 +848,7 @@ describe.each(PROVIDER_CASES)(
 
         const result = await img.generate({ prompt: "x" });
 
-        expect(result.isErr()).toBe(true);
+        expect(result.isErr()).toBeTruthy();
         if (result.isErr()) {
           expect(result.error).toBeInstanceOf(MotifError);
           expect(result.error.message).toContain(apiKeyEnv);
@@ -891,7 +891,8 @@ function countingImageModel(state: CountingState): ImageModel {
     maxImagesPerCall: 4,
     async doGenerate(options: DoGenerateOptions) {
       await Promise.resolve();
-      const callNo = (state.calls += 1);
+      state.calls += 1;
+      const callNo = state.calls;
       state.seeds.push(options.seed);
       state.sawFiles.push(options.files !== undefined);
       state.sawMask.push(options.mask !== undefined);
@@ -956,7 +957,7 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       const { value } = result;
       expect(value.candidates).toHaveLength(3);
@@ -982,7 +983,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({ prompt: "x", n: 2 });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.chosenIndex).toBe(0);
       expect(result.value.reason).toBeUndefined();
@@ -1009,11 +1010,11 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     // Every candidate went through the edit path: files + mask reached the model.
     expect(state.sawFiles).toHaveLength(2);
-    expect(state.sawFiles.every(Boolean)).toBe(true);
-    expect(state.sawMask.every(Boolean)).toBe(true);
+    expect(state.sawFiles.every(Boolean)).toBeTruthy();
+    expect(state.sawMask.every(Boolean)).toBeTruthy();
   });
 
   it("passes a distinct seed (seed + index) to each candidate", async () => {
@@ -1025,9 +1026,9 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({ prompt: "x", n: 3, seed: 100 });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     // Order across the parallel fan-out is not guaranteed; assert the set.
-    expect([...state.seeds].sort((a, b) => Number(a) - Number(b))).toEqual([
+    expect([...state.seeds].sort((a, b) => Number(a) - Number(b))).toStrictEqual([
       100, 101, 102,
     ]);
   });
@@ -1049,7 +1050,7 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.candidates).toHaveLength(2);
       // Two successes @ $0.039 each.
@@ -1065,7 +1066,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({ prompt: "x", n: 2 });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -1086,7 +1087,7 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("judge blew up");
@@ -1106,7 +1107,7 @@ describe("createMotifImage.bestOfN", () => {
       judge: () => ({ index: 5 }),
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("out-of-range");
@@ -1122,7 +1123,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({ prompt: "x", n: 0 });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -1144,11 +1145,9 @@ describe("createMotifImage.bestOfN", () => {
       signal: controller.signal,
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     expect(state.signals).toHaveLength(3);
-    expect(state.signals.every((signal) => signal === controller.signal)).toBe(
-      true
-    );
+    expect(state.signals.every((signal) => signal === controller.signal)).toBeTruthy();
   });
 });
 
@@ -1159,10 +1158,10 @@ describe("image provider registry", () => {
       const adapter = PROVIDERS[id];
       expect(adapter, `missing adapter for ${id}`).toBeDefined();
       expect(adapter?.id).toBe(id);
-      expect(typeof adapter?.resolveModel).toBe("function");
-      expect(typeof adapter?.apiKeyEnv).toBe("string");
+      expect(adapter?.resolveModel).toBeTypeOf("function");
+      expect(adapter?.apiKeyEnv).toBeTypeOf("string");
     }
-    expect(Object.keys(PROVIDERS).sort()).toEqual(
+    expect(Object.keys(PROVIDERS).sort()).toStrictEqual(
       ["fal", "google", "openai", "replicate"].sort()
     );
   });

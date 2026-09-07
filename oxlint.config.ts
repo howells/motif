@@ -18,13 +18,35 @@ import { disabledReactDoctorRules } from "@howells/lint/oxlint/react-doctor-rule
 // fire as noise rather than real defects, and the node-only packages have no
 // React at all. Per MIGRATIONS.md they are disabled as a documented migration
 // exception with a removal path.
+// Rules newly introduced since Motif's 1.x preset are reported during this
+// toolchain migration. Promote these after the parsing/test-style cleanup;
+// existing correctness rules and native type-aware checks remain errors.
+function newStyleWarnings(
+  config: typeof react | string
+): Record<string, "warn"> {
+  if (typeof config === "string") {
+    return {};
+  }
+  return Object.fromEntries([
+    ...(config.extends ?? []).flatMap((preset) =>
+      Object.entries(newStyleWarnings(preset))
+    ),
+    ...Object.keys(config.rules ?? {})
+      .filter((rule) => rule.startsWith("anti-slop/"))
+      .map((rule): [string, "warn"] => [rule, "warn"]),
+  ]);
+}
+
 export default {
   extends: [react],
   rules: {
+    ...newStyleWarnings(react),
+    "react/function-component-definition": "warn",
+    "react/immutability": "warn",
+    "react/purity": "warn",
+    "react/set-state-in-effect": "warn",
     // Migration exception: React Doctor rules are DOM-oriented (see header note).
     ...disabledReactDoctorRules,
-    // React Compiler targets react-dom builds; ink is not compiled by it.
-    "react/react-compiler": "off",
     // Repo convention: function declarations, not expressions. Flipping every
     // top-level helper is a convention change, not a mechanical fix.
     "func-style": "off",
@@ -50,10 +72,8 @@ export default {
     "require-unicode-regexp": "off",
     // Data/metadata modules (models, leaderboards) repeat display literals by
     // design.
-    "sonarjs/no-duplicate-string": "off",
     // Large validate/build/dispatch functions are inherently branchy; refactoring
     // them is not a behavior-preserving mechanical change.
-    "sonarjs/cognitive-complexity": "off",
     // Platform constraint: the tsconfig targets ES2022 (via
     // @howells/typescript-config), so Array#toReversed/#toSorted are not in the
     // type lib. `[...arr].reverse()` / local `arr.sort()` are the intended
@@ -62,10 +82,8 @@ export default {
     "unicorn/no-array-sort": "off",
     // Style-only rules that conflict with existing control flow / expressions.
     "unicorn/no-lonely-if": "off",
-    "sonarjs/no-collapsible-if": "off",
     "no-nested-ternary": "off",
     "unicorn/no-nested-ternary": "off",
-    "sonarjs/no-nested-conditional": "off",
     "no-plusplus": "off",
     "no-inline-comments": "off",
     "prefer-named-capture-group": "off",
@@ -73,13 +91,35 @@ export default {
     "unicorn/prefer-response-static-json": "off",
     // Types legitimately model more than 3 union members (model ids, aspects,
     // tools).
-    "sonarjs/max-union-size": "off",
     // Small related classes (server + error type) are colocated intentionally.
     "max-classes-per-file": "off",
     // Exhaustive switches over string-literal unions; TS covers missing cases.
     "default-case": "off",
   },
   overrides: [
+    {
+      files: ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
+      plugins: ["vitest"],
+      rules: {
+        // Existing Result-based tests narrow success/error before asserting.
+        "vitest/no-conditional-expect": "warn",
+        "vitest/require-mock-type-parameters": "warn",
+        "vitest/prefer-to-be-falsy": "warn",
+        "vitest/prefer-import-in-mock": "warn",
+        "vitest/prefer-called-once": "warn",
+        "vitest/prefer-mock-return-shorthand": "warn",
+        "vitest/expect-expect": "warn",
+        "vitest/prefer-to-have-length": "warn",
+        // Vitest accepts an optional diagnostic message as the second argument.
+        "vitest/valid-expect": ["error", { maxArgs: 2 }],
+        "vitest/prefer-strict-equal": "warn",
+        "vitest/prefer-to-be-truthy": "warn",
+        "vitest/prefer-describe-function-title": "warn",
+        "vitest/max-expects": "warn",
+        "vitest/prefer-expect-type-of": "warn",
+        "vitest/require-top-level-describe": "warn",
+      },
+    },
     {
       // apps/cli-specific relaxations (kept scoped so the packages stay stricter).
       files: ["apps/cli/**"],
@@ -91,17 +131,11 @@ export default {
         "require-await": "off",
         // Style-only expression/branch preferences that conflict with existing
         // code.
-        "sonarjs/no-nested-template-literals": "off",
-        "sonarjs/expression-complexity": "off",
-        "sonarjs/no-duplicated-branches": "off",
-        "sonarjs/no-nested-incdec": "off",
-        "sonarjs/bool-param-default": "off",
         "unicorn/no-await-expression-member": "off",
         "unicorn/prefer-logical-operator-over-ternary": "off",
         "unicorn/prefer-number-coercion": "off",
         "promise/prefer-await-to-then": "off",
         "promise/prefer-await-to-callbacks": "off",
-        "github/no-then": "off",
         "no-shadow": "off",
         "consistent-return": "off",
         // Mixed type/value imports; type-only marking is a style choice here.
@@ -133,10 +167,7 @@ export default {
       // image.ts opens generated files with the platform viewer and stages files
       // in the OS temp dir — both intentional for a local image CLI.
       files: ["apps/cli/src/utils/image.ts"],
-      rules: {
-        "sonarjs/no-os-command-from-path": "off",
-        "sonarjs/publicly-writable-directories": "off",
-      },
+      rules: {},
     },
     {
       // Exact-file max-lines exceptions: models.ts is a metadata table (data,
@@ -159,9 +190,7 @@ export default {
       // convention, not a style choice, so the general identifier-casing
       // rule does not apply to this one narrow file shape.
       files: ["apps/bench/app/**/route.ts"],
-      rules: {
-        "sonarjs/function-name": "off",
-      },
+      rules: {},
     },
     {
       // Test files: the shared preset's test overlay only relaxes
@@ -170,8 +199,6 @@ export default {
       files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}"],
       rules: {
         "no-restricted-properties": "off",
-        "sonarjs/publicly-writable-directories": "off",
-        "sonarjs/no-undefined-assignment": "off",
         "promise/avoid-new": "off",
         "howells/no-runtime-dynamic-imports": "off",
         "unicorn/prefer-module": "off",
