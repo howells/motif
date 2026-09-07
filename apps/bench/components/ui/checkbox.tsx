@@ -15,7 +15,7 @@ export const Checkbox = ({
 }: ComponentProps<typeof CheckboxPrimitive.Root>) => (
   <CheckboxPrimitive.Root
     className={cn(
-      "peer size-4 shrink-0 cursor-pointer rounded-[4px] border border-border bg-surface shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45 data-[state=checked]:border-ink data-[state=checked]:bg-ink data-[state=checked]:text-background",
+      "peer border-border bg-surface data-[state=checked]:border-ink data-[state=checked]:bg-ink data-[state=checked]:text-background size-4 shrink-0 cursor-pointer rounded-[4px] border shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     data-slot="checkbox"

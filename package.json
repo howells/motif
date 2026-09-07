@@ -17,7 +17,7 @@
     "check:affected": "turbo run build lint typecheck test --affected"
   },
   "devDependencies": {
-    "@howells/lint": "^1.1.0",
+    "@howells/lint": "^3.0.0",
     "@howells/typescript-config": "^0.1.6",
     "husky": "^9.1.7",
     "knip": "^6.26.0",

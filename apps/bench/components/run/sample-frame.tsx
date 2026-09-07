@@ -43,7 +43,7 @@ const ParamLine = ({
     return null;
   }
   return (
-    <span className="truncate text-[11px] text-plate-muted/70">
+    <span className="text-plate-muted/70 truncate text-[11px]">
       {parts.length === 0 ? " " : parts.join(" · ")}
     </span>
   );
@@ -83,10 +83,10 @@ const LatencyCell = ({
   const counting = sample.elapsedMs !== null;
 
   return (
-    <span className="bench-numeric ml-auto flex shrink-0 items-baseline gap-1.5 text-[11px] text-plate-ink">
+    <span className="bench-numeric text-plate-ink ml-auto flex shrink-0 items-baseline gap-1.5 text-[11px]">
       {sample.queuePolled && !counting ? (
         <Tooltip>
-          <TooltipTrigger className="cursor-help text-warn">±3s</TooltipTrigger>
+          <TooltipTrigger className="text-warn cursor-help">±3s</TooltipTrigger>
           <TooltipContent>
             This provider reports through a polled queue, so its latency is only
             accurate to about three seconds. Do not compare it directly with the
@@ -96,7 +96,7 @@ const LatencyCell = ({
       ) : null}
       {contended && !counting ? (
         <Tooltip>
-          <TooltipTrigger className="cursor-help text-warn">
+          <TooltipTrigger className="text-warn cursor-help">
             contended
           </TooltipTrigger>
           <TooltipContent>
@@ -164,8 +164,8 @@ export const SampleFrame = ({
   runId,
   sample,
 }: SampleFrameProps) => (
-  <figure className="m-0 flex min-w-0 flex-col bg-plate">
-    <div className="relative aspect-square w-full bg-plate">
+  <figure className="bg-plate m-0 flex min-w-0 flex-col">
+    <div className="bg-plate relative aspect-square w-full">
       {sample.status === "completed" &&
       sample.imageUrl !== null &&
       apertoIndex !== undefined ? (
@@ -176,7 +176,7 @@ export const SampleFrame = ({
         // two accent-filled elements the shell spec allows. Drawn inside the
         // frame so it never crosses the gutter.
         <Aperto.Thumbnail
-          className="relative block size-full cursor-zoom-in outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 hover:outline-accent-soft focus-visible:outline-plate-ink [&_img]:size-full"
+          className="hover:outline-accent-soft focus-visible:outline-plate-ink relative block size-full cursor-zoom-in outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 [&_img]:size-full"
           index={apertoIndex}
         />
       ) : null}
@@ -191,7 +191,7 @@ export const SampleFrame = ({
       ) : null}
 
       {sample.status === "pending" || sample.status === "running" ? (
-        <Skeleton className="size-full rounded-frame" />
+        <Skeleton className="rounded-frame size-full" />
       ) : null}
     </div>
 
@@ -209,7 +209,7 @@ export const SampleFrame = ({
             beneath and beside it keep mono, because those *are* scanned down
             the grid, and that contrast is what makes the mono mean
             something. */}
-        <span className="truncate text-[12px] text-plate-ink">
+        <span className="text-plate-ink truncate text-[12px]">
           {sample.modelAlias}
         </span>
 
@@ -228,9 +228,9 @@ export const SampleFrame = ({
       </span>
 
       {sample.status === "failed" ? null : (
-        <span className="bench-numeric flex items-baseline gap-2 text-[11px] text-plate-muted">
+        <span className="bench-numeric text-plate-muted flex items-baseline gap-2 text-[11px]">
           {formatUsd(sample.costRefinedMicros ?? sample.costEstimatedMicros)}
-          <span className="ml-auto shrink-0 text-plate-muted/70">
+          <span className="text-plate-muted/70 ml-auto shrink-0">
             {formatDimensions(sample.width, sample.height)}
           </span>
         </span>

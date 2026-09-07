@@ -26,7 +26,7 @@ export const SelectTrigger = ({
 }: ComponentProps<typeof SelectPrimitive.Trigger>) => (
   <SelectPrimitive.Trigger
     className={cn(
-      "flex h-[34px] w-full cursor-pointer items-center justify-between gap-2 rounded-md border border-border bg-surface-soft px-2.5 text-ink shadow-xs transition-colors duration-150 whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-45 data-[placeholder]:text-muted",
+      "border-border bg-surface-soft text-ink data-[placeholder]:text-muted flex h-[34px] w-full cursor-pointer items-center justify-between gap-2 rounded-md border px-2.5 whitespace-nowrap shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     data-slot="select-trigger"
@@ -34,7 +34,7 @@ export const SelectTrigger = ({
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <ChevronDownIcon className="size-3.5 shrink-0 text-muted" />
+      <ChevronDownIcon className="text-muted size-3.5 shrink-0" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 );
@@ -48,7 +48,7 @@ export const SelectContent = ({
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       className={cn(
-        "relative z-50 max-h-(--radix-select-content-available-height) min-w-[var(--radix-select-trigger-width)] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-md border border-border bg-surface p-1 text-ink shadow-md",
+        "border-border bg-surface text-ink relative z-50 max-h-(--radix-select-content-available-height) min-w-[var(--radix-select-trigger-width)] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-md border p-1 shadow-md",
         "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
         className
       )}
@@ -69,14 +69,14 @@ export const SelectItem = ({
 }: ComponentProps<typeof SelectPrimitive.Item>) => (
   <SelectPrimitive.Item
     className={cn(
-      "relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-7 pl-2 outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45 data-[highlighted]:bg-surface-soft",
+      "data-[highlighted]:bg-surface-soft relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-7 pl-2 outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45",
       className
     )}
     data-slot="select-item"
     {...props}
   >
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    <span className="absolute right-2 flex size-3.5 items-center justify-center text-accent">
+    <span className="text-accent absolute right-2 flex size-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
         <CheckIcon className="size-3.5" />
       </SelectPrimitive.ItemIndicator>

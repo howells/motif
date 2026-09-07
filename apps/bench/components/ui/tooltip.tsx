@@ -36,7 +36,7 @@ export const TooltipContent = ({
   <TooltipPrimitive.Portal>
     <TooltipPrimitive.Content
       className={cn(
-        "z-50 max-w-[280px] origin-(--radix-tooltip-content-transform-origin) rounded-md bg-ink px-2.5 py-1.5 text-[13px] leading-[1.45] text-balance text-background",
+        "bg-ink text-background z-50 max-w-[280px] origin-(--radix-tooltip-content-transform-origin) rounded-md px-2.5 py-1.5 text-[13px] leading-[1.45] text-balance",
         "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
         className
       )}
@@ -45,7 +45,7 @@ export const TooltipContent = ({
       {...props}
     >
       {children}
-      <TooltipPrimitive.Arrow className="z-50 size-2 translate-y-[calc(-50%_-_1px)] rotate-45 bg-ink fill-ink" />
+      <TooltipPrimitive.Arrow className="bg-ink fill-ink z-50 size-2 translate-y-[calc(-50%_-_1px)] rotate-45" />
     </TooltipPrimitive.Content>
   </TooltipPrimitive.Portal>
 );

@@ -38,7 +38,7 @@ const SummaryLine = ({
 }: Pick<TopBarProps, "draft" | "preview" | "runError">) => {
   if (runError !== null) {
     return (
-      <output className="block truncate text-[11px] text-bad">
+      <output className="text-bad block truncate text-[11px]">
         {runError}
       </output>
     );
@@ -50,7 +50,7 @@ const SummaryLine = ({
   // the rail heading and every table header, which is how a screen ends up
   // with one uniform texture and no emphasis left to spend.
   return (
-    <p className="truncate text-[11px] text-muted md:whitespace-nowrap">
+    <p className="text-muted truncate text-[11px] md:whitespace-nowrap">
       {draft.models.size} model{draft.models.size === 1 ? "" : "s"}
       {draft.samplesPerModel > 1 ? ` × ${draft.samplesPerModel} samples` : ""}
       {/* Framing and size drop out below `xl` and give their width back to the
@@ -101,12 +101,12 @@ export const TopBar = ({
   promptRef,
   runError,
 }: TopBarProps) => (
-  <header className="z-20 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b border-border bg-background px-3 py-2 max-md:sticky max-md:top-0 md:flex md:h-14 md:gap-x-0 md:px-0 md:py-0">
+  <header className="border-border bg-background z-20 grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 border-b px-3 py-2 max-md:sticky max-md:top-0 md:flex md:h-14 md:gap-x-0 md:px-0 md:py-0">
     {/* The wordmark holds a 220px column with the rail's own hairline on its
         right edge, so the vertical rule that divides history from results runs
         the full height of the shell instead of starting below the bar. Before
         this, nothing in the top bar lined up with anything beneath it. */}
-    <h1 className="hidden h-full shrink-0 items-center border-r border-border px-3 md:flex md:w-[220px]">
+    <h1 className="border-border hidden h-full shrink-0 items-center border-r px-3 md:flex md:w-[220px]">
       Motif Bench
     </h1>
 
@@ -116,7 +116,7 @@ export const TopBar = ({
         width and ink, and grows a hairline only on hover and focus. */}
     <Input
       aria-label="Prompt"
-      className="col-span-2 col-start-1 row-start-1 h-9 min-w-0 rounded-none border-0 border-b border-b-transparent bg-transparent px-0 shadow-none hover:border-b-border-soft focus:border-b-ink max-md:h-8 max-md:rounded-md max-md:border max-md:border-border max-md:bg-surface max-md:px-2.5 md:flex-1 md:px-4"
+      className="hover:border-b-border-soft focus:border-b-ink max-md:border-border max-md:bg-surface col-span-2 col-start-1 row-start-1 h-9 min-w-0 rounded-none border-0 border-b border-b-transparent bg-transparent px-0 shadow-none max-md:h-8 max-md:rounded-md max-md:border max-md:px-2.5 md:flex-1 md:px-4"
       onChange={(event) => {
         onPatch({ prompt: event.target.value });
       }}

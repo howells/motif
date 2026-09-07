@@ -129,7 +129,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
 
   if (points.length === 0) {
     return (
-      <p className="max-w-[52ch] text-[13px] leading-[1.6] text-muted">
+      <p className="text-muted max-w-[52ch] text-[13px] leading-[1.6]">
         No cost/quality pairs yet — rate some images on the Images tab and the
         Pareto frontier appears here.
       </p>
@@ -223,7 +223,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
           })}
         </svg>
       </div>
-      <p className="max-w-[68ch] text-[13px] leading-[1.55] text-muted">
+      <p className="text-muted max-w-[68ch] text-[13px] leading-[1.55]">
         The dashed line traces the Pareto frontier: models nothing else in this
         run beats on both price and quality. Anything below and right of it is
         dominated — you can have its quality for less, or more quality for its

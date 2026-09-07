@@ -74,7 +74,7 @@ export const ContactSheet = ({
 
   if (samples.length === 0) {
     return (
-      <p className="bg-plate px-4 py-10 text-[13px] text-plate-muted">
+      <p className="bg-plate text-plate-muted px-4 py-10 text-[13px]">
         No samples yet. Frames appear here as each model is dispatched.
       </p>
     );

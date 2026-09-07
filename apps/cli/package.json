@@ -1,6 +1,6 @@
 {
   "name": "@howells/motif-cli",
-  "version": "1.10.0",
+  "version": "1.10.1",
   "description": "Agent-first fal.ai image generation CLI with structured output, dry runs, history, series, and terminal studio mode.",
   "keywords": [
     "agent-first",
@@ -57,7 +57,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@howells/lint": "^1.1.0",
+    "@howells/lint": "^3.0.0",
     "@howells/typescript-config": "^0.1.6",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",

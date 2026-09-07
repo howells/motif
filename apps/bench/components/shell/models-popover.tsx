@@ -88,7 +88,7 @@ const ModelDryRun = ({
   }
   return (
     <span className="flex flex-col gap-1">
-      <span className="text-[11px] text-muted">{row.endpoint}</span>
+      <span className="text-muted text-[11px]">{row.endpoint}</span>
       <span>
         drops{" "}
         {row.dropped.length === 0
@@ -142,17 +142,17 @@ const ModelChip = ({
             "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-l-2 px-2 py-1 transition-colors duration-150",
             selected
               ? "border-border border-l-accent bg-surface-soft text-ink"
-              : "border-border border-l-transparent bg-surface text-muted hover:border-ink hover:border-l-transparent hover:text-ink"
+              : "border-border bg-surface text-muted hover:border-ink hover:text-ink border-l-transparent hover:border-l-transparent"
           )}
           onClick={onToggle}
           type="button"
         >
           <span className="text-[11px]">{alias}</span>
-          <span className="text-[11px] text-muted">
+          <span className="text-muted text-[11px]">
             {usdFromDollars(costUsd)}
           </span>
           {altered ? (
-            <span aria-hidden className="text-[11px] text-warn">
+            <span aria-hidden className="text-warn text-[11px]">
               ●
             </span>
           ) : null}
@@ -175,7 +175,7 @@ const Field = ({
   readonly label: ReactNode;
 }) => (
   <div className="flex min-w-0 flex-col gap-1">
-    <label className="text-[11px] text-muted" htmlFor={htmlFor}>
+    <label className="text-muted text-[11px]" htmlFor={htmlFor}>
       {label}
     </label>
     {children}
@@ -191,7 +191,7 @@ const AspectCoercionNote = ({ aspect }: { readonly aspect: BenchAspect }) => {
   }
   const dialects = ASPECT_DIALECT_TABLE[aspect];
   return (
-    <p className="rounded-lg border border-border border-l-2 border-l-warn bg-surface-soft px-3 py-2 text-[11px] leading-[1.5] text-muted">
+    <p className="border-border border-l-warn bg-surface-soft text-muted rounded-lg border border-l-2 px-3 py-2 text-[11px] leading-[1.5]">
       <span className="text-ink">Aspect coercion is not uniform.</span> At{" "}
       <span>{aspect}</span> the three sizing dialects disagree: aspect_ratio →{" "}
       <span>{dialects.aspectRatio}</span>, image_size_enum →{" "}
@@ -218,7 +218,7 @@ const OutputFormatNote = ({ draft }: { readonly draft: RunDraft }) => {
   const aliases = [...draft.models] as Parameters<typeof outputFormatReach>[0];
   const { dropped, supported } = outputFormatReach(aliases, draft.outputFormat);
   return (
-    <p className="text-[11px] text-muted">
+    <p className="text-muted text-[11px]">
       <span className="text-ink">
         {draft.outputFormat} reaches {supported} of {aliases.length} selected
         models.
@@ -237,7 +237,7 @@ const DryRunSummary = ({
 }) => {
   if (preview === undefined) {
     return (
-      <p className="text-[11px] text-muted">
+      <p className="text-muted text-[11px]">
         Dry run pending. It costs nothing — no request reaches a provider.
       </p>
     );
@@ -249,7 +249,7 @@ const DryRunSummary = ({
     (model) => model.ok && model.dropped.length > 0
   ).length;
   return (
-    <p className="text-[11px] leading-[1.5] text-muted">
+    <p className="text-muted text-[11px] leading-[1.5]">
       Dry run:{" "}
       <span className="text-ink">
         {preview.models.length - preview.failedCount}
@@ -290,7 +290,7 @@ const SelectionHeader = ({
 }: Omit<SectionProps, "onToggleModel">) => (
   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
     <h2>Models</h2>
-    <div className="flex items-center gap-3 text-[11px] text-muted">
+    <div className="text-muted flex items-center gap-3 text-[11px]">
       <span>
         <span>{draft.models.size}</span> of <span>{BENCH_ROUTES.length}</span>{" "}
         selected
@@ -348,7 +348,7 @@ const ModelGroups = ({
       {modelTierGroups().map((group) =>
         group.routes.length === 0 ? null : (
           <div className="flex flex-col gap-1.5" key={group.label}>
-            <p className="text-[11px] text-muted">{group.label}</p>
+            <p className="text-muted text-[11px]">{group.label}</p>
             <div className="flex flex-wrap gap-1">
               {group.routes.map((route) => (
                 <ModelChip
@@ -375,7 +375,7 @@ const ShapeFields = ({
   draft,
   onPatch,
 }: Omit<SectionProps, "onToggleModel">) => (
-  <div className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border pt-3 sm:grid-cols-5">
+  <div className="border-border grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-3 sm:grid-cols-5">
     <Field htmlFor="bench-samples" label="Samples per model">
       <Input
         className="h-8"
@@ -499,7 +499,7 @@ const BehaviourFields = ({
           onPatch({ seedEnabled: checked === true });
         }}
       />
-      <label className="text-[11px] text-muted" htmlFor="bench-seed-enabled">
+      <label className="text-muted text-[11px]" htmlFor="bench-seed-enabled">
         Fixed seed
       </label>
       <Input
@@ -515,7 +515,7 @@ const BehaviourFields = ({
     </div>
 
     <div className="flex items-center gap-2">
-      <label className="text-[11px] text-muted" htmlFor="bench-max-cost">
+      <label className="text-muted text-[11px]" htmlFor="bench-max-cost">
         Stop above
       </label>
       <Input
@@ -567,7 +567,7 @@ export const ModelsPopover = ({
       <BehaviourFields draft={draft} onPatch={onPatch} />
       <AspectCoercionNote aspect={draft.aspect} />
       <OutputFormatNote draft={draft} />
-      <div className="border-t border-border pt-3">
+      <div className="border-border border-t pt-3">
         <DryRunSummary preview={preview} />
       </div>
     </PopoverContent>

@@ -43,8 +43,8 @@ export const RetryBar = ({
   }
 
   return (
-    <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-plate-edge border-b pb-4">
-      <p className="text-[13px] text-plate-muted">
+    <div className="border-plate-edge mb-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-b pb-4">
+      <p className="text-plate-muted text-[13px]">
         <span className="text-plate-ink">
           {failed.length} of {samples.length}
         </span>{" "}
@@ -68,7 +68,7 @@ export const RetryBar = ({
         {retry.isPending ? "Retrying…" : `Retry ${failed.length} failed`}
       </Button>
       {retry.error === null ? null : (
-        <p className="w-full text-[12px] text-bad">{retry.error.message}</p>
+        <p className="text-bad w-full text-[12px]">{retry.error.message}</p>
       )}
     </div>
   );

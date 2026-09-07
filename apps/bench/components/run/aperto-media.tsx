@@ -46,7 +46,7 @@ export const renderBenchImage = ({
     className={
       variant === "thumbnail"
         ? "rounded-frame object-cover"
-        : "h-auto max-h-[calc(100dvh-9rem)] w-auto max-w-full rounded-frame object-contain"
+        : "rounded-frame h-auto max-h-[calc(100dvh-9rem)] w-auto max-w-full object-contain"
     }
     height={item.height ?? 1024}
     // Load eagerly in both variants. A lazily-loaded thumbnail that has not

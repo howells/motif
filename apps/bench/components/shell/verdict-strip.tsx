@@ -41,7 +41,7 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
       // `flex-1 basis-0` rather than intrinsic width: four intrinsic cells
       // left roughly 800px of empty band between the last verdict and the run
       // flags at 1440px, which read as a missing region rather than as space.
-      "flex min-w-0 flex-col justify-center gap-1 border-border-soft md:flex-1 md:basis-0 md:border-l md:px-4 md:first:border-l-0 md:first:pl-0",
+      "border-border-soft flex min-w-0 flex-col justify-center gap-1 md:flex-1 md:basis-0 md:border-l md:px-4 md:first:border-l-0 md:first:pl-0",
       readout.secondary === true ? "md:max-lg:hidden" : ""
     )}
   >
@@ -51,7 +51,7 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
         alongside the rail heading and every table header, the treatment stops
         being a signal and becomes texture. The label is a caption; the number
         is the subject, and the 17px mono figure below already says so. */}
-    <span className="text-[12px] leading-[14px] text-muted">
+    <span className="text-muted text-[12px] leading-[14px]">
       {readout.label}
     </span>
     {/* A fixed 18px answer line, whether it holds a 17px numeral or the 13px
@@ -62,23 +62,23 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
     <span className="flex h-[18px] min-w-0 items-baseline gap-1.5">
       {readout.pick ? (
         <>
-          <span className="bench-numeric text-[17px] leading-[18px] font-medium text-ink">
+          <span className="bench-numeric text-ink text-[17px] leading-[18px] font-medium">
             {readout.format(readout.pick)}
           </span>
           {readout.unit === undefined ? null : (
-            <span className="shrink-0 text-[11px] text-muted">
+            <span className="text-muted shrink-0 text-[11px]">
               {readout.unit}
             </span>
           )}
           {/* The alias is a name, read on its own — never scanned down a
               column — so it takes the body font. Only the figure beside it is
               mono, because only the figure is compared. */}
-          <span className="truncate text-[12px] text-muted">
+          <span className="text-muted truncate text-[12px]">
             {readout.pick.modelAlias}
           </span>
         </>
       ) : (
-        <span className="truncate text-[13px] leading-[18px] text-muted">
+        <span className="text-muted truncate text-[13px] leading-[18px]">
           {readout.emptyLabel}
         </span>
       )}
@@ -195,7 +195,7 @@ export const VerdictStrip = ({
     // grid's own gap do the spacing. `first:pl-0` alone used to indent cells
     // 3 and 4 by 16px against cells 1 and 2 directly above them, so the two
     // rows of a 2×2 verdict grid did not share a left edge.
-    <div className="order-1 grid shrink-0 grid-cols-2 gap-x-6 gap-y-4 border-b border-border px-3 py-3.5 md:flex md:h-16 md:items-stretch md:gap-y-0 md:px-4 md:py-0">
+    <div className="border-border order-1 grid shrink-0 grid-cols-2 gap-x-6 gap-y-4 border-b px-3 py-3.5 md:flex md:h-16 md:items-stretch md:gap-y-0 md:px-4 md:py-0">
       {readouts.map((readout) => (
         <Cell key={readout.label} readout={readout} />
       ))}

@@ -1,4 +1,4 @@
-import { defineConfig } from "tsup";
+import { defineConfig } from "tsdown";
 
 /**
  * Two independent build entries:
@@ -15,9 +15,9 @@ import { defineConfig } from "tsup";
  * The `entry` object form fixes the output basenames (`index` / `image`) so the
  * two entries never collide on `dist/index.*`.
  *
- * Both entries set `clean: false`: tsup runs the two entries in parallel over a
+ * Both entries set `clean: false`: tsdown runs the two entries in parallel over a
  * shared `dist/`, so letting either one `clean` could race and wipe the other's
- * artifacts. `dist/` is instead cleaned deterministically BEFORE tsup by the
+ * artifacts. `dist/` is instead cleaned deterministically BEFORE tsdown by the
  * `build`/`dev` scripts in package.json (a dependency-free `node -e rmSync`).
  */
 export default defineConfig([
@@ -27,6 +27,10 @@ export default defineConfig([
     dts: true,
     clean: false,
     sourcemap: false,
+    outExtensions: ({ format }) => ({
+      js: format === "cjs" ? ".cjs" : ".js",
+      dts: format === "cjs" ? ".d.cts" : ".d.ts",
+    }),
   },
   {
     entry: { image: "src/image/index.ts" },
@@ -34,5 +38,9 @@ export default defineConfig([
     dts: true,
     clean: false,
     sourcemap: false,
+    outExtensions: ({ format }) => ({
+      js: format === "cjs" ? ".cjs" : ".js",
+      dts: format === "cjs" ? ".d.cts" : ".d.ts",
+    }),
   },
 ]);
