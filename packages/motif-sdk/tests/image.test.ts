@@ -162,7 +162,9 @@ describe("createMotifImage.generate", () => {
     });
 
     expect(result.isOk()).toBeTruthy();
-    expect(seen).toStrictEqual([{ provider: "google", modelId: "custom-model-x" }]);
+    expect(seen).toStrictEqual([
+      { provider: "google", modelId: "custom-model-x" },
+    ]);
     if (result.isOk()) {
       expect(result.value.model).toBe("custom-model-x");
     }
@@ -1028,9 +1030,9 @@ describe("createMotifImage.bestOfN", () => {
 
     expect(result.isOk()).toBeTruthy();
     // Order across the parallel fan-out is not guaranteed; assert the set.
-    expect([...state.seeds].sort((a, b) => Number(a) - Number(b))).toStrictEqual([
-      100, 101, 102,
-    ]);
+    expect(
+      [...state.seeds].sort((a, b) => Number(a) - Number(b))
+    ).toStrictEqual([100, 101, 102]);
   });
 
   it("judges among the successes when some candidates fail", async () => {
@@ -1147,7 +1149,9 @@ describe("createMotifImage.bestOfN", () => {
 
     expect(result.isOk()).toBeTruthy();
     expect(state.signals).toHaveLength(3);
-    expect(state.signals.every((signal) => signal === controller.signal)).toBeTruthy();
+    expect(
+      state.signals.every((signal) => signal === controller.signal)
+    ).toBeTruthy();
   });
 });
 
