@@ -129,7 +129,7 @@ Flag values override stdin JSON values for the same field.
 ```json
 {
   "prompt": "string (required for generate)",
-  "model": "gpt2 | gpt | banana2 | banana | gemini | gemini3 | seedream4 | seedream45 | seedream5 | seedream5-lite | flux2-max | flux2-pro | flux2-flex | flux2-dev | flux2-turbo | flux | flux-fast | recraft | recraft4 | ideogram | ideogram4 | grok-image | qwen | qwen3",
+  "model": "flare | sunburst | gpt2 | gpt | banana2 | banana | gemini | gemini3 | seedream4 | seedream45 | seedream5 | seedream5-lite | flux2-max | flux2-pro | flux2-flex | flux2-dev | flux2-turbo | flux | flux-fast | recraft | recraft4 | ideogram | ideogram4 | grok-image | qwen | qwen3",
   "aspect": "1:1 | 16:9 | 9:16 | 2:3 | 3:2 | 4:3 | 3:4 | 4:5 | 5:4 | 21:9",
   "resolution": "1K | 2K | 4K",
   "numImages": 1,
@@ -371,6 +371,8 @@ motif --history --limit 20 --fields model,cost
 | `gpt` | $0.133 | Supports transparency, 4 reference images |
 | `banana` | $0.15 ($0.30 at 4K) | 14 reference images, best editing |
 | `gemini3` | $0.15 ($0.30 at 4K) | Full feature support |
+| `flare` | Metered | GPT Image 2.5 Flare: fast generation, transparency, 16 references |
+| `sunburst` | Metered | GPT Image 2.5 Sunburst: precise edits, transparency, 16 references |
 | `gpt2` | $0.211 | Frontier OpenAI generation, transparent PNGs |
 
 ### Processing

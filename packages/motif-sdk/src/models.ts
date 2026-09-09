@@ -13,6 +13,52 @@ const FAL_PRICING_CHECKED_AUG_2026 = "2026-08-23";
 export const MODELS: Record<string, ModelConfig> = {
   // ─── Generation Models ────────────────────────────────────────
 
+  flare: {
+    editEndpoint: "openai/gpt-image-2.5/flare/edit",
+    endpoint: "openai/gpt-image-2.5/flare/text-to-image",
+    maxReferenceImages: 16,
+    name: "GPT Image 2.5 Flare",
+    pricing:
+      "Token-based: text $5/M input, $1.25/M cached, $10/M output; image $8/M input, $2/M cached, $30/M output",
+    pricePerImageUsd: null,
+    sizeMode: "image_size_enum",
+    supportsAspect: true,
+    supportsBackground: true,
+    supportsEdit: true,
+    supportsMaskImage: true,
+    maskImageField: "mask_url",
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsQuality: true,
+    supportedQualities: ["auto", "low", "medium", "high", "xhigh", "max"],
+    supportsResolution: false,
+    supportsSyncMode: true,
+    type: "generation",
+    useQueue: true,
+  },
+  sunburst: {
+    editEndpoint: "openai/gpt-image-2.5/sunburst/edit",
+    endpoint: "openai/gpt-image-2.5/sunburst/text-to-image",
+    maxReferenceImages: 16,
+    name: "GPT Image 2.5 Sunburst",
+    pricing:
+      "Token-based: text $5/M input, $1.25/M cached, $10/M output; image $8/M input, $2/M cached, $30/M output",
+    pricePerImageUsd: null,
+    sizeMode: "image_size_enum",
+    supportsAspect: true,
+    supportsBackground: true,
+    supportsEdit: true,
+    supportsMaskImage: true,
+    maskImageField: "mask_url",
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsQuality: true,
+    supportedQualities: ["auto", "low", "medium", "high", "xhigh", "max"],
+    supportsResolution: false,
+    supportsSyncMode: true,
+    type: "generation",
+    useQueue: true,
+  },
   gpt2: {
     benchmark: {
       artificialAnalysis: {
@@ -989,6 +1035,8 @@ export const MODELS: Record<string, ModelConfig> = {
 };
 
 export const GENERATION_MODELS = [
+  "flare",
+  "sunburst",
   "gpt2",
   "gpt",
   "banana2",

@@ -149,7 +149,10 @@ export async function runCli(
       "--background <mode>",
       "GPT background mode: auto, transparent, opaque"
     )
-    .option("--quality <quality>", "Image quality: auto, low, medium, high")
+    .option(
+      "--quality <quality>",
+      "Image quality: auto, low, medium, high, xhigh, max (model-dependent)"
+    )
     .option(
       "--image-size <size>",
       "Direct fal image_size override, e.g. auto, square_hd, 1536x1024"

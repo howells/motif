@@ -602,7 +602,7 @@ export class FalClient {
     model: string,
     resolution?: Resolution,
     numImages?: number
-  ): number {
+  ): number | null {
     return estimateCost(model, resolution, numImages);
   }
 

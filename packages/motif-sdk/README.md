@@ -171,11 +171,28 @@ Four providers are implemented, each reading its own API key from the environmen
 | Provider | Env var | Notes |
 | --- | --- | --- |
 | `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | Default provider; Gemini gen + edit |
-| `openai` | `OPENAI_API_KEY` | gpt-image-1 |
+| `openai` | `OPENAI_API_KEY` | GPT Image 2.5 Flare (fast/balanced), Sunburst (quality/hero) |
 | `replicate` | `REPLICATE_API_TOKEN` | flux-1.1-pro-ultra |
 | `fal` | `FAL_KEY` | fal-hosted adapter |
 
 `generate()` and `edit()` accept `tier` (`"fast" | "balanced" | "quality" | "hero"`) to resolve a model per provider, or an explicit `model` id. Every result carries a normalized per-call `cost: { usd, source }`.
+
+For OpenAI, `fast` and `balanced` (the default tier) select `gpt-image-2.5-flare`; `quality` and `hero` select `gpt-image-2.5-sunburst`. This updates the previous OpenAI tier default of `gpt-image-1`; pass that explicit model to retain it. Both new models support generation and multi-image editing:
+
+```ts
+const image = createMotifImage({ defaultProvider: "openai" });
+const generated = await image.generate({
+  prompt: "A ceramic vase in soft window light",
+  model: "gpt-image-2.5-flare",
+});
+const refined = await image.edit({
+  images: [referenceBytes],
+  instruction: "Change only the vase glaze to deep green",
+  model: "gpt-image-2.5-sunburst",
+});
+```
+
+These models use token-based billing. Motif has no static per-image estimate for them, so `cost` is `{ usd: 0, source: "unknown" }` unless the provider supplies a cost; this does not mean generation is free. See the official [Flare](https://developers.openai.com/api/docs/models/gpt-image-2.5-flare) and [Sunburst](https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst) model pages. The installed OpenAI adapter accepts `low`, `medium`, `high`, and `auto` quality; the new `xhigh` and `max` settings require a future adapter update. The fal-backed CLI and `FalClient` expose these models as `flare` and `sunburst`. Fal supports `xhigh` and `max`, up to 16 edit references, masks and transparent backgrounds. Fal generation estimates are `null` (metered), including `estimateCost()` and queued jobs.
 
 ### Best-of-N with an injectable judge
 

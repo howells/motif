@@ -46,7 +46,7 @@ export interface SeriesRef {
 export interface SeriesOutput {
   aspect: AspectRatio;
   /** Cost of this generation */
-  cost: number;
+  cost: number | null;
   /** Local filename within the series outputs/ directory */
   filename: string;
   /** Full motif generation options */

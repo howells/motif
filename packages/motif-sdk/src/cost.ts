@@ -6,8 +6,11 @@ export function estimateCost(
   model: string,
   resolution?: Resolution,
   numImages = 1
-): number {
+): number | null {
   const configuredPrice = MODELS[model]?.pricePerImageUsd;
+  if (configuredPrice === null) {
+    return null;
+  }
   if (configuredPrice !== undefined) {
     if ((model === "banana" || model === "gemini3") && resolution === "4K") {
       return configuredPrice * 2 * numImages;

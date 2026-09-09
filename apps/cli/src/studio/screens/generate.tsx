@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import {
   ASPECT_RATIOS,
   estimateCost,
+  formatCost,
   GENERATION_MODELS,
   MODELS,
   RESOLUTIONS,
@@ -649,7 +650,7 @@ export function GenerateScreen({
         {renderConfirmAspectField()}
         {renderConfirmResolutionField()}
         <Text>
-          {"  "}Est. cost: <Text color="yellow">${cost.toFixed(3)}</Text>
+          {"  "}Est. cost: <Text color="yellow">{formatCost(cost)}</Text>
         </Text>
         <Text dimColor>
           {"  "}

@@ -82,9 +82,10 @@ const buildRoute = (alias: GenerationModelName): BenchRoute => {
   };
 };
 
-/** One `BenchRoute` per `GENERATION_MODELS` alias, in the SDK's declared order. */
-export const BENCH_ROUTES: readonly BenchRoute[] =
-  GENERATION_MODELS.map(buildRoute);
+/** Budgeted benchmarks exclude explicitly metered models until a cost bound exists. */
+export const BENCH_ROUTES: readonly BenchRoute[] = GENERATION_MODELS.filter(
+  (alias) => MODELS[alias]?.pricePerImageUsd !== null
+).map(buildRoute);
 
 /** Lookup by alias — throws `MissingPricingError` semantics are already
  * resolved at module load via `BENCH_ROUTES`, so this is a plain map read. */

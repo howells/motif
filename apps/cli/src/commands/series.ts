@@ -15,6 +15,7 @@ import {
   ASPECT_RATIOS,
   enrichPrompt,
   estimateCost,
+  formatCost,
   GENERATION_MODELS,
   MODELS,
   RESOLUTIONS,
@@ -327,7 +328,7 @@ async function cmdShow(slug: string, emitOpts: EmitOptions): Promise<void> {
       console.log(chalk.bold(`\n  Outputs (${config.outputs.length}):`));
       for (const out of config.outputs.slice(-5)) {
         console.log(
-          `    ${chalk.dim(out.filename)} — ${out.prompt.slice(0, 50)}... ($${out.cost.toFixed(3)})`
+          `    ${chalk.dim(out.filename)} — ${out.prompt.slice(0, 50)}... (${formatCost(out.cost)})`
         );
       }
       if (config.outputs.length > 5) {
@@ -517,7 +518,7 @@ async function cmdGenerate(
         console.log(`  Full:    ${chalk.dim(fullPrompt.slice(0, 100))}...`);
         console.log(`  Model:   ${chalk.green(modelConfig.name)}`);
         console.log(`  Refs:    ${refPaths.length} images`);
-        console.log(`  Cost:    ${chalk.yellow(`~$${cost.toFixed(3)}`)}`);
+        console.log(`  Cost:    ${chalk.yellow(formatCost(cost))}`);
       }
       return;
     }
@@ -541,7 +542,7 @@ async function cmdGenerate(
         `Model: ${chalk.green(modelConfig.name)} | Refs: ${refPaths.length}`
       );
       console.log(`Prompt: ${chalk.dim(fullPrompt.slice(0, 100))}...`);
-      console.log(`Cost: ${chalk.yellow(`~$${cost.toFixed(3)}`)}`);
+      console.log(`Cost: ${chalk.yellow(formatCost(cost))}`);
     }
 
     const spinner = isStructured(emitOpts.format)
@@ -810,9 +811,7 @@ async function cmdRun(
         console.log(`  Theme:  ${chalk.dim(sanitizedTheme)}`);
         console.log(`  Count:  ${count}`);
         console.log(`  Model:  ${chalk.green(modelConfig.name)}`);
-        console.log(
-          `  Cost:   ${chalk.yellow(`~$${estimatedCost.toFixed(3)}`)}`
-        );
+        console.log(`  Cost:   ${chalk.yellow(formatCost(estimatedCost))}`);
       }
       return;
     }
@@ -1006,7 +1005,7 @@ async function cmdHistory(
         `    ${chalk.cyan(out.prompt.slice(0, 70))}${out.prompt.length > 70 ? "..." : ""}`
       );
       console.log(
-        `    ${chalk.dim(`$${out.cost.toFixed(3)} | ${out.model} | refs: ${out.refsUsed.join(",")}`)}`
+        `    ${chalk.dim(`${formatCost(out.cost)} | ${out.model} | refs: ${out.refsUsed.join(",")}`)}`
       );
     }
   } catch (error) {

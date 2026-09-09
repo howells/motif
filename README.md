@@ -43,7 +43,11 @@ For fal-native capabilities — upscaling, background removal, image-to-video, f
 import { FalClient } from "@howells/motif-sdk";
 
 const fal = new FalClient(process.env.FAL_KEY!);
-const upscaled = await fal.upscale({ imageUrl, model: "clarity", scaleFactor: 4 });
+const upscaled = await fal.upscale({
+  imageUrl,
+  model: "clarity",
+  scaleFactor: 4,
+});
 ```
 
 ### CLI
@@ -74,6 +78,8 @@ SDK:
 ```bash
 npm install @howells/motif-sdk
 ```
+
+For direct OpenAI generation and editing, the [image SDK](./packages/motif-sdk/README.md#image-layer-howellsmotif-sdkimage) supports GPT Image 2.5 Flare and Sunburst through `@howells/motif-sdk/image`.
 
 CLI:
 
@@ -163,7 +169,9 @@ Motif keeps two model views:
 
 | Need | Use | Why | Speed | fal price |
 | --- | --- | --- | --- | --: |
-| Best overall quality | `gpt2` | #1 text-to-image on Artificial Analysis | Very slow | ~$0.211/image |
+| Best overall quality | `flare` | GPT Image 2.5 Flare | Fast generation, edits and transparency | 16 | Image size enum | Metered |
+| `sunburst` | GPT Image 2.5 Sunburst | Precise generation and edits | 16 | Image size enum | Metered |
+| `gpt2` | #1 text-to-image on Artificial Analysis | Very slow | ~$0.211/image |
 | Best edits | `gpt` | #2 editing, strong reference fidelity, transparent PNGs | Slow | ~$0.133/image |
 | Best balanced choice | `banana2` | Top-3 quality, top-5 edits, web search, 1K/2K/4K | Varies | $0.08/image |
 | Best budget quality | `seedream4` | Top-6 quality at low fal price | Balanced | $0.03/image |
@@ -650,3 +658,12 @@ pnpm check
 ## License
 
 MIT
+
+### GPT Image 2.5 on fal
+
+```bash
+motif "A ceramic vase in window light" --model flare --quality xhigh --dry-run --no-open --format json --fields model,quality,estimatedCost,valid
+motif "Change only the glaze to green" --model sunburst --edit vase.png --quality max --dry-run --no-open --format json --fields model,quality,estimatedCost,valid
+```
+
+Both aliases use `FAL_KEY` and support generation, editing with up to 16 references, masks, and transparent backgrounds. Pricing is token-based: `estimatedCost: null` means metered, not free. Remove `--dry-run` to generate.

@@ -1,14 +1,22 @@
 import { GENERATION_MODELS, MODELS } from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
-import { BENCH_ROUTES, BENCH_ROUTES_BY_ALIAS, routeFor } from "./routes";
+import {
+  BENCH_ROUTES,
+  BENCH_ROUTES_BY_ALIAS,
+  MissingPricingError,
+  routeFor,
+} from "./routes";
 
 describe("routes", () => {
-  it("derives exactly one route per GENERATION_MODELS alias, in order", () => {
-    expect(BENCH_ROUTES).toHaveLength(GENERATION_MODELS.length);
-    expect(BENCH_ROUTES.map((route) => route.alias)).toEqual([
-      ...GENERATION_MODELS,
-    ]);
+  it("excludes metered models from budgeted routes and rejects explicit selection", () => {
+    expect(BENCH_ROUTES.map((route) => route.alias)).toStrictEqual(
+      GENERATION_MODELS.filter(
+        (alias) => MODELS[alias]?.pricePerImageUsd !== null
+      )
+    );
+    expect(() => routeFor("flare")).toThrow(MissingPricingError);
+    expect(() => routeFor("sunburst")).toThrow(MissingPricingError);
   });
 
   it("derives cost_basis from falPricing.unit, not a hardcoded alias list", () => {
@@ -21,7 +29,7 @@ describe("routes", () => {
     // single constant.
     const distinctBases = new Set(BENCH_ROUTES.map((route) => route.costBasis));
     expect(distinctBases.size).toBe(5);
-    expect([...distinctBases].sort()).toEqual(
+    expect([...distinctBases].sort()).toStrictEqual(
       [
         "compute seconds",
         "images",
@@ -58,13 +66,13 @@ describe("routes", () => {
 
   it("flags gpt2 as the only queue-polled model", () => {
     const queued = BENCH_ROUTES.filter((route) => route.usesQueue);
-    expect(queued.map((route) => route.alias)).toEqual(["gpt2"]);
+    expect(queued.map((route) => route.alias)).toStrictEqual(["gpt2"]);
   });
 
   it("routeFor and the by-alias map agree with the array", () => {
     for (const route of BENCH_ROUTES) {
-      expect(routeFor(route.alias)).toEqual(route);
-      expect(BENCH_ROUTES_BY_ALIAS.get(route.alias)).toEqual(route);
+      expect(routeFor(route.alias)).toStrictEqual(route);
+      expect(BENCH_ROUTES_BY_ALIAS.get(route.alias)).toStrictEqual(route);
     }
   });
 });

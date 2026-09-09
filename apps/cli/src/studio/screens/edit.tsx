@@ -326,7 +326,7 @@ export function EditScreen({
 
     try {
       let outputPath: string;
-      let cost = 0;
+      let cost: number | null = 0;
       let promptLabel = "";
 
       if (mode === "edit") {

@@ -213,7 +213,7 @@ function generateSchema() {
         },
         quality: {
           description: "Image quality for GPT/OpenAI image models",
-          enum: ["auto", "low", "medium", "high"],
+          enum: ["auto", "low", "medium", "high", "xhigh", "max"],
           type: "string",
         },
         resolution: {
@@ -767,7 +767,7 @@ function seriesSchema() {
       properties: {
         command: { type: "string" },
         cost: { type: "number" },
-        estimatedCost: { type: "number" },
+        estimatedCost: { type: ["number", "null"] },
         images: {
           description: "Saved image outputs for non-dry-run series runs.",
           type: "array",

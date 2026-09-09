@@ -156,6 +156,19 @@ function validateGenerateOptions(
   if (options.quality !== undefined && config.supportsQuality !== true) {
     unsupported(config, "quality");
   }
+  if (options.quality !== undefined) {
+    const qualities = config.supportedQualities ?? [
+      "auto",
+      "low",
+      "medium",
+      "high",
+    ];
+    if (!qualities.includes(options.quality)) {
+      throw new Error(
+        `${config.name} quality must be one of ${qualities.join(", ")}`
+      );
+    }
+  }
   if (
     options.negativePrompt !== undefined &&
     config.supportsNegativePrompt !== true
@@ -500,7 +513,7 @@ export function buildGenerateBody(options: GenerateOptions): {
     maskImageUrl !== "" &&
     config.supportsMaskImage === true
   ) {
-    body.mask_image_url = maskImageUrl;
+    body[config.maskImageField ?? "mask_image_url"] = maskImageUrl;
   }
 
   return { body, endpoint };

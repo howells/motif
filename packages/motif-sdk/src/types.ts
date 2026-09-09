@@ -24,7 +24,7 @@ export type Resolution = "0.5K" | "1K" | "2K" | "4K";
 export type ModelType = "generation" | "utility" | "video";
 export type ImageOutputFormat = "jpeg" | "png" | "webp";
 export type BackgroundMode = "auto" | "transparent" | "opaque";
-export type ImageQuality = "auto" | "low" | "medium" | "high";
+export type ImageQuality = "auto" | "low" | "medium" | "high" | "xhigh" | "max";
 export type ThinkingLevel = "minimal" | "high";
 export type GptImageSize = "auto" | "1024x1024" | "1536x1024" | "1024x1536";
 export type FalImageSizePreset =
@@ -98,7 +98,8 @@ export interface ModelConfig {
   maxReferenceImages?: number;
   name: string;
   pricing: string;
-  pricePerImageUsd?: number;
+  /** Null means token-metered with no per-image estimate. */
+  pricePerImageUsd?: number | null;
   /** How this model accepts dimensions (default: "aspect_ratio") */
   sizeMode?: SizeMode;
   supportsAspect: boolean;
@@ -112,11 +113,13 @@ export interface ModelConfig {
   supportsInferenceSteps?: boolean;
   supportsLimitGenerations?: boolean;
   supportsMaskImage?: boolean;
+  maskImageField?: "mask_image_url" | "mask_url";
   supportsNegativePrompt?: boolean;
   supportsNumImages: boolean;
   supportsOutputFormat?: boolean;
   supportedOutputFormats?: readonly ImageOutputFormat[];
   supportsQuality?: boolean;
+  supportedQualities?: readonly ImageQuality[];
   supportsRaw?: boolean;
   supportsRenderingSpeed?: boolean;
   supportsResolution: boolean;
@@ -283,7 +286,7 @@ export interface MotifResponse {
 
 export interface QueuedJob {
   endpoint: string;
-  estimatedCost: number;
+  estimatedCost: number | null;
   requestId: string;
 }
 

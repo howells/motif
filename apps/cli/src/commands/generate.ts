@@ -12,6 +12,7 @@ import {
   buildGenerateBody,
   enrichPrompt,
   estimateCost,
+  formatCost,
   GENERATION_MODELS,
   MODELS,
   sumCosts,
@@ -102,7 +103,7 @@ async function saveGeneratedImages(
 ): Promise<{
   id: string;
   images: SavedImage[];
-  cost: number;
+  cost: number | null;
   historyRecorded: boolean;
   timestamp: string;
 }> {
@@ -169,10 +170,9 @@ async function saveGeneratedImages(
     await addGenerations(generations);
   }
 
-  // Generation models are all flat-priced, so nothing here is unknown — but the
-  // sum goes through `sumCosts` rather than adding the field up directly, so a
-  // null arriving later reports as metered instead of poisoning the total.
-  const { known: totalCost } = sumCosts(generations.map((g) => g.cost));
+  const { known: totalCost, unknown } = sumCosts(
+    generations.map((g) => g.cost)
+  );
   // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since images is non-empty
   const lastGen = generations.at(-1)!;
 
@@ -195,7 +195,7 @@ async function saveGeneratedImages(
   }
 
   return {
-    cost: totalCost,
+    cost: unknown > 0 ? null : totalCost,
     historyRecorded,
     id: lastGen.id,
     images: savedImages,
@@ -493,7 +493,7 @@ export async function generateImage(
       console.log(`  Aspect: ${aspect} | Resolution: ${resolution}`);
       console.log(`  Images: ${numImages}`);
       console.log(`  Output: ${chalk.dim(outputPath)}`);
-      console.log(`  Cost:   ${chalk.yellow(`~$${cost.toFixed(3)}`)}`);
+      console.log(`  Cost:   ${chalk.yellow(formatCost(cost))}`);
       if (ephemeral === true) {
         console.log("  Fal IO: not retained after local download");
       }
@@ -515,7 +515,7 @@ export async function generateImage(
     console.log(
       `Prompt: ${chalk.dim(requestPrompt.slice(0, 80))}${requestPrompt.length > 80 ? "..." : ""}`
     );
-    console.log(`Est. cost: ${chalk.yellow(`$${cost.toFixed(3)}`)}`);
+    console.log(`Est. cost: ${chalk.yellow(formatCost(cost))}`);
     if (ephemeral === true) {
       console.log("Fal IO: not retained after local download");
     }

@@ -178,7 +178,11 @@ export async function runToolQueued(
 /** Submit a video generation job (returns immediately, poll for result) */
 export async function submitVideo(
   options: Omit<VideoOptions, "imageUrl"> & { imageUrl: string }
-): Promise<{ requestId: string; endpoint: string; estimatedCost: number }> {
+): Promise<{
+  requestId: string;
+  endpoint: string;
+  estimatedCost: number | null;
+}> {
   // Upload local file if needed
   const imageUrl = options.imageUrl.startsWith("http")
     ? options.imageUrl

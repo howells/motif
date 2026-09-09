@@ -9,6 +9,12 @@
 - [Security notes](./docs/security.md) - FAL_KEY handling, local history exposure, and ephemeral generation limits.
 - [Surface scorecard](./docs/surface/scorecard.md) - Current agent-readiness score and dimension summary.
 
+## Image generation and editing
+
+- [Image SDK](./packages/motif-sdk/README.md#image-layer-howellsmotif-sdkimage) - `@howells/motif-sdk/image`: `createMotifImage()` generates and edits across providers. OpenAI tiers select GPT Image 2.5 Flare (fast/balanced) or Sunburst (quality/hero), using `OPENAI_API_KEY`. Explicit model ids override tiers; 2.5 per-image costs are unknown unless supplied by the provider.
+
+Fal CLI / `FalClient`: `flare` and `sunburst` select GPT Image 2.5 generation and edit endpoints using `FAL_KEY`. Supports masks, transparency, 16 references, and `xhigh` / `max` quality. `estimateCost()` returns `null` for these metered models.
+
 ## Fal Tools
 
 71 fal endpoints beyond generation, reached by `motif tool run <id>` or one of seven promoted verbs (`segment`, `ask`, `erase`, `reframe`, `enhance`, `layers`, `vectorize`). Read the live registry from `motif tool list --format json`; never hardcode ids or prices.

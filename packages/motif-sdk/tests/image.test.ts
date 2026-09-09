@@ -722,7 +722,7 @@ interface ProviderCase {
   /** balanced tier (the default) resolves to this model id. */
   defaultModel: string;
   /** static table USD/image for `defaultModel`. */
-  priceUsd: number;
+  priceUsd: number | undefined;
 }
 
 const PROVIDER_CASES: ProviderCase[] = [
@@ -731,13 +731,13 @@ const PROVIDER_CASES: ProviderCase[] = [
     apiKeyEnv: "OPENAI_API_KEY",
     config: { openai: { apiKey: "test-key" } },
     tierModels: {
-      fast: "gpt-image-1",
-      balanced: "gpt-image-1",
-      quality: "gpt-image-1",
-      hero: "gpt-image-1",
+      fast: "gpt-image-2.5-flare",
+      balanced: "gpt-image-2.5-flare",
+      quality: "gpt-image-2.5-sunburst",
+      hero: "gpt-image-2.5-sunburst",
     },
-    defaultModel: "gpt-image-1",
-    priceUsd: 0.042,
+    defaultModel: "gpt-image-2.5-flare",
+    priceUsd: undefined,
   },
   {
     provider: "replicate",
@@ -818,7 +818,7 @@ describe.each(PROVIDER_CASES)(
       }
     });
 
-    it("looks up the static table price with source 'table'", async () => {
+    it("reports a table price only when a per-image estimate is known", async () => {
       const img = createMotifImage(config, {
         resolveModel: () => fakeImageModel(),
       });
@@ -827,8 +827,10 @@ describe.each(PROVIDER_CASES)(
 
       expect(result.isOk()).toBeTruthy();
       if (result.isOk()) {
-        expect(result.value.cost.source).toBe("table");
-        expect(result.value.cost.usd).toBe(priceUsd);
+        expect(result.value.cost.source).toBe(
+          priceUsd === undefined ? "unknown" : "table"
+        );
+        expect(result.value.cost.usd).toBe(priceUsd ?? 0);
       }
     });
 

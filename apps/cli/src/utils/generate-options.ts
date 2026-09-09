@@ -18,7 +18,14 @@ import { hasText } from "./text";
 
 export const OUTPUT_FORMATS = ["jpeg", "png", "webp"] as const;
 export const BACKGROUND_MODES = ["auto", "transparent", "opaque"] as const;
-export const QUALITY_LEVELS = ["auto", "low", "medium", "high"] as const;
+export const QUALITY_LEVELS = [
+  "auto",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
 export const SAFETY_LEVELS = ["1", "2", "3", "4", "5", "6"] as const;
 export const THINKING_LEVELS = ["minimal", "high"] as const;
 export const RENDERING_SPEEDS = ["TURBO", "BALANCED", "QUALITY"] as const;

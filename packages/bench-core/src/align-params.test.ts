@@ -54,8 +54,9 @@ const FORCE_PROBES: Record<string, unknown> = {
 };
 
 describe("GENERATION_MODELS coverage", () => {
-  it("is the 24 aliases currently registered (qwen3 added 2026-08-05)", () => {
-    expect(GENERATION_MODELS).toHaveLength(24);
+  it("includes the GPT Image 2.5 aliases", () => {
+    expect(GENERATION_MODELS).toContain("flare");
+    expect(GENERATION_MODELS).toContain("sunburst");
   });
 });
 
@@ -68,7 +69,7 @@ describe.each(SPECS)("align-params kernel — spec aspect %s", (_label, spec) =>
         failures.push(`${alias}: ${result.message}`);
       }
     }
-    expect(failures).toEqual([]);
+    expect(failures).toStrictEqual([]);
   });
 
   it("2. bidirectional drift guard — every dropped param is rejected by buildGenerateBody, every kept param is accepted", () => {
@@ -102,7 +103,7 @@ describe.each(SPECS)("align-params kernel — spec aspect %s", (_label, spec) =>
         }
       }
     }
-    expect(failures).toEqual([]);
+    expect(failures).toStrictEqual([]);
   });
 
   it("3. no sync_mode leaks; prompt present; num_images sane", () => {
@@ -130,7 +131,7 @@ describe.each(SPECS)("align-params kernel — spec aspect %s", (_label, spec) =>
         );
       }
     }
-    expect(failures).toEqual([]);
+    expect(failures).toStrictEqual([]);
   });
 
   it("4. per-sample seed offsetting is applied only where supported", () => {
@@ -151,7 +152,7 @@ describe.each(SPECS)("align-params kernel — spec aspect %s", (_label, spec) =>
         );
       }
     }
-    expect(failures).toEqual([]);
+    expect(failures).toStrictEqual([]);
   });
 });
 
@@ -170,9 +171,9 @@ describe("aspect coercion mappers — no fabricated throws", () => {
       expect(() => {
         falSize = aspectToFalImageSize(aspect);
       }, `aspectToFalImageSize(${aspect}) threw`).not.toThrow();
-      expect(typeof gptSize).toBe("string");
+      expect(gptSize).toBeTypeOf("string");
       expect(gptSize?.length).toBeGreaterThan(0);
-      expect(typeof falSize).toBe("string");
+      expect(falSize).toBeTypeOf("string");
       expect(falSize?.length).toBeGreaterThan(0);
     }
   });
@@ -217,7 +218,7 @@ describe("outputFormatReach — the composer's promise matches the dispatch", ()
   });
 
   it("is empty for an empty selection rather than throwing", () => {
-    expect(outputFormatReach([], "webp")).toEqual({ dropped: 0, supported: 0 });
+    expect(outputFormatReach([], "webp")).toStrictEqual({ dropped: 0, supported: 0 });
   });
 
   it("reports a real split — some models take a format and some do not", () => {

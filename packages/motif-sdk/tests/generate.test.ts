@@ -6,7 +6,62 @@ import {
   estimateCost,
 } from "../src/index";
 
-describe("buildGenerateBody", () => {
+describe(buildGenerateBody, () => {
+  it.each(["flare", "sunburst"])(
+    "routes %s generation and masked editing",
+    (model) => {
+      const generated = buildGenerateBody({
+        model,
+        prompt: "A ceramic vase",
+        quality: "xhigh",
+        transparent: true,
+      });
+      expect(generated.endpoint).toBe(
+        `openai/gpt-image-2.5/${model}/text-to-image`
+      );
+      expect(generated.body).toMatchObject({
+        quality: "xhigh",
+        background: "transparent",
+        output_format: "png",
+      });
+      const edited = buildGenerateBody({
+        model,
+        prompt: "Change the glaze",
+        quality: "max",
+        editImageUrls: ["https://example.com/vase.png"],
+        maskImageUrl: "https://example.com/mask.png",
+      });
+      expect(edited.endpoint).toBe(`openai/gpt-image-2.5/${model}/edit`);
+      expect(edited.body).toMatchObject({
+        quality: "max",
+        mask_url: "https://example.com/mask.png",
+        image_urls: ["https://example.com/vase.png"],
+      });
+      expect(edited.body).not.toHaveProperty("mask_image_url");
+      expect(estimateCost(model)).toBeNull();
+      expect(() =>
+        buildGenerateBody({
+          model,
+          prompt: "Change the glaze",
+          editImageUrls: Array.from(
+            { length: 17 },
+            () => "https://example.com/vase.png"
+          ),
+        })
+      ).toThrow("at most 16 reference images");
+    }
+  );
+
+  it("rejects 2.5-only quality on older GPT models", () => {
+    expect(() =>
+      buildGenerateBody({
+        model: "gpt2",
+        prompt: "A ceramic vase",
+        quality: "max",
+      })
+    ).toThrow("quality must be one of");
+  });
+
   it("enriches creative direction before building the fal request body", () => {
     const { body } = buildGenerateBody({
       creative: {
@@ -410,7 +465,7 @@ describe("buildGenerateBody", () => {
   });
 });
 
-describe("estimateCost", () => {
+describe(estimateCost, () => {
   it("uses registry fal pricing for newly added image models", () => {
     expect(estimateCost("seedream4", "2K", 3)).toBeCloseTo(0.09);
     expect(estimateCost("grok-image", "2K", 4)).toBeCloseTo(0.08);
@@ -430,7 +485,7 @@ describe("estimateCost", () => {
   });
 });
 
-describe("buildFalToolRequest", () => {
+describe(buildFalToolRequest, () => {
   it("normalizes SAM 3 image options into the fal request body", () => {
     const { endpoint, body } = buildFalToolRequest({
       input: "https://example.com/input.png",
@@ -459,7 +514,7 @@ describe("buildFalToolRequest", () => {
     });
 
     expect(endpoint).toBe("fal-ai/x-ailab/nsfw");
-    expect(body).toEqual({
+    expect(body).toStrictEqual({
       image_urls: ["https://example.com/a.png", "https://example.com/b.png"],
     });
   });
