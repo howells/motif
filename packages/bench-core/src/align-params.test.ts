@@ -218,7 +218,10 @@ describe("outputFormatReach — the composer's promise matches the dispatch", ()
   });
 
   it("is empty for an empty selection rather than throwing", () => {
-    expect(outputFormatReach([], "webp")).toStrictEqual({ dropped: 0, supported: 0 });
+    expect(outputFormatReach([], "webp")).toStrictEqual({
+      dropped: 0,
+      supported: 0,
+    });
   });
 
   it("reports a real split — some models take a format and some do not", () => {
