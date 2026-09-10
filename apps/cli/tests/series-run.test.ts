@@ -14,11 +14,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * side effects mocked, so no fal request is ever made.
  */
 
-vi.mock("../src/api/fal", () => ({
+vi.mock(import("../src/api/fal"), () => ({
   generate: vi.fn(),
 }));
 
-vi.mock("../src/utils/image", async (importActual) => {
+vi.mock(import("../src/utils/image"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/image")>();
   return {
     ...actual,
@@ -29,7 +29,7 @@ vi.mock("../src/utils/image", async (importActual) => {
   };
 });
 
-vi.mock("../src/utils/input", async (importActual) => {
+vi.mock(import("../src/utils/input"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/input")>();
   return {
     ...actual,
@@ -139,6 +139,22 @@ describe("loadOrCreateRunSeries", () => {
     await expect(loadSeries("glass-towers")).resolves.toMatchObject({
       slug: "glass-towers",
     });
+  });
+
+  it("pins the run's look and mood on the series it creates", async () => {
+    const { loadOrCreateRunSeries } = await import("../src/commands/series");
+
+    const config = await loadOrCreateRunSeries({
+      aspect: "3:2",
+      look: "lived-in",
+      model: "flux2-pro",
+      mood: "overcast",
+      resolution: "2K",
+      stylePrompt: "warm kitchens",
+      theme: "Pinned Kitchens",
+    });
+
+    expect(config).toMatchObject({ look: "lived-in", mood: "overcast" });
   });
 
   it("falls back to loading when the theme slug already exists", async () => {

@@ -158,6 +158,8 @@ export default {
         "packages/motif-sdk/src/image/fal.ts",
         "apps/cli/src/api/fal.ts",
         "apps/cli/src/utils/image.ts",
+        // The routing eval's one read: ANTHROPIC_API_KEY.
+        "apps/cli/evals/routing/env.ts",
       ],
       rules: {
         "no-restricted-properties": "off",
@@ -195,8 +197,13 @@ export default {
     {
       // Test files: the shared preset's test overlay only relaxes
       // size/complexity. Tests also legitimately read env, use temp dirs, `new`,
-      // and dynamic imports.
-      files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}"],
+      // and dynamic imports. The glob covers helpers that live alongside the
+      // tests and share those needs, not only the spec files themselves.
+      files: [
+        "**/*.test.{js,jsx,ts,tsx}",
+        "**/*.spec.{js,jsx,ts,tsx}",
+        "**/tests/**/*.{js,jsx,ts,tsx}",
+      ],
       rules: {
         "no-restricted-properties": "off",
         "promise/avoid-new": "off",

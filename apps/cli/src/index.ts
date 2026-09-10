@@ -4,6 +4,7 @@ import React from "react";
 import { setApiKey } from "./api/fal";
 import { runCli } from "./cli";
 import { runSeries } from "./commands/series";
+import { runSheet } from "./commands/sheet";
 import { runTools } from "./commands/tools";
 import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
@@ -25,6 +26,12 @@ async function main() {
   // Route to series subcommand
   if (args[0] === "series") {
     await runSeries(args.slice(1));
+    return;
+  }
+
+  // Route to the contact sheet command
+  if (args[0] === "sheet") {
+    await runSheet(args.slice(1));
     return;
   }
 

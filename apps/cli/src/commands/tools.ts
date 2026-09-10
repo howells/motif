@@ -19,6 +19,7 @@ import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { runFalTool } from "./tool-run";
 import type { ToolOptions } from "./tool-run";
+import { toolVerb, verbHint } from "./verbs/shared";
 
 function emitOptsFromArgs(args: string[]): EmitOptions {
   const format = resolveFormat(
@@ -54,6 +55,12 @@ function stripGlobalFlags(args: string[]): string[] {
   });
 }
 
+/** `verb` for a tool a verb wraps, and nothing for the rest. */
+function verbField(toolId: string): { verb?: string } {
+  const verb = toolVerb(toolId);
+  return verb === undefined ? {} : { verb };
+}
+
 /** Where the full argument list lives, since the listings carry only counts. */
 const PARAMETERS_POINTER =
   "Every argument a tool accepts, with fal's own default and Motif's override, is at `motif tool describe <id>`.";
@@ -75,6 +82,7 @@ function listTools(emitOpts: EmitOptions): void {
             parameterCount: falToolParameters(id).length,
             pricing: FAL_TOOLS[id].pricing,
             task: FAL_TOOLS[id].task,
+            ...verbField(id),
           },
         ])
       ),
@@ -86,8 +94,9 @@ function listTools(emitOpts: EmitOptions): void {
     console.log(chalk.bold("\nFal tools\n"));
     for (const id of FAL_TOOL_IDS) {
       const tool = FAL_TOOLS[id];
+      const verb = toolVerb(id);
       console.log(
-        `${chalk.green(id)}  ${tool.name}  ${chalk.dim(tool.pricing)}`
+        `${chalk.green(id)}  ${tool.name}  ${chalk.dim(tool.pricing)}${verb === undefined ? "" : `  ${chalk.cyan(`use motif ${verb}`)}`}`
       );
     }
     console.log(chalk.dim(`\n${PARAMETERS_POINTER}`));
@@ -139,6 +148,10 @@ function printTool(
   console.log(
     `${tool.task}\n${chalk.dim(`${tool.endpoint}  ${tool.pricing}`)}`
   );
+  const verb = toolVerb(toolId);
+  if (verb !== undefined) {
+    console.log(chalk.cyan(`\n${verbHint(verb)}`));
+  }
 
   if (parameters.length === 0) {
     console.log(chalk.dim("\nNo arguments beyond the input media."));
@@ -176,6 +189,7 @@ function describeTool(toolId: string | undefined, emitOpts: EmitOptions): void {
       command: "tool.describe",
       id: toolId,
       ...FAL_TOOLS[toolId],
+      ...verbField(toolId),
       parameters,
       parametersNote: PARAMETERS_NOTE,
     },

@@ -51,6 +51,78 @@ afterEach(() => {
 });
 
 describe("FalClient fetch integration", () => {
+  it("maps a locked fal account to ACCOUNT_LOCKED without retrying", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response('{"detail":"User is locked. Reason: TOP_UP."}', {
+          headers: { "Content-Type": "application/json" },
+          status: 403,
+        })
+      )
+    );
+    const motif = new FalClient({ apiKey: "test-key" });
+
+    const result = await motif.generate({ model: "banana", prompt: "x" });
+
+    expect(result.isErr()).toBeTruthy();
+    if (result.isErr()) {
+      expect(result.error.code).toBe("ACCOUNT_LOCKED");
+      expect(result.error.status).toBe(403);
+      expect(result.error.message).toContain("out of credit");
+    }
+    expect(vi.mocked(fetch)).toHaveBeenCalledOnce();
+  });
+
+  it("maps a locked account on the upload PUT to ACCOUNT_LOCKED", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          jsonResponse({
+            file_url: "https://cdn.example.test/file.png",
+            upload_url: "https://upload.example.test/put",
+          })
+        )
+        .mockResolvedValueOnce(
+          new Response('{"detail":"User is locked. Reason: TOP_UP."}', {
+            headers: { "Content-Type": "application/json" },
+            status: 403,
+          })
+        )
+    );
+    const motif = new FalClient({ apiKey: "test-key" });
+
+    const result = await motif.uploadToFalCdn(new Uint8Array([1, 2, 3]), {
+      contentType: "image/png",
+      fileName: "file.png",
+    });
+
+    expect(result.isErr()).toBeTruthy();
+    if (result.isErr()) {
+      expect(result.error.code).toBe("ACCOUNT_LOCKED");
+      expect(result.error.status).toBe(403);
+    }
+    expect(requestAt(1).method).toBe("PUT");
+  });
+
+  it("keeps other 403s as plain request failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response('{"detail":"Forbidden"}', { status: 403 })
+        )
+    );
+    const motif = new FalClient({ apiKey: "test-key" });
+
+    const result = await motif.generate({ model: "banana", prompt: "x" });
+
+    expect(result.isErr() && result.error.code).toBeUndefined();
+  });
+
   it("sends normalized sync generation requests without calling fal in tests", async () => {
     vi.stubGlobal(
       "fetch",
@@ -72,8 +144,8 @@ describe("FalClient fetch integration", () => {
       syncMode: true,
     });
 
-    expect(result.isOk()).toBe(true);
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(result.isOk()).toBeTruthy();
+    expect(fetch).toHaveBeenCalledOnce();
 
     const request = requestAt(0);
     expect(request.url).toBe("https://fal.run/fal-ai/gpt-image-1.5");
@@ -107,7 +179,7 @@ describe("FalClient fetch integration", () => {
       prompt: "local-only image",
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.requestId).toBe("req_ephemeral_123");
     }
@@ -139,7 +211,7 @@ describe("FalClient fetch integration", () => {
       syncMode: true,
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value).toMatchObject({
         endpoint: "openai/gpt-image-2/image-to-image",
@@ -170,7 +242,7 @@ describe("FalClient fetch integration", () => {
     const motif = new FalClient({ apiKey: "test-key", retries: 0 });
     const result = await motif.deletePayloads("req_ephemeral_123");
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
 
     const request = requestAt(0);
     expect(request.url).toBe(
@@ -197,7 +269,7 @@ describe("FalClient fetch integration", () => {
       prompt: "a red balloon",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     const error = result.isErr() ? result.error : undefined;
     expect(error?.requestId).toBe("req_fal_err_789");
     expect(error?.status).toBe(500);
@@ -219,7 +291,7 @@ describe("FalClient fetch integration", () => {
       prompt: "a red balloon",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     const error = result.isErr() ? result.error : undefined;
     expect(error).toBeDefined();
     expect(error?.requestId).toBeUndefined();
@@ -247,7 +319,7 @@ describe("FalClient fetch integration", () => {
       tool: "sam3-image",
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
 
     const request = requestAt(0);
     expect(request.url).toBe("https://fal.run/fal-ai/sam-3/image");
@@ -279,9 +351,9 @@ describe("FalClient fetch integration", () => {
       tool: "sam3-image",
     });
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
-      expect(result.value).toEqual({
+      expect(result.value).toStrictEqual({
         endpoint: "fal-ai/sam-3/image",
         requestId: "req_tool_1",
       });
@@ -322,13 +394,13 @@ describe("FalClient fetch integration", () => {
       }
     );
 
-    expect(result.isOk()).toBe(true);
+    expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value).toMatchObject({
         image: { url: "https://example.com/big.png" },
       });
     }
-    expect(progress).toEqual(["completed"]);
+    expect(progress).toStrictEqual(["completed"]);
 
     expect(requestAt(1).url).toBe(
       "https://queue.fal.run/fal-ai/sam-3/image/requests/req_tool_2/status?logs=1"
@@ -359,7 +431,7 @@ describe("FalClient fetch integration", () => {
       tool: "sam3-image",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     const error = result.isErr() ? result.error : undefined;
     expect(error?.message).toBe("out of memory");
     expect(error?.requestId).toBe("req_tool_3");

@@ -9,7 +9,11 @@
  * one-mode-at-a-time guard two verbs need.
  */
 
-import type { FalToolConfig, ToolResponse } from "@howells/motif-sdk";
+import type {
+  FalToolConfig,
+  FalToolId,
+  ToolResponse,
+} from "@howells/motif-sdk";
 
 import { runTool, runToolQueued } from "../../api/fal";
 import { getApiKey } from "../../utils/config";
@@ -66,6 +70,62 @@ export interface VerbOptions {
   sharpen?: boolean;
   transparent?: boolean;
   upscale?: boolean;
+}
+
+/**
+ * The registry tools each verb calls. `--describe` lists them on the verb, and
+ * `motif tool` derives each wrapped tool's `verb` from them.
+ */
+export const VERB_TOOLS = {
+  ask: [
+    "moondream-query",
+    "moondream-caption",
+    "moondream-detect",
+    "moondream-point",
+  ],
+  enhance: [
+    "topaz-precision",
+    "topaz-generative",
+    "topaz-creative",
+    "topaz-transparent",
+    "topaz-restore",
+    "topaz-denoise",
+    "topaz-sharpen",
+    "topaz-adjust",
+  ],
+  erase: ["object-removal"],
+  layers: ["qwen-layered"],
+  reframe: ["ideogram-reframe"],
+  segment: ["sam3-image", "sam3-image-rle"],
+  vectorize: ["recraft-vectorize"],
+} as const satisfies Record<string, readonly FalToolId[]>;
+
+function buildToolVerbs(): ReadonlyMap<string, string> {
+  const verbs = new Map<string, string>();
+  for (const [verb, tools] of Object.entries(VERB_TOOLS)) {
+    for (const tool of tools) {
+      const claimed = verbs.get(tool);
+      if (claimed !== undefined) {
+        throw new Error(
+          `Tool ${tool} is wrapped by both ${claimed} and ${verb}`
+        );
+      }
+      verbs.set(tool, verb);
+    }
+  }
+  return verbs;
+}
+
+const TOOL_VERBS = buildToolVerbs();
+
+/** The verb that wraps a registry tool, e.g. `object-removal` to `erase`. */
+export function toolVerb(toolId: string): string | undefined {
+  return TOOL_VERBS.get(toolId);
+}
+
+/** What the verb adds over calling its tool through `motif tool run`. */
+export function verbHint(verb: string): string {
+  return `motif ${verb} makes this same call. It takes the image as a plain argument or falls back to the last generation, opens what it writes, and puts the result at the top level of its JSON.`;
 }
 
 export function verbEmitOptions(options: VerbOptions): EmitOptions {

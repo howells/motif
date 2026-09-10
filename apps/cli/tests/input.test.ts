@@ -1,6 +1,11 @@
+import { mkdirSync, mkdtempSync, realpathSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
+  outputRoot,
   parseIntegerOption,
   parseNumberOption,
   reservedPromptSuggestion,
@@ -11,7 +16,7 @@ import {
   validateResourceId,
 } from "../src/utils/input";
 
-describe("sanitizePrompt", () => {
+describe(sanitizePrompt, () => {
   it("passes through normal text", () => {
     expect(sanitizePrompt("a cat on a windowsill")).toBe(
       "a cat on a windowsill"
@@ -39,7 +44,7 @@ describe("sanitizePrompt", () => {
   });
 });
 
-describe("validateResourceId", () => {
+describe(validateResourceId, () => {
   it("passes valid model names", () => {
     expect(validateResourceId("gpt", "model")).toBe("gpt");
     expect(validateResourceId("banana", "model")).toBe("banana");
@@ -89,7 +94,15 @@ describe("validateResourceId", () => {
   });
 });
 
-describe("validateOutputPath", () => {
+/** A temp directory with a `.git` marker and an `apps/cli` subdirectory. */
+function fakeRepo(): string {
+  const repo = realpathSync(mkdtempSync(join(tmpdir(), "motif-repo-")));
+  mkdirSync(join(repo, ".git"));
+  mkdirSync(join(repo, "apps", "cli"), { recursive: true });
+  return repo;
+}
+
+describe(validateOutputPath, () => {
   it("accepts a simple filename in CWD", () => {
     const result = validateOutputPath("output.png");
     expect(result).toContain("output.png");
@@ -100,15 +113,37 @@ describe("validateOutputPath", () => {
     expect(result).toContain("images/output.png");
   });
 
-  it("rejects path traversal with ..", () => {
-    expect(() => validateOutputPath("../outside.png")).toThrow(
-      "within current directory"
+  it("allows a path anywhere under the git root, even above CWD", () => {
+    const repo = fakeRepo();
+    const cwd = join(repo, "apps", "cli");
+    expect(outputRoot(cwd)).toBe(repo);
+    expect(validateOutputPath("../../out.png", cwd)).toBe(
+      join(repo, "out.png")
     );
   });
 
-  it("rejects absolute paths outside CWD", () => {
+  it("refuses a path that leaves the git root and names the root", () => {
+    const repo = fakeRepo();
+    const cwd = join(repo, "apps", "cli");
+    expect(() => validateOutputPath("../../../outside.png", cwd)).toThrow(
+      `Output path must be within ${repo}`
+    );
+  });
+
+  it("falls back to CWD outside a repository", () => {
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), "motif-norepo-")));
+    const cwd = join(dir, "work");
+    mkdirSync(cwd);
+    expect(outputRoot(cwd)).toBe(cwd);
+    expect(validateOutputPath("out.png", cwd)).toBe(join(cwd, "out.png"));
+    expect(() => validateOutputPath("../out.png", cwd)).toThrow(
+      `Output path must be within ${cwd}`
+    );
+  });
+
+  it("rejects absolute paths outside the root", () => {
     expect(() => validateOutputPath("/tmp/evil.png")).toThrow(
-      "within current directory"
+      "Output path must be within"
     );
   });
 
@@ -131,7 +166,7 @@ describe("validateOutputPath", () => {
   });
 });
 
-describe("validateEditPath", () => {
+describe(validateEditPath, () => {
   it("rejects percent-encoded traversal", () => {
     expect(() => validateEditPath("%2e%2e/image.png")).toThrow(
       "percent-encoded"
@@ -156,7 +191,7 @@ describe("validateEditPath", () => {
   });
 });
 
-describe("parseIntegerOption", () => {
+describe(parseIntegerOption, () => {
   it("accepts integers within range", () => {
     expect(parseIntegerOption("4", "count", { max: 4, min: 1 })).toBe(4);
   });
@@ -172,7 +207,7 @@ describe("parseIntegerOption", () => {
   });
 });
 
-describe("parseNumberOption", () => {
+describe(parseNumberOption, () => {
   it("accepts finite numbers within range", () => {
     expect(parseNumberOption("0.7", "cfg", { max: 1, min: 0 })).toBe(0.7);
   });
@@ -183,7 +218,7 @@ describe("parseNumberOption", () => {
   });
 });
 
-describe("validateEnumOption", () => {
+describe(validateEnumOption, () => {
   it("accepts listed values", () => {
     expect(validateEnumOption("png", ["jpeg", "png", "webp"], "format")).toBe(
       "png"
@@ -197,7 +232,7 @@ describe("validateEnumOption", () => {
   });
 });
 
-describe("reservedPromptSuggestion", () => {
+describe(reservedPromptSuggestion, () => {
   it("suggests the flag form for a bare command word", () => {
     expect(reservedPromptSuggestion("history")).toBe("motif --history");
     expect(reservedPromptSuggestion("upscale")).toBe("motif --up");

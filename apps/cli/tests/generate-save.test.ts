@@ -17,12 +17,12 @@ import type { MotifConfig } from "../src/utils/config";
  * successful (billed) generation into GENERATION_FAILED exit 5.
  */
 
-vi.mock("../src/api/fal", () => ({
+vi.mock(import("../src/api/fal"), () => ({
   deletePayloads: vi.fn(),
   generate: vi.fn(),
 }));
 
-vi.mock("../src/utils/image", async (importActual) => {
+vi.mock(import("../src/utils/image"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/image")>();
   return {
     ...actual,
@@ -53,6 +53,8 @@ afterEach(() => {
 });
 
 const config: MotifConfig = {
+  // Placeholder: fal is mocked, but generateImage checks a key is configured.
+  apiKey: "test-key",
   backgroundRemover: "rmbg",
   defaultAspect: "1:1",
   defaultModel: "banana",
@@ -104,8 +106,7 @@ describe("generateImage save flow", () => {
 
     // The regression: the viewer must open the path that was actually
     // written (.jpg), not the requested one (.png).
-    expect(image.openImage).toHaveBeenCalledTimes(1);
-    expect(image.openImage).toHaveBeenCalledWith(actualPath);
+    expect(image.openImage).toHaveBeenCalledExactlyOnceWith(actualPath);
 
     // The structured result must also report the actual path.
     stdoutSpy.mockRestore();

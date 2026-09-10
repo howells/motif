@@ -41,7 +41,11 @@ export interface Generation {
   cost: number | null;
   editedFrom?: string;
   id: string;
+  /** Look id, when the run used one. */
+  look?: string;
   model: string;
+  /** Mood id, when the run used one. */
+  mood?: string;
   output: string;
   prompt: string;
   resolution: Resolution;

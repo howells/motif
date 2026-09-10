@@ -11,19 +11,20 @@ import { enhance } from "../src/commands/verbs/enhance";
 import { layers, segment } from "../src/commands/verbs/image-verbs";
 import type { MotifConfig } from "../src/utils/config";
 import { reservedPromptSuggestion } from "../src/utils/input";
+import { spawnEnv } from "./cli-env";
 
 // In-process verbs run against the real HOME, and a verb that writes a file
 // records a generation. Stubbing the writer keeps the developer's own history
 // out of the test run; what it records is the kernel's business, not these
 // tests'.
-vi.mock("../src/utils/config", async (importOriginal) => ({
+vi.mock(import("../src/utils/config"), async (importOriginal) => ({
   ...(await importOriginal<typeof import("../src/utils/config")>()),
   addGeneration: vi.fn<() => Promise<void>>(async () => {
     // no-op
   }),
 }));
 
-vi.mock("../src/api/fal", () => ({
+vi.mock(import("../src/api/fal"), () => ({
   runTool: vi.fn<(options: unknown) => Promise<Record<string, unknown>>>(),
   runToolQueued:
     vi.fn<(options: unknown) => Promise<Record<string, unknown>>>(),
@@ -65,7 +66,7 @@ function tempHome(): string {
 
 /**
  * Fixture images live under the package directory, not the OS temp dir:
- * output paths are sandboxed to CWD, and the kernel derives its default
+ * output paths must stay inside the git root, and the kernel derives its default
  * output alongside the source image.
  */
 function fixtureImage(name = "source.png"): string {
@@ -105,13 +106,11 @@ async function runMotif(args: string[]): Promise<CliResult> {
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: tempHome(),
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
@@ -169,7 +168,7 @@ describe("promoted verbs — dry-run payloads", () => {
     expect(payload.prompt).toBe("the chair");
     expect(payload.estimatedCost).toBe(0.005);
     expect(payload.source).toBe(image);
-    expect(payload.valid).toBe(true);
+    expect(payload.valid).toBeTruthy();
   });
 
   it("switches segment to the RLE endpoint with --rle", async () => {
@@ -219,7 +218,7 @@ describe("promoted verbs — dry-run payloads", () => {
     expect(payload.command).toBe("reframe");
     expect(payload.model).toBe("ideogram-reframe");
     expect(payload.aspect).toBe("16:9");
-    expect(payload.imageSize).toEqual({ height: 864, width: 1536 });
+    expect(payload.imageSize).toStrictEqual({ height: 864, width: 1536 });
     expect(payload.preset).toBe("og");
   });
 
@@ -293,16 +292,16 @@ describe("promoted verbs — dry-run payloads", () => {
 
     expect(payload.command).toBe("layers");
     expect(payload.model).toBe("qwen-layered");
-    // Directory targets are resolved and sandboxed to CWD before being shown.
+    // Directory targets are resolved and checked against the git root before being shown.
     expect(payload.output).toBe(join(process.cwd(), "layers-out"));
   });
 
-  it("refuses a directory target that escapes the sandbox", async () => {
+  it("refuses a directory target outside the git root", async () => {
     const payload = await failedRun([
       "layers",
       fixtureImage(),
       "-o",
-      "../escaped/",
+      "/tmp/motif-escaped/",
       "--dry-run",
       "--format",
       "json",
@@ -470,11 +469,11 @@ describe("ask — the one verb that writes no file", () => {
     expect(payload.answer).toBe("A red chair by a window.");
     expect(payload.reasoning).toBe("The seat and back are red.");
     expect(payload.cost).toBeNull();
-    expect(payload.files).toEqual([]);
+    expect(payload.files).toStrictEqual([]);
     expect(payload.path).toBeUndefined();
 
     // Nothing landed next to the source image.
-    expect(readdirSync(dirname(image))).toEqual(["source.png"]);
+    expect(readdirSync(dirname(image))).toStrictEqual(["source.png"]);
   });
 
   it("prints the answer alone in human format, with no spinner furniture", async () => {
@@ -494,7 +493,7 @@ describe("ask — the one verb that writes no file", () => {
       log.mockRestore();
     }
 
-    expect(lines).toEqual(["A red chair."]);
+    expect(lines).toStrictEqual(["A red chair."]);
   });
 });
 
@@ -508,9 +507,7 @@ describe("enhance — queued Topaz endpoints", () => {
     });
     stubPngFetch();
 
-    const stdout = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(() => true);
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     try {
       await enhance(image, { denoise: true }, TEST_CONFIG, {
         format: "json",
@@ -522,7 +519,7 @@ describe("enhance — queued Topaz endpoints", () => {
 
     const call = vi.mocked(runToolQueued).mock.calls[0];
     expect(call?.[0]).toMatchObject({ tool: "topaz-denoise" });
-    expect(typeof call?.[1]).toBe("function");
+    expect(call?.[1]).toBeTypeOf("function");
   });
 });
 
@@ -544,9 +541,7 @@ describe("registry-declared execution path", () => {
     vi.mocked(runTool).mockResolvedValue({});
     stubPngFetch();
 
-    const stdout = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(() => true);
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     try {
       await layers(image, { output: "verbs-layers-out/" }, TEST_CONFIG, {
         format: "json",
@@ -561,7 +556,7 @@ describe("registry-declared execution path", () => {
     }
 
     // qwen-layered is queued in the registry, so it must not touch runTool.
-    expect(vi.mocked(runToolQueued)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(runToolQueued)).toHaveBeenCalledOnce();
     expect(vi.mocked(runToolQueued).mock.calls[0]?.[0]).toMatchObject({
       tool: "qwen-layered",
     });
@@ -597,8 +592,8 @@ describe("registry-declared execution path", () => {
       throw new Error("expected an emitted payload");
     }
     expect(payload.model).toBe("sam3-image-rle");
-    expect(payload.files).toEqual([]);
+    expect(payload.files).toStrictEqual([]);
     expect(payload.rle).toBeDefined();
-    expect(readdirSync(dirname(image))).toEqual(["source.png"]);
+    expect(readdirSync(dirname(image))).toStrictEqual(["source.png"]);
   });
 });

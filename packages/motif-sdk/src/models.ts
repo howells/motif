@@ -99,6 +99,12 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsQuality: true,
     supportsResolution: false,
     supportsSyncMode: true,
+    transparencyRoute: {
+      apiKeyEnv: "OPENAI_API_KEY",
+      model: "gpt-image-2",
+      provider: "openai",
+      supportsEdit: true,
+    },
     type: "generation",
     useQueue: true,
   },

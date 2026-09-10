@@ -39,6 +39,13 @@ export function costFromProviderMetadata(
 }
 
 /** Static per-image USD for a (provider, model), or undefined if unknown. */
+export function providerPricePerImageUsd(
+  provider: ImageProviderId,
+  modelId: string
+): number | undefined {
+  return tablePricePerImage(provider, modelId);
+}
+
 function tablePricePerImage(
   provider: ImageProviderId,
   modelId: string

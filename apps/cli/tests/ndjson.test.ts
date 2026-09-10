@@ -7,8 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { emitStream } from "../src/utils/output";
 import type { EmitOptions } from "../src/utils/output";
+import { spawnEnv } from "./cli-env";
 
-describe("emitStream", () => {
+describe(emitStream, () => {
   let writtenData: string;
 
   beforeEach(() => {
@@ -35,8 +36,8 @@ describe("emitStream", () => {
 
     const lines = writtenData.split("\n").filter(Boolean);
     expect(lines).toHaveLength(2);
-    expect(JSON.parse(lines[0] ?? "")).toEqual({ id: 1, name: "a" });
-    expect(JSON.parse(lines[1] ?? "")).toEqual({ id: 2, name: "b" });
+    expect(JSON.parse(lines[0] ?? "")).toStrictEqual({ id: 1, name: "a" });
+    expect(JSON.parse(lines[1] ?? "")).toStrictEqual({ id: 2, name: "b" });
   });
 
   it("applies the field mask to every item", () => {
@@ -54,7 +55,7 @@ describe("emitStream", () => {
     expect(lines).toHaveLength(3);
     for (const [index, line] of lines.entries()) {
       const parsed: unknown = JSON.parse(line);
-      expect(parsed).toEqual({ id: index + 1 });
+      expect(parsed).toStrictEqual({ id: index + 1 });
       expect(parsed).not.toHaveProperty("secret");
     }
   });
@@ -102,13 +103,11 @@ async function runMotif(args: string[], home: string): Promise<CliResult> {
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: home,
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );

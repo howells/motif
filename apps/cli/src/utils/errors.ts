@@ -1,5 +1,5 @@
-import { MotifError } from "@howells/motif-sdk";
-import type { Command } from "commander";
+import { ACCOUNT_LOCKED, MotifError } from "@howells/motif-sdk";
+import type { Command, CommanderError } from "commander";
 
 import { getErrorMetadata } from "./error-catalog";
 import { validateOutputPath } from "./input";
@@ -67,6 +67,25 @@ function getStructuredDetails(err: unknown): unknown {
   if (
     hasProperty(err, "code") &&
     err.code === "INVALID_OPTION" &&
+    hasProperty(err, "option") &&
+    typeof err.option === "string" &&
+    hasProperty(err, "model") &&
+    typeof err.model === "string" &&
+    hasProperty(err, "supportedOptions") &&
+    isStringArray(err.supportedOptions) &&
+    hasProperty(err, "modelsSupporting") &&
+    isStringArray(err.modelsSupporting)
+  ) {
+    return {
+      model: err.model,
+      modelsSupporting: err.modelsSupporting,
+      option: err.option,
+      supportedOptions: err.supportedOptions,
+    };
+  }
+  if (
+    hasProperty(err, "code") &&
+    err.code === "INVALID_OPTION" &&
     hasProperty(err, "field") &&
     typeof err.field === "string" &&
     hasProperty(err, "value") &&
@@ -103,11 +122,22 @@ export function validateOutput(
   }
 }
 
+/**
+ * Error codes the SDK assigns that outrank a command's own failure code,
+ * because they name the real cause (a locked account is not a failed render).
+ */
+function sdkErrorCode(err: unknown): string | undefined {
+  return err instanceof MotifError && err.code === ACCOUNT_LOCKED
+    ? ACCOUNT_LOCKED
+    : undefined;
+}
+
 export function handleError(
   err: unknown,
-  code: string,
+  fallbackCode: string,
   format: OutputFormat
 ): never {
+  const code = sdkErrorCode(err) ?? fallbackCode;
   const metadata = getErrorMetadata(code);
   emitError(
     {
@@ -174,10 +204,14 @@ function discardCommanderErrorLine(message: string): void {
  *
  * Call this before registering subcommands — commander copies the exit
  * callback and output configuration into each subcommand as it is created.
+ *
+ * `refine` sees each failure first, so a caller can emit a more specific error
+ * and exit; when it returns, the generic envelope goes out.
  */
 export function routeCommanderErrors(
   program: Command,
-  format: OutputFormat
+  format: OutputFormat,
+  refine?: (err: CommanderError) => void
 ): Command {
   return program
     .configureOutput({ outputError: discardCommanderErrorLine })
@@ -185,6 +219,7 @@ export function routeCommanderErrors(
       if (COMMANDER_SUCCESS_CODES.has(err.code)) {
         process.exit(err.exitCode);
       }
+      refine?.(err);
       handleError(
         new Error(err.message.replace(/^error: /, "")),
         "INVALID_OPTION",

@@ -1,6 +1,6 @@
 # Preprocessors
 
-Thirteen tools that turn a photograph into a control map: a depth map, a pose skeleton, an edge drawing. None of them produce a finished image. Each one produces the input to a *conditioned* generation - the thing you hand a model when you want the new image to keep the old one's geometry.
+Thirteen tools that turn a photograph into a control map: a depth map, a pose skeleton, an edge drawing. None of them produce a finished image. Each one produces the input to a _conditioned_ generation - the thing you hand a model when you want the new image to keep the old one's geometry.
 
 The question this page answers is which one to reach for. They are not interchangeable, and picking the wrong family is why conditioned output comes back looking approximately right and structurally wrong.
 
@@ -32,7 +32,7 @@ Five tools produce depth, and they differ in what the greys mean:
 | Tool | Output | Reach for it when |
 | --- | --- | --- |
 | `depth-anything` | `image` | The default. Depth Anything v2, robust across scene types |
-| `zoe-depth` | `image` | You need *metric* depth - greys that correspond to real distance, not just relative order |
+| `zoe-depth` | `image` | You need _metric_ depth - greys that correspond to real distance, not just relative order |
 | `midas-preprocessor` | `depth_map`, `normal_map` | You want a surface normal map as well, in one call. `-o dir/` writes both |
 | `marigold-depth` | `image` | Diffusion-based, slower and often cleaner on hard edges. `--ensemble-size` (min 2) and `--num-inference-steps` trade time for stability |
 | `midas-depth` | `image` | The MiDaS utility endpoint, with `a` and `bg_th` tuning rather than the preprocessor family's flags |
@@ -94,7 +94,7 @@ Every rib on the vessel and every fracture in the plinth is there. The light, wh
 
 Every preprocessor here runs synchronously - none is marked `queued`. All are metered except `dwpose`.
 
-Metered means `estimatedCost` is `null` in both the dry run and the result. That is not zero. Read [the cost section of the CLI guide](../../apps/cli/AGENTS.md#cost-reference) before you assume a null is free.
+Metered means `estimatedCost` is `null` in both the dry run and the result. That is not zero. Read [the CLI cost reference](../../apps/cli/docs/costs.md#fal-tools) before you assume a null is free.
 
 ```bash
 motif tool run depth-anything source-interior.jpg --dry-run --format json

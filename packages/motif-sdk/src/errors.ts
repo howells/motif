@@ -28,6 +28,46 @@ export class MotifError extends Error {
   }
 }
 
+/** Error code for a fal account that is locked, usually for lack of credit. */
+export const ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
+
+const ACCOUNT_LOCKED_DETAIL = "User is locked";
+
+/**
+ * Whether a fal HTTP failure means the account is locked.
+ *
+ * fal answers `403 {"detail":"User is locked. Reason: TOP_UP."}` when the
+ * account has run out of credit. Retrying cannot help, and the key is valid.
+ */
+export function isFalAccountLocked(status: number, body: string): boolean {
+  return status === 403 && body.includes(ACCOUNT_LOCKED_DETAIL);
+}
+
+/**
+ * Build the `MotifError` for a non-OK fal response, recognising a locked
+ * account as `ACCOUNT_LOCKED`.
+ */
+export function falHttpError(
+  status: number,
+  body: string,
+  requestId?: string
+): MotifError {
+  if (isFalAccountLocked(status, body)) {
+    return new MotifError(
+      `fal account is locked because it is out of credit (fal said: ${body})`,
+      status,
+      ACCOUNT_LOCKED,
+      requestId
+    );
+  }
+  return new MotifError(
+    `Request failed: ${status} ${body}`,
+    status,
+    undefined,
+    requestId
+  );
+}
+
 /**
  * Coerce an unknown thrown value into a `MotifError`.
  *

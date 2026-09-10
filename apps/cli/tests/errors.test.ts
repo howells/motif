@@ -73,3 +73,60 @@ describe("handleError instance (fal request URN)", () => {
     expect(parsed).not.toHaveProperty("instance");
   });
 });
+
+describe("handleError for a locked fal account", () => {
+  let writtenData: string;
+  let exitCode: number | undefined;
+
+  beforeEach(() => {
+    writtenData = "";
+    exitCode = undefined;
+    vi.spyOn(process.stderr, "write").mockImplementation((chunk) => {
+      writtenData += typeof chunk === "string" ? chunk : chunk.toString();
+      return true;
+    });
+    vi.spyOn(process, "exit").mockImplementation((code): never => {
+      exitCode = typeof code === "number" ? code : undefined;
+      throw new Error("process.exit");
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("reports ACCOUNT_LOCKED over the command's own code, not retriable, exit 3", () => {
+    for (const fallback of [
+      "GENERATION_FAILED",
+      "TOOL_FAILED",
+      "UPSCALE_FAILED",
+      "RMBG_FAILED",
+      "SEGMENT_FAILED",
+    ]) {
+      writtenData = "";
+      expect(() => {
+        handleError(
+          new MotifError(
+            'fal account is locked because it is out of credit (fal said: {"detail":"User is locked. Reason: TOP_UP."})',
+            403,
+            "ACCOUNT_LOCKED"
+          ),
+          fallback,
+          "json"
+        );
+      }).toThrow("process.exit");
+
+      const parsed = parseError(writtenData.trim());
+      expect(parsed).toMatchObject({
+        code: "ACCOUNT_LOCKED",
+        is_retriable: false,
+        status: 403,
+      });
+      expect(String(parsed.message)).toContain("out of credit");
+      expect(JSON.stringify(parsed.suggestions)).toContain(
+        "https://fal.ai/dashboard/billing"
+      );
+      expect(exitCode).toBe(3);
+    }
+  });
+});

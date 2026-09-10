@@ -71,6 +71,44 @@ motif "futuristic city map" --model ideogram --style DESIGN --dry-run --format j
 
 Run `motif` with no arguments to show help. Use `motif studio` to launch the interactive terminal studio.
 
+## What do you want to do?
+
+| Task | Command | Instead, when |
+| --- | --- | --- |
+| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
+| Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
+| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
+| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
+| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
+| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
+| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
+| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
+| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
+| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
+| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
+| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
+| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
+| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
+
+```bash
+# What is in this image, and where
+motif segment "the white ceramic bowl" shelf.jpg -o segment/   # SAM 3, $0.005
+motif ask "how many bottles are there?" shelf.jpg              # Moondream, prose back, writes no file
+
+# Take something out, put something back, recut
+motif erase "the parked car" street.jpg                        # $0.024 - leaves cast shadows
+motif reframe --story cover.png                                # $0.06, needs a target ratio
+
+# Repair and enlarge
+motif enhance --restore old-photo.jpg                          # eight Topaz modes, one per call
+
+# Take a design apart
+motif layers poster.png -o layers/                             # stacked RGBA layers
+motif vectorize logo.png -o logo.svg                           # raster to clean SVG
+```
+
 ## Install
 
 SDK:
@@ -106,7 +144,7 @@ pnpm link --global
 ## What Motif Does
 
 - SDK: `createMotifImage` (`@howells/motif-sdk/image`) is the primary image API — a provider-agnostic generate/edit/best-of-N layer over google, openai, replicate, and fal with per-call cost tracking. The low-level `FalClient` covers fal-native extras (upscaling, background removal, video jobs, fal utility tools, queue polling, CDN upload, and payload cleanup), alongside `buildGenerateBody`, model/tool registries, leaderboard snapshots, sizing helpers, and cost estimates.
-- CLI: text-to-image, reference-image editing, upscaling, background removal, image-to-video, local history and costs, series management, terminal Studio, CWD-sandboxed output paths, and validated inputs.
+- CLI: text-to-image, reference-image editing, upscaling, background removal, image-to-video, local history and costs, series management, contact sheets, terminal Studio, output paths kept inside the git root, and validated inputs.
 - Agent interfaces: `--format json`, `--format ndjson`, `--fields`, `--dry-run`, stdin JSON, `--describe`, and structured errors.
 - Model coverage: OpenAI, Gemini, FLUX, Recraft, Ideogram, Nano Banana, Seedream, Grok, Qwen, Kling video, and fal utility endpoints.
 
@@ -347,6 +385,9 @@ Image-to-video snapshot, 2026-05-12:
 motif "packaging concepts for a matcha drink" --num 4
 
 # Transparent PNG with a GPT model
+motif "minimal app icon, white fox" --model gpt --square --transparent
+
+# gpt2 transparency runs through OpenAI and needs OPENAI_API_KEY
 motif "minimal app icon, white fox" --model gpt2 --square --transparent
 
 # Reproducible generation
@@ -368,10 +409,42 @@ motif "compare current product packaging trends" --model banana2 --google-search
 
 ## Creative Direction
 
-Creative direction appends predefined clauses to the prompt before the fal request is built. Eight fields are available — `recipe`, `shot`, `lighting`, `genre`, `camera`, `color`, `material`, and `motion` — each set with a matching CLI flag or a key in the SDK `creative` option.
+Creative direction adds house presets to your prompt before the fal request is built. There are two fields: a **look** sets the kind of image, and a **mood** sets the light. Each adds one or two sentences after your prompt, look first, then mood. Set them with `--look <id>` and `--mood <id>`, or as keys in the SDK `creative` option.
+
+These are house looks. They reflect one studio's taste (quiet, material, interiors-led) and aren't neutral presets, so read the sentences in `motif --describe --format json` before relying on one.
+
+A look also comes with a default aspect ratio and model. The order of precedence is: an explicit flag (`-m`, `-a`, or a preset such as `--og`) or stdin value wins; then the look's default; then `defaultModel` and `defaultAspect` in `~/.motif/config.json`. The `drawing` look is experimental: it works, but its text and defaults may change.
+
+Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` and `object`. Pairing one with a mood fails with an `INVALID_OPTION` error. A mood on its own, with no look, is fine. `--no-mood` (or `"mood": null` in stdin JSON) drops any mood, including one pinned on a Series.
+
+Dry runs and successful generations include `warnings`, advice about phrasings image models tend to misread. They check your own prompt only, never the look or mood text, and never stop a generation. `negated-object` flags "no chairs" and the like, because naming an object tends to draw it in, so describe what is there instead. `text-bearing-object` flags a sign, poster, book or similar in a prompt that also asks for no text, because the model will probably letter it anyway.
+
+| Look | What it's for | Aspect | Model |
+| --- | --- | --- | --- |
+| `editorial` | Quiet, materially rich editorial photography | 1:1 | `flux2-pro` |
+| `still-life` | Objects and material samples on a plaster ground | 1:1 | `flux2-pro` |
+| `lived-in` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
+| `architectural` | Whole rooms with one product installed, to show it at scale | 4:5 | `banana` |
+| `homeowner` | Unstyled phone snapshots of real homes | 4:3 | `seedream45` |
+| `drawing` | Line and gouache room drawings of a colour scheme (experimental) | 1:1 | `gpt2` |
+| `plate` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
+| `engraved` | Grey-ink botanical engravings for patterns and backgrounds | 1:1 | `gpt2` |
+| `ephemera` | Aged 1940s printed matter where the lettering matters | 2:3 | `ideogram4` |
+| `canvas` | Loose abstract paintings on linen | 3:4 | `banana` |
+| `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
+| `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
+
+| Mood       | Light                                  |
+| ---------- | -------------------------------------- |
+| `window`   | Soft, even daylight from a window      |
+| `dawn`     | Cool, clear early morning light        |
+| `raking`   | Low side light that brings out texture |
+| `overcast` | Soft grey light on a rainy afternoon   |
+| `lamplit`  | Warm evening lamps, candles and a fire |
+| `nocturne` | Night, one warm low light, deep shadow |
 
 ```bash
-motif "a ceramic desk lamp" --model banana2 --shot close-up --lighting rim
+motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
 ```
 
 ```ts
@@ -379,13 +452,13 @@ import { FalClient } from "@howells/motif-sdk";
 
 const fal = new FalClient(process.env.FAL_KEY!);
 const result = await fal.generate({
-  model: "banana2",
-  prompt: "a ceramic desk lamp",
-  creative: { shot: "close-up", lighting: "rim" },
+  model: "flux2-pro",
+  prompt: "a green kitchen",
+  creative: { look: "lived-in", mood: "overcast" },
 });
 ```
 
-An unknown option id fails validation with a structured `INVALID_OPTION` error. Option ids are versioned with the taxonomy; read the current ids from `motif --describe --format json`.
+The SDK only adds the look's sentences to the prompt. To use a look's default model and aspect in your own code, read them with `getLook(id)`. An unknown id fails validation with a structured `INVALID_OPTION` error. Read the current ids from `motif --describe --format json`.
 
 ## Post-Processing
 
@@ -405,29 +478,25 @@ motif image.png --up --scale 2 --output image-upscaled.png
 motif --rmbg --output cutout.png
 ```
 
+## Contact Sheets
+
+```bash
+# Lay out chosen images, captioned with model, look, mood and cost from history
+motif sheet hero-1.png hero-2.png hero-3.png -o sheet.png
+
+# Or the newest n generations
+motif sheet --last 6 --cols 3 --no-open --format json
+```
+
+Each cell is fitted into a 512 px square on a warm off-white ground. Images with no history entry are captioned with their filename.
+
 ## Fal Tools
 
 Seventy-one fal endpoints beyond generation: segmentation, visual question answering, erasers, upscalers, control-map preprocessors, layer and text extraction, vectorisers, PBR material decomposition, relighting, reframing, 3D reconstruction and moderation. Local images and videos are uploaded automatically; remote `https://` URLs pass through.
 
-Seven of them have a verb of their own. The rest run through `motif tool run <id>`.
+Seven of them have a command of their own, shown under [What do you want to do?](#what-do-you-want-to-do). The rest run through `motif tool run <id>`. `motif tool list` marks each tool a command wraps with its `verb`.
 
 ```bash
-# What is in this image, and where
-motif segment "the white ceramic bowl" shelf.jpg -o segment/   # SAM 3, $0.005
-motif ask "how many bottles are there?" shelf.jpg              # Moondream, prose back, writes no file
-
-# Take something out, put something back, recut
-motif erase "the parked car" street.jpg                        # $0.024 - leaves cast shadows
-motif reframe --story cover.png                                # $0.06, needs a target ratio
-
-# Repair and enlarge
-motif enhance --restore old-photo.jpg                          # eight Topaz modes, one per call
-
-# Take a design apart
-motif layers poster.png -o layers/                             # stacked RGBA layers
-motif vectorize logo.png -o logo.svg                           # raster to clean SVG
-
-# Everything else, by registry id
 motif tool list --format json                                  # the live registry
 motif tool describe patina --format json                       # one tool: outputs, pricing, queue behaviour
 motif tool run depth-anything room.jpg -o depth.png            # control map for conditioned generation
@@ -561,13 +630,13 @@ Global:
 
 Generation:
   -m, --model <model>           Generation model ID
-  -e, --edit <files...>         Reference image paths for editing
+  -e, --edit <file>             Reference image; repeat for more (-e a.png -e b.png)
   --loose                       Lower input fidelity for GPT reference edits
   -a, --aspect <ratio>          Aspect ratio
   -r, --resolution <res>        Resolution: 0.5K, 1K, 2K, 4K
   -o, --output <file>           Output path within the current working directory
   -n, --num <count>             Number of images, 1-4
-  --transparent                 Transparent PNG for GPT models
+  --transparent                 Transparent PNG: gpt on fal, gpt2 via OpenAI (OPENAI_API_KEY)
   --background <mode>           GPT background mode: auto, transparent, opaque
   --quality <quality>           Image quality: auto, low, medium, high
   --image-size <size>           Direct fal image_size override, such as auto, square_hd, 1536x1024

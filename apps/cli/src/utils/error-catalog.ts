@@ -51,16 +51,15 @@ function metadata(
 }
 
 export const ERROR_CATALOG = {
+  ACCOUNT_LOCKED: metadata("ACCOUNT_LOCKED", 403, {
+    suggestions: [
+      "The fal account is out of credit. Top up at https://fal.ai/dashboard/billing, then run the command again",
+    ],
+  }),
   ASK_FAILED: metadata("ASK_FAILED", 502, { isRetriable: true }),
   DESCRIBE_FAILED: metadata("DESCRIBE_FAILED", 500, {
     isRetriable: true,
     suggestions: [...ERROR_SUGGESTIONS.describe],
-  }),
-  EDIT_PROMPT_SWALLOWED: metadata("EDIT_PROMPT_SWALLOWED", 400, {
-    suggestions: [
-      'Put the prompt before the flag: motif "your prompt" -e image.png',
-      'Or pass both via stdin JSON: echo \'{"prompt":"...","editImages":["image.png"]}\' | motif',
-    ],
   }),
   EMPTY_PROMPT: metadata("EMPTY_PROMPT", 400, {
     suggestions: [...ERROR_SUGGESTIONS.prompt],
@@ -131,6 +130,13 @@ export const ERROR_CATALOG = {
   TOO_MANY_REFERENCES: metadata("TOO_MANY_REFERENCES", 400, {
     suggestions: [
       "Reduce the number of reference images; run 'motif --describe generate --format json' to inspect model limits",
+    ],
+  }),
+  TRANSPARENCY_MISSING: metadata("TRANSPARENCY_MISSING", 502, {
+    isRetriable: true,
+    suggestions: [
+      "The file is left on disk; details.paths lists it. Retry the same command",
+      "Or use -m gpt, which renders transparent PNGs on fal",
     ],
   }),
   UNKNOWN_MODEL: metadata("UNKNOWN_MODEL", 400, {

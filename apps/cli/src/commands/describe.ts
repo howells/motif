@@ -10,7 +10,6 @@
 
 import {
   ASPECT_RATIOS,
-  CREATIVE_FIELDS,
   CREATIVE_TAXONOMY,
   EDIT_CAPABLE_MODELS,
   FAL_TOOL_IDS,
@@ -23,6 +22,7 @@ import {
   GENERATION_MODELS,
   IMAGE_EDITING_TOP_20,
   IMAGE_TEXT_TO_IMAGE_TOP_20,
+  LOOKS,
   MODELS,
   RESOLUTIONS,
   UTILITY_MODELS,
@@ -36,34 +36,60 @@ import { emit } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
+import { VERB_TOOLS, toolVerb } from "./verbs/shared";
+import {
+  COMMAND_TASKS,
+  TASK_INDEX,
+  commandTask,
+  taskRouting,
+} from "./verbs/tasks";
 
 /**
  * Build creative direction properties for `motif describe` output.
  *
- * The enum metadata includes labels, descriptions, and appended prompt clauses
- * so agents can choose option ids without inspecting SDK source.
+ * Looks and moods are described from their own SDK lists, so look-only
+ * metadata (default aspect and model, whether a mood is accepted, whether the
+ * look is experimental) never depends on probing an option's shape.
  */
 function creativeSchemaProperties(): Record<string, object> {
-  return Object.fromEntries(
-    CREATIVE_FIELDS.map((field) => [
-      field,
-      {
-        description: `Creative direction ${field} id`,
-        enum: CREATIVE_TAXONOMY[field].map((option) => option.id),
-        enumDescriptions: Object.fromEntries(
-          CREATIVE_TAXONOMY[field].map((option) => [
-            option.id,
-            {
-              clause: option.clause,
-              description: option.description,
-              label: option.label,
-            },
-          ])
-        ),
-        type: "string",
-      },
-    ])
-  );
+  return {
+    look: {
+      description:
+        "House look id. Sets the prompt register, and the default model and aspect when none is given",
+      enum: LOOKS.map((look) => look.id),
+      enumDescriptions: Object.fromEntries(
+        LOOKS.map((look) => [
+          look.id,
+          {
+            acceptsMood: look.acceptsMood,
+            clause: look.clause,
+            defaultAspect: look.aspect,
+            defaultModel: look.model,
+            description: look.description,
+            experimental: look.experimental === true,
+            label: look.label,
+          },
+        ])
+      ),
+      type: "string",
+    },
+    mood: {
+      description:
+        "Light mood id, appended after the look. null (or --no-mood) drops any mood, including a Series' pinned one. Flat looks refuse a mood",
+      enum: CREATIVE_TAXONOMY.mood.map((mood) => mood.id),
+      enumDescriptions: Object.fromEntries(
+        CREATIVE_TAXONOMY.mood.map((mood) => [
+          mood.id,
+          {
+            clause: mood.clause,
+            description: mood.description,
+            label: mood.label,
+          },
+        ])
+      ),
+      type: ["string", "null"],
+    },
+  };
 }
 
 /** JSON Schema for the generate command's input */
@@ -185,6 +211,7 @@ function generateSchema() {
                 supportsSafetyChecker: MODELS[m]?.supportsSafetyChecker,
                 supportsSyncMode: MODELS[m]?.supportsSyncMode,
                 supportsThinkingLevel: MODELS[m]?.supportsThinkingLevel,
+                transparencyRoute: MODELS[m]?.transparencyRoute,
               },
             ])
           ),
@@ -204,7 +231,7 @@ function generateSchema() {
         },
         output: {
           description:
-            "Output filename (must be within CWD). Auto-generated if omitted.",
+            "Output filename (must be within the git root, or CWD outside a repo). Auto-generated if omitted.",
           type: "string",
         },
         prompt: {
@@ -234,7 +261,8 @@ function generateSchema() {
         },
         transparent: {
           default: false,
-          description: "Transparent background (GPT model only)",
+          description:
+            "Transparent background PNG. gpt renders it on fal; gpt2 routes through OpenAI (gpt-image-2) and needs OPENAI_API_KEY. The saved PNG is checked for transparent pixels (TRANSPARENCY_MISSING otherwise).",
           type: "boolean",
         },
         ...creativeSchemaProperties(),
@@ -335,7 +363,7 @@ function upscaleSchema() {
         },
         output: {
           description:
-            "Output filename (CWD-sandboxed). Default: writes alongside source image.",
+            "Output filename (within the git root, or CWD outside a repo). Default: writes alongside source image.",
           type: "string",
         },
         scale: {
@@ -578,6 +606,7 @@ function toolRegistrySummary(): Record<string, unknown> {
         parameterCount: falToolParameters(id).length,
         pricing: FAL_TOOLS[id].pricing,
         task: FAL_TOOLS[id].task,
+        ...(toolVerb(id) === undefined ? {} : { verb: toolVerb(id) }),
       },
     ])
   );
@@ -633,6 +662,64 @@ function toolSchema() {
   };
 }
 
+function sheetSchema() {
+  return {
+    command: "sheet",
+    description:
+      "Lay images out on one contact sheet: each cell fitted into a 512 px square on a warm off-white ground, captioned from history (model, look, mood, cost) or with the filename",
+    input: {
+      properties: {
+        cols: {
+          description: "Columns (default: roughly square, ceil(sqrt(count)))",
+          maximum: 20,
+          minimum: 1,
+          type: "integer",
+        },
+        files: {
+          description:
+            "Image paths to include (png, jpg, webp). Pass these or --last, not both.",
+          items: { type: "string" },
+          type: "array",
+        },
+        last: {
+          description:
+            "Use the newest n history images still on disk, oldest first",
+          maximum: 100,
+          minimum: 1,
+          type: "integer",
+        },
+        noOpen: {
+          default: false,
+          description: "Don't open the sheet afterwards",
+          type: "boolean",
+        },
+        output: {
+          description:
+            "Output file (.png, .jpg or .webp), within the git root (or CWD outside a repo). Default: sheet-<timestamp>.png",
+          type: "string",
+        },
+      },
+      type: "object",
+    },
+    mutating: true,
+    output: {
+      properties: {
+        cols: { type: "integer" },
+        count: { type: "integer" },
+        height: { type: "integer" },
+        path: { type: "string" },
+        width: { type: "integer" },
+      },
+      type: "object",
+    },
+    supports_dry_run: false,
+    usage: [
+      "motif sheet a.png b.png c.png -o sheet.png --no-open --format json",
+      "motif sheet --last 6 --cols 3 --no-open --format json --fields path,count",
+    ],
+  };
+}
+
 function describeSchema() {
   return {
     command: "describe",
@@ -650,6 +737,7 @@ function describeSchema() {
             "last",
             "history",
             "series",
+            "sheet",
             "tool",
             "segment",
             "ask",
@@ -660,6 +748,7 @@ function describeSchema() {
             "vectorize",
             "describe",
             "errors",
+            "tasks",
           ],
           type: "string",
         },
@@ -802,6 +891,7 @@ function seriesSchema() {
       "history",
       "delete",
     ],
+    subcommandTasks: { run: taskRouting(commandTask("series run")) },
     supports_dry_run: true,
   };
 }
@@ -824,7 +914,7 @@ const VERB_COMMON_INPUT = {
   noOpen: { default: false, type: "boolean" },
   output: {
     description:
-      "Output file (CWD-sandboxed), or a directory ending in / to receive every artefact.",
+      "Output file (within the git root, or CWD outside a repo), or a directory ending in / to receive every artefact.",
     type: "string",
   },
 };
@@ -849,7 +939,9 @@ function verbSchema(spec: VerbSchemaSpec): Record<string, unknown> {
       required: [],
       type: "object",
     },
-    mutating: true,
+    // A verb that writes no file records no history either, so it changes
+    // nothing on disk.
+    mutating: spec.writesFiles !== false,
     output: {
       properties: {
         cost: {
@@ -914,12 +1006,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
         points: { items: { type: "object" }, type: "array" },
         reasoning: { type: "string" },
       },
-      tools: [
-        "moondream-query",
-        "moondream-caption",
-        "moondream-detect",
-        "moondream-point",
-      ],
+      tools: [...VERB_TOOLS.ask],
       writesFiles: false,
     }),
   enhance: () =>
@@ -948,16 +1035,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
           type: "string",
         },
       },
-      tools: [
-        "topaz-precision",
-        "topaz-generative",
-        "topaz-creative",
-        "topaz-transparent",
-        "topaz-restore",
-        "topaz-denoise",
-        "topaz-sharpen",
-        "topaz-adjust",
-      ],
+      tools: [...VERB_TOOLS.enhance],
     }),
   erase: () =>
     verbSchema({
@@ -970,7 +1048,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
           type: "string",
         },
       },
-      tools: ["object-removal"],
+      tools: [...VERB_TOOLS.erase],
     }),
   layers: () =>
     verbSchema({
@@ -978,7 +1056,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
       description:
         "Split an image into stacked RGBA layers. Writes several files, so -o must be a directory ending in /.",
       examples: ["motif layers poster.png -o layers/ --dry-run"],
-      tools: ["qwen-layered"],
+      tools: [...VERB_TOOLS.layers],
     }),
   reframe: () =>
     verbSchema({
@@ -1001,7 +1079,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
           type: "string",
         },
       },
-      tools: ["ideogram-reframe"],
+      tools: [...VERB_TOOLS.reframe],
     }),
   segment: () =>
     verbSchema({
@@ -1025,7 +1103,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
         rle: { description: "Present with --rle", type: "array" },
         scores: { items: { type: "number" }, type: "array" },
       },
-      tools: ["sam3-image", "sam3-image-rle"],
+      tools: [...VERB_TOOLS.segment],
     }),
   vectorize: () =>
     verbSchema({
@@ -1033,7 +1111,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
       description:
         "Convert a raster image into a clean SVG. -o must name a .svg file or a directory ending in /.",
       examples: ["motif vectorize logo.png -o logo.svg --dry-run"],
-      tools: ["recraft-vectorize"],
+      tools: [...VERB_TOOLS.vectorize],
     }),
 };
 
@@ -1061,17 +1139,56 @@ const COMMAND_SCHEMAS: Record<string, () => Record<string, unknown>> = {
   last: lastSchema,
   rmbg: removeBackgroundSchema,
   series: seriesSchema,
+  sheet: sheetSchema,
   tool: toolSchema,
   upscale: upscaleSchema,
   vary: varySchema,
   video: videoSchema,
 };
 
+/**
+ * A command's schema with its task routing placed straight after its
+ * description, where a caller reading top down meets it first.
+ */
+function describeCommand(
+  name: string,
+  schemaFn: () => Record<string, unknown>
+): Record<string, unknown> {
+  const schema = schemaFn();
+  return {
+    command: schema.command,
+    description: schema.description,
+    ...taskRouting(commandTask(name)),
+    ...schema,
+  };
+}
+
+/** The task table alone: `motif --describe tasks`. */
+function tasksSchema() {
+  return {
+    command: "tasks",
+    description:
+      "Which command does which job. `tasks` maps a task word to its command; `commands` says when to use each, what to use instead, and how to invoke it.",
+    tasks: TASK_INDEX,
+    commands: Object.fromEntries(
+      COMMAND_TASKS.map((row) => [
+        row.command,
+        { summary: row.summary, usage: row.usage, ...taskRouting(row) },
+      ])
+    ),
+  };
+}
+
 /** Full CLI schema with all commands, models, and runtime state */
 function fullSchema() {
   return {
+    // First, so the opening bytes of a large schema are the routing table.
+    tasks: TASK_INDEX,
     commands: Object.fromEntries(
-      Object.entries(COMMAND_SCHEMAS).map(([name, fn]) => [name, fn()])
+      Object.entries(COMMAND_SCHEMAS).map(([name, fn]) => [
+        name,
+        describeCommand(name, fn),
+      ])
     ),
     description: "fal.ai image generation CLI",
     enums: {
@@ -1145,7 +1262,7 @@ function fullSchema() {
     ),
     name: "motif",
     security_posture:
-      "The agent is not a trusted operator. All inputs are validated. Output paths are sandboxed to CWD. Use --dry-run before mutating commands.",
+      "The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (or the current directory outside a repo). Use --dry-run before mutating commands.",
     tools: {
       checkedAt: FAL_TOOLS_CHECKED_AT,
       parametersNote: TOOL_PARAMETERS_NOTE,
@@ -1160,14 +1277,16 @@ export function runDescribe(
   commandName: string | undefined,
   options: EmitOptions
 ): void {
-  if (hasText(commandName)) {
+  if (commandName === "tasks") {
+    emit(tasksSchema(), options);
+  } else if (hasText(commandName)) {
     const schemaFn = COMMAND_SCHEMAS[commandName];
     if (schemaFn === undefined) {
       throw new Error(
-        `Unknown command: ${commandName}. Available: ${Object.keys(COMMAND_SCHEMAS).join(", ")}`
+        `Unknown command: ${commandName}. Available: ${[...Object.keys(COMMAND_SCHEMAS), "tasks"].join(", ")}`
       );
     }
-    emit(schemaFn(), options);
+    emit(describeCommand(commandName, schemaFn), options);
   } else {
     emit(fullSchema(), options);
   }

@@ -34,6 +34,7 @@ import { emit, isStructured } from "../utils/output";
 import type { EmitOptions, OutputFormat } from "../utils/output";
 import { hasText } from "../utils/text";
 import { resolveOutputLabels } from "./output-labels";
+import { toolVerb, verbHint } from "./verbs/shared";
 
 export interface ToolOptions {
   applyMask?: boolean;
@@ -429,11 +430,18 @@ function emitRunResult(
       result,
       tool: toolId,
       toolName: request.tool.name,
+      ...verbHintField(toolId),
       ...(primary ? { saved: { path: primary.path, size: primary.size } } : {}),
       ...(options.output?.endsWith("/") === true ? { files } : {}),
     },
     emitOpts
   );
+}
+
+/** `verb` and `hint` for a tool a verb wraps, and nothing for the rest. */
+function verbHintField(toolId: string): { hint?: string; verb?: string } {
+  const verb = toolVerb(toolId);
+  return verb === undefined ? {} : { hint: verbHint(verb), verb };
 }
 
 /** The `--inputs` list if given, else the single positional/`--input` value. */
@@ -499,6 +507,7 @@ export async function runFalTool(
         queued: request.tool.queued === true,
         tool: toolId,
         toolName: request.tool.name,
+        ...verbHintField(toolId),
         valid: true,
       },
       emitOpts

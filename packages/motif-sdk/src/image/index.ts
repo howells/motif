@@ -21,6 +21,7 @@ import type { GenerateImageResult, ImageModel, JSONValue, Warning } from "ai";
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
+import { falHttpError, isFalAccountLocked } from "../errors";
 import { MotifError } from "../server";
 import { costForImages } from "./cost";
 import type { MotifImageDeps } from "./deps";
@@ -59,6 +60,7 @@ export { REPLICATE_API_KEY_ENV, REPLICATE_TIER_MODELS } from "./replicate";
 export { FAL_API_KEY_ENV, FAL_TIER_MODELS } from "./fal";
 export { PROVIDERS, getProviderAdapter } from "./provider";
 export type { ImageProviderAdapter } from "./provider";
+export { providerPricePerImageUsd } from "./cost";
 export { costForImages, costFromProviderMetadata } from "./cost";
 
 const DEFAULT_TIER: ImageTier = "balanced";
@@ -494,5 +496,14 @@ function toMotifError(error: unknown): MotifError {
     typeof error.statusCode === "number"
       ? error.statusCode
       : 0;
+  const body =
+    error instanceof Error &&
+    "responseBody" in error &&
+    typeof error.responseBody === "string"
+      ? error.responseBody
+      : message;
+  if (isFalAccountLocked(status, body)) {
+    return falHttpError(status, body);
+  }
   return new MotifError(message, status, code);
 }

@@ -2,7 +2,7 @@
  * motif CLI — agent-first image generation.
  *
  * Security posture: the agent is not a trusted operator.
- * All inputs are validated. Output paths are sandboxed to CWD.
+ * All inputs are validated. Output paths must stay inside the git root (or CWD outside a repo).
  * Use --dry-run before mutating commands.
  */
 
@@ -26,6 +26,7 @@ import {
   upscaleLast,
 } from "./commands/postprocess";
 import { runToolPayload } from "./commands/tools";
+import { helpTaskList, taskCorrection } from "./commands/verbs/tasks";
 import { generateVideo } from "./commands/video";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getApiKey, getLastGeneration, loadConfig } from "./utils/config";
@@ -35,15 +36,16 @@ import {
   handleError,
   routeCommanderErrors,
 } from "./utils/errors";
-import {
-  readStdinJson,
-  reservedPromptSuggestion,
-  swallowedEditPrompt,
-} from "./utils/input";
+import { readStdinJson, reservedPromptSuggestion } from "./utils/input";
 import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
-import type { EmitOptions } from "./utils/output";
+import type { EmitOptions, OutputFormat } from "./utils/output";
 import { firstText, hasText } from "./utils/text";
 import { PACKAGE_VERSION } from "./version";
+
+/** Commander collector: each `-e <file>` adds one reference image. */
+function collectEditPath(value: string, previous?: string[]): string[] {
+  return [...(previous ?? []), value];
+}
 
 // -- Commands --
 
@@ -83,6 +85,32 @@ async function showLastGeneration(emitOpts: EmitOptions): Promise<void> {
   console.log(`  Time:   ${new Date(last.timestamp).toLocaleString()}`);
 }
 
+/**
+ * Refuse positionals led by a task word, naming the command it means, the
+ * same way a prompt matching a command word is refused. Returns when the
+ * first positional is not a task word.
+ */
+function refuseTaskWord(positionals: string[], format: OutputFormat): void {
+  const correction = taskCorrection(positionals);
+  if (correction === null) {
+    return;
+  }
+  const { invocation, row } = correction;
+  emitError(
+    {
+      code: "INVALID_OPTION",
+      details: { didYouMean: invocation, task: positionals[0] },
+      message: `${JSON.stringify(positionals[0])} isn't a motif command. Did you mean '${invocation}'?`,
+      suggestions: [
+        `Run '${invocation}'`,
+        `motif ${row.command}: ${row.whenToUse}`,
+      ],
+    },
+    format
+  );
+  exitForErrorCode("INVALID_OPTION");
+}
+
 // -- Main entry --
 
 export async function runCli(
@@ -93,13 +121,13 @@ export async function runCli(
 
   const program = new Command()
     .name("motif")
-    .description("fal.ai image generation CLI — agent-first design")
+    // The command list rides in the description so it prints straight after
+    // Usage, ahead of the long options list.
+    .description(
+      `fal.ai image generation CLI - agent-first design\n\n${helpTaskList()}`
+    )
     .version(PACKAGE_VERSION)
     .argument("[prompt]", "Image generation prompt")
-    .addHelpText(
-      "after",
-      "\nCommands:\n  motif studio               Launch interactive terminal Studio"
-    )
     // Agent-first global flags
     .option(
       "--format <format>",
@@ -119,7 +147,11 @@ export async function runCli(
       "-m, --model <model>",
       `Model to use (${GENERATION_MODELS.join(", ")})`
     )
-    .option("-e, --edit <files...>", "Reference image(s) for editing")
+    .option(
+      "-e, --edit <file>",
+      "Reference image for editing; repeat for more (-e a.png -e b.png)",
+      collectEditPath
+    )
     .option("--loose", "Use reference as loose inspiration (GPT only)")
     .option(
       "-a, --aspect <ratio>",
@@ -236,14 +268,9 @@ export async function runCli(
       "Disable MagicPrompt prompt expansion (ideogram)"
     )
     // Creative direction
-    .option("--recipe <id>", "Creative recipe id, e.g. cinematic")
-    .option("--shot <id>", "Shot/framing id, e.g. close-up")
-    .option("--lighting <id>", "Lighting id, e.g. rim")
-    .option("--genre <id>", "Genre id")
-    .option("--camera <id>", "Camera/lens language id")
-    .option("--color <id>", "Color treatment id")
-    .option("--material <id>", "Material or texture id")
-    .option("--motion <id>", "Motion treatment id")
+    .option("--look <id>", "House look id, e.g. editorial")
+    .option("--mood <id>", "Light mood id, e.g. overcast")
+    .option("--no-mood", "Drop any mood, including one from stdin JSON")
     // Video advanced
     .option("--video-negative <text>", "Negative prompt for video generation")
     .option(
@@ -257,8 +284,15 @@ export async function runCli(
     .option("--offset <n>", "History: skip first N entries");
 
   // Commander's own parse failures (unknown option, missing argument) must
-  // honour the same error contract as everything else the CLI emits.
-  routeCommanderErrors(program, formatForParseErrors(args));
+  // honour the same error contract as everything else the CLI emits. Surplus
+  // positionals led by a task word, such as `motif remove "the car" x.png`,
+  // name the command that word means instead.
+  const parseFormat = formatForParseErrors(args);
+  routeCommanderErrors(program, parseFormat, (err) => {
+    if (err.code === "commander.excessArguments") {
+      refuseTaskWord(program.args, parseFormat);
+    }
+  });
 
   program.parse(args);
 
@@ -399,35 +433,14 @@ export async function runCli(
     }
   }
 
-  // `-e/--edit` is variadic, so `motif -e img.png "a cat"` swallows the prompt
-  // as a second reference image and falls through to help with no explanation.
-  // Catch it before the API-key gate so the diagnosis is the same with or
-  // without FAL_KEY set.
-  if (options.edit !== undefined && options.edit.length > 0) {
-    const swallowed = swallowedEditPrompt(options.edit);
-    if (swallowed !== null) {
-      emitError(
-        {
-          code: "EDIT_PROMPT_SWALLOWED",
-          details: { editValues: options.edit, swallowed },
-          message: `${JSON.stringify(swallowed)} was consumed by --edit as a reference image, not used as the prompt. --edit takes a list, so the prompt must come before it.`,
-        },
-        format
-      );
-      exitForErrorCode("EDIT_PROMPT_SWALLOWED");
-    }
-  }
-
-  // Validate API key for operations that need it
+  // Validate the fal key for the post-processing and video paths. Generation
+  // checks its own key once the route is known: a transparent gpt2 run goes
+  // through OpenAI and needs OPENAI_API_KEY instead.
   const wouldCallFal =
-    hasText(prompt) ||
-    hasText(stdinData?.prompt) ||
     options.vary === true ||
     options.up === true ||
     options.rmbg === true ||
     options.video === true ||
-    (options.edit !== undefined && options.edit.length > 0) ||
-    stdinCommand === "generate" ||
     stdinCommand === "vary" ||
     stdinCommand === "upscale" ||
     stdinCommand === "rmbg" ||
@@ -483,82 +496,4 @@ export async function runCli(
 
   // No prompt and no command = show help.
   program.help();
-}
-
-export function showHelp(): void {
-  console.log(`
-${chalk.bold("motif")} - fal.ai image generation CLI
-
-${chalk.bold("Usage:")}
-  motif                           Show help
-  motif studio                    Launch interactive terminal Studio
-  motif "prompt" [options]        Generate image from prompt
-  motif --last                    Show last generation info
-  motif --vary                    Generate variations of last image
-  motif --up                      Upscale last image
-  motif --rmbg                    Remove background from last image
-
-${chalk.bold("Agent-First Flags:")}
-  --format <json|human|ndjson>  Output format (auto-detects TTY)
-  --fields <f1,f2,...>          Select output fields
-  --dry-run                     Validate without API calls
-  --ephemeral                   Save locally, then delete fal IO payloads
-  --describe [command]          Show CLI schema as JSON
-  --history                     Generation history with pagination
-  --limit <n>                   History entries per page (default 10)
-  --offset <n>                  History pagination offset
-
-${chalk.bold("Stdin JSON:")}
-  echo '{"prompt":"a cat","model":"gpt"}' | motif
-  echo '{"command":"history","limit":5}' | motif
-
-${chalk.bold("Options:")}
-  -m, --model <model>      Model ID, e.g. banana2, gpt2, seedream4, flux2-pro
-  -e, --edit <files...>    Reference image(s) for editing
-  --loose                  Use reference as loose inspiration (GPT only)
-  -a, --aspect <ratio>     Aspect ratio (see below)
-  -r, --resolution <res>   Resolution: 1K, 2K, 4K
-  -o, --output <file>      Output filename
-  -n, --num <count>        Number of images (1-4)
-  --transparent            Transparent background PNG (GPT only)
-  --ephemeral              Save locally, skip history, delete fal IO payloads
-  --no-open                Don't auto-open image after generation
-
-${chalk.bold("Post-processing:")}
-  --last                   Show last generation info
-  --vary                   Generate variations of last image
-  --up                     Upscale last image
-  --rmbg                   Remove background from last image
-  --scale <factor>         Upscale factor: 2, 4, 6, 8 (with --up)
-
-${chalk.bold("Presets:")}
-  ${chalk.dim("Format:")}
-  --cover                  Kindle/eBook cover: 2:3, 2K
-  --square                 Square: 1:1
-  --landscape              Landscape: 16:9
-  --portrait               Portrait: 2:3
-  ${chalk.dim("Social Media:")}
-  --story                  Instagram/TikTok Story: 9:16
-  --reel                   Instagram Reel: 9:16
-  --feed                   Instagram Feed: 4:5
-  --og                     Open Graph / social share: 16:9
-  ${chalk.dim("Devices:")}
-  --wallpaper              iPhone wallpaper: 9:16, 2K
-  ${chalk.dim("Cinematic:")}
-  --wide                   Cinematic wide: 21:9
-  --ultra                  Ultra-wide banner: 21:9, 2K
-
-${chalk.bold("Aspect Ratios:")}
-  21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16
-
-${chalk.bold("Examples:")}
-  motif "a cat on a windowsill" -m gpt
-  motif "urban landscape" --landscape -r 4K
-  motif "add rain" -e photo.png
-  motif --vary -n 4
-  motif --up --scale 4
-  motif --describe generate           # Agent: introspect schema
-  motif --dry-run "a cat" -m gpt      # Agent: validate without API call
-  echo '{"prompt":"a cat"}' | motif   # Agent: raw JSON input
-`);
 }

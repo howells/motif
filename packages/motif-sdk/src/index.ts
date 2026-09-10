@@ -44,10 +44,30 @@ export {
   type CreativePromptResult,
   type EnrichPromptOptions,
   enrichPrompt,
+  getLook,
+  LOOKS,
+  type LookId,
+  type LookOption,
+  type MoodId,
   sanitizePrompt,
+  validateCreativeDirection,
 } from "./creative";
+export { ACCOUNT_LOCKED, isFalAccountLocked } from "./errors";
+export {
+  type ModelOption,
+  modelsSupporting,
+  OPTION_CAPABILITIES,
+  supportedOptions,
+  UnsupportedOptionError,
+} from "./capabilities";
+export {
+  type PromptWarning,
+  type PromptWarningRule,
+  promptWarnings,
+} from "./prompt-warnings";
 export {
   getFalKeyFromEnv,
+  getOpenAiKeyFromEnv,
   type MotifEnv,
   motifEnvSchema,
   parseMotifEnv,
@@ -119,6 +139,7 @@ export type {
   ImageSize,
   JobStatus,
   ModelConfig,
+  ProviderRoute,
   ModelType,
   MotifImage,
   MotifResponse,

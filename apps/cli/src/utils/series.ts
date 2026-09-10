@@ -69,8 +69,12 @@ export interface SeriesConfig {
   defaultResolution: Resolution;
   /** Unique series ID */
   id: string;
+  /** Pinned house look id, applied to every scene prompt */
+  look?: string;
   /** Preferred model for this series */
   model: string;
+  /** Pinned light mood id, applied to every scene prompt */
+  mood?: string;
   /** Human-readable name */
   name: string;
   /** Generated outputs */
@@ -127,6 +131,8 @@ export async function createSeries(options: {
   defaultAspect?: AspectRatio;
   defaultResolution?: Resolution;
   fromImage?: string;
+  look?: string;
+  mood?: string;
 }): Promise<SeriesConfig> {
   ensureSeriesDir();
 
@@ -154,6 +160,12 @@ export async function createSeries(options: {
     stylePrompt: options.stylePrompt ?? "",
     updated: new Date().toISOString(),
   };
+  if (hasText(options.look)) {
+    config.look = options.look;
+  }
+  if (hasText(options.mood)) {
+    config.mood = options.mood;
+  }
 
   // Copy the initial style reference image if provided
   if (hasText(options.fromImage)) {
