@@ -6,7 +6,7 @@ import { RouteRun } from "@/components/shell/selection";
 export const dynamic = "force-dynamic";
 
 /** Still a real deep link — it just no longer has a layout of its own. The
- * shell is already mounted by the root layout; this page selects a run
+ * shell is already mounted by the bench layout; this page selects a run
  * inside it (`docs/design/specs/design-bench-shell.md`). */
 const RunPage = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;

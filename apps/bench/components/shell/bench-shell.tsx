@@ -51,7 +51,9 @@ const useShellSelection = (
       pendingRef.current = { id: runId };
       setSelectedRunId(runId);
       onNavigate();
-      router.push(runId === null ? "/" : `/runs/${runId}`, { scroll: false });
+      router.push(runId === null ? "/bench" : `/bench/runs/${runId}`, {
+        scroll: false,
+      });
     },
     [onNavigate, router]
   );
@@ -103,13 +105,14 @@ const useShellShortcuts = (
 
 /** The whole app, as one screen.
  *
- * It lives in the root layout rather than in a page so that `/` and
- * `/runs/[id]` never remount it: `/runs/[id]` is still a real deep link, but
+ * It lives in the bench layout rather than in a page so that `/bench` and
+ * `/bench/runs/[id]` never remount it: a run URL is still a real deep link, but
  * it is a *selection* inside this shell, not a second layout
  * (`docs/design/specs/design-bench-shell.md`). Pages are reduced to a
  * `RouteRun` that reports the id in the URL and renders nothing.
  *
- * Three regions, and the document never scrolls at `md` and above: a fixed
+ * Three regions, and the document never scrolls at `md` and above (the
+ * `data-bench-shell` attribute is what `globals.css` keys that lock on): a fixed
  * 56px top bar, a fixed 220px rail with its own scroll frame, and a main
  * pane of pinned 64px verdicts, one scroll frame, and a 40px tab bar.
  *
@@ -177,7 +180,10 @@ export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
   return (
     <RunSelectionProvider value={selection}>
       {children}
-      <div className="flex min-h-dvh flex-col md:h-dvh md:min-h-0 md:overflow-hidden">
+      <div
+        className="flex min-h-dvh flex-col md:h-dvh md:min-h-0 md:overflow-hidden"
+        data-bench-shell
+      >
         <TopBar
           canRun={canRun}
           draft={draft}

@@ -137,14 +137,18 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  /* This is an app shell, not a document: the viewport is the frame and the
-     three panes inside it scroll, never the page
+  /* The bench is an app shell, not a document: the viewport is the frame and
+     the three panes inside it scroll, never the page
      (`docs/design/specs/design-bench-shell.md` — "the document must never
-     scroll"). Below `md` the rule is lifted deliberately: a phone has no room
-     for independent panes, and fighting that is worse than allowing it. */
+     scroll"). The lock is scoped with `:has()` to documents that contain the
+     shell's `data-bench-shell` element, so it holds only while `/bench` is
+     mounted and every other route scrolls like a normal page — in CSS alone,
+     with no JavaScript toggling a class. Below `md` the rule is lifted
+     deliberately: a phone has no room for independent panes, and fighting
+     that is worse than allowing it. */
   @media (width >= 48rem) {
-    html,
-    body {
+    :root:has([data-bench-shell]),
+    :root:has([data-bench-shell]) body {
       height: 100%;
       overflow: hidden;
     }
