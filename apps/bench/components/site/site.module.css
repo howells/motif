@@ -1,0 +1,49 @@
+/* The site is a committed light look: warm paper, warm ink and one forest
+   accent. The app globals paint the bench's dark ground, so the paper is
+   painted on this root and on the document behind it, which keeps the
+   overscroll areas paper too. `:has()` scopes that to the site, so `/bench`
+   keeps its dark shell. */
+
+.root {
+  --site-paper: #f6f3ec;
+  --site-plate: #ece7dc;
+  --site-ink: #1f1b16;
+  --site-muted: #5c554a;
+  --site-rule: rgb(31 27 22 / 0.14);
+  --site-accent: #315c4b;
+
+  background: var(--site-paper);
+  color: var(--site-ink);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+:global(html):has(.root),
+:global(body):has(.root) {
+  background: #f6f3ec;
+  color-scheme: light;
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--site-accent);
+  outline-offset: 3px;
+}
+
+.display {
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-optical-sizing: auto;
+  font-variant-numeric: lining-nums;
+  font-weight: 400;
+}
+
+/* Transparent outputs sit on a checkerboard so the transparency reads. */
+.checker {
+  background-color: #fbfaf6;
+  background-image: conic-gradient(
+    #e4ddcf 25%,
+    transparent 0 50%,
+    #e4ddcf 0 75%,
+    transparent 0
+  );
+  background-size: 16px 16px;
+}
