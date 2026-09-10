@@ -4,13 +4,17 @@ import { promptWarnings } from "../src/index";
 
 describe(promptWarnings, () => {
   it("returns nothing for a plain prompt", () => {
-    expect(promptWarnings("a green kitchen with oak cabinets")).toStrictEqual([]);
+    expect(promptWarnings("a green kitchen with oak cabinets")).toStrictEqual(
+      []
+    );
   });
 
   it("flags a negated object, with or without an article", () => {
     const warnings = promptWarnings("a bare room, no chairs, no a rug");
 
-    expect(warnings.map((warning) => [warning.rule, warning.match])).toStrictEqual([
+    expect(
+      warnings.map((warning) => [warning.rule, warning.match])
+    ).toStrictEqual([
       ["negated-object", "no chairs"],
       ["negated-object", "no a rug"],
     ]);
@@ -27,9 +31,9 @@ describe(promptWarnings, () => {
 
   it("flags a text-bearing object alongside a request for no text", () => {
     const warnings = promptWarnings("a shop sign on a brick wall, no text");
-    expect(warnings.map((warning) => [warning.rule, warning.match])).toStrictEqual([
-      ["text-bearing-object", "sign"],
-    ]);
+    expect(
+      warnings.map((warning) => [warning.rule, warning.match])
+    ).toStrictEqual([["text-bearing-object", "sign"]]);
     expect(warnings[0]?.message).toContain("render text on it anyway");
     expect(promptWarnings("a stack of books, no words")[0]?.rule).toBe(
       "text-bearing-object"

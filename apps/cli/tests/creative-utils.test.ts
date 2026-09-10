@@ -32,9 +32,9 @@ describe(resolveCreativeDirection, () => {
         { look: "plate", mood: "overcast" }
       )
     ).toStrictEqual({ look: "plate" });
-    expect(resolveCreativeDirection({}, { look: "plate", mood: null })).toStrictEqual(
-      { look: "plate" }
-    );
+    expect(
+      resolveCreativeDirection({}, { look: "plate", mood: null })
+    ).toStrictEqual({ look: "plate" });
     expect(resolveCreativeDirection({ mood: false })).toBeUndefined();
   });
 

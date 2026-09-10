@@ -74,6 +74,39 @@ describe("FalClient fetch integration", () => {
     expect(vi.mocked(fetch)).toHaveBeenCalledOnce();
   });
 
+  it("maps a locked account on the upload PUT to ACCOUNT_LOCKED", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValueOnce(
+          jsonResponse({
+            file_url: "https://cdn.example.test/file.png",
+            upload_url: "https://upload.example.test/put",
+          })
+        )
+        .mockResolvedValueOnce(
+          new Response('{"detail":"User is locked. Reason: TOP_UP."}', {
+            headers: { "Content-Type": "application/json" },
+            status: 403,
+          })
+        )
+    );
+    const motif = new FalClient({ apiKey: "test-key" });
+
+    const result = await motif.uploadToFalCdn(new Uint8Array([1, 2, 3]), {
+      contentType: "image/png",
+      fileName: "file.png",
+    });
+
+    expect(result.isErr()).toBeTruthy();
+    if (result.isErr()) {
+      expect(result.error.code).toBe("ACCOUNT_LOCKED");
+      expect(result.error.status).toBe(403);
+    }
+    expect(requestAt(1).method).toBe("PUT");
+  });
+
   it("keeps other 403s as plain request failures", async () => {
     vi.stubGlobal(
       "fetch",

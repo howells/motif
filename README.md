@@ -106,7 +106,7 @@ pnpm link --global
 ## What Motif Does
 
 - SDK: `createMotifImage` (`@howells/motif-sdk/image`) is the primary image API — a provider-agnostic generate/edit/best-of-N layer over google, openai, replicate, and fal with per-call cost tracking. The low-level `FalClient` covers fal-native extras (upscaling, background removal, video jobs, fal utility tools, queue polling, CDN upload, and payload cleanup), alongside `buildGenerateBody`, model/tool registries, leaderboard snapshots, sizing helpers, and cost estimates.
-- CLI: text-to-image, reference-image editing, upscaling, background removal, image-to-video, local history and costs, series management, terminal Studio, CWD-sandboxed output paths, and validated inputs.
+- CLI: text-to-image, reference-image editing, upscaling, background removal, image-to-video, local history and costs, series management, contact sheets, terminal Studio, output paths kept inside the git root, and validated inputs.
 - Agent interfaces: `--format json`, `--format ndjson`, `--fields`, `--dry-run`, stdin JSON, `--describe`, and structured errors.
 - Model coverage: OpenAI, Gemini, FLUX, Recraft, Ideogram, Nano Banana, Seedream, Grok, Qwen, Kling video, and fal utility endpoints.
 
@@ -347,6 +347,9 @@ Image-to-video snapshot, 2026-05-12:
 motif "packaging concepts for a matcha drink" --num 4
 
 # Transparent PNG with a GPT model
+motif "minimal app icon, white fox" --model gpt --square --transparent
+
+# gpt2 transparency runs through OpenAI and needs OPENAI_API_KEY
 motif "minimal app icon, white fox" --model gpt2 --square --transparent
 
 # Reproducible generation
@@ -436,6 +439,18 @@ motif image.png --up --scale 2 --output image-upscaled.png
 # Remove the background from the last image
 motif --rmbg --output cutout.png
 ```
+
+## Contact Sheets
+
+```bash
+# Lay out chosen images, captioned with model, look, mood and cost from history
+motif sheet hero-1.png hero-2.png hero-3.png -o sheet.png
+
+# Or the newest n generations
+motif sheet --last 6 --cols 3 --no-open --format json
+```
+
+Each cell is fitted into a 512 px square on a warm off-white ground. Images with no history entry are captioned with their filename.
 
 ## Fal Tools
 
@@ -593,13 +608,13 @@ Global:
 
 Generation:
   -m, --model <model>           Generation model ID
-  -e, --edit <files...>         Reference image paths for editing
+  -e, --edit <file>             Reference image; repeat for more (-e a.png -e b.png)
   --loose                       Lower input fidelity for GPT reference edits
   -a, --aspect <ratio>          Aspect ratio
   -r, --resolution <res>        Resolution: 0.5K, 1K, 2K, 4K
   -o, --output <file>           Output path within the current working directory
   -n, --num <count>             Number of images, 1-4
-  --transparent                 Transparent PNG for GPT models
+  --transparent                 Transparent PNG: gpt on fal, gpt2 via OpenAI (OPENAI_API_KEY)
   --background <mode>           GPT background mode: auto, transparent, opaque
   --quality <quality>           Image quality: auto, low, medium, high
   --image-size <size>           Direct fal image_size override, such as auto, square_hd, 1536x1024

@@ -1,4 +1,6 @@
 import { aspectToFalImageSize, aspectToGptSize } from "./aspects";
+import { UnsupportedOptionError } from "./capabilities";
+import type { ModelOption } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import { MODELS } from "./models";
 import type {
@@ -59,8 +61,8 @@ function normalizeImageSize(
   );
 }
 
-function unsupported(config: ModelConfig, option: string): never {
-  throw new Error(`${config.name} does not support ${option}`);
+function unsupported(config: ModelConfig, option: ModelOption): never {
+  throw new UnsupportedOptionError(config, option);
 }
 
 function validateGenerateOptions(

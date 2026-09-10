@@ -2,7 +2,7 @@
  * motif CLI — agent-first image generation.
  *
  * Security posture: the agent is not a trusted operator.
- * All inputs are validated. Output paths are sandboxed to CWD.
+ * All inputs are validated. Output paths must stay inside the git root (or CWD outside a repo).
  * Use --dry-run before mutating commands.
  */
 
@@ -35,15 +35,16 @@ import {
   handleError,
   routeCommanderErrors,
 } from "./utils/errors";
-import {
-  readStdinJson,
-  reservedPromptSuggestion,
-  swallowedEditPrompt,
-} from "./utils/input";
+import { readStdinJson, reservedPromptSuggestion } from "./utils/input";
 import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
 import type { EmitOptions } from "./utils/output";
 import { firstText, hasText } from "./utils/text";
 import { PACKAGE_VERSION } from "./version";
+
+/** Commander collector: each `-e <file>` adds one reference image. */
+function collectEditPath(value: string, previous?: string[]): string[] {
+  return [...(previous ?? []), value];
+}
 
 // -- Commands --
 
@@ -119,7 +120,11 @@ export async function runCli(
       "-m, --model <model>",
       `Model to use (${GENERATION_MODELS.join(", ")})`
     )
-    .option("-e, --edit <files...>", "Reference image(s) for editing")
+    .option(
+      "-e, --edit <file>",
+      "Reference image for editing; repeat for more (-e a.png -e b.png)",
+      collectEditPath
+    )
     .option("--loose", "Use reference as loose inspiration (GPT only)")
     .option(
       "-a, --aspect <ratio>",
@@ -394,35 +399,14 @@ export async function runCli(
     }
   }
 
-  // `-e/--edit` is variadic, so `motif -e img.png "a cat"` swallows the prompt
-  // as a second reference image and falls through to help with no explanation.
-  // Catch it before the API-key gate so the diagnosis is the same with or
-  // without FAL_KEY set.
-  if (options.edit !== undefined && options.edit.length > 0) {
-    const swallowed = swallowedEditPrompt(options.edit);
-    if (swallowed !== null) {
-      emitError(
-        {
-          code: "EDIT_PROMPT_SWALLOWED",
-          details: { editValues: options.edit, swallowed },
-          message: `${JSON.stringify(swallowed)} was consumed by --edit as a reference image, not used as the prompt. --edit takes a list, so the prompt must come before it.`,
-        },
-        format
-      );
-      exitForErrorCode("EDIT_PROMPT_SWALLOWED");
-    }
-  }
-
-  // Validate API key for operations that need it
+  // Validate the fal key for the post-processing and video paths. Generation
+  // checks its own key once the route is known: a transparent gpt2 run goes
+  // through OpenAI and needs OPENAI_API_KEY instead.
   const wouldCallFal =
-    hasText(prompt) ||
-    hasText(stdinData?.prompt) ||
     options.vary === true ||
     options.up === true ||
     options.rmbg === true ||
     options.video === true ||
-    (options.edit !== undefined && options.edit.length > 0) ||
-    stdinCommand === "generate" ||
     stdinCommand === "vary" ||
     stdinCommand === "upscale" ||
     stdinCommand === "rmbg" ||
@@ -509,13 +493,13 @@ ${chalk.bold("Stdin JSON:")}
 
 ${chalk.bold("Options:")}
   -m, --model <model>      Model ID, e.g. banana2, gpt2, seedream4, flux2-pro
-  -e, --edit <files...>    Reference image(s) for editing
+  -e, --edit <file>        Reference image; repeat for more (-e a.png -e b.png)
   --loose                  Use reference as loose inspiration (GPT only)
   -a, --aspect <ratio>     Aspect ratio (see below)
   -r, --resolution <res>   Resolution: 1K, 2K, 4K
   -o, --output <file>      Output filename
   -n, --num <count>        Number of images (1-4)
-  --transparent            Transparent background PNG (GPT only)
+  --transparent            Transparent PNG (gpt on fal; gpt2 via OpenAI, needs OPENAI_API_KEY)
   --ephemeral              Save locally, skip history, delete fal IO payloads
   --no-open                Don't auto-open image after generation
 

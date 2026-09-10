@@ -39,7 +39,7 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 
 - Always `--dry-run` first, name `--model` explicitly (except with `--look`, which picks its own model, so leave `-m` out unless you mean to override it), always `--no-open` in a pipeline, and always `--fields` to keep output small.
 - Model names are short aliases (`gpt`, `banana`, `gemini3`), never fal endpoint strings. Read live ids from `--describe`; don't hardcode taxonomy option ids.
-- Output paths are sandboxed to CWD. Human output carries ANSI and spinners - parse JSON, never the human format.
+- Output paths must stay inside the git root of the current directory (or the current directory outside a repo); anything else fails with `INVALID_OUTPUT_PATH`. Human output carries ANSI and spinners - parse JSON, never the human format.
 - Exit codes are semantic: `2` bad input, `3` auth, `4` not found, `5` upstream fal failure.
 
 ## Architecture rules

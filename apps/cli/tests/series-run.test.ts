@@ -14,11 +14,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * side effects mocked, so no fal request is ever made.
  */
 
-vi.mock(import('../src/api/fal'), () => ({
+vi.mock(import("../src/api/fal"), () => ({
   generate: vi.fn(),
 }));
 
-vi.mock(import('../src/utils/image'), async (importActual) => {
+vi.mock(import("../src/utils/image"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/image")>();
   return {
     ...actual,
@@ -29,7 +29,7 @@ vi.mock(import('../src/utils/image'), async (importActual) => {
   };
 });
 
-vi.mock(import('../src/utils/input'), async (importActual) => {
+vi.mock(import("../src/utils/input"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/input")>();
   return {
     ...actual,

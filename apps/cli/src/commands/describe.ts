@@ -204,6 +204,7 @@ function generateSchema() {
                 supportsSafetyChecker: MODELS[m]?.supportsSafetyChecker,
                 supportsSyncMode: MODELS[m]?.supportsSyncMode,
                 supportsThinkingLevel: MODELS[m]?.supportsThinkingLevel,
+                transparencyRoute: MODELS[m]?.transparencyRoute,
               },
             ])
           ),
@@ -223,7 +224,7 @@ function generateSchema() {
         },
         output: {
           description:
-            "Output filename (must be within CWD). Auto-generated if omitted.",
+            "Output filename (must be within the git root, or CWD outside a repo). Auto-generated if omitted.",
           type: "string",
         },
         prompt: {
@@ -253,7 +254,8 @@ function generateSchema() {
         },
         transparent: {
           default: false,
-          description: "Transparent background (GPT model only)",
+          description:
+            "Transparent background PNG. gpt renders it on fal; gpt2 routes through OpenAI (gpt-image-2) and needs OPENAI_API_KEY. The saved PNG is checked for transparent pixels (TRANSPARENCY_MISSING otherwise).",
           type: "boolean",
         },
         ...creativeSchemaProperties(),
@@ -354,7 +356,7 @@ function upscaleSchema() {
         },
         output: {
           description:
-            "Output filename (CWD-sandboxed). Default: writes alongside source image.",
+            "Output filename (within the git root, or CWD outside a repo). Default: writes alongside source image.",
           type: "string",
         },
         scale: {
@@ -652,6 +654,64 @@ function toolSchema() {
   };
 }
 
+function sheetSchema() {
+  return {
+    command: "sheet",
+    description:
+      "Lay images out on one contact sheet: each cell fitted into a 512 px square on a warm off-white ground, captioned from history (model, look, mood, cost) or with the filename",
+    input: {
+      properties: {
+        cols: {
+          description: "Columns (default: roughly square, ceil(sqrt(count)))",
+          maximum: 20,
+          minimum: 1,
+          type: "integer",
+        },
+        files: {
+          description:
+            "Image paths to include (png, jpg, webp). Pass these or --last, not both.",
+          items: { type: "string" },
+          type: "array",
+        },
+        last: {
+          description:
+            "Use the newest n history images still on disk, oldest first",
+          maximum: 100,
+          minimum: 1,
+          type: "integer",
+        },
+        noOpen: {
+          default: false,
+          description: "Don't open the sheet afterwards",
+          type: "boolean",
+        },
+        output: {
+          description:
+            "Output file (.png, .jpg or .webp), within the git root (or CWD outside a repo). Default: sheet-<timestamp>.png",
+          type: "string",
+        },
+      },
+      type: "object",
+    },
+    mutating: true,
+    output: {
+      properties: {
+        cols: { type: "integer" },
+        count: { type: "integer" },
+        height: { type: "integer" },
+        path: { type: "string" },
+        width: { type: "integer" },
+      },
+      type: "object",
+    },
+    supports_dry_run: false,
+    usage: [
+      "motif sheet a.png b.png c.png -o sheet.png --no-open --format json",
+      "motif sheet --last 6 --cols 3 --no-open --format json --fields path,count",
+    ],
+  };
+}
+
 function describeSchema() {
   return {
     command: "describe",
@@ -669,6 +729,7 @@ function describeSchema() {
             "last",
             "history",
             "series",
+            "sheet",
             "tool",
             "segment",
             "ask",
@@ -843,7 +904,7 @@ const VERB_COMMON_INPUT = {
   noOpen: { default: false, type: "boolean" },
   output: {
     description:
-      "Output file (CWD-sandboxed), or a directory ending in / to receive every artefact.",
+      "Output file (within the git root, or CWD outside a repo), or a directory ending in / to receive every artefact.",
     type: "string",
   },
 };
@@ -1080,6 +1141,7 @@ const COMMAND_SCHEMAS: Record<string, () => Record<string, unknown>> = {
   last: lastSchema,
   rmbg: removeBackgroundSchema,
   series: seriesSchema,
+  sheet: sheetSchema,
   tool: toolSchema,
   upscale: upscaleSchema,
   vary: varySchema,
@@ -1164,7 +1226,7 @@ function fullSchema() {
     ),
     name: "motif",
     security_posture:
-      "The agent is not a trusted operator. All inputs are validated. Output paths are sandboxed to CWD. Use --dry-run before mutating commands.",
+      "The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (or the current directory outside a repo). Use --dry-run before mutating commands.",
     tools: {
       checkedAt: FAL_TOOLS_CHECKED_AT,
       parametersNote: TOOL_PARAMETERS_NOTE,

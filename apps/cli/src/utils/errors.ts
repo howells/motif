@@ -67,6 +67,25 @@ function getStructuredDetails(err: unknown): unknown {
   if (
     hasProperty(err, "code") &&
     err.code === "INVALID_OPTION" &&
+    hasProperty(err, "option") &&
+    typeof err.option === "string" &&
+    hasProperty(err, "model") &&
+    typeof err.model === "string" &&
+    hasProperty(err, "supportedOptions") &&
+    isStringArray(err.supportedOptions) &&
+    hasProperty(err, "modelsSupporting") &&
+    isStringArray(err.modelsSupporting)
+  ) {
+    return {
+      model: err.model,
+      modelsSupporting: err.modelsSupporting,
+      option: err.option,
+      supportedOptions: err.supportedOptions,
+    };
+  }
+  if (
+    hasProperty(err, "code") &&
+    err.code === "INVALID_OPTION" &&
     hasProperty(err, "field") &&
     typeof err.field === "string" &&
     hasProperty(err, "value") &&

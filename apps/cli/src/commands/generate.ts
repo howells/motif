@@ -2,13 +2,12 @@
  * generate command — build the fal request, run generation, and save results.
  *
  * Security posture: the agent is not a trusted operator.
- * All inputs are validated. Output paths are sandboxed to CWD.
+ * All inputs are validated. Output paths must stay inside the git root (or CWD outside a repo).
  * Use --dry-run before mutating commands.
  */
 
-import { resolve } from "node:path";
-
 import {
+  aspectToGptSize,
   buildGenerateBody,
   enrichPrompt,
   estimateCost,
@@ -17,27 +16,19 @@ import {
   getLook,
   MODELS,
   promptWarnings,
-  sumCosts,
 } from "@howells/motif-sdk";
 import type {
-  AspectRatio,
   GenerateOptions,
   PromptWarning,
-  Resolution,
+  ProviderRoute,
 } from "@howells/motif-sdk";
+import { providerPricePerImageUsd } from "@howells/motif-sdk/image";
 import chalk from "chalk";
 import ora from "ora";
 
-import { deletePayloads, generate } from "../api/fal";
+import { generate } from "../api/fal";
 import type { CliOptions, StdinPayload } from "../utils/cli-types";
-import {
-  addGenerations,
-  generateId,
-  loadConfig,
-  loadHistory,
-} from "../utils/config";
-import type { Generation } from "../utils/config";
-import { formatTotal } from "../utils/cost";
+import { getApiKey, loadConfig } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
 import { exitForErrorCode, handleError, validateOption } from "../utils/errors";
 import {
@@ -51,14 +42,7 @@ import {
   SAFETY_LEVELS,
   THINKING_LEVELS,
 } from "../utils/generate-options";
-import {
-  downloadImage,
-  generateFilename,
-  getFileSize,
-  getImageDimensions,
-  indexedOutputPath,
-  openImage,
-} from "../utils/image";
+import { generateFilename } from "../utils/image";
 import {
   parseIntegerOption,
   parseNumberOption,
@@ -69,148 +53,25 @@ import {
 import { emit, emitError, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { firstText, hasText } from "../utils/text";
+import {
+  requireRouteKey,
+  routeDryRunFields,
+  routePreview,
+  runRoute,
+  validateRoute,
+} from "./generate-openai";
+import type { RouteRequest } from "./generate-openai";
+import {
+  deleteEphemeralPayloads,
+  exitIfTransparencyMissing,
+  saveGeneratedImages,
+} from "./save-images";
 
 /** Print prompt warnings in yellow for human output. */
 function printPromptWarnings(warnings: readonly PromptWarning[]): void {
   for (const warning of warnings) {
     console.log(chalk.yellow(`Warning (${warning.rule}): ${warning.message}`));
   }
-}
-
-// -- Structured result for saved images --
-
-interface SavedImage {
-  height?: number;
-  path: string;
-  /**
-   * The provider-hosted URL the image was downloaded from.
-   *
-   * Kept so callers that need an HTTPS source — design tools, previews, anything
-   * that cannot read a local file — do not have to re-upload an image that is
-   * already served somewhere. Absent once the provider expires it, so treat it
-   * as a convenience rather than durable storage.
-   */
-  remoteUrl?: string;
-  size: string;
-  width?: number;
-}
-
-async function saveGeneratedImages(
-  images: { url: string }[],
-  outputPath: string,
-  numImages: number,
-  meta: {
-    prompt: string;
-    model: string;
-    aspect: AspectRatio;
-    resolution: Resolution;
-    editPaths?: string[];
-  },
-  config: Awaited<ReturnType<typeof loadConfig>>,
-  emitOpts: EmitOptions,
-  noOpen?: boolean,
-  historyRecorded = true
-): Promise<{
-  id: string;
-  images: SavedImage[];
-  cost: number | null;
-  historyRecorded: boolean;
-  timestamp: string;
-}> {
-  // Build paths for each image
-  const paths = images.map((_, i) =>
-    numImages > 1 ? indexedOutputPath(outputPath, i) : outputPath
-  );
-
-  // Download all images in parallel
-  const actualPaths = await Promise.all(
-    images.map(
-      async (image, i) =>
-        // biome-ignore lint/style/noNonNullAssertion: Index is guaranteed within bounds by the map
-        await downloadImage(image.url, paths[i]!)
-    )
-  );
-
-  // Collect metadata sequentially (dims via file command, console output ordering)
-  const savedImages: SavedImage[] = [];
-  const generations: Generation[] = [];
-  const now = new Date().toISOString();
-  const firstEditPath = meta.editPaths?.[0];
-  const editedFrom = hasText(firstEditPath)
-    ? resolve(firstEditPath)
-    : undefined;
-
-  for (let i = 0; i < images.length; i++) {
-    // biome-ignore lint/style/noNonNullAssertion: Index is guaranteed within bounds by the loop condition
-    const path = actualPaths[i]!;
-    const dims = await getImageDimensions(path);
-    const size = getFileSize(path);
-
-    savedImages.push({
-      height: dims?.height,
-      path: resolve(path),
-      remoteUrl: images[i]?.url,
-      size,
-      width: dims?.width,
-    });
-
-    if (!isStructured(emitOpts.format)) {
-      console.log(
-        chalk.green(`✓ Saved: ${path}`) +
-          chalk.dim(
-            ` (${dims ? `${dims.width}x${dims.height}` : "?"}, ${size})`
-          )
-      );
-    }
-
-    generations.push({
-      aspect: meta.aspect,
-      cost: estimateCost(meta.model, meta.resolution, 1),
-      editedFrom,
-      id: generateId(),
-      model: meta.model,
-      output: resolve(path),
-      prompt: meta.prompt,
-      resolution: meta.resolution,
-      timestamp: now,
-    });
-  }
-
-  if (historyRecorded) {
-    await addGenerations(generations);
-  }
-
-  const { known: totalCost, unknown } = sumCosts(
-    generations.map((g) => g.cost)
-  );
-  // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since images is non-empty
-  const lastGen = generations.at(-1)!;
-
-  if (historyRecorded && !isStructured(emitOpts.format)) {
-    const history = await loadHistory();
-    const totals = history.totalCost;
-    console.log(
-      chalk.dim(
-        `\nSession: ${formatTotal(totals.session, totals.unknown.session)} | Today: ${formatTotal(totals.today, totals.unknown.today)}`
-      )
-    );
-  }
-
-  // Open first image after all downloads complete. Use the actual saved path:
-  // downloadImage may rewrite the extension when fal returns a different
-  // format than the requested filename implies (e.g. .png -> .jpg).
-  if (config.openAfterGenerate && noOpen !== true) {
-    // biome-ignore lint/style/noNonNullAssertion: actualPaths[0] exists since images is non-empty
-    openImage(actualPaths[0]!);
-  }
-
-  return {
-    cost: unknown > 0 ? null : totalCost,
-    historyRecorded,
-    id: lastGen.id,
-    images: savedImages,
-    timestamp: lastGen.timestamp,
-  };
 }
 
 export async function generateImage(
@@ -291,7 +152,21 @@ export async function generateImage(
     emitOpts.format
   );
 
-  const cost = estimateCost(modelId, resolution, numImages);
+  // A transparent request on a model whose fal endpoint cannot produce one
+  // runs through the model's direct provider route instead (gpt2 via OpenAI).
+  const transparent = options.transparent ?? stdinData?.transparent;
+  const openAiRoute: ProviderRoute | undefined =
+    transparent === true ? modelConfig.transparencyRoute : undefined;
+  const routePrice =
+    openAiRoute === undefined
+      ? undefined
+      : providerPricePerImageUsd(openAiRoute.provider, openAiRoute.model);
+  let cost: number | null;
+  if (openAiRoute === undefined) {
+    cost = estimateCost(modelId, resolution, numImages);
+  } else {
+    cost = routePrice === undefined ? null : routePrice * numImages;
+  }
 
   // Resolve new advanced generation params from CLI flags + stdin
   const seed = validateOption(emitOpts.format, () =>
@@ -417,6 +292,27 @@ export async function generateImage(
   );
   const expandPrompt = options.expandPrompt ?? stdinData?.expandPrompt;
   const ephemeral = options.ephemeral ?? stdinData?.ephemeral;
+  const inputFidelity =
+    options.loose === true ? "low" : stdinData?.inputFidelity;
+  const history = {
+    aspect,
+    editPaths,
+    look: typeof creative?.look === "string" ? creative.look : undefined,
+    model: modelId,
+    mood: typeof creative?.mood === "string" ? creative.mood : undefined,
+    prompt: requestPrompt,
+    resolution,
+  };
+
+  const routeRequest: RouteRequest = {
+    editPaths,
+    inputFidelity,
+    mask: hasText(maskImageUrl) ? maskImageUrl : undefined,
+    n: numImages,
+    prompt: requestPrompt,
+    quality,
+    size: aspectToGptSize(aspect),
+  };
   const dryRunGenerateOptions: GenerateOptions = {
     aspect,
     background,
@@ -431,7 +327,7 @@ export async function generateImage(
     guidanceScale,
     imagePromptStrength,
     imageSize,
-    inputFidelity: options.loose === true ? "low" : stdinData?.inputFidelity,
+    inputFidelity,
     limitGenerations,
     maskImageUrl,
     model: modelId,
@@ -449,11 +345,23 @@ export async function generateImage(
     style,
     syncMode,
     thinkingLevel,
-    transparent: options.transparent ?? stdinData?.transparent,
+    transparent,
   };
-  const requestPreview = validateOption(emitOpts.format, () =>
-    buildGenerateBody(dryRunGenerateOptions)
-  );
+  if (openAiRoute !== undefined) {
+    validateRoute(
+      openAiRoute,
+      modelConfig.name,
+      dryRunGenerateOptions,
+      routeRequest,
+      emitOpts.format
+    );
+  }
+  const requestPreview =
+    openAiRoute === undefined
+      ? validateOption(emitOpts.format, () =>
+          buildGenerateBody(dryRunGenerateOptions)
+        )
+      : routePreview(openAiRoute, routeRequest);
 
   // -- Dry run --
   if (options.dryRun === true) {
@@ -473,8 +381,11 @@ export async function generateImage(
       numImages,
       output: outputPath,
       editImages: editPaths,
-      transparent: options.transparent ?? stdinData?.transparent,
-      inputFidelity: options.loose === true ? "low" : stdinData?.inputFidelity,
+      transparent,
+      inputFidelity,
+      route: openAiRoute === undefined ? "fal" : openAiRoute.provider,
+      ...(openAiRoute !== undefined &&
+        routeDryRunFields(openAiRoute, routePrice)),
       endpoint: requestPreview.endpoint,
       body: requestPreview.body,
       ephemeral,
@@ -510,6 +421,11 @@ export async function generateImage(
     if (!isStructured(emitOpts.format)) {
       console.log(chalk.bold("\n🔍 Dry run — no API call made\n"));
       console.log(`  Model:  ${chalk.green(modelConfig.name)}`);
+      if (openAiRoute !== undefined) {
+        console.log(
+          `  Route:  ${openAiRoute.provider} (${openAiRoute.model}), needs ${openAiRoute.apiKeyEnv}`
+        );
+      }
       console.log(`  Aspect: ${aspect} | Resolution: ${resolution}`);
       console.log(`  Images: ${numImages}`);
       console.log(`  Output: ${chalk.dim(outputPath)}`);
@@ -525,6 +441,17 @@ export async function generateImage(
     return;
   }
 
+  // -- API key for the route in use --
+  if (openAiRoute === undefined) {
+    try {
+      getApiKey(config);
+    } catch (error) {
+      handleError(error, "MISSING_API_KEY", emitOpts.format);
+    }
+  } else {
+    requireRouteKey(openAiRoute, modelConfig.name, emitOpts.format);
+  }
+
   // -- Human progress output --
   if (!isStructured(emitOpts.format)) {
     console.log(chalk.bold(`\nModel: ${modelConfig.name}`));
@@ -536,9 +463,12 @@ export async function generateImage(
     console.log(
       `Prompt: ${chalk.dim(requestPrompt.slice(0, 80))}${requestPrompt.length > 80 ? "..." : ""}`
     );
+    if (openAiRoute !== undefined) {
+      console.log(`Route: ${openAiRoute.provider} (${openAiRoute.model})`);
+    }
     console.log(`Est. cost: ${chalk.yellow(formatCost(cost))}`);
     printPromptWarnings(warnings);
-    if (ephemeral === true) {
+    if (ephemeral === true && openAiRoute === undefined) {
       console.log("Fal IO: not retained after local download");
     }
     if (editPaths) {
@@ -550,7 +480,60 @@ export async function generateImage(
     ? null
     : ora("Generating...").start();
 
+  const noOpen = options.noOpen === true || stdinData?.noOpen === true;
+
   try {
+    if (openAiRoute !== undefined) {
+      const { costPerImage, result } = await runRoute(
+        openAiRoute,
+        routeRequest
+      );
+      spinner?.succeed("Generated!");
+      const saved = await saveGeneratedImages(
+        result.images.map((image) => ({ bytes: image.uint8Array })),
+        outputPath,
+        numImages,
+        {
+          ...history,
+          costPerImage,
+          requireTransparency: true,
+        },
+        config,
+        emitOpts,
+        noOpen,
+        ephemeral !== true
+      );
+      if (isStructured(emitOpts.format)) {
+        emit(
+          {
+            command: "generate",
+            ...saved,
+            ephemeral,
+            prompt: requestPrompt,
+            warnings,
+            ...(creativeResult && {
+              basePrompt: creativeResult.basePrompt,
+              creative: creativeResult.creative,
+            }),
+            model: modelId,
+            modelName: modelConfig.name,
+            route: openAiRoute.provider,
+            provider: openAiRoute.provider,
+            providerModel: result.model,
+            ...(hasText(result.requestId) && { requestId: result.requestId }),
+            ...(result.warnings !== undefined && {
+              providerWarnings: result.warnings,
+            }),
+            aspect,
+            resolution,
+            numImages,
+          },
+          emitOpts
+        );
+      }
+      return;
+    }
+
     const result = await generate({
       aspect,
       background,
@@ -565,7 +548,7 @@ export async function generateImage(
       guidanceScale,
       imagePromptStrength,
       imageSize,
-      inputFidelity: options.loose === true ? "low" : stdinData?.inputFidelity,
+      inputFidelity,
       limitGenerations,
       maskImageUrl,
       model: modelId,
@@ -583,7 +566,7 @@ export async function generateImage(
       style,
       syncMode,
       thinkingLevel,
-      transparent: options.transparent ?? stdinData?.transparent,
+      transparent,
     });
 
     spinner?.succeed("Generated!");
@@ -592,35 +575,17 @@ export async function generateImage(
       result.images,
       outputPath,
       numImages,
-      { aspect, editPaths, model: modelId, prompt: requestPrompt, resolution },
+      { ...history, requireTransparency: transparent === true },
       config,
       emitOpts,
-      options.noOpen === true || stdinData?.noOpen === true,
+      noOpen,
       ephemeral !== true
     );
 
-    let payloadsDeleted = false;
-    let payloadDeleteError: string | undefined;
-    if (ephemeral === true) {
-      if (hasText(result.requestId)) {
-        try {
-          await deletePayloads(result.requestId);
-          payloadsDeleted = true;
-        } catch (error) {
-          payloadDeleteError =
-            error instanceof Error ? error.message : String(error);
-          if (!isStructured(emitOpts.format)) {
-            console.warn(
-              chalk.yellow(
-                `Warning: saved locally, but fal payload deletion failed: ${payloadDeleteError}`
-              )
-            );
-          }
-        }
-      } else {
-        payloadDeleteError = "fal response did not include a request_id";
-      }
-    }
+    const { payloadDeleteError, payloadsDeleted } =
+      ephemeral === true
+        ? await deleteEphemeralPayloads(result.requestId, emitOpts.format)
+        : { payloadDeleteError: undefined, payloadsDeleted: false };
 
     if (isStructured(emitOpts.format)) {
       emit(
@@ -642,6 +607,7 @@ export async function generateImage(
           }),
           model: modelId,
           modelName: modelConfig.name,
+          route: "fal",
           aspect,
           resolution,
           numImages,
@@ -651,6 +617,7 @@ export async function generateImage(
     }
   } catch (error) {
     spinner?.fail("Generation failed");
+    exitIfTransparencyMissing(error, emitOpts.format);
     handleError(error, "GENERATION_FAILED", emitOpts.format);
   }
 }

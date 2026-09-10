@@ -1,6 +1,6 @@
 # motif CLI — Agent Integration Guide
 
-> **Security posture**: The agent is not a trusted operator. All inputs are validated. Generate output paths are sandboxed to CWD. Post-processing (`--up`, `--rmbg`) writes alongside the source image by default. Always use `--dry-run` before mutating commands.
+> **Security posture**: The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (the nearest parent holding `.git`), or the current directory outside a repo. Post-processing (`--up`, `--rmbg`) writes alongside the source image by default. Always use `--dry-run` before mutating commands.
 
 ## Quick Start
 
@@ -77,11 +77,17 @@ Structured errors include an `instance` field (an `urn:fal:request:<id>` URN) wh
 
 Error codes are grouped below. Every code the CLI can emit is listed; the live catalog is available from `motif --describe --format json`.
 
-- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_MODEL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `EDIT_PROMPT_SWALLOWED`, `TOO_MANY_REFERENCES`, `NO_PREVIOUS`, `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `DESCRIBE_FAILED`.
+- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_MODEL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `TOO_MANY_REFERENCES`, `NO_PREVIOUS`, `GENERATION_FAILED`, `TRANSPARENCY_MISSING`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `DESCRIBE_FAILED`.
 
 `RESERVED_PROMPT` (status `400`, exit `2`) fires when the positional prompt is exactly a motif command word (e.g. `motif history` instead of `motif --history`). This protects agents from spending credits on a mistyped command. The error's `details.didYouMean` field carries the corrected invocation. To genuinely generate from such a one-word prompt, pass it via stdin JSON: `echo '{"prompt":"history"}' | motif`.
 
-`EDIT_PROMPT_SWALLOWED` (status `400`, exit `2`) fires when `-e/--edit` — a variadic flag — has eaten the prompt: `motif -e image.png "a cat"` passes both as reference images and leaves no prompt. Put the prompt first (`motif "a cat" -e image.png`), or send both via stdin JSON. A missing-but-plausible path such as `-e typo.png` is not treated as a swallowed prompt; it still reports `INVALID_EDIT_PATH`.
+`-e/--edit` takes one path per flag and repeats: `motif -e a.png -e b.png "a cat"`. The prompt can go anywhere. Stdin `editImages` is still an array.
+
+A model that refuses an option fails with `INVALID_OPTION` (exit `2`) and names the fix: the message reads like "Seedream 4.5 does not support resolution. Models that do: …", and `details` carries `model`, `option`, `supportedOptions` (what this model does take) and `modelsSupporting` (generation models that take the option), all derived from the registry.
+
+`--transparent` on `gpt2` (or a look that resolves to it) runs through OpenAI (`gpt-image-2`) rather than fal, because fal's GPT Image 2 endpoint has no background option. It needs `OPENAI_API_KEY`; without it the run fails with `MISSING_API_KEY` (exit `3`) and `details.envVar`. The dry run shows `route: "openai"`, `endpoint: "openai:gpt-image-2"`, `providerModel` and `requiredEnv`; plain runs show `route: "fal"`. OpenAI prices gpt-image-2 by tokens, so `estimatedCost` and the recorded cost are `null` (unknown), never a guess. Edits (`-e`) go the same way. Options OpenAI can't take (seed, negative prompt, `--quality xhigh`, and so on) fail with `INVALID_OPTION`. `-m gpt --transparent` stays on fal.
+
+Every `--transparent` run reads the saved PNG back. With no alpha channel or no fully transparent pixel it fails with `TRANSPARENCY_MISSING` (status `502`, exit `5`, retriable): nothing is reported as a success or recorded in history, and the file stays on disk (`details.paths`).
 
 - Tools: `UNKNOWN_TOOL`, `INVALID_TOOL_ID`, `TOOL_FAILED`.
 - Verbs: `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED`.
@@ -95,10 +101,10 @@ Structured failures exit with a semantic process code derived from the error's R
 | --- | --- | --- | --- |
 | `0` | Success | — | — |
 | `1` | Unknown / unmapped | — | Unstructured crashes; any status outside the ranges below |
-| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `EDIT_PROMPT_SWALLOWED`, `TOO_MANY_REFERENCES` |
+| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `TOO_MANY_REFERENCES` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
-| `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED` |
+| `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED`, `TRANSPARENCY_MISSING` |
 
 Every structured error still carries the machine-readable `status` field, so the exit code and the JSON envelope always agree. Unstructured crashes (unexpected exceptions the CLI did not classify) still exit `1`.
 
@@ -285,7 +291,7 @@ The schema includes:
 
 1. **Never pass fal.ai endpoint strings as model names.** Use `gpt`, not `fal-ai/gpt-image-1.5`.
 
-2. **Never use `../` or `%2e` in output paths.** Output is sandboxed to CWD. Traversal attempts are rejected with `INVALID_OUTPUT_PATH`.
+2. **Keep output paths inside the repo.** Any path under the git root of the current directory is allowed (the current directory itself outside a repo). Anything else, and any `%2e` encoding, is rejected with `INVALID_OUTPUT_PATH`, whose message names the allowed root.
 
 3. **Never assume the last generation exists.** Always handle `NO_PREVIOUS` errors when using `--vary`, `--up`, or `--rmbg`.
 
@@ -413,7 +419,7 @@ motif --history --limit 20 --fields model,cost
 | `gemini3` | $0.15 ($0.30 at 4K) | Full feature support |
 | `flare` | Metered | GPT Image 2.5 Flare: fast generation, transparency, 16 references |
 | `sunburst` | Metered | GPT Image 2.5 Sunburst: precise edits, transparency, 16 references |
-| `gpt2` | $0.211 | Frontier OpenAI generation, transparent PNGs |
+| `gpt2` | $0.211 | Frontier OpenAI generation; transparent PNGs via the OpenAI route (cost unknown) |
 
 ### Processing
 
@@ -524,6 +530,17 @@ motif vectorize logo.png -o logo.svg                         # raster to SVG
 | `vectorize [image] -o out.svg` | `recraft-vectorize` | `-o` must name a `.svg` or end in `/` |
 
 Metered and per-unit endpoints report `cost: null` rather than a guessed number — `ask` is metered by tokens, so it always does. Read each verb's flags and outputs from `motif --describe <verb> --format json`.
+
+## Contact Sheets
+
+`motif sheet` lays images out on one PNG, JPEG or WebP: each cell is the image fitted into a 512 px square (aspect kept) on a warm off-white ground, with a caption underneath. Captions come from history, matched by output path: model, look and mood when used, and cost (`cost unknown` when it isn't known). With no history match the caption is the filename. `generate`, `series gen` and `series run` record `look` and `mood` on history entries for this.
+
+```bash
+motif sheet a.png b.png c.png -o review/sheet.png --no-open --format json
+motif sheet --last 6 --cols 3 --no-open --format json --fields path,count
+```
+
+Pass files or `--last <n>` (the newest n history images still on disk, oldest first), not both. `--cols` defaults to roughly square. `-o` follows the same output-path rules as `generate` and defaults to `sheet-<timestamp>.png`. JSON output is `{command, path, count, cols, width, height}`. Unreadable images fail with `INVALID_IMAGE_PATH`, and an empty history with `NO_PREVIOUS`.
 
 ## Pagination
 

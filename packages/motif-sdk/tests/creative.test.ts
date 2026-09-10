@@ -122,7 +122,9 @@ describe(enrichPrompt, () => {
         prompt: "a reading chair",
       }).creative.selected
     ).toStrictEqual({ look: "editorial", mood: "lamplit" });
-    expect(validateCreativeDirection({ mood: "nocturne" }).selected).toStrictEqual({
+    expect(
+      validateCreativeDirection({ mood: "nocturne" }).selected
+    ).toStrictEqual({
       mood: "nocturne",
     });
   });

@@ -7,7 +7,7 @@
  */
 
 import { existsSync } from "node:fs";
-import { isAbsolute, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 
 import { parseJsonAs } from "./json";
 
@@ -65,41 +65,6 @@ export function reservedPromptSuggestion(prompt: string): string | null {
     return null;
   }
   return RESERVED_PROMPT_WORDS[word] ?? null;
-}
-
-// -- Swallowed prompt after variadic --edit --
-
-/** Reference images may be given as remote URLs rather than local files. */
-const REMOTE_REFERENCE_REGEX = /^(?:https?:\/\/|data:)/i;
-
-/** Extensions `validateEditPath` accepts for a local reference image. */
-const IMAGE_EXTENSIONS = [".png", ".jpg", ".jpeg", ".webp"];
-
-/**
- * `-e/--edit` is variadic, so a prompt written after it is swallowed as another
- * reference image: `motif -e img.png "a cat"` leaves no positional prompt and
- * silently prints help. Return the swallowed prompt if one of the edit values
- * is plainly not an image reference — it doesn't exist on disk, isn't a remote
- * URL, and carries no image extension — otherwise null.
- *
- * A missing-but-plausible path (`-e typo.png`) is deliberately not flagged; it
- * falls through to the normal INVALID_EDIT_PATH "not found" error.
- */
-export function swallowedEditPrompt(
-  editValues: readonly string[]
-): string | null {
-  return editValues.find((value) => !looksLikeReferenceImage(value)) ?? null;
-}
-
-function looksLikeReferenceImage(value: string): boolean {
-  if (REMOTE_REFERENCE_REGEX.test(value)) {
-    return true;
-  }
-  const lower = value.toLowerCase();
-  if (IMAGE_EXTENSIONS.some((ext) => lower.endsWith(ext))) {
-    return true;
-  }
-  return existsSync(resolve(value));
 }
 
 // -- Path traversal defense --
@@ -187,12 +152,33 @@ export function validateEnumOption<T extends string>(
 }
 
 /**
- * Validate an output path is safe:
- * - No path traversal (../), no percent-encoded traversal (%2e)
- * - Must resolve within CWD (sandbox)
- * - No embedded query params
+ * The directory output paths must stay inside: the git root of `cwd`, found by
+ * walking up to the nearest `.git` (a directory, or a file in a linked
+ * worktree), or `cwd` itself outside a repository.
  */
-export function validateOutputPath(outputPath: string): string {
+export function outputRoot(cwd: string = process.cwd()): string {
+  let dir = resolve(cwd);
+  for (;;) {
+    if (existsSync(join(dir, ".git"))) {
+      return dir;
+    }
+    const parent = dirname(dir);
+    if (parent === dir) {
+      return resolve(cwd);
+    }
+    dir = parent;
+  }
+}
+
+/**
+ * Validate an output path is safe:
+ * - No percent-encoded traversal (%2e), embedded query params or control chars
+ * - Must resolve within {@link outputRoot}: the git root, or `cwd` outside a repo
+ */
+export function validateOutputPath(
+  outputPath: string,
+  cwd: string = process.cwd()
+): string {
   // Check for percent-encoded traversal before resolving
   if (PERCENT_TRAVERSAL_REGEX.test(outputPath)) {
     throw new Error(
@@ -210,14 +196,13 @@ export function validateOutputPath(outputPath: string): string {
     );
   }
 
-  const resolved = resolve(outputPath);
-  const cwd = process.cwd();
+  const resolved = resolve(cwd, outputPath);
+  const root = outputRoot(cwd);
 
-  // Ensure path stays within current working directory
-  const rel = relative(cwd, resolved);
-  if (rel.startsWith("..") || isAbsolute(rel)) {
+  const rel = relative(root, resolved);
+  if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
     throw new Error(
-      `Output path must be within current directory: ${outputPath}`
+      `Output path must be within ${root} (the git root, or the current directory outside a repository): ${outputPath}`
     );
   }
 

@@ -15,7 +15,10 @@ Released alongside `@howells/motif-cli` 2.0.0.
 
 - Add `LOOKS`, `getLook`, `validateCreativeDirection` and the `LookOption`, `LookId` and `MoodId` types. Each look carries a default `aspect` and `model`, `acceptsMood`, and an optional `experimental` flag.
 - Add `promptWarnings`, advisory checks on a caller's own prompt (`negated-object`, `text-bearing-object`).
-- Map fal's `403 User is locked` response to a `MotifError` with code `ACCOUNT_LOCKED`, and export `ACCOUNT_LOCKED` and `isFalAccountLocked`.
+- Map fal's `403 User is locked` response to a `MotifError` with code `ACCOUNT_LOCKED`, on requests and on the upload PUT, and export `ACCOUNT_LOCKED` and `isFalAccountLocked`.
+- Unsupported generation options now throw `UnsupportedOptionError` (code `INVALID_OPTION`), which names the models that support the option and the options this model supports. Add `OPTION_CAPABILITIES`, `supportedOptions`, `modelsSupporting` and the `ModelOption` type.
+- Add `ModelConfig.transparencyRoute` (`ProviderRoute`): `gpt2` produces transparent PNGs through OpenAI's `gpt-image-2`, not its fal endpoint.
+- Export `providerPricePerImageUsd` from `@howells/motif-sdk/image`.
 
 ## 0.3.0
 

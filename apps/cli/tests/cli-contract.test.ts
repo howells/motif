@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -37,10 +37,17 @@ function tempHome(): string {
   return dir;
 }
 
+/** A 1x1 PNG; edit paths only need to exist and carry an image extension. */
+const PNG_BYTES = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
 async function runMotif(
   args: string[],
   stdin = "",
-  home = tempHome()
+  home = tempHome(),
+  env: Record<string, string> = {}
 ): Promise<CliResult> {
   const child = spawn(
     process.execPath,
@@ -53,6 +60,7 @@ async function runMotif(
         FAL_KEY: "",
         HOME: home,
         NO_COLOR: "1",
+        ...env,
       },
       stdio: ["pipe", "pipe", "pipe"],
     }
@@ -939,25 +947,33 @@ describe("CLI contract", () => {
     });
   });
 
-  it("refuses a prompt swallowed by the variadic --edit flag", async () => {
+  it("takes one --edit path per flag, repeated, with the prompt after", async () => {
+    const dir = tempHome();
+    const first = join(dir, "first.png");
+    const second = join(dir, "second.png");
+    writeFileSync(first, PNG_BYTES);
+    writeFileSync(second, PNG_BYTES);
+
     const result = await runMotif([
-      "--edit",
-      "reference.png",
+      "-e",
+      first,
+      "-e",
+      second,
       "a cat on a windowsill",
+      "--model",
+      "banana",
+      "--dry-run",
       "--format",
       "json",
     ]);
 
-    expect(result.code).toBe(2);
-    const error = parseJsonLine(result.stderr);
-    expect(error).toMatchObject({
-      code: "EDIT_PROMPT_SWALLOWED",
-      details: { swallowed: "a cat on a windowsill" },
-      error: true,
-    });
+    expect(result.code).toBe(0);
+    const dryRun = parseJsonLine(result.stdout);
+    expect(dryRun.prompt).toBe("a cat on a windowsill");
+    expect(dryRun.editImages).toStrictEqual([first, second]);
   });
 
-  it("does not mistake a missing image path for a swallowed prompt", async () => {
+  it("still reports a missing --edit path as INVALID_EDIT_PATH", async () => {
     const result = await runMotif([
       "a cat on a windowsill",
       "--edit",
@@ -969,6 +985,94 @@ describe("CLI contract", () => {
 
     const error = parseJsonLine(result.stderr);
     expect(error).toMatchObject({ code: "INVALID_EDIT_PATH", error: true });
+  });
+
+  it("names the models that support a refused option", async () => {
+    const result = await runMotif([
+      "a lighthouse",
+      "-m",
+      "seedream45",
+      "-r",
+      "4K",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    const error = parseJsonLine(result.stderr);
+    expect(error.code).toBe("INVALID_OPTION");
+    expect(String(error.message)).toMatch(
+      /^Seedream 4\.5 does not support resolution\. Models that do: /
+    );
+    const details = asRecord(error.details);
+    expect(details.option).toBe("resolution");
+    expect(details.model).toBe("Seedream 4.5");
+    expect(asArray(details.modelsSupporting)).toContain("banana");
+    expect(asArray(details.supportedOptions).length).toBeGreaterThan(0);
+  });
+
+  it("routes gpt2 transparency through OpenAI in the dry run", async () => {
+    const result = await runMotif([
+      "a sticker of a fox",
+      "-m",
+      "gpt2",
+      "--transparent",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    const dryRun = parseJsonLine(result.stdout);
+    expect(dryRun).toMatchObject({
+      endpoint: "openai:gpt-image-2",
+      estimatedCost: null,
+      provider: "openai",
+      providerModel: "gpt-image-2",
+      requiredEnv: "OPENAI_API_KEY",
+      route: "openai",
+    });
+    expect(asRecord(dryRun.body)).toMatchObject({
+      background: "transparent",
+      n: 1,
+      outputFormat: "png",
+    });
+  });
+
+  it("keeps plain gpt2 on the fal route", async () => {
+    const result = await runMotif([
+      "a fox",
+      "-m",
+      "gpt2",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      endpoint: "openai/gpt-image-2",
+      route: "fal",
+    });
+  });
+
+  it("names OPENAI_API_KEY when the gpt2 transparency route has no key", async () => {
+    const result = await runMotif(
+      ["a sticker of a fox", "-m", "gpt2", "--transparent", "--format", "json"],
+      "",
+      tempHome(),
+      { OPENAI_API_KEY: "" }
+    );
+
+    expect(result.code).toBe(3);
+    expect(result.stdout).toBe("");
+    const error = parseJsonLine(result.stderr);
+    expect(error).toMatchObject({
+      code: "MISSING_API_KEY",
+      details: { envVar: "OPENAI_API_KEY", route: "openai" },
+    });
+    expect(String(error.message)).toContain("OPENAI_API_KEY");
   });
 
   it("allows reserved-word prompts via the stdin JSON escape hatch", async () => {

@@ -60,6 +60,7 @@ export { REPLICATE_API_KEY_ENV, REPLICATE_TIER_MODELS } from "./replicate";
 export { FAL_API_KEY_ENV, FAL_TIER_MODELS } from "./fal";
 export { PROVIDERS, getProviderAdapter } from "./provider";
 export type { ImageProviderAdapter } from "./provider";
+export { providerPricePerImageUsd } from "./cost";
 export { costForImages, costFromProviderMetadata } from "./cost";
 
 const DEFAULT_TIER: ImageTier = "balanced";

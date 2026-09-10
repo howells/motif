@@ -2,7 +2,12 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { estimateCost, estimateVideoCost } from "./cost";
-import { falHttpError, MotifError, toMotifError } from "./errors";
+import {
+  falHttpError,
+  isFalAccountLocked,
+  MotifError,
+  toMotifError,
+} from "./errors";
 import {
   asNumber,
   asString,
@@ -519,6 +524,10 @@ export class FalClient {
     }
 
     if (!putResponse.ok) {
+      const text = await putResponse.text();
+      if (isFalAccountLocked(putResponse.status, text)) {
+        return err(falHttpError(putResponse.status, text));
+      }
       return err(
         new MotifError(
           `Upload PUT failed: ${putResponse.status}`,
