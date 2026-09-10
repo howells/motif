@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -93,6 +93,8 @@ function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {
       (file) =>
         file === "package.json" ||
         file === "README.md" ||
+        file === "AGENTS.md" ||
+        /^docs\/[\w-]+\.md$/.test(file) ||
         file.startsWith("dist/") ||
         file.startsWith("bin/")
     )
@@ -173,11 +175,20 @@ describe("package smoke", () => {
     ]);
 
     const cliPack = await npmPackDryRun(resolve(repoRoot, "apps/cli"));
+    // The agent guide and its reference pages ship so an installed CLI can be
+    // driven from its own docs; the pages are read from disk so a new one is
+    // allowed without editing this list, while the guard above still admits
+    // only Markdown from docs/.
+    const cliDocs = readdirSync(resolve(repoRoot, "apps/cli/docs")).map(
+      (file) => `docs/${file}`
+    );
     expectPublicPackage(cliPack, [
+      "AGENTS.md",
       "README.md",
       "bin/motif",
       "dist/index.js",
       "package.json",
+      ...cliDocs,
     ]);
   }, 30_000);
 });

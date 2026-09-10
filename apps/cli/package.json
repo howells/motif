@@ -30,7 +30,9 @@
     "dist",
     "package.json",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "AGENTS.md",
+    "docs"
   ],
   "type": "module",
   "publishConfig": {

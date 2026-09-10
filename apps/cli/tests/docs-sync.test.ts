@@ -17,6 +17,9 @@ const repoRoot = resolve(testDir, "../../..");
 const cliAgentsPath = resolve(testDir, "../AGENTS.md");
 const rootAgentsPath = resolve(repoRoot, "AGENTS.md");
 const readmePath = resolve(repoRoot, "README.md");
+const cliCostsPath = resolve(repoRoot, "apps/cli/docs/costs.md");
+const cliGeneratePath = resolve(repoRoot, "apps/cli/docs/generate.md");
+const cliErrorsPath = resolve(repoRoot, "apps/cli/docs/errors.md");
 
 function read(path: string): string {
   return readFileSync(path, "utf-8");
@@ -36,17 +39,21 @@ function taskTable(doc: string): string {
 }
 
 describe("docs sync", () => {
-  it("documents every generation model id in the CLI agent guide", () => {
-    const agents = read(cliAgentsPath);
-    for (const model of GENERATION_MODELS) {
-      expect(agents, `missing model id: ${model}`).toContain(model);
+  it("documents every generation model id in the CLI cost reference and stdin schema", () => {
+    for (const path of [cliCostsPath, cliGeneratePath]) {
+      const doc = read(path);
+      for (const model of GENERATION_MODELS) {
+        expect(doc, `${path}: missing model id: ${model}`).toContain(model);
+      }
     }
   });
 
-  it("documents every error code in the CLI agent guide", () => {
-    const agents = read(cliAgentsPath);
-    for (const code of Object.keys(ERROR_CATALOG)) {
-      expect(agents, `missing error code: ${code}`).toContain(code);
+  it("documents every error code in the CLI agent guide and error catalogue", () => {
+    for (const path of [cliAgentsPath, cliErrorsPath]) {
+      const doc = read(path);
+      for (const code of Object.keys(ERROR_CATALOG)) {
+        expect(doc, `${path}: missing error code: ${code}`).toContain(code);
+      }
     }
   });
 
