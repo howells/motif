@@ -5,6 +5,8 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { spawnEnv } from "./cli-env";
+
 /**
  * Verifies that advanced generation flags survive parsing and normalization,
  * landing in the fal request body of a `--dry-run --format json` invocation.
@@ -31,13 +33,11 @@ async function runMotif(args: string[]): Promise<CliResult> {
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: tempHome(),
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
@@ -139,7 +139,7 @@ describe("advanced generation flags reach the request body", () => {
 
   it("--raw lands as body.raw (flux)", async () => {
     const body = await dryRunBody("flux", ["--raw"]);
-    expect(body.raw).toBe(true);
+    expect(body.raw).toBeTruthy();
   });
 
   it("--rendering-speed lands as body.rendering_speed (ideogram)", async () => {

@@ -5,6 +5,8 @@ import { join } from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { spawnEnv } from "./cli-env";
+
 /**
  * Commander raises its own argument errors — missing arguments, unknown
  * options — through a channel that bypasses the CLI's error contract. These
@@ -32,13 +34,11 @@ async function runMotif(args: string[]): Promise<CliResult> {
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: tempHome(),
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
@@ -98,7 +98,7 @@ describe("commander argument errors", () => {
       type: "urn:motif:error:invalid-option",
     });
     expect(envelope.message).toBe("missing required argument 'prompt'");
-    expect(Array.isArray(envelope.suggestions)).toBe(true);
+    expect(Array.isArray(envelope.suggestions)).toBeTruthy();
     expect(result.stdout).toBe("");
   });
 

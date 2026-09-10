@@ -7,6 +7,8 @@ import { CREATIVE_TAXONOMY, EDIT_CAPABLE_MODELS } from "@howells/motif-sdk";
 import type { CreativeField } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { spawnEnv } from "./cli-env";
+
 /** Upper-case the first letter, as the SDK sentence join does. */
 function cap(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
@@ -54,14 +56,12 @@ async function runMotif(
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: home,
-        NO_COLOR: "1",
         ...env,
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );

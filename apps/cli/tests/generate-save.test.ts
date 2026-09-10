@@ -17,12 +17,12 @@ import type { MotifConfig } from "../src/utils/config";
  * successful (billed) generation into GENERATION_FAILED exit 5.
  */
 
-vi.mock(import('../src/api/fal'), () => ({
+vi.mock(import("../src/api/fal"), () => ({
   deletePayloads: vi.fn(),
   generate: vi.fn(),
 }));
 
-vi.mock(import('../src/utils/image'), async (importActual) => {
+vi.mock(import("../src/utils/image"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/image")>();
   return {
     ...actual,
@@ -106,8 +106,7 @@ describe("generateImage save flow", () => {
 
     // The regression: the viewer must open the path that was actually
     // written (.jpg), not the requested one (.png).
-    expect(image.openImage).toHaveBeenCalledOnce();
-    expect(image.openImage).toHaveBeenCalledWith(actualPath);
+    expect(image.openImage).toHaveBeenCalledExactlyOnceWith(actualPath);
 
     // The structured result must also report the actual path.
     stdoutSpy.mockRestore();

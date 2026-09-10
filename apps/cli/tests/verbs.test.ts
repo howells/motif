@@ -11,19 +11,20 @@ import { enhance } from "../src/commands/verbs/enhance";
 import { layers, segment } from "../src/commands/verbs/image-verbs";
 import type { MotifConfig } from "../src/utils/config";
 import { reservedPromptSuggestion } from "../src/utils/input";
+import { spawnEnv } from "./cli-env";
 
 // In-process verbs run against the real HOME, and a verb that writes a file
 // records a generation. Stubbing the writer keeps the developer's own history
 // out of the test run; what it records is the kernel's business, not these
 // tests'.
-vi.mock(import('../src/utils/config'), async (importOriginal) => ({
+vi.mock(import("../src/utils/config"), async (importOriginal) => ({
   ...(await importOriginal<typeof import("../src/utils/config")>()),
   addGeneration: vi.fn<() => Promise<void>>(async () => {
     // no-op
   }),
 }));
 
-vi.mock(import('../src/api/fal'), () => ({
+vi.mock(import("../src/api/fal"), () => ({
   runTool: vi.fn<(options: unknown) => Promise<Record<string, unknown>>>(),
   runToolQueued:
     vi.fn<(options: unknown) => Promise<Record<string, unknown>>>(),
@@ -105,13 +106,11 @@ async function runMotif(args: string[]): Promise<CliResult> {
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: tempHome(),
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
@@ -508,9 +507,7 @@ describe("enhance — queued Topaz endpoints", () => {
     });
     stubPngFetch();
 
-    const stdout = vi
-      .spyOn(process.stdout, "write")
-      .mockReturnValue(true);
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     try {
       await enhance(image, { denoise: true }, TEST_CONFIG, {
         format: "json",
@@ -544,9 +541,7 @@ describe("registry-declared execution path", () => {
     vi.mocked(runTool).mockResolvedValue({});
     stubPngFetch();
 
-    const stdout = vi
-      .spyOn(process.stdout, "write")
-      .mockReturnValue(true);
+    const stdout = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     try {
       await layers(image, { output: "verbs-layers-out/" }, TEST_CONFIG, {
         format: "json",

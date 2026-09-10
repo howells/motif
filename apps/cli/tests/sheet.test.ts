@@ -15,6 +15,7 @@ import {
   SHEET_GAP,
 } from "../src/commands/sheet";
 import type { Generation } from "../src/utils/config";
+import { spawnEnv } from "./cli-env";
 
 const fixtures = mkdtempSync(join(tmpdir(), "motif-sheet-"));
 // Output must sit inside the git root, so spawned runs write under apps/cli.
@@ -65,13 +66,11 @@ async function runSheet(args: string[]): Promise<Run> {
     ["--import", "tsx", "src/index.ts", "sheet", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: "",
         HOME: mkdtempSync(join(tmpdir(), "motif-sheet-home-")),
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["ignore", "pipe", "pipe"],
     }
   );

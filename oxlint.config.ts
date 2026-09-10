@@ -195,8 +195,13 @@ export default {
     {
       // Test files: the shared preset's test overlay only relaxes
       // size/complexity. Tests also legitimately read env, use temp dirs, `new`,
-      // and dynamic imports.
-      files: ["**/*.test.{js,jsx,ts,tsx}", "**/*.spec.{js,jsx,ts,tsx}"],
+      // and dynamic imports. The glob covers helpers that live alongside the
+      // tests and share those needs, not only the spec files themselves.
+      files: [
+        "**/*.test.{js,jsx,ts,tsx}",
+        "**/*.spec.{js,jsx,ts,tsx}",
+        "**/tests/**/*.{js,jsx,ts,tsx}",
+      ],
       rules: {
         "no-restricted-properties": "off",
         "promise/avoid-new": "off",

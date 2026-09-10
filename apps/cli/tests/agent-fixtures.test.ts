@@ -7,6 +7,7 @@ import { CREATIVE_TAXONOMY } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { exitCodeForStatus } from "../src/utils/errors";
+import { spawnEnv } from "./cli-env";
 
 /**
  * Agent task regression fixtures (SURF-7).
@@ -39,13 +40,11 @@ async function runMotif(
     ["--import", "tsx", "src/index.ts", ...args],
     {
       cwd: process.cwd(),
-      env: {
-        ...process.env,
+      env: spawnEnv({
         CI: "1",
         FAL_KEY: options.falKey ?? "",
         HOME: options.home ?? tempHome(),
-        NO_COLOR: "1",
-      },
+      }),
       stdio: ["pipe", "pipe", "pipe"],
     }
   );
@@ -125,7 +124,7 @@ describe("agent fixtures: describe schema contract", () => {
 
     for (const [field, options] of Object.entries(CREATIVE_TAXONOMY)) {
       const expectedIds = options.map((option) => option.id);
-      expect(properties[field]?.enum).toEqual(expectedIds);
+      expect(properties[field]?.enum).toStrictEqual(expectedIds);
     }
   });
 });
@@ -225,7 +224,7 @@ describe("agent fixtures: structured error envelope", () => {
   });
 });
 
-describe("exitCodeForStatus", () => {
+describe(exitCodeForStatus, () => {
   it("maps auth statuses to exit 3", () => {
     expect(exitCodeForStatus(401)).toBe(3);
     expect(exitCodeForStatus(403)).toBe(3);

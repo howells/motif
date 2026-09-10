@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
+import { spawnEnv } from "./cli-env";
+
 interface PackFile {
   path: string;
 }
@@ -36,12 +38,10 @@ async function runCommand(
 ): Promise<RunResult> {
   const child = spawn(command, args, {
     cwd,
-    env: {
-      ...process.env,
+    env: spawnEnv({
       CI: "1",
       FAL_KEY: "",
-      NO_COLOR: "1",
-    },
+    }),
     stdio: ["ignore", "pipe", "pipe"],
   });
 
@@ -84,10 +84,10 @@ async function npmPackDryRun(packagePath: string): Promise<PackResult> {
 
 function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {
   const files = pack.files.map((file) => file.path).toSorted();
-  expect(files).toEqual(expectedFiles.toSorted());
-  expect(files.some((file) => file.includes("apps/web"))).toBe(false);
-  expect(files.some((file) => file.includes(".env"))).toBe(false);
-  expect(files.some((file) => file.includes("src/"))).toBe(false);
+  expect(files).toStrictEqual(expectedFiles.toSorted());
+  expect(files.some((file) => file.includes("apps/web"))).toBeFalsy();
+  expect(files.some((file) => file.includes(".env"))).toBeFalsy();
+  expect(files.some((file) => file.includes("src/"))).toBeFalsy();
   expect(
     files.every(
       (file) =>
@@ -96,7 +96,7 @@ function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {
         file.startsWith("dist/") ||
         file.startsWith("bin/")
     )
-  ).toBe(true);
+  ).toBeTruthy();
 }
 
 describe("package smoke", () => {
@@ -109,7 +109,9 @@ describe("package smoke", () => {
 
   it("runs the built CLI binary without a Fal key", async () => {
     const cliBin = resolve(repoRoot, "apps/cli/bin/motif");
-    expect(existsSync(resolve(repoRoot, "apps/cli/dist/index.js"))).toBe(true);
+    expect(
+      existsSync(resolve(repoRoot, "apps/cli/dist/index.js"))
+    ).toBeTruthy();
 
     const help = await runCommand(
       process.execPath,
