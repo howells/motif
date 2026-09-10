@@ -1,27 +1,7 @@
+import { CodeBlock } from "@/components/site/code-block";
 import { AGENT_SURFACE } from "@/lib/site/content";
 
 import styles from "@/components/site/site.module.css";
-
-function CodeBlock({
-  children,
-  label,
-}: {
-  readonly children: string;
-  readonly label?: string;
-}) {
-  return (
-    <figure className="m-0 flex min-w-0 flex-col gap-2">
-      {label === undefined ? null : (
-        <figcaption className="text-[14px] text-(--site-muted)">
-          {label}
-        </figcaption>
-      )}
-      <pre className="m-0 overflow-x-auto bg-(--site-plate) px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] text-(--site-ink)">
-        <code>{children}</code>
-      </pre>
-    </figure>
-  );
-}
 
 function Subhead({ children }: { readonly children: string }) {
   return (
@@ -78,6 +58,22 @@ export function Appendix({ number }: { readonly number: string }) {
               {AGENT_SURFACE.describeTasksExcerpt}
             </CodeBlock>
           </div>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-4">
+          <Subhead>Error codes and fixes</Subhead>
+          <CodeBlock>{AGENT_SURFACE.describeErrors.command}</CodeBlock>
+          <CodeBlock label="Output, 2 of the entries">
+            {AGENT_SURFACE.describeErrors.output}
+          </CodeBlock>
+        </div>
+
+        <div className="flex min-w-0 flex-col gap-4">
+          <Subhead>Other fal tools</Subhead>
+          <CodeBlock>{AGENT_SURFACE.toolList.command}</CodeBlock>
+          <CodeBlock label={AGENT_SURFACE.toolList.label}>
+            {AGENT_SURFACE.toolList.output}
+          </CodeBlock>
         </div>
       </div>
     </section>

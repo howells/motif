@@ -1,27 +1,11 @@
 import Image from "next/image";
 
+import { CodeBlock } from "@/components/site/code-block";
+import { mayBeTransparent, Picture } from "@/components/site/picture";
+import { SeriesView } from "@/components/site/series";
 import type { Asset, Demo } from "@/lib/site/content";
 
 import styles from "@/components/site/site.module.css";
-
-/** PNG and SVG outputs may carry transparency, so they get the checkerboard.
- * An opaque one covers it completely and looks no different. */
-const mayBeTransparent = (asset: Asset) => /\.(?:png|svg)$/u.test(asset.src);
-
-export function Picture({ asset }: { readonly asset: Asset }) {
-  return (
-    <div className={mayBeTransparent(asset) ? styles.checker : undefined}>
-      <Image
-        alt={asset.alt}
-        className="block h-auto w-full"
-        height={asset.height}
-        src={asset.src}
-        unoptimized
-        width={asset.width}
-      />
-    </div>
-  );
-}
 
 function Label({ children }: { readonly children: string }) {
   return (
@@ -137,9 +121,23 @@ export function DemoView({ demo }: { readonly demo: Demo }) {
   switch (demo.kind) {
     case "pair": {
       return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-center">
-          <Labelled asset={demo.before} label="Before" />
-          <Labelled asset={demo.after} label="After" />
+        <div className="flex flex-col gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-center">
+            <Labelled asset={demo.before} label="Before" />
+            <Labelled asset={demo.after} label="After" />
+          </div>
+          {demo.detail === undefined ? null : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Labelled
+                asset={demo.detail.before}
+                label="Detail at full size, before"
+              />
+              <Labelled
+                asset={demo.detail.after}
+                label="Detail at full size, after"
+              />
+            </div>
+          )}
         </div>
       );
     }
@@ -173,7 +171,45 @@ export function DemoView({ demo }: { readonly demo: Demo }) {
               {demo.answer}
             </p>
           )}
+          {demo.output === undefined ? null : (
+            <CodeBlock label="Output">{demo.output}</CodeBlock>
+          )}
         </figure>
+      );
+    }
+    case "series": {
+      return <SeriesView demo={demo} />;
+    }
+    case "terminal": {
+      return (
+        <CodeBlock label={demo.label} wrap={demo.wrap}>
+          {demo.output}
+        </CodeBlock>
+      );
+    }
+    case "video": {
+      return (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-center">
+          {demo.source === undefined ? null : (
+            <Labelled asset={demo.source} label="Source" />
+          )}
+          <figure className="m-0 flex flex-col gap-2">
+            {/* No sound, so there is nothing to caption. */}
+            <video
+              aria-label={demo.poster.alt}
+              className="block h-auto w-full bg-(--site-plate)"
+              controls
+              height={demo.poster.height}
+              muted
+              playsInline
+              poster={demo.poster.src}
+              preload="none"
+              src={demo.src}
+              width={demo.poster.width}
+            />
+            <Label>{demo.label}</Label>
+          </figure>
+        </div>
       );
     }
     case "text": {

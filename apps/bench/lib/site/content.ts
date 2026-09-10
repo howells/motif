@@ -2,21 +2,26 @@
  * Content for the public page at `/`. Import everything from here; the
  * neighbouring files only keep this one short.
  *
- * Every image is a real Motif output from `docs/tools/examples/`, web-sized into
- * `public/demo/`. Each capability's `command` is the one that produced its
- * asset. Where a fal tool made the asset in place of a Motif command,
- * `relatesTo` names that command and `notes` says how the two differ. The agent
- * surface is the CLI's own captured output.
+ * Every image is a real Motif output, web-sized into `public/demo/`. Each
+ * capability's `command` is the one that produced its asset. Where a fal tool
+ * made the asset in place of a Motif command, `relatesTo` names that command
+ * and `notes` says how the two differ. The agent surface is the CLI's own
+ * captured output.
  */
 
-import { LOOKS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, LOOKS } from "@howells/motif-sdk";
 
+import { CAPABILITIES } from "@/lib/site/capabilities";
 import {
+  DESCRIBE_ERRORS_EXCERPT,
   DESCRIBE_TASKS_EXCERPT,
   DID_YOU_MEAN_OUTPUT,
   HELP_EXCERPT,
+  TOOL_COUNT,
+  TOOL_LIST_EXCERPT,
 } from "@/lib/site/cli-output";
-import type { Asset, CapabilityGroup, LookEntry } from "@/lib/site/types";
+import { LOOK_PROOFS, MOOD_IMAGES, MOOD_RUN } from "@/lib/site/looks";
+import type { CapabilityGroup, LookEntry, MoodEntry } from "@/lib/site/types";
 
 export { CAPABILITIES } from "@/lib/site/capabilities";
 export type {
@@ -25,6 +30,9 @@ export type {
   CapabilityGroup,
   Demo,
   LookEntry,
+  MoodEntry,
+  SeriesDemo,
+  Transcript,
 } from "@/lib/site/types";
 
 export const SITE = {
@@ -39,93 +47,63 @@ export const CAPABILITY_GROUPS: { id: CapabilityGroup; title: string }[] = [
   { id: "edit", title: "Edit" },
   { id: "understand", title: "Understand" },
   { id: "tools", title: "Tools" },
+  { id: "more", title: "Everything else" },
 ];
 
-/** Proof images for five looks, each made with the look's default model and
- * aspect ratio. */
-const LOOK_PROOFS = new Map<string, { image: Asset; prompt: string }>([
-  [
-    "editorial",
-    {
-      image: {
-        alt: "A worn wooden table laid with paint tins, jars and tied swatches in bottle green and oxblood",
-        height: 1800,
-        src: "/demo/looks/editorial.jpg",
-        width: 1800,
-      },
-      prompt:
-        "A materials library table with paint tins and swatch chains in bottle green and oxblood",
-    },
-  ],
-  [
-    "still-life",
-    {
-      image: {
-        alt: "Three stoneware vessels, one glazed sage green and two pale stone, on a plaster ground",
-        height: 1024,
-        src: "/demo/looks/still-life.jpg",
-        width: 1024,
-      },
-      prompt: "Three stoneware vessels, one glazed sage green, two pale stone",
-    },
-  ],
-  [
-    "lived-in",
-    {
-      image: {
-        alt: "A sitting room with deep green painted bookshelves and an oatmeal linen sofa",
-        height: 768,
-        src: "/demo/looks/lived-in.jpg",
-        width: 1024,
-      },
-      prompt:
-        "A calm English sitting room with deep green painted bookshelves and an oatmeal linen sofa",
-    },
-  ],
-  [
-    "architectural",
-    {
-      image: {
-        alt: "A hotel lobby with a curved travertine reception desk against oxblood plaster walls",
-        height: 1800,
-        src: "/demo/looks/architectural.jpg",
-        width: 1450,
-      },
-      prompt:
-        "A hotel lobby with a travertine reception desk against oxblood plaster walls",
-    },
-  ],
-  [
-    "homeowner",
-    {
-      image: {
-        alt: "A phone snapshot of a kitchen with oak cabinets and a cream range cooker",
-        height: 1350,
-        src: "/demo/looks/homeowner.jpg",
-        width: 1800,
-      },
-      prompt:
-        "A real home kitchen with oak shaker cabinets and a cream range cooker",
-    },
-  ],
-]);
+/** Every section and chapter anchor on the page. The first three are fixed in
+ * the looks, moods and appendix components. A repeat fails the build, since
+ * the contents links would land on the wrong one. */
+const ANCHORS = [
+  "looks",
+  "moods",
+  "agents",
+  ...CAPABILITY_GROUPS.map((group) => group.id),
+  ...CAPABILITIES.map((capability) => capability.id),
+];
+const repeated = ANCHORS.find((id, index) => ANCHORS.indexOf(id) !== index);
+if (repeated !== undefined) {
+  throw new Error(`Two sections share the id "${repeated}"`);
+}
 
+const FIELDS = "--no-open --format json --fields model,aspect,cost,prompt";
+
+/** Every look in catalogue order. A look without a proof image fails the
+ * build, so a new look in the SDK can't ship without one. */
 export const LOOK_ENTRIES: LookEntry[] = LOOKS.map((look) => {
-  const entry: LookEntry = {
+  const proof = LOOK_PROOFS.get(look.id);
+  if (proof === undefined) {
+    throw new Error(`No proof image for the "${look.id}" look`);
+  }
+  return {
+    acceptsMood: look.acceptsMood,
+    command: `motif "${proof.prompt}" --look ${look.id} -o ${look.id}.png ${FIELDS}`,
     description: look.description,
     id: look.id,
+    image: proof.image,
     name: look.label,
+    prompt: proof.prompt,
   };
-  const proof = LOOK_PROOFS.get(look.id);
-  if (proof !== undefined) {
-    entry.command = `motif "${proof.prompt}" --look ${look.id} -o ${look.id}.png --no-open --format json --fields model,aspect,cost,prompt`;
-    entry.image = proof.image;
-    entry.prompt = proof.prompt;
+});
+
+export const MOOD_ENTRIES: MoodEntry[] = CREATIVE_TAXONOMY.mood.map((mood) => {
+  const image = MOOD_IMAGES.get(mood.id);
+  if (image === undefined) {
+    throw new Error(`No proof image for the "${mood.id}" mood`);
   }
-  return entry;
+  return {
+    command: `motif "${MOOD_RUN.prompt}" --look ${MOOD_RUN.look} --mood ${mood.id} --seed ${MOOD_RUN.seed} -o ${mood.id}.png ${FIELDS}`,
+    description: mood.description,
+    id: mood.id,
+    image,
+    name: mood.label,
+  };
 });
 
 export const AGENT_SURFACE = {
+  describeErrors: {
+    command: "motif --describe errors --format json",
+    output: DESCRIBE_ERRORS_EXCERPT,
+  },
   describeTasksCommand: "motif --describe tasks --format json",
   describeTasksExcerpt: DESCRIBE_TASKS_EXCERPT,
   didYouMean: {
@@ -134,4 +112,9 @@ export const AGENT_SURFACE = {
     output: DID_YOU_MEAN_OUTPUT,
   },
   help: HELP_EXCERPT,
+  toolList: {
+    command: "motif tool list",
+    label: `Output, 5 of ${TOOL_COUNT} tools and the closing line`,
+    output: TOOL_LIST_EXCERPT,
+  },
 };

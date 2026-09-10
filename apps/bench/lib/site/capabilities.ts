@@ -1,78 +1,48 @@
 /**
  * Every capability shown on the demo page, each with a real output.
  *
- * Each `command` is the one that produced its asset, taken from
- * `docs/tools/regenerate.sh` or `scripts/run-demos.mjs` (which runs
- * `scripts/demo-manifest.json`), with file paths shortened to file names.
- * Import from `@/lib/site/content`.
+ * Each `command` is the one that produced its asset, with file paths
+ * shortened to file names. Motif commands come from the demo runs in
+ * `commands.json`; the `motif tool run` chapters from `docs/tools/regenerate.sh`
+ * or `scripts/run-demos.mjs`. A tool run stays only where it shows something
+ * the Motif command doesn't. Import from `@/lib/site/content`.
  */
 
-import type { Asset, Capability } from "@/lib/site/types";
-
-// Sources, shared by several capabilities.
-
-const APOTHECARY: Asset = {
-  alt: "Three amber bottles and a white bowl on a travertine shelf, raking sunlight",
-  height: 781,
-  src: "/demo/sources/apothecary.jpg",
-  width: 1400,
-};
-
-const INTERIOR: Asset = {
-  alt: "An interior with a bench, linen and a plaster wall",
-  height: 781,
-  src: "/demo/sources/interior.jpg",
-  width: 1400,
-};
-
-const LABEL: Asset = {
-  alt: "A letterpress label reading SALVAGE & CO on textured paper",
-  height: 781,
-  src: "/demo/sources/label.jpg",
-  width: 1400,
-};
-
-const VESSEL: Asset = {
-  alt: "A ribbed stoneware vessel on a stone plinth",
-  height: 1400,
-  src: "/demo/sources/vessel.jpg",
-  width: 1400,
-};
-
-const LINEN: Asset = {
-  alt: "A macro photograph of folded linen weave",
-  height: 1400,
-  src: "/demo/sources/linen.jpg",
-  width: 1400,
-};
-
-const MONOCHROME: Asset = {
-  alt: "A black-and-white photograph of a woman in a wool coat beside a parked car on a wet cobbled street",
-  height: 781,
-  src: "/demo/sources/monochrome.jpg",
-  width: 1400,
-};
-
-const FIGURE: Asset = {
-  alt: "A person in loose oatmeal linen standing in a bare plaster room",
-  height: 1400,
-  src: "/demo/sources/figure.jpg",
-  width: 939,
-};
-
-const MARK: Asset = {
-  alt: "The word SALVAGE in a heavy olive sans-serif above a rule and a circular S monogram",
-  height: 1400,
-  src: "/demo/sources/mark.jpg",
-  width: 1400,
-};
+import {
+  DETECT_OUTPUT,
+  HISTORY_OUTPUT,
+  LAST_OUTPUT,
+  STUDIO_SCREEN,
+} from "@/lib/site/cli-output";
+import { SERIES_CAPABILITY } from "@/lib/site/series";
+import {
+  APOTHECARY,
+  INTERIOR,
+  LABEL,
+  MARK,
+  SMALL_VESSEL,
+  VASE,
+} from "@/lib/site/sources";
+import { TOOL_CAPABILITIES } from "@/lib/site/tools";
+import type { Capability } from "@/lib/site/types";
 
 const GENERATE_PROMPT =
   "editorial still life, three amber glass apothecary bottles of descending height and a white ceramic bowl on a travertine shelf, raking afternoon sunlight casting long shadows on a warm plaster wall, muted palette";
 
+const VASE_PROMPT =
+  "A pale stoneware vase on a plain linen ground, soft daylight";
+
 const ERASE_PROMPT = "the small amber bottle on the right of the group";
 
+const VIDEO_INPUT = JSON.stringify({
+  command: "video",
+  imagePath: "source-apothecary.jpg",
+  prompt:
+    "Soft daylight drifts slowly across the wall behind the bottles. The camera stays still.",
+});
+
 export const CAPABILITIES: Capability[] = [
+  // Make
   {
     caption:
       "A 16:9 still life made from the prompt alone, with no reference image.",
@@ -82,6 +52,72 @@ export const CAPABILITIES: Capability[] = [
     id: "generate",
     title: "Make an image from a prompt",
   },
+  {
+    caption: "The same shelf at dusk, with the bottles in cobalt blue glass.",
+    command:
+      'motif "The same shelf at dusk, the bottles in cobalt blue glass" -e source-apothecary.jpg -m banana -o edit.png --no-open --format json',
+    demo: {
+      after: {
+        alt: "The same shelf at dusk, the three bottles in cobalt blue glass and low orange light on the wall",
+        height: 1000,
+        src: "/demo/edit/dusk.jpg",
+        width: 1000,
+      },
+      before: APOTHECARY,
+      kind: "pair",
+    },
+    group: "make",
+    id: "edit-with-prompt",
+    notes: "No -a was given, so the edit came back square.",
+    title: "Edit an image with a prompt",
+  },
+  {
+    caption:
+      "A celadon vase made straight onto a transparent background, with no cut-out step.",
+    command:
+      'motif "A ceramic vase with a pale celadon glaze, studio product shot" -m gpt --transparent -o vase-transparent.png --no-open --format json',
+    demo: {
+      kind: "set",
+      outputs: [
+        {
+          alt: "A celadon crackle-glaze vase on a transparent background",
+          height: 1024,
+          src: "/demo/vase/transparent.png",
+          width: 1024,
+        },
+      ],
+    },
+    group: "make",
+    id: "transparent",
+    title: "Make an image with a transparent background",
+  },
+  {
+    caption: "Two new takes of the same prompt and model.",
+    command: `motif --vary "${VASE_PROMPT}" -m banana2 -n 2 -o vary.png --no-open --format json`,
+    demo: {
+      kind: "set",
+      outputs: [
+        {
+          alt: "A small speckled white vase of dried grasses and seed heads on a linen cloth",
+          height: 1000,
+          src: "/demo/vase/vary-1.jpg",
+          width: 1000,
+        },
+        {
+          alt: "A speckled cream vase of dried wheat and honesty on a linen runner by a window",
+          height: 1000,
+          src: "/demo/vase/vary-2.jpg",
+          width: 1000,
+        },
+      ],
+    },
+    group: "make",
+    id: "vary",
+    notes:
+      "--vary sends no image. It runs the last prompt and model again, so each take is a new picture.",
+    title: "Make new takes of the last prompt",
+  },
+  SERIES_CAPABILITY,
   {
     caption: "Five images on one captioned sheet, three to a row.",
     command:
@@ -101,6 +137,29 @@ export const CAPABILITIES: Capability[] = [
     id: "sheet",
     title: "Lay images out on a contact sheet",
   },
+  {
+    caption:
+      "Five seconds from the shelf photograph. The camera stays still and the shadows shift slightly.",
+    command: `echo '${VIDEO_INPUT}' | motif --video-no-audio -o apothecary.mp4 --no-open --format json`,
+    demo: {
+      kind: "video",
+      label: "Output, 5 seconds, no sound",
+      poster: {
+        alt: "A frame from the video: the amber bottles and white bowl on the shelf in raking light",
+        height: 781,
+        src: "/demo/video/poster.jpg",
+        width: 1400,
+      },
+      source: APOTHECARY,
+      src: "/demo/video/apothecary.mp4",
+    },
+    group: "make",
+    id: "video",
+    notes: "Video reads its prompt from JSON on standard input.",
+    title: "Make a short video from an image",
+  },
+
+  // Edit
   {
     caption:
       "The small bottle is gone and the shelf rebuilt, but its shadow is still on the wall.",
@@ -145,146 +204,191 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     caption:
-      "The 16:9 room becomes a square, with new wall above and new floor below.",
-    command: `motif tool run bria-expand -i source-interior.jpg --format json -o out-expand.jpg --json '{"canvas_size":[1536,1536]}'`,
+      "The room redrawn at 16:9, with a little more wall and floor around the bench.",
+    command:
+      "motif reframe --og source-interior.jpg -o reframe.png --no-open --format json",
     demo: {
       after: {
-        alt: "The same interior extended to a square, with more wall above the bench and more floor below it",
-        height: 1400,
-        src: "/demo/expand/bria-expand.jpg",
-        width: 1400,
+        alt: "The same room redrawn slightly wider, with more wall above the bench and more floor below",
+        height: 736,
+        src: "/demo/reframe/interior.jpg",
+        width: 1312,
       },
       before: INTERIOR,
       kind: "pair",
     },
     group: "edit",
-    id: "extend",
+    id: "reframe",
     notes:
-      "motif reframe calls ideogram-reframe, and none of its output is shown here. Its help recommends bria-expand for outpainting by a set margin.",
-    relatesTo: "motif reframe",
-    title: "Extend the canvas",
-    tool: "bria-expand",
+      "The source was already close to 16:9, so the change is small. bria-expand, under Tools, adds canvas by a set amount instead.",
+    title: "Change an image's shape",
+    tool: "ideogram-reframe",
   },
   {
     caption:
-      "A 360px, heavily compressed copy of the vessel, enlarged to full size.",
+      "A 360px, heavily compressed copy of the vessel, enlarged to 720px.",
     command:
-      "motif tool run topaz-precision -i derived-upscale.jpg --format json -o out-upscale.jpg",
+      "motif enhance --upscale derived-upscale.jpg -o enhanced.png --no-open --format json",
     demo: {
       after: {
-        alt: "The same vessel enlarged, with the ribs and the plinth's edges defined",
-        height: 1400,
-        src: "/demo/upscale/after.jpg",
-        width: 1400,
+        alt: "The vessel at 720px, its flutes and the plinth's veining defined",
+        height: 720,
+        src: "/demo/upscale/enhanced.jpg",
+        width: 720,
       },
-      before: {
-        alt: "A small, heavily compressed copy of the ribbed stoneware vessel on its plinth",
-        height: 360,
-        src: "/demo/upscale/before.jpg",
-        width: 360,
-      },
+      before: SMALL_VESSEL,
       kind: "pair",
     },
     group: "edit",
     id: "upscale",
     notes:
-      "motif enhance --upscale makes this same topaz-precision call. The source was shrunk to 360px at JPEG quality 35 first, so there was detail to recover.",
-    relatesTo: "motif enhance --upscale",
+      "The source was shrunk to 360px at JPEG quality 35 first, so there was detail to recover.",
     title: "Upscale a small image",
     tool: "topaz-precision",
   },
   {
-    caption:
-      "The vessel on a transparent background, with the plinth and wall removed.",
-    command: "motif tool run bria-rmbg source-vessel.jpg -o out-nobg.png",
+    caption: "The same 360px copy enlarged to 720px with one flag.",
+    command:
+      "motif --up derived-upscale.jpg -o upscaled.png --no-open --format json",
     demo: {
       after: {
-        alt: "The ribbed stoneware vessel alone on a transparent background",
-        height: 1400,
-        src: "/demo/background-removal/vessel.png",
+        alt: "The vessel at 720px, smoother, with softer flutes",
+        height: 720,
+        src: "/demo/upscale/up.jpg",
+        width: 720,
+      },
+      before: SMALL_VESSEL,
+      kind: "pair",
+    },
+    group: "edit",
+    id: "up",
+    notes:
+      "--up runs a Clarity upscale. Without a file it upscales the last image.",
+    title: "Upscale quickly",
+  },
+  {
+    caption:
+      "The fine grain on the walls and ceiling is smoothed, and the sign, faces and edges stay sharp.",
+    command:
+      "motif enhance --denoise source-noisy.jpg -o denoised.png --no-open --format json",
+    demo: {
+      after: {
+        alt: "The same bar after denoising, the grain smoothed and the sign and faces still sharp",
+        height: 781,
+        src: "/demo/denoise/denoised.jpg",
         width: 1400,
       },
-      before: VESSEL,
+      before: {
+        alt: "A grainy low-light photograph of a crowded bar under a neon sign reading THE OWL'S NEST",
+        height: 781,
+        src: "/demo/denoise/source.jpg",
+        width: 1400,
+      },
+      detail: {
+        after: {
+          alt: "The same ceiling, lamp and sign after denoising, the grain smoothed and the lettering still sharp",
+          height: 300,
+          src: "/demo/denoise/denoised-crop.jpg",
+          width: 400,
+        },
+        before: {
+          alt: "A full-size detail of the grainy ceiling, a pendant lamp and the neon sign",
+          height: 300,
+          src: "/demo/denoise/source-crop.jpg",
+          width: 400,
+        },
+      },
+      kind: "pair",
+    },
+    group: "edit",
+    id: "denoise",
+    notes:
+      "The grain is too fine to see in the whole frame, so the detail below shows the same 400x300 region of each file at full size.",
+    title: "Remove noise from a photo",
+    tool: "topaz-denoise",
+  },
+  {
+    caption: "The vase cut out of the room it was made in.",
+    command: `motif "${VASE_PROMPT}" -m banana2 -o vase.png --no-open --format json\nmotif --rmbg --no-open --format json`,
+    demo: {
+      after: {
+        alt: "The same vase alone on a transparent background",
+        height: 1000,
+        src: "/demo/vase/nobg.png",
+        width: 1000,
+      },
+      before: VASE,
       kind: "pair",
     },
     group: "edit",
     id: "remove-background",
     notes:
-      "motif --rmbg does the same job on the last image, using BiRefNet. This one was made with bria-rmbg.",
-    relatesTo: "motif --rmbg",
+      "--rmbg works on the last image, here the vase made by the line before it.",
     title: "Remove the background",
-    tool: "bria-rmbg",
+    tool: "birefnet",
   },
   {
     caption:
-      "Each bottle and the bowl come back as separate cut-outs, along with the empty shelf behind them.",
+      "Four layers: the wall and shelf, the small bottle, the two tall bottles and the bowl.",
     command:
-      "motif tool run seedream-layerize -i source-apothecary.jpg --format json -o layers-objects/",
+      "motif layers source-apothecary.jpg -o layers/ --no-open --format json",
     demo: {
       kind: "set",
       outputs: [
         {
-          alt: "The travertine shelf and plaster wall, empty, with the raking light intact",
-          height: 781,
-          src: "/demo/layers/plate.jpg",
-          width: 1400,
+          alt: "The wall and shelf with the objects gone, their shadows still faintly on the wall",
+          height: 480,
+          src: "/demo/layers/qwen-1.jpg",
+          width: 864,
         },
         {
-          alt: "An amber glass bottle cut out on transparency",
-          height: 800,
-          src: "/demo/layers/layer-2.png",
-          width: 371,
+          alt: "The small amber bottle on transparency",
+          height: 480,
+          src: "/demo/layers/qwen-2.png",
+          width: 864,
         },
         {
-          alt: "A darker amber glass bottle cut out on transparency",
-          height: 800,
-          src: "/demo/layers/layer-3.png",
-          width: 337,
+          alt: "The two tall amber bottles on transparency",
+          height: 480,
+          src: "/demo/layers/qwen-3.png",
+          width: 864,
         },
         {
-          alt: "The white ceramic bowl cut out on transparency",
-          height: 542,
-          src: "/demo/layers/layer-4.png",
-          width: 800,
-        },
-        {
-          alt: "An amber glass pump bottle cut out on transparency",
-          height: 800,
-          src: "/demo/layers/layer-5.png",
-          width: 305,
+          alt: "The white bowl on transparency",
+          height: 480,
+          src: "/demo/layers/qwen-4.png",
+          width: 864,
         },
       ],
       source: APOTHECARY,
     },
     group: "edit",
     id: "layers",
-    notes:
-      "motif layers calls qwen-layered, and none of its output is shown here. seedream-layerize also names each layer in its JSON response.",
-    relatesTo: "motif layers",
+    notes: "The layers come back at 864x480, smaller than the 1400x781 source.",
     title: "Split an image into layers",
-    tool: "seedream-layerize",
+    tool: "qwen-layered",
   },
   {
     caption: "The wordmark, rule and monogram traced to SVG paths.",
     command:
-      "motif tool run recraft-vectorize -i source-mark.jpg --format json -o out-vectorize.svg",
+      "motif vectorize source-mark.jpg -o mark.svg --no-open --format json",
     demo: {
       after: {
         alt: "The SALVAGE wordmark, rule and monogram as a vector drawing",
-        height: 2048,
+        height: 1400,
         src: "/demo/vectorize/mark.svg",
-        width: 2048,
+        width: 1400,
       },
       before: MARK,
       kind: "pair",
     },
     group: "edit",
     id: "vectorize",
-    notes: "motif vectorize makes this same recraft-vectorize call.",
-    relatesTo: "motif vectorize",
     title: "Trace an image to SVG",
     tool: "recraft-vectorize",
   },
+
+  // Understand
   {
     caption: "The bowl, found by name and cut out on a transparent background.",
     command:
@@ -305,25 +409,22 @@ export const CAPABILITIES: Capability[] = [
     tool: "sam3-image",
   },
   {
-    caption: "Counts the bottles and names what the bowl is made of.",
-    command: `motif tool run moondream-query -i source-apothecary.jpg --format json --json '{"prompt":"How many bottles are there, and what is the vessel on the right made of?"}'`,
+    caption: "A plain question, answered in a sentence.",
+    command: 'motif ask "What is on the shelf?" source-apothecary.jpg',
     demo: {
       kind: "text",
-      output: "3 bottles and a white ceramic bowl",
+      output: "Three amber glass bottles and a white bowl are on the shelf.",
       source: APOTHECARY,
     },
     group: "understand",
     id: "ask",
-    notes:
-      'motif ask makes this same moondream-query call. The model\'s reasoning: "I see three bottles. To the right of the bottles, I see a white bowl. The bowl appears to be made of ceramic."',
-    relatesTo: "motif ask",
     title: "Ask a question about an image",
-    tool: "moondream-query",
   },
   {
     caption:
       "One box for each of the three bottles, as fractions of the image's width and height.",
-    command: `motif tool run moondream-detect -i source-apothecary.jpg --format json --json '{"prompt":"bottle"}'`,
+    command:
+      'motif ask --detect "bottle" source-apothecary.jpg --no-open --format json',
     demo: {
       boxes: [
         {
@@ -342,19 +443,18 @@ export const CAPABILITIES: Capability[] = [
         },
         {
           label: "bottle",
-          x0: 0.468994140625,
-          x1: 0.538818359375,
-          y0: 0.60546875,
-          y1: 0.87109375,
+          x0: 0.46923828125,
+          x1: 0.53857421875,
+          y0: 0.6044921875,
+          y1: 0.8720703125,
         },
       ],
       kind: "boxes",
+      output: DETECT_OUTPUT,
       source: APOTHECARY,
     },
     group: "understand",
     id: "detect",
-    notes: "motif ask --detect makes this same moondream-detect call.",
-    relatesTo: "motif ask --detect",
     title: "Find objects in an image",
     tool: "moondream-detect",
   },
@@ -373,157 +473,44 @@ export const CAPABILITIES: Capability[] = [
     title: "Read the text in an image",
     tool: "got-ocr",
   },
+
+  ...TOOL_CAPABILITIES,
+
+  // Everything else
   {
-    caption:
-      "All the text is gone, with the paper and plaster behind it rebuilt.",
-    command:
-      "motif tool run text-removal -i source-label.jpg --format json -o out-text-removal.jpg",
+    caption: "The newest entry in history, as JSON.",
+    command: "motif --last --format json",
     demo: {
-      after: {
-        alt: "The deckle-edged paper on plaster, blank, with all the type removed",
-        height: 756,
-        src: "/demo/text-removal/label.jpg",
-        width: 1400,
-      },
-      before: LABEL,
-      kind: "pair",
+      kind: "terminal",
+      label: "Output",
+      output: LAST_OUTPUT,
+      wrap: true,
     },
-    group: "tools",
-    id: "tool-text-removal",
-    title: "Remove text from an image",
-    tool: "text-removal",
+    group: "more",
+    id: "last",
+    title: "See the last image",
   },
   {
     caption:
-      "The label with its text removed. The words come back as data, with their positions and likely fonts.",
+      "The five newest entries, one JSON line each, with only the fields asked for.",
     command:
-      "motif tool run ideogram-layerize-text source-label.jpg -o layers/",
+      "motif --history --limit 5 --fields id,prompt,model,cost --format ndjson",
     demo: {
-      after: {
-        alt: "The same label with the type gone, paper grain and plaster intact",
-        height: 785,
-        src: "/demo/type-layers/plate.jpg",
-        width: 1400,
-      },
-      before: LABEL,
-      kind: "pair",
+      kind: "terminal",
+      label: "Output",
+      output: HISTORY_OUTPUT,
+      wrap: true,
     },
-    group: "tools",
-    id: "tool-type-layers",
-    notes:
-      "The text comes back in the text_containers and text_html fields, not as image layers.",
-    title: "Separate text from artwork",
-    tool: "ideogram-layerize-text",
+    group: "more",
+    id: "history",
+    title: "List recent images",
   },
   {
-    caption: "The black-and-white street photograph given plausible colour.",
-    command:
-      "motif tool run ddcolor -i source-monochrome.jpg --format json -o out-colourise.jpg",
-    demo: {
-      after: {
-        alt: "The same street photograph in colour, with a plum car and a brown tweed coat",
-        height: 781,
-        src: "/demo/colourise/street.jpg",
-        width: 1400,
-      },
-      before: MONOCHROME,
-      kind: "pair",
-    },
-    group: "tools",
-    id: "tool-colourise",
-    title: "Colourise a black-and-white photo",
-    tool: "ddcolor",
-  },
-  {
-    caption:
-      "The room as a depth map, with near surfaces light and far ones dark.",
-    command:
-      "motif tool run depth-anything source-interior.jpg -o out-depth.jpg",
-    demo: {
-      after: {
-        alt: "The same interior as a greyscale depth map",
-        height: 781,
-        src: "/demo/depth/interior.jpg",
-        width: 1400,
-      },
-      before: INTERIOR,
-      kind: "pair",
-    },
-    group: "tools",
-    id: "tool-depth",
-    title: "Make a depth map",
-    tool: "depth-anything",
-  },
-  {
-    caption: "The vessel and plinth reduced to white lines on black.",
-    command: "motif tool run lineart source-vessel.jpg -o out-lineart.jpg",
-    demo: {
-      after: {
-        alt: "The same vessel as white line art on black",
-        height: 1400,
-        src: "/demo/lineart/vessel.jpg",
-        width: 1400,
-      },
-      before: VESSEL,
-      kind: "pair",
-    },
-    group: "tools",
-    id: "tool-lineart",
-    title: "Turn a photo into line art",
-    tool: "lineart",
-  },
-  {
-    caption: "The figure's stance as a coloured skeleton on black.",
-    command:
-      "motif tool run dwpose -i source-figure.jpg --format json -o out-pose.jpg",
-    demo: {
-      after: {
-        alt: "A coloured stick-figure skeleton of the standing pose on black",
-        height: 1400,
-        src: "/demo/pose/figure.jpg",
-        width: 933,
-      },
-      before: FIGURE,
-      kind: "pair",
-    },
-    group: "tools",
-    id: "tool-pose",
-    title: "Trace a person's pose",
-    tool: "dwpose",
-  },
-  {
-    caption:
-      "Base colour, normal and roughness maps from one photograph of linen.",
-    command: "motif tool run patina source-linen.jpg -o pbr/",
-    demo: {
-      kind: "set",
-      outputs: [
-        {
-          alt: "The linen weave with the lighting mostly evened out",
-          height: 1400,
-          src: "/demo/materials/basecolor.jpg",
-          width: 1400,
-        },
-        {
-          alt: "A blue-violet tangent-space normal map of the weave",
-          height: 1400,
-          src: "/demo/materials/normal.jpg",
-          width: 1400,
-        },
-        {
-          alt: "A greyscale roughness map, dark across the weave",
-          height: 1400,
-          src: "/demo/materials/roughness.jpg",
-          width: 1400,
-        },
-      ],
-      source: LINEN,
-    },
-    group: "tools",
-    id: "tool-materials",
-    notes:
-      "patina also writes metalness and height maps, which aren't shown. The roughness map still carries a lighter band from the light on the fold.",
-    title: "Make material maps from a photo",
-    tool: "patina",
+    caption: "The first screen of motif studio on a fresh install.",
+    command: "motif studio",
+    demo: { kind: "terminal", label: "Screen", output: STUDIO_SCREEN },
+    group: "more",
+    id: "studio",
+    title: "Open the terminal Studio",
   },
 ];

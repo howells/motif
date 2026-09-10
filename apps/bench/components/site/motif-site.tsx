@@ -3,6 +3,7 @@ import { Chapter, chapterNumber } from "@/components/site/chapter";
 import { CommandLine } from "@/components/site/command-line";
 import { newsreader } from "@/components/site/fonts";
 import { LooksSpread } from "@/components/site/looks";
+import { MoodsSpread } from "@/components/site/moods";
 import { CAPABILITIES, CAPABILITY_GROUPS, SITE } from "@/lib/site/content";
 
 import styles from "@/components/site/site.module.css";
@@ -37,6 +38,7 @@ const chapterRange = (first: number, last: number) =>
 
 const CONTENTS = [
   { href: "#looks", number: "", title: "Looks" },
+  { href: "#moods", number: "", title: "Moods" },
   ...PARTS.map((part) => ({
     href: `#${part.group.id}`,
     number: chapterNumber(part.chapters[0]?.index ?? 0),
@@ -93,6 +95,7 @@ export function MotifSite() {
         </header>
 
         <LooksSpread />
+        <MoodsSpread />
 
         {PARTS.map((part) => {
           const first = part.chapters[0]?.index ?? 0;
