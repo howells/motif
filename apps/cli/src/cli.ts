@@ -26,6 +26,7 @@ import {
   upscaleLast,
 } from "./commands/postprocess";
 import { runToolPayload } from "./commands/tools";
+import { helpTaskList } from "./commands/verbs/tasks";
 import { generateVideo } from "./commands/video";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getApiKey, getLastGeneration, loadConfig } from "./utils/config";
@@ -94,13 +95,13 @@ export async function runCli(
 
   const program = new Command()
     .name("motif")
-    .description("fal.ai image generation CLI — agent-first design")
+    // The command list rides in the description so it prints straight after
+    // Usage, ahead of the long options list.
+    .description(
+      `fal.ai image generation CLI - agent-first design\n\n${helpTaskList()}`
+    )
     .version(PACKAGE_VERSION)
     .argument("[prompt]", "Image generation prompt")
-    .addHelpText(
-      "after",
-      "\nCommands:\n  motif studio               Launch interactive terminal Studio"
-    )
     // Agent-first global flags
     .option(
       "--format <format>",
@@ -462,82 +463,4 @@ export async function runCli(
 
   // No prompt and no command = show help.
   program.help();
-}
-
-export function showHelp(): void {
-  console.log(`
-${chalk.bold("motif")} - fal.ai image generation CLI
-
-${chalk.bold("Usage:")}
-  motif                           Show help
-  motif studio                    Launch interactive terminal Studio
-  motif "prompt" [options]        Generate image from prompt
-  motif --last                    Show last generation info
-  motif --vary                    Generate variations of last image
-  motif --up                      Upscale last image
-  motif --rmbg                    Remove background from last image
-
-${chalk.bold("Agent-First Flags:")}
-  --format <json|human|ndjson>  Output format (auto-detects TTY)
-  --fields <f1,f2,...>          Select output fields
-  --dry-run                     Validate without API calls
-  --ephemeral                   Save locally, then delete fal IO payloads
-  --describe [command]          Show CLI schema as JSON
-  --history                     Generation history with pagination
-  --limit <n>                   History entries per page (default 10)
-  --offset <n>                  History pagination offset
-
-${chalk.bold("Stdin JSON:")}
-  echo '{"prompt":"a cat","model":"gpt"}' | motif
-  echo '{"command":"history","limit":5}' | motif
-
-${chalk.bold("Options:")}
-  -m, --model <model>      Model ID, e.g. banana2, gpt2, seedream4, flux2-pro
-  -e, --edit <file>        Reference image; repeat for more (-e a.png -e b.png)
-  --loose                  Use reference as loose inspiration (GPT only)
-  -a, --aspect <ratio>     Aspect ratio (see below)
-  -r, --resolution <res>   Resolution: 1K, 2K, 4K
-  -o, --output <file>      Output filename
-  -n, --num <count>        Number of images (1-4)
-  --transparent            Transparent PNG (gpt on fal; gpt2 via OpenAI, needs OPENAI_API_KEY)
-  --ephemeral              Save locally, skip history, delete fal IO payloads
-  --no-open                Don't auto-open image after generation
-
-${chalk.bold("Post-processing:")}
-  --last                   Show last generation info
-  --vary                   Generate variations of last image
-  --up                     Upscale last image
-  --rmbg                   Remove background from last image
-  --scale <factor>         Upscale factor: 2, 4, 6, 8 (with --up)
-
-${chalk.bold("Presets:")}
-  ${chalk.dim("Format:")}
-  --cover                  Kindle/eBook cover: 2:3, 2K
-  --square                 Square: 1:1
-  --landscape              Landscape: 16:9
-  --portrait               Portrait: 2:3
-  ${chalk.dim("Social Media:")}
-  --story                  Instagram/TikTok Story: 9:16
-  --reel                   Instagram Reel: 9:16
-  --feed                   Instagram Feed: 4:5
-  --og                     Open Graph / social share: 16:9
-  ${chalk.dim("Devices:")}
-  --wallpaper              iPhone wallpaper: 9:16, 2K
-  ${chalk.dim("Cinematic:")}
-  --wide                   Cinematic wide: 21:9
-  --ultra                  Ultra-wide banner: 21:9, 2K
-
-${chalk.bold("Aspect Ratios:")}
-  21:9, 16:9, 3:2, 4:3, 5:4, 1:1, 4:5, 3:4, 2:3, 9:16
-
-${chalk.bold("Examples:")}
-  motif "a cat on a windowsill" -m gpt
-  motif "urban landscape" --landscape -r 4K
-  motif "add rain" -e photo.png
-  motif --vary -n 4
-  motif --up --scale 4
-  motif --describe generate           # Agent: introspect schema
-  motif --dry-run "a cat" -m gpt      # Agent: validate without API call
-  echo '{"prompt":"a cat"}' | motif   # Agent: raw JSON input
-`);
 }

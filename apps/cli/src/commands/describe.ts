@@ -36,6 +36,12 @@ import { emit } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
+import {
+  COMMAND_TASKS,
+  TASK_INDEX,
+  commandTask,
+  taskRouting,
+} from "./verbs/tasks";
 
 /**
  * Build creative direction properties for `motif describe` output.
@@ -740,6 +746,7 @@ function describeSchema() {
             "vectorize",
             "describe",
             "errors",
+            "tasks",
           ],
           type: "string",
         },
@@ -882,6 +889,7 @@ function seriesSchema() {
       "history",
       "delete",
     ],
+    subcommandTasks: { run: taskRouting(commandTask("series run")) },
     supports_dry_run: true,
   };
 }
@@ -929,7 +937,9 @@ function verbSchema(spec: VerbSchemaSpec): Record<string, unknown> {
       required: [],
       type: "object",
     },
-    mutating: true,
+    // A verb that writes no file records no history either, so it changes
+    // nothing on disk.
+    mutating: spec.writesFiles !== false,
     output: {
       properties: {
         cost: {
@@ -1148,11 +1158,49 @@ const COMMAND_SCHEMAS: Record<string, () => Record<string, unknown>> = {
   video: videoSchema,
 };
 
+/**
+ * A command's schema with its task routing placed straight after its
+ * description, where a caller reading top down meets it first.
+ */
+function describeCommand(
+  name: string,
+  schemaFn: () => Record<string, unknown>
+): Record<string, unknown> {
+  const schema = schemaFn();
+  return {
+    command: schema.command,
+    description: schema.description,
+    ...taskRouting(commandTask(name)),
+    ...schema,
+  };
+}
+
+/** The task table alone: `motif --describe tasks`. */
+function tasksSchema() {
+  return {
+    command: "tasks",
+    description:
+      "Which command does which job. `tasks` maps a task word to its command; `commands` says when to use each, what to use instead, and how to invoke it.",
+    tasks: TASK_INDEX,
+    commands: Object.fromEntries(
+      COMMAND_TASKS.map((row) => [
+        row.command,
+        { summary: row.summary, usage: row.usage, ...taskRouting(row) },
+      ])
+    ),
+  };
+}
+
 /** Full CLI schema with all commands, models, and runtime state */
 function fullSchema() {
   return {
+    // First, so the opening bytes of a large schema are the routing table.
+    tasks: TASK_INDEX,
     commands: Object.fromEntries(
-      Object.entries(COMMAND_SCHEMAS).map(([name, fn]) => [name, fn()])
+      Object.entries(COMMAND_SCHEMAS).map(([name, fn]) => [
+        name,
+        describeCommand(name, fn),
+      ])
     ),
     description: "fal.ai image generation CLI",
     enums: {
@@ -1241,14 +1289,16 @@ export function runDescribe(
   commandName: string | undefined,
   options: EmitOptions
 ): void {
-  if (hasText(commandName)) {
+  if (commandName === "tasks") {
+    emit(tasksSchema(), options);
+  } else if (hasText(commandName)) {
     const schemaFn = COMMAND_SCHEMAS[commandName];
     if (schemaFn === undefined) {
       throw new Error(
-        `Unknown command: ${commandName}. Available: ${Object.keys(COMMAND_SCHEMAS).join(", ")}`
+        `Unknown command: ${commandName}. Available: ${[...Object.keys(COMMAND_SCHEMAS), "tasks"].join(", ")}`
       );
     }
-    emit(schemaFn(), options);
+    emit(describeCommand(commandName, schemaFn), options);
   } else {
     emit(fullSchema(), options);
   }

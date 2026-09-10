@@ -33,6 +33,22 @@ interface CliResult {
 
 const tempHomes: string[] = [];
 
+/** Every argv-routed command, as `--help` must name it. */
+const HELP_COMMANDS = [
+  "erase",
+  "reframe",
+  "segment",
+  "ask",
+  "enhance",
+  "layers",
+  "vectorize",
+  "sheet",
+  "series",
+  "series run",
+  "tool",
+  "studio",
+];
+
 function tempHome(): string {
   const dir = mkdtempSync(join(tmpdir(), "motif-cli-test-"));
   tempHomes.push(dir);
@@ -147,6 +163,72 @@ describe("CLI contract", () => {
     expect(schema).toHaveProperty("leaderboards");
     expect(schema).toHaveProperty("tools");
     expect(schema).toHaveProperty("errors");
+  });
+
+  it("lists every command by task in --help, ahead of the options", async () => {
+    const result = await runMotif(["--help"]);
+
+    expect(result.code).toBe(0);
+    for (const name of HELP_COMMANDS) {
+      expect(result.stdout, name).toContain(`motif ${name}`);
+    }
+    expect(result.stdout.indexOf("motif erase")).toBeLessThan(
+      result.stdout.indexOf("Options:")
+    );
+    expect(result.stdout).toContain("--look <id>");
+    expect(result.stdout).toContain("editorial");
+  });
+
+  it("puts the task index ahead of commands in the full schema", async () => {
+    const result = await runMotif(["--describe", "--format", "json"]);
+    const schema = parseJsonLine(result.stdout);
+    const keys = Object.keys(schema);
+
+    expect(keys.indexOf("tasks")).toBeLessThan(keys.indexOf("commands"));
+    expect(asRecord(schema.tasks).remove).toBe("erase");
+    expect(asRecord(schema.tasks).grid).toBe("sheet");
+  });
+
+  it("gives every described command whenToUse, notFor and tasks", async () => {
+    const result = await runMotif(["--describe", "--format", "json"]);
+    const commands = asRecord(parseJsonLine(result.stdout).commands);
+
+    for (const [name, value] of Object.entries(commands)) {
+      const command = asRecord(value);
+      expect(command.whenToUse, name).toBeTypeOf("string");
+      expect(command.notFor, name).toBeTypeOf("string");
+      expect(asArray(command.tasks).length, name).toBeGreaterThan(0);
+    }
+    expect(asRecord(commands.ask).mutating).toBeFalsy();
+    expect(asRecord(commands.erase).mutating).toBeTruthy();
+    expect(
+      asRecord(asRecord(asRecord(commands.series).subcommandTasks).run)
+        .whenToUse
+    ).toBeTypeOf("string");
+  });
+
+  it("describes the task table alone with --describe tasks", async () => {
+    const result = await runMotif(["--describe", "tasks", "--format", "json"]);
+
+    expect(result.code).toBe(0);
+    const table = parseJsonLine(result.stdout);
+    const commands = asRecord(table.commands);
+    for (const name of [...HELP_COMMANDS, "generate"]) {
+      expect(commands, name).toHaveProperty([name]);
+    }
+    expect(asRecord(table.tasks).outpaint).toBe("reframe");
+  });
+
+  it("carries task routing on a single described command", async () => {
+    const result = await runMotif(["--describe", "erase", "--format", "json"]);
+    const erase = parseJsonLine(result.stdout);
+
+    expect(Object.keys(erase).slice(0, 3)).toStrictEqual([
+      "command",
+      "description",
+      "whenToUse",
+    ]);
+    expect(erase.notFor).toContain("finegrain-eraser");
   });
 
   it("advertises the edit-capable model enum for the vary command", async () => {
