@@ -1,0 +1,40 @@
+{"id":"generate-hero-16x9","request":"Make a 16:9 hero image of a lighthouse at dusk for the blog","command":"generate","flags":[["--aspect 16:9","--og","--landscape"]],"source":"negative: a new image at a ratio is generate, not reframe"}
+{"id":"generate-grid-wallpaper","request":"Draw a seamless blue and white grid pattern I can use as a desktop wallpaper","command":"generate","source":"negative: a grid as subject matter, not a contact sheet"}
+{"id":"generate-edit-cabinets","request":"Using kitchen.png as the reference, repaint the cabinets dark green","command":"generate","flags":["--edit kitchen.png"],"source":"negative: changing an image is generate with -e, not erase"}
+{"id":"generate-knife-set","request":"A product shot of a set of kitchen knives on a walnut board","command":"generate","source":"negative: a set as subject matter, not a series"}
+{"id":"erase-car","request":"remove the car from street.png","command":"erase","args":["street.png"],"source":"audit: would an agent that wants to remove something find erase?"}
+{"id":"erase-person-left","request":"get rid of the person on the left in beach.jpg","command":"erase","args":["beach.jpg"],"source":"audit: remove an object or person; 0 erase uses in 18 days"}
+{"id":"erase-counter-clutter","request":"clean up the clutter on the counter in kitchen.png, just take the stuff away","command":"erase","args":["kitchen.png"],"source":"audit: object removal reached through tool run instead of erase"}
+{"id":"reframe-16x9","request":"make hero.png 16:9","command":"reframe","flags":[["--og","--landscape"]],"args":["hero.png"],"source":"audit: extend the canvas or change the ratio"}
+{"id":"reframe-no-crop","request":"turn square.png into a 16:9 banner without cropping the subject","command":"reframe","flags":[["--og","--landscape"]],"args":["square.png"],"source":"plan SURF-18: make this 16:9 without cropping the subject"}
+{"id":"reframe-extend-sky","request":"extend the sky in peak.jpg so the photo becomes a tall 9:16 story","command":"reframe","flags":["--story"],"args":["peak.jpg"],"source":"audit: reframe's description says reframe, not extend or outpaint"}
+{"id":"layers-poster","request":"split poster.png into layers","command":"layers","args":["poster.png"],"source":"plan SURF-18: split this poster into layers"}
+{"id":"layers-separate","request":"I need the pieces of flyer.png on separate transparent layers so I can move them around","command":"layers","args":["flyer.png"],"source":"audit: layers only discoverable by exact name"}
+{"id":"segment-chair","request":"cut out the chair in room.png","command":"segment","args":["room.png"],"source":"audit: segment unused since shipping"}
+{"id":"segment-sofa-mask","request":"give me a mask of the sofa in lounge.jpg","command":"segment","args":["lounge.jpg"],"source":"audit: segment unused since shipping"}
+{"id":"ask-count-chairs","request":"how many chairs are in dining.png?","command":"ask","args":["dining.png"],"source":"audit: ask unused since shipping"}
+{"id":"ask-detect-dog","request":"where exactly is the dog in park.jpg? I need its bounding box","command":"ask","flags":["--detect"],"args":["park.jpg"],"source":"audit: ask unused since shipping"}
+{"id":"enhance-restore-scan","request":"restore scan.jpg, it's an old faded family photo","command":"enhance","args":["scan.jpg"],"source":"audit: enhance unused since shipping"}
+{"id":"enhance-denoise","request":"photo.png is really grainy, clean up the noise","command":"enhance","flags":["--denoise"],"args":["photo.png"],"source":"audit: enhance unused; 'clean up' is also an erase task word"}
+{"id":"enhance-upscale-print","request":"upscale product.jpg so it's big enough to print","command":["enhance","upscale"],"args":["product.jpg"],"source":"audit: enhance and --up both upscale a given file"}
+{"id":"vectorize-logo","request":"turn logo.png into an SVG","command":"vectorize","args":["logo.png"],"source":"audit: vectorize unused since shipping"}
+{"id":"vectorize-icon","request":"I need an editable vector version of the icon in icon.png","command":"vectorize","args":["icon.png"],"source":"audit: vectorize unused since shipping"}
+{"id":"sheet-side-by-side","request":"put a.png, b.png, c.png and d.png side by side so I can compare them","command":"sheet","args":["a.png","b.png","c.png","d.png"],"source":"audit: ~418 image grids hand-built with ImageMagick"}
+{"id":"sheet-last-six","request":"make a contact sheet of the last six images you generated","command":"sheet","flags":["--last 6"],"source":"audit: ~418 image grids hand-built with ImageMagick"}
+{"id":"sheet-grid-two-columns","request":"show me the last four generations in a grid, two columns","command":"sheet","flags":["--last 4","--cols 2"],"source":"plan SURF-18: put these six in a grid"}
+{"id":"series-run-six","request":"six images of brutalist architecture that belong together","command":"series run","flags":["--count 6"],"source":"audit: 0 series uses; plan SURF-18: six images that look like a set"}
+{"id":"series-run-look-like-set","request":"make eight illustrations of Scandinavian cabins that look like a set","command":"series run","flags":["--count 8"],"source":"plan SURF-18: six images that look like a set"}
+{"id":"series-named-style","request":"set up a reusable style called Luna Adventure, a watercolour children's book with character references, so every later image matches it","command":"series","source":"audit: series only found in the unshipped guide's heading"}
+{"id":"look-editorial","request":"our usual editorial look: a reading chair by a window","command":"generate","flags":["--look editorial"],"source":"audit: --look is one hop away from 'our usual editorial look'"}
+{"id":"look-lived-in-lamplit","request":"lived-in interior, evening light: a family kitchen","command":"generate","flags":["--look lived-in","--mood lamplit"],"source":"audit: house look and mood from the user's own words"}
+{"id":"look-still-life","request":"three terrazzo tile samples in our house still-life style","command":"generate","flags":["--look still-life"],"source":"audit: house look from the user's own words"}
+{"id":"tool-depth-map","request":"make a depth map of room.png","command":"tool","source":"audit: utilities with no command of their own go through tool"}
+{"id":"studio-browse","request":"open the interactive terminal app so I can browse and review my images by hand","command":"studio","source":"coverage: studio"}
+{"id":"upscale-last-2x","request":"quickly enlarge the image you just made, 2x","command":"upscale","flags":["--scale 2"],"source":"coverage: --up on the last generation"}
+{"id":"rmbg-last","request":"remove the background from the last image","command":"rmbg","source":"negative for erase: the whole background is --rmbg"}
+{"id":"vary-last","request":"give me a few variations of that last one","command":"vary","source":"coverage: --vary"}
+{"id":"video-animate","request":"animate hero.png into a short clip","command":"video","args":["hero.png"],"source":"coverage: --video"}
+{"id":"last-path","request":"where did the image you just generated get saved?","command":"last","source":"coverage: --last"}
+{"id":"history-spend","request":"how much have I spent on image generation lately?","command":"history","source":"coverage: --history"}
+{"id":"describe-4k-models","request":"which models can do 4K?","command":"describe","source":"plan SURF-18: which models can do 4K?"}
+{"id":"errors-exit-5","request":"a motif command just exited with code 5, what does that mean and is it worth retrying?","command":"errors","source":"coverage: --describe errors"}

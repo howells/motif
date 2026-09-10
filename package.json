@@ -10,6 +10,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:fal-canary": "RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.ts",
+    "eval:routing": "node apps/cli/evals/routing/run.ts",
     "prepare": "husky",
     "knip": "knip",
     "clean": "turbo clean",
