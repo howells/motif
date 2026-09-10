@@ -8,16 +8,31 @@ import {
 } from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
+import { COMMAND_TASKS } from "../src/commands/verbs/tasks";
 import { ERROR_CATALOG } from "../src/utils/error-catalog";
 
 const testDir = import.meta.dirname;
 const repoRoot = resolve(testDir, "../../..");
 
 const cliAgentsPath = resolve(testDir, "../AGENTS.md");
+const rootAgentsPath = resolve(repoRoot, "AGENTS.md");
 const readmePath = resolve(repoRoot, "README.md");
 
 function read(path: string): string {
   return readFileSync(path, "utf-8");
+}
+
+/** The first markdown table under the "What do you want to do?" heading. */
+function taskTable(doc: string): string {
+  const heading = doc.search(/^#+ What do you want to do\?$/m);
+  const lines = doc.slice(heading).split("\n");
+  const start = lines.findIndex((line) => line.startsWith("|"));
+  if (heading === -1 || start === -1) {
+    throw new Error("missing the What do you want to do? table");
+  }
+  const rows = lines.slice(start);
+  const end = rows.findIndex((line) => !line.startsWith("|"));
+  return rows.slice(0, end === -1 ? undefined : end).join("\n");
 }
 
 describe("docs sync", () => {
@@ -45,6 +60,17 @@ describe("docs sync", () => {
           );
         }
       }
+    }
+  });
+
+  it("routes every help command in the task table of both agent guides", () => {
+    for (const path of [rootAgentsPath, cliAgentsPath]) {
+      const table = taskTable(read(path));
+      for (const row of COMMAND_TASKS.filter((task) => task.inHelp)) {
+        expect(table, `${path}: ${row.command}`).toContain(`\`${row.usage}\``);
+        expect(table, `${path}: ${row.command}`).toContain(row.notFor);
+      }
+      expect(table, `${path}: --look`).toContain("--look <id>");
     }
   });
 

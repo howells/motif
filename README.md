@@ -71,6 +71,44 @@ motif "futuristic city map" --model ideogram --style DESIGN --dry-run --format j
 
 Run `motif` with no arguments to show help. Use `motif studio` to launch the interactive terminal studio.
 
+## What do you want to do?
+
+| Task | Command | Instead, when |
+| --- | --- | --- |
+| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
+| Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
+| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
+| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
+| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
+| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
+| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
+| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
+| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
+| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
+| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
+| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
+| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
+| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
+
+```bash
+# What is in this image, and where
+motif segment "the white ceramic bowl" shelf.jpg -o segment/   # SAM 3, $0.005
+motif ask "how many bottles are there?" shelf.jpg              # Moondream, prose back, writes no file
+
+# Take something out, put something back, recut
+motif erase "the parked car" street.jpg                        # $0.024 - leaves cast shadows
+motif reframe --story cover.png                                # $0.06, needs a target ratio
+
+# Repair and enlarge
+motif enhance --restore old-photo.jpg                          # eight Topaz modes, one per call
+
+# Take a design apart
+motif layers poster.png -o layers/                             # stacked RGBA layers
+motif vectorize logo.png -o logo.svg                           # raster to clean SVG
+```
+
 ## Install
 
 SDK:
@@ -381,29 +419,29 @@ Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` 
 
 Dry runs and successful generations include `warnings`, advice about phrasings image models tend to misread. They check your own prompt only, never the look or mood text, and never stop a generation. `negated-object` flags "no chairs" and the like, because naming an object tends to draw it in, so describe what is there instead. `text-bearing-object` flags a sign, poster, book or similar in a prompt that also asks for no text, because the model will probably letter it anyway.
 
-| Look            | What it's for                                                    | Aspect | Model        |
-| --------------- | ---------------------------------------------------------------- | ------ | ------------ |
+| Look | What it's for | Aspect | Model |
+| --- | --- | --- | --- |
 | `editorial` | Quiet, materially rich editorial photography | 1:1 | `flux2-pro` |
-| `still-life`    | Objects and material samples on a plaster ground                 | 1:1    | `flux2-pro`  |
-| `lived-in`      | Bright, collected rooms that feel lived in                       | 3:2    | `flux2-pro`  |
-| `architectural` | Whole rooms with one product installed, to show it at scale      | 4:5    | `banana`     |
-| `homeowner`     | Unstyled phone snapshots of real homes                           | 4:3    | `seedream45` |
+| `still-life` | Objects and material samples on a plaster ground | 1:1 | `flux2-pro` |
+| `lived-in` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
+| `architectural` | Whole rooms with one product installed, to show it at scale | 4:5 | `banana` |
+| `homeowner` | Unstyled phone snapshots of real homes | 4:3 | `seedream45` |
 | `drawing` | Line and gouache room drawings of a colour scheme (experimental) | 1:1 | `gpt2` |
-| `plate`         | Flat, edge-to-edge surface photographs for textures and swatches | 1:1    | `flux2-pro`  |
-| `engraved`      | Grey-ink botanical engravings for patterns and backgrounds       | 1:1    | `gpt2`       |
-| `ephemera`      | Aged 1940s printed matter where the lettering matters            | 2:3    | `ideogram4`  |
-| `canvas`        | Loose abstract paintings on linen                                | 3:4    | `banana`     |
+| `plate` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
+| `engraved` | Grey-ink botanical engravings for patterns and backgrounds | 1:1 | `gpt2` |
+| `ephemera` | Aged 1940s printed matter where the lettering matters | 2:3 | `ideogram4` |
+| `canvas` | Loose abstract paintings on linen | 3:4 | `banana` |
 | `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
 | `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
 
-| Mood       | Light                                    |
-| ---------- | ---------------------------------------- |
-| `window`   | Soft, even daylight from a window        |
-| `dawn`     | Cool, clear early morning light          |
-| `raking`   | Low side light that brings out texture   |
-| `overcast` | Soft grey light on a rainy afternoon     |
-| `lamplit`  | Warm evening lamps, candles and a fire   |
-| `nocturne` | Night, one warm low light, deep shadow   |
+| Mood       | Light                                  |
+| ---------- | -------------------------------------- |
+| `window`   | Soft, even daylight from a window      |
+| `dawn`     | Cool, clear early morning light        |
+| `raking`   | Low side light that brings out texture |
+| `overcast` | Soft grey light on a rainy afternoon   |
+| `lamplit`  | Warm evening lamps, candles and a fire |
+| `nocturne` | Night, one warm low light, deep shadow |
 
 ```bash
 motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
@@ -456,25 +494,9 @@ Each cell is fitted into a 512 px square on a warm off-white ground. Images with
 
 Seventy-one fal endpoints beyond generation: segmentation, visual question answering, erasers, upscalers, control-map preprocessors, layer and text extraction, vectorisers, PBR material decomposition, relighting, reframing, 3D reconstruction and moderation. Local images and videos are uploaded automatically; remote `https://` URLs pass through.
 
-Seven of them have a verb of their own. The rest run through `motif tool run <id>`.
+Seven of them have a command of their own, shown under [What do you want to do?](#what-do-you-want-to-do). The rest run through `motif tool run <id>`. `motif tool list` marks each tool a command wraps with its `verb`.
 
 ```bash
-# What is in this image, and where
-motif segment "the white ceramic bowl" shelf.jpg -o segment/   # SAM 3, $0.005
-motif ask "how many bottles are there?" shelf.jpg              # Moondream, prose back, writes no file
-
-# Take something out, put something back, recut
-motif erase "the parked car" street.jpg                        # $0.024 - leaves cast shadows
-motif reframe --story cover.png                                # $0.06, needs a target ratio
-
-# Repair and enlarge
-motif enhance --restore old-photo.jpg                          # eight Topaz modes, one per call
-
-# Take a design apart
-motif layers poster.png -o layers/                             # stacked RGBA layers
-motif vectorize logo.png -o logo.svg                           # raster to clean SVG
-
-# Everything else, by registry id
 motif tool list --format json                                  # the live registry
 motif tool describe patina --format json                       # one tool: outputs, pricing, queue behaviour
 motif tool run depth-anything room.jpg -o depth.png            # control map for conditioned generation

@@ -1029,6 +1029,90 @@ describe("CLI contract", () => {
     });
   });
 
+  it("points a task word with arguments at the command it means", async () => {
+    const remove = await runMotif([
+      "remove",
+      "the car",
+      "x.png",
+      "--format",
+      "json",
+    ]);
+    expect(remove.code).toBe(2);
+    expect(parseJsonLine(remove.stderr)).toMatchObject({
+      code: "INVALID_OPTION",
+      details: { didYouMean: 'motif erase "the car" x.png', task: "remove" },
+      error: true,
+    });
+
+    const grid = await runMotif(["grid", "a.png", "b.png", "--format", "json"]);
+    expect(grid.code).toBe(2);
+    expect(parseJsonLine(grid.stderr)).toMatchObject({
+      code: "INVALID_OPTION",
+      details: { didYouMean: "motif sheet a.png b.png" },
+    });
+  });
+
+  it("marks every tool a verb wraps with that verb", async () => {
+    const schema = parseJsonLine(
+      (await runMotif(["--describe", "--format", "json"])).stdout
+    );
+    const tools = asRecord(
+      parseJsonLine(
+        (await runMotif(["tool", "list", "--format", "json"])).stdout
+      ).tools
+    );
+
+    const wrapped = Object.entries(asRecord(schema.commands)).flatMap(
+      ([command, entry]) => {
+        const ids = asRecord(entry).tools;
+        return Array.isArray(ids)
+          ? ids.map((id): [string, string] => [String(id), command])
+          : [];
+      }
+    );
+    expect(wrapped.length).toBeGreaterThan(0);
+    for (const [id, command] of wrapped) {
+      expect(asRecord(tools[id]).verb, id).toBe(command);
+    }
+    expect(asRecord(tools["object-removal"]).verb).toBe("erase");
+    expect(
+      Object.values(tools).filter((tool) => asRecord(tool).verb !== undefined)
+    ).toHaveLength(wrapped.length);
+  });
+
+  it("names the verb when describing or running a wrapped tool", async () => {
+    const described = parseJsonLine(
+      (
+        await runMotif([
+          "tool",
+          "describe",
+          "object-removal",
+          "--format",
+          "json",
+        ])
+      ).stdout
+    );
+    expect(described.verb).toBe("erase");
+
+    const run = parseJsonLine(
+      (
+        await runMotif([
+          "tool",
+          "run",
+          "object-removal",
+          "https://example.com/street.png",
+          "--prompt",
+          "the car",
+          "--dry-run",
+          "--format",
+          "json",
+        ])
+      ).stdout
+    );
+    expect(run.verb).toBe("erase");
+    expect(String(run.hint)).toContain("motif erase");
+  });
+
   it("takes one --edit path per flag, repeated, with the prompt after", async () => {
     const dir = tempHome();
     const first = join(dir, "first.png");

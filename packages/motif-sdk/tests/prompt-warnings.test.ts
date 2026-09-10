@@ -40,6 +40,21 @@ describe(promptWarnings, () => {
     );
   });
 
+  it("points an edit that removes or extends to the verb for it", () => {
+    const warnings = promptWarnings("Remove the parked car", { editing: true });
+    expect(
+      warnings.map((warning) => [warning.rule, warning.match])
+    ).toStrictEqual([["edit-has-verb", "Remove"]]);
+    expect(warnings[0]?.message).toContain("motif erase");
+    expect(
+      promptWarnings("outpaint it to 16:9", { editing: true })[0]?.message
+    ).toContain("motif reframe");
+    expect(promptWarnings("remove the parked car")).toStrictEqual([]);
+    expect(
+      promptWarnings("a street with the car removed", { editing: true })
+    ).toStrictEqual([]);
+  });
+
   it("leaves a text-bearing object alone when text is not refused", () => {
     expect(promptWarnings("a vintage boxing poster")).toStrictEqual([]);
   });

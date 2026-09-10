@@ -91,7 +91,9 @@ export async function generateImage(
   const look = hasText(creative?.look) ? getLook(creative.look) : undefined;
   // Advisory only, and checked against the caller's own words, never the
   // look or mood text.
-  const warnings = promptWarnings(creativeResult?.basePrompt ?? prompt);
+  const warnings = promptWarnings(creativeResult?.basePrompt ?? prompt, {
+    editing: (options.edit ?? stdinData?.editImages ?? []).length > 0,
+  });
 
   const { aspect, resolution } = validateOption(emitOpts.format, () =>
     resolvePreset(

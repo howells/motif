@@ -28,6 +28,29 @@ RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.
 
 Generations cost real money ($0.003 to $0.30 an image; video is 5-10x that). Full flags, models, costs, error codes, and Series workflow are in `apps/cli/AGENTS.md`.
 
+### What do you want to do?
+
+Pick the command by task. The last column is the same advice `motif --describe tasks` gives.
+
+| Task | Command | Instead, when |
+| --- | --- | --- |
+| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
+| Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
+| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
+| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
+| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
+| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
+| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
+| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
+| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
+| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
+| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
+| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
+| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
+| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
+
 ```bash
 motif --describe --format json          # live schema: models, presets, enums, error catalogue
 motif --dry-run "a cat" -m gpt --og     # validate and price before spending

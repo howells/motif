@@ -26,7 +26,7 @@ import {
   upscaleLast,
 } from "./commands/postprocess";
 import { runToolPayload } from "./commands/tools";
-import { helpTaskList } from "./commands/verbs/tasks";
+import { helpTaskList, taskCorrection } from "./commands/verbs/tasks";
 import { generateVideo } from "./commands/video";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getApiKey, getLastGeneration, loadConfig } from "./utils/config";
@@ -38,7 +38,7 @@ import {
 } from "./utils/errors";
 import { readStdinJson, reservedPromptSuggestion } from "./utils/input";
 import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
-import type { EmitOptions } from "./utils/output";
+import type { EmitOptions, OutputFormat } from "./utils/output";
 import { firstText, hasText } from "./utils/text";
 import { PACKAGE_VERSION } from "./version";
 
@@ -83,6 +83,32 @@ async function showLastGeneration(emitOpts: EmitOptions): Promise<void> {
   console.log(`  Output: ${chalk.dim(last.output)}`);
   console.log(`  Cost:   ${chalk.yellow(formatCost(last.cost))}`);
   console.log(`  Time:   ${new Date(last.timestamp).toLocaleString()}`);
+}
+
+/**
+ * Refuse positionals led by a task word, naming the command it means, the
+ * same way a prompt matching a command word is refused. Returns when the
+ * first positional is not a task word.
+ */
+function refuseTaskWord(positionals: string[], format: OutputFormat): void {
+  const correction = taskCorrection(positionals);
+  if (correction === null) {
+    return;
+  }
+  const { invocation, row } = correction;
+  emitError(
+    {
+      code: "INVALID_OPTION",
+      details: { didYouMean: invocation, task: positionals[0] },
+      message: `${JSON.stringify(positionals[0])} isn't a motif command. Did you mean '${invocation}'?`,
+      suggestions: [
+        `Run '${invocation}'`,
+        `motif ${row.command}: ${row.whenToUse}`,
+      ],
+    },
+    format
+  );
+  exitForErrorCode("INVALID_OPTION");
 }
 
 // -- Main entry --
@@ -258,8 +284,15 @@ export async function runCli(
     .option("--offset <n>", "History: skip first N entries");
 
   // Commander's own parse failures (unknown option, missing argument) must
-  // honour the same error contract as everything else the CLI emits.
-  routeCommanderErrors(program, formatForParseErrors(args));
+  // honour the same error contract as everything else the CLI emits. Surplus
+  // positionals led by a task word, such as `motif remove "the car" x.png`,
+  // name the command that word means instead.
+  const parseFormat = formatForParseErrors(args);
+  routeCommanderErrors(program, parseFormat, (err) => {
+    if (err.code === "commander.excessArguments") {
+      refuseTaskWord(program.args, parseFormat);
+    }
+  });
 
   program.parse(args);
 

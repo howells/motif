@@ -36,6 +36,7 @@ import { emit } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
+import { VERB_TOOLS, toolVerb } from "./verbs/shared";
 import {
   COMMAND_TASKS,
   TASK_INDEX,
@@ -605,6 +606,7 @@ function toolRegistrySummary(): Record<string, unknown> {
         parameterCount: falToolParameters(id).length,
         pricing: FAL_TOOLS[id].pricing,
         task: FAL_TOOLS[id].task,
+        ...(toolVerb(id) === undefined ? {} : { verb: toolVerb(id) }),
       },
     ])
   );
@@ -1004,12 +1006,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
         points: { items: { type: "object" }, type: "array" },
         reasoning: { type: "string" },
       },
-      tools: [
-        "moondream-query",
-        "moondream-caption",
-        "moondream-detect",
-        "moondream-point",
-      ],
+      tools: [...VERB_TOOLS.ask],
       writesFiles: false,
     }),
   enhance: () =>
@@ -1038,16 +1035,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
           type: "string",
         },
       },
-      tools: [
-        "topaz-precision",
-        "topaz-generative",
-        "topaz-creative",
-        "topaz-transparent",
-        "topaz-restore",
-        "topaz-denoise",
-        "topaz-sharpen",
-        "topaz-adjust",
-      ],
+      tools: [...VERB_TOOLS.enhance],
     }),
   erase: () =>
     verbSchema({
@@ -1060,7 +1048,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
           type: "string",
         },
       },
-      tools: ["object-removal"],
+      tools: [...VERB_TOOLS.erase],
     }),
   layers: () =>
     verbSchema({
@@ -1068,7 +1056,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
       description:
         "Split an image into stacked RGBA layers. Writes several files, so -o must be a directory ending in /.",
       examples: ["motif layers poster.png -o layers/ --dry-run"],
-      tools: ["qwen-layered"],
+      tools: [...VERB_TOOLS.layers],
     }),
   reframe: () =>
     verbSchema({
@@ -1091,7 +1079,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
           type: "string",
         },
       },
-      tools: ["ideogram-reframe"],
+      tools: [...VERB_TOOLS.reframe],
     }),
   segment: () =>
     verbSchema({
@@ -1115,7 +1103,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
         rle: { description: "Present with --rle", type: "array" },
         scores: { items: { type: "number" }, type: "array" },
       },
-      tools: ["sam3-image", "sam3-image-rle"],
+      tools: [...VERB_TOOLS.segment],
     }),
   vectorize: () =>
     verbSchema({
@@ -1123,7 +1111,7 @@ const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
       description:
         "Convert a raster image into a clean SVG. -o must name a .svg file or a directory ending in /.",
       examples: ["motif vectorize logo.png -o logo.svg --dry-run"],
-      tools: ["recraft-vectorize"],
+      tools: [...VERB_TOOLS.vectorize],
     }),
 };
 

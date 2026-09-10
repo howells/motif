@@ -7,7 +7,10 @@
  */
 
 /** Stable id of a prompt warning rule. */
-export type PromptWarningRule = "negated-object" | "text-bearing-object";
+export type PromptWarningRule =
+  | "edit-has-verb"
+  | "negated-object"
+  | "text-bearing-object";
 
 /** One advisory finding about a prompt. */
 export interface PromptWarning {
@@ -17,6 +20,19 @@ export interface PromptWarning {
   message: string;
   rule: PromptWarningRule;
 }
+
+const EDIT_VERB_REGEX = /^\s*(remove|erase|extend|outpaint)\b/i;
+
+/** The CLI verb that does each edit directly, keyed by the prompt's first word. */
+const EDIT_VERBS: Record<string, string> = {
+  erase: 'motif erase "<thing>" <image> takes one object out and fills the gap',
+  extend:
+    "motif reframe --<preset> <image> extends the canvas to a new aspect ratio",
+  outpaint:
+    "motif reframe --<preset> <image> extends the canvas to a new aspect ratio",
+  remove:
+    'motif erase "<thing>" <image> takes one object out and fills the gap',
+};
 
 const NEGATED_OBJECT_REGEX = /\bno\s+(?:a |an |the )?([a-z-]+)/gi;
 const TEXT_NEGATION_REGEX = /\bno\s+(?:text|words)\b/i;
@@ -45,11 +61,28 @@ const ALLOWED_NEGATIONS = new Set([
  *   draw it into the picture.
  * - `text-bearing-object`: the prompt asks for no text or no words but also
  *   names something that usually carries text, such as a sign or a poster.
+ * - `edit-has-verb`: an edit (`context.editing`) whose prompt starts with
+ *   remove, erase, extend or outpaint, jobs the CLI has a verb for.
  *
- * Pass the caller's own prompt, not an enriched one.
+ * Pass the caller's own prompt, not an enriched one, and `editing: true` when
+ * the request carries reference images to edit.
  */
-export function promptWarnings(prompt: string): PromptWarning[] {
+export function promptWarnings(
+  prompt: string,
+  context: { editing?: boolean } = {}
+): PromptWarning[] {
   const warnings: PromptWarning[] = [];
+
+  const editVerb =
+    context.editing === true ? EDIT_VERB_REGEX.exec(prompt) : null;
+  if (editVerb !== null) {
+    const word = editVerb[1]?.toLowerCase() ?? "";
+    warnings.push({
+      match: editVerb[0].trim(),
+      message: `An edit regenerates the whole image from the reference. ${EDIT_VERBS[word]}, leaving the rest of the image as it was.`,
+      rule: "edit-has-verb",
+    });
+  }
 
   for (const match of prompt.matchAll(NEGATED_OBJECT_REGEX)) {
     const word = match[1]?.toLowerCase();

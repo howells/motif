@@ -24,6 +24,37 @@ echo '{"prompt":"a sunset","model":"gpt","preset":"og"}' | motif
 motif --history --limit 5 --fields id,prompt,cost
 ```
 
+## What do you want to do?
+
+Pick the command by task. The last column is the same advice `motif --describe tasks` gives, and a task word typed as a command (`motif remove "the car" x.png`) fails with `INVALID_OPTION` and `details.didYouMean` naming the right one.
+
+| Task | Command | Instead, when |
+| --- | --- | --- |
+| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
+| Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
+| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
+| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
+| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
+| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
+| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
+| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
+| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
+| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
+| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
+| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
+| Upscale the last image with Clarity | `motif --up [image]` | Restoring, denoising or sharpening, or a faithful Topaz upscale (enhance). |
+| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
+| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
+| Animate an image into a short video | `motif --video [image]` | Removing a video's background (tool bria-video-rmbg), or upscaling a video (tool topaz-video). |
+| Show the last generation | `motif --last` | Older generations (history). |
+| List past generations and spend | `motif --history` | Only the most recent generation (last), or one series' images (motif series history <slug>). |
+| Print the CLI schema as JSON | `motif --describe [command]` | The arguments of one fal utility (motif tool describe <id>), or the task routing alone (motif --describe tasks). |
+| List error codes and how to recover | `motif --describe errors` | The error from a failed call, which already carries its code, details and suggestions on stderr. |
+
+`motif tool list` and `motif tool describe` mark each tool a command wraps with `verb`, and `motif tool run` on one adds a `hint` naming that command.
+
 ## Output Format
 
 motif auto-detects the output context:
@@ -246,6 +277,7 @@ Each flag overrides the matching key in the stdin `creative` object. Only the fi
 | --- | --- | --- |
 | `negated-object` | `no <word>` (optionally `no a/an/the <word>`), except text, logos, logo, people, person, faces, watermark, watermarks, words, lettering | Negating an object tends to draw it into the picture; describe what is present instead |
 | `text-bearing-object` | `no text` or `no words` together with sign, label, poster, book, menu, newspaper, packaging, card, ticket, magazine or screen | The model is likely to render text on the object anyway |
+| `edit-has-verb` | a prompt starting with remove, erase, extend or outpaint, with `-e` set | An edit regenerates the whole image; `motif erase` or `motif reframe` does that job and leaves the rest alone |
 
 An unknown id fails before any fal request with a structured `INVALID_OPTION` error (exit `2`) whose details include the field and the available ids for that field. `--describe generate` lists every id with its label, sentence, and for looks the `defaultAspect` and `defaultModel`.
 

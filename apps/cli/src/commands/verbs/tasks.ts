@@ -329,6 +329,64 @@ function buildTaskIndex() {
 /** Task word to command, e.g. `remove` to `erase`. */
 export const TASK_INDEX = buildTaskIndex();
 
+/** Placeholders in a `usage`: `"what"`, `[image]`, `<images...>`. */
+function isPlaceholder(token: string): boolean {
+  return (
+    token.startsWith('"') || token.startsWith("[") || token.startsWith("<")
+  );
+}
+
+/** An argument as it would be typed, quoted when the shell would split it. */
+function shellWord(arg: string): string {
+  return /^[\w@%+=:,./-]+$/.test(arg) ? arg : JSON.stringify(arg);
+}
+
+/** A corrected invocation for positionals that start with a task word. */
+export interface TaskCorrection {
+  /** The command line to run instead, e.g. `motif erase "the car" x.png`. */
+  readonly invocation: string;
+  readonly row: CommandTask;
+}
+
+/**
+ * Rewrite positionals led by a task word, such as `remove "the car" x.png`,
+ * onto the command the word routes to. The remaining arguments fill the
+ * row's placeholders in order; words spilling past a leading text placeholder
+ * are joined into it, since that is an unquoted prompt. A row whose usage
+ * takes no arguments gets its usage alone. Null when the first positional is
+ * not a task word.
+ */
+export function taskCorrection(
+  positionals: readonly string[]
+): TaskCorrection | null {
+  const [word, ...rest] = positionals;
+  const command =
+    word === undefined ? undefined : TASK_INDEX[word.toLowerCase()];
+  if (command === undefined) {
+    return null;
+  }
+  const row = commandTask(command);
+  const tokens = row.usage.split(" ");
+  const firstPlaceholder = tokens.findIndex(isPlaceholder);
+  if (firstPlaceholder === -1) {
+    return { invocation: row.usage, row };
+  }
+  const placeholders = tokens.slice(firstPlaceholder);
+  const unlimited = placeholders.some((token) => token.includes("..."));
+  const overflow = rest.length - placeholders.length;
+  const args =
+    !unlimited && overflow > 0 && placeholders[0]?.startsWith('"') === true
+      ? [rest.slice(0, overflow + 1).join(" "), ...rest.slice(overflow + 1)]
+      : rest;
+  return {
+    invocation: [
+      ...tokens.slice(0, firstPlaceholder),
+      ...args.map(shellWord),
+    ].join(" "),
+    row,
+  };
+}
+
 const HELP_USAGE_WIDTH = 30;
 const HELP_LINE_WIDTH = 78;
 
