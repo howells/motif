@@ -1,6 +1,6 @@
 # Handoff — Motif Bench
 
-**Date:** 2026-08-05 · **Branch:** `main` (pushed) · **Live:** motif.materialinstruments.com
+**Date:** 2026-08-05 · **Branch:** `main` (pushed) · **Live:** motif.danielhowells.com
 
 ## Do this first
 
