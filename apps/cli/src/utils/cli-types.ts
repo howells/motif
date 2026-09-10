@@ -6,14 +6,12 @@
  * router and the generate/postprocess/video command modules.
  */
 
-import type { CreativeDirection } from "@howells/motif-sdk";
+import type { CreativeInput } from "./creative";
 
 export interface CliOptions {
   aspect?: string;
   background?: string;
-  camera?: string;
   cfgScale?: string;
-  color?: string;
   cover?: boolean;
   describe?: string | boolean;
   disableLimitGenerations?: boolean;
@@ -34,14 +32,14 @@ export interface CliOptions {
   imageSize?: string;
   landscape?: boolean;
   last?: boolean;
-  lighting?: string;
   limit?: string;
   limitGenerations?: boolean;
+  look?: string;
   loose?: boolean;
   mask?: string;
-  material?: string;
   model?: string;
-  motion?: string;
+  /** A mood id, or `false` from `--no-mood`. */
+  mood?: string | false;
   negative?: string;
   negativePrompt?: string;
   noOpen?: boolean;
@@ -53,7 +51,6 @@ export interface CliOptions {
   outputFormat?: string;
   portrait?: boolean;
   quality?: string;
-  recipe?: string;
   raw?: boolean;
   reel?: boolean;
   renderingSpeed?: string;
@@ -63,8 +60,6 @@ export interface CliOptions {
   safetyChecker?: boolean;
   scale?: string;
   seed?: string;
-  genre?: string;
-  shot?: string;
   square?: boolean;
   steps?: string;
   story?: boolean;
@@ -104,7 +99,8 @@ export interface StdinPayload {
     | "tool-describe"
     | "tool-run";
   dryRun?: boolean;
-  creative?: CreativeDirection;
+  /** Look and mood ids; `mood: null` drops any mood. */
+  creative?: CreativeInput;
   // Video options
   duration?: number;
   editImages?: string[];

@@ -21,6 +21,7 @@ import type { GenerateImageResult, ImageModel, JSONValue, Warning } from "ai";
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
+import { falHttpError, isFalAccountLocked } from "../errors";
 import { MotifError } from "../server";
 import { costForImages } from "./cost";
 import type { MotifImageDeps } from "./deps";
@@ -494,5 +495,14 @@ function toMotifError(error: unknown): MotifError {
     typeof error.statusCode === "number"
       ? error.statusCode
       : 0;
+  const body =
+    error instanceof Error &&
+    "responseBody" in error &&
+    typeof error.responseBody === "string"
+      ? error.responseBody
+      : message;
+  if (isFalAccountLocked(status, body)) {
+    return falHttpError(status, body);
+  }
   return new MotifError(message, status, code);
 }

@@ -3,8 +3,25 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { EDIT_CAPABLE_MODELS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, EDIT_CAPABLE_MODELS } from "@howells/motif-sdk";
+import type { CreativeField } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
+
+/** Upper-case the first letter, as the SDK sentence join does. */
+function cap(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+/** The prompt sentence the SDK appends for one creative option id. */
+function clause(field: CreativeField, id: string): string {
+  const option = CREATIVE_TAXONOMY[field].find(
+    (candidate) => candidate.id === id
+  );
+  if (!option) {
+    throw new Error(`no ${field} option ${id}`);
+  }
+  return option.clause;
+}
 
 interface CliResult {
   code: number;
@@ -135,7 +152,7 @@ describe("CLI contract", () => {
       asRecord(asRecord(asRecord(commands.vary).input).properties).model
     );
 
-    expect(varyModel.enum).toEqual([...EDIT_CAPABLE_MODELS]);
+    expect(varyModel.enum).toStrictEqual([...EDIT_CAPABLE_MODELS]);
   });
 
   it("advertises series commands in the primary schema", async () => {
@@ -171,40 +188,32 @@ describe("CLI contract", () => {
 
     const generate = parseJsonLine(result.stdout);
     const properties = asRecord(asRecord(generate.input).properties);
-    expect(properties.recipe).toMatchObject({
-      enum: ["cinematic"],
+    expect(properties.look).toMatchObject({
+      enum: CREATIVE_TAXONOMY.look.map((option) => option.id),
       type: "string",
     });
     expect(
-      asRecord(asRecord(properties.recipe).enumDescriptions).cinematic
+      asRecord(asRecord(properties.look).enumDescriptions).ephemera
     ).toMatchObject({
-      clause: "cinematic scene",
-      label: "Cinematic",
+      clause: clause("look", "ephemera"),
+      defaultAspect: "2:3",
+      defaultModel: "ideogram4",
+      experimental: false,
+      label: "Period ephemera",
     });
-    expect(properties.lighting).toMatchObject({
-      enum: ["rim"],
-      type: "string",
+    expect(
+      asRecord(asRecord(properties.look).enumDescriptions).drawing
+    ).toMatchObject({ experimental: true });
+    expect(properties.mood).toMatchObject({
+      enum: ["window", "dawn", "raking", "overcast", "lamplit", "nocturne"],
+      type: ["string", "null"],
     });
-    expect(properties.genre).toMatchObject({
-      enum: ["film-noir"],
-      type: "string",
-    });
-    expect(properties.camera).toMatchObject({
-      enum: ["macro-product"],
-      type: "string",
-    });
-    expect(properties.color).toMatchObject({
-      enum: ["monochrome"],
-      type: "string",
-    });
-    expect(properties.material).toMatchObject({
-      enum: ["reflective"],
-      type: "string",
-    });
-    expect(properties.motion).toMatchObject({
-      enum: ["still"],
-      type: "string",
-    });
+    expect(
+      asRecord(asRecord(properties.mood).enumDescriptions).overcast
+    ).not.toHaveProperty("defaultModel");
+    for (const removed of ["recipe", "shot", "lighting", "genre", "camera"]) {
+      expect(properties).not.toHaveProperty(removed);
+    }
   });
 
   it("dry-runs a themed series run without FAL_KEY", async () => {
@@ -250,39 +259,38 @@ describe("CLI contract", () => {
       "json",
       "--model",
       "banana",
-      "--recipe",
-      "cinematic",
-      "--lighting",
-      "rim",
+      "--style",
+      "quiet brand language",
+      "--look",
+      "still-life",
+      "--mood",
+      "raking",
     ]);
 
     expect(result.code).toBe(0);
     expect(result.stderr).toBe("");
 
+    const enrichment = `${clause("look", "still-life")}. ${cap(clause("mood", "raking"))}.`;
     const payload = parseJsonLine(result.stdout);
     expect(payload).toMatchObject({
       command: "series-run",
       creative: {
-        clauses: [
-          "cinematic scene",
-          "rim lighting with defined edge highlights",
-        ],
+        clauses: [clause("look", "still-life"), clause("mood", "raking")],
         selected: {
-          lighting: "rim",
-          recipe: "cinematic",
+          look: "still-life",
+          mood: "raking",
         },
       },
+      // Series never applies look defaults: the explicit model stands.
+      model: "banana",
     });
     const firstScene = asRecord(asArray(payload.scenes)[0]);
     expect(firstScene).toMatchObject({
       baseScenePrompt:
         "Image 1 of 2 in a cohesive visual series about luxury watch campaign; wide establishing composition; shared visual language, palette, lighting, lens, composition rhythm, and post-processing across the full set; no text, no watermark",
-      enrichedScenePrompt:
-        "Image 1 of 2 in a cohesive visual series about luxury watch campaign; wide establishing composition; shared visual language, palette, lighting, lens, composition rhythm, and post-processing across the full set; no text, no watermark, cinematic scene, rim lighting with defined edge highlights",
+      enrichedScenePrompt: `Image 1 of 2 in a cohesive visual series about luxury watch campaign; wide establishing composition; shared visual language, palette, lighting, lens, composition rhythm, and post-processing across the full set; no text, no watermark. ${enrichment}`,
     });
-    expect(String(firstScene.prompt)).toContain(
-      "cinematic scene, rim lighting with defined edge highlights"
-    );
+    expect(String(firstScene.prompt)).toContain(enrichment);
   });
 
   it("applies creative direction to series gen dry-run prompts", async () => {
@@ -314,10 +322,10 @@ describe("CLI contract", () => {
         "--dry-run",
         "--format",
         "json",
-        "--recipe",
-        "cinematic",
-        "--lighting",
-        "rim",
+        "--look",
+        "lived-in",
+        "--mood",
+        "window",
       ],
       "",
       home
@@ -330,20 +338,220 @@ describe("CLI contract", () => {
     expect(payload).toMatchObject({
       command: "series-generate",
       creative: {
-        clauses: [
-          "cinematic scene",
-          "rim lighting with defined edge highlights",
-        ],
+        clauses: [clause("look", "lived-in"), clause("mood", "window")],
         selected: {
-          lighting: "rim",
-          recipe: "cinematic",
+          look: "lived-in",
+          mood: "window",
         },
       },
+      // Series keeps its own model rather than the look's flux2-pro default.
+      model: "banana",
       scenePrompt: "hero watch on steel table",
     });
     expect(payload.prompt).toBe(
-      "editorial product language. hero watch on steel table, cinematic scene, rim lighting with defined edge highlights"
+      `editorial product language. Hero watch on steel table. ${clause("look", "lived-in")}. ${cap(clause("mood", "window"))}.`
     );
+  });
+
+  it("pins a look and mood on a series and applies them to series gen", async () => {
+    const home = tempHome();
+    const created = await runMotif(
+      [
+        "series",
+        "create",
+        "Kitchen Stories",
+        "--style",
+        "warm family kitchens",
+        "--look",
+        "lived-in",
+        "--mood",
+        "overcast",
+        "--format",
+        "json",
+      ],
+      "",
+      home
+    );
+    expect(created.code).toBe(0);
+    const series = parseJsonLine(created.stdout);
+    // No -m or -a, so the look's flux2-pro and 3:2 become the series defaults.
+    expect(series).toMatchObject({
+      command: "series-create",
+      defaultAspect: "3:2",
+      look: "lived-in",
+      model: "flux2-pro",
+      mood: "overcast",
+    });
+    const slug = String(series.slug);
+
+    const shown = await runMotif(
+      ["series", "show", slug, "--format", "json"],
+      "",
+      home
+    );
+    expect(parseJsonLine(shown.stdout)).toMatchObject({
+      look: "lived-in",
+      mood: "overcast",
+    });
+    const listed = await runMotif(
+      ["series", "list", "--format", "json"],
+      "",
+      home
+    );
+    expect(asArray(parseJsonLine(listed.stdout).series)[0]).toMatchObject({
+      look: "lived-in",
+      mood: "overcast",
+    });
+
+    const pinned = await runMotif(
+      [
+        "series",
+        "gen",
+        slug,
+        "a green kitchen",
+        "--dry-run",
+        "--format",
+        "json",
+      ],
+      "",
+      home
+    );
+    expect(pinned.code).toBe(0);
+    expect(pinned.stderr).toBe("");
+    const payload = parseJsonLine(pinned.stdout);
+    expect(payload).toMatchObject({
+      aspect: "3:2",
+      command: "series-generate",
+      creative: { selected: { look: "lived-in", mood: "overcast" } },
+      model: "flux2-pro",
+      stylePrompt: "warm family kitchens",
+    });
+    expect(payload.prompt).toBe(
+      `warm family kitchens. A green kitchen. ${clause("look", "lived-in")}. ${cap(clause("mood", "overcast"))}.`
+    );
+
+    const overridden = await runMotif(
+      [
+        "series",
+        "gen",
+        slug,
+        "a green kitchen",
+        "--mood",
+        "lamplit",
+        "--dry-run",
+        "--format",
+        "json",
+      ],
+      "",
+      home
+    );
+    expect(overridden.code).toBe(0);
+    expect(parseJsonLine(overridden.stdout)).toMatchObject({
+      creative: { selected: { look: "lived-in", mood: "lamplit" } },
+    });
+
+    const flatNoMood = await runMotif(
+      [
+        "series",
+        "gen",
+        slug,
+        "an oak plank",
+        "--look",
+        "plate",
+        "--no-mood",
+        "--dry-run",
+        "--format",
+        "json",
+      ],
+      "",
+      home
+    );
+    expect(flatNoMood.code).toBe(0);
+    expect(parseJsonLine(flatNoMood.stdout)).toMatchObject({
+      creative: { selected: { look: "plate" } },
+    });
+
+    const stdinNoMood = await runMotif(
+      ["series", "--format", "json"],
+      JSON.stringify({
+        command: "series-generate",
+        creative: { look: "plate", mood: null },
+        dryRun: true,
+        prompt: "an oak plank",
+        series: slug,
+      }),
+      home
+    );
+    expect(stdinNoMood.code).toBe(0);
+    expect(parseJsonLine(stdinNoMood.stdout)).toMatchObject({
+      creative: { selected: { look: "plate" } },
+    });
+
+    const run = await runMotif(
+      [
+        "series",
+        "run",
+        "family kitchens",
+        "--series",
+        slug,
+        "--count",
+        "1",
+        "--dry-run",
+        "--format",
+        "json",
+      ],
+      "",
+      home
+    );
+    expect(run.code).toBe(0);
+    expect(parseJsonLine(run.stdout)).toMatchObject({
+      creative: { selected: { look: "lived-in", mood: "overcast" } },
+      model: "flux2-pro",
+    });
+  });
+
+  it("keeps explicit model and aspect when a series pins a look", async () => {
+    const result = await runMotif([
+      "series",
+      "create",
+      "Fight Night",
+      "--look",
+      "ephemera",
+      "-m",
+      "banana",
+      "-a",
+      "1:1",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      defaultAspect: "1:1",
+      look: "ephemera",
+      model: "banana",
+      mood: null,
+    });
+  });
+
+  it("refuses to create a series that pins a mood on a flat look", async () => {
+    const result = await runMotif([
+      "series",
+      "create",
+      "Veneers",
+      "--look",
+      "plate",
+      "--mood",
+      "lamplit",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(parseJsonLine(result.stderr)).toMatchObject({
+      code: "INVALID_OPTION",
+      details: { field: "mood", value: "lamplit" },
+    });
   });
 
   it("accepts themed series runs through stdin JSON", async () => {
@@ -413,45 +621,98 @@ describe("CLI contract", () => {
     expect(dryRun).toHaveProperty("estimatedCost");
   });
 
-  it("emits creative metadata and enriched prompt during dry-run generation", async () => {
+  it("emits creative metadata and a sentence-joined prompt during dry-run generation", async () => {
     const result = await runMotif([
-      "luxury watch on black marble",
+      "a green kitchen",
       "--dry-run",
       "--format",
       "json",
-      "--model",
-      "banana",
-      "--recipe",
-      "cinematic",
-      "--lighting",
-      "rim",
+      "--look",
+      "lived-in",
+      "--mood",
+      "overcast",
     ]);
 
     expect(result.code).toBe(0);
     expect(result.stderr).toBe("");
 
+    const expectedPrompt = `A green kitchen. ${clause("look", "lived-in")}. ${cap(clause("mood", "overcast"))}.`;
     const dryRun = parseJsonLine(result.stdout);
     expect(dryRun).toMatchObject({
-      basePrompt: "luxury watch on black marble",
+      aspect: "3:2",
+      basePrompt: "a green kitchen",
       command: "generate",
       creative: {
-        clauses: [
-          "cinematic scene",
-          "rim lighting with defined edge highlights",
-        ],
+        clauses: [clause("look", "lived-in"), clause("mood", "overcast")],
         selected: {
-          lighting: "rim",
-          recipe: "cinematic",
+          look: "lived-in",
+          mood: "overcast",
         },
       },
       dryRun: true,
-      prompt:
-        "luxury watch on black marble, cinematic scene, rim lighting with defined edge highlights",
+      model: "flux2-pro",
+      prompt: expectedPrompt,
       valid: true,
     });
-    expect(asRecord(dryRun.body).prompt).toBe(
-      "luxury watch on black marble, cinematic scene, rim lighting with defined edge highlights"
-    );
+    expect(asRecord(dryRun.body).prompt).toBe(expectedPrompt);
+  });
+
+  it("applies the look's default model and aspect when none is given", async () => {
+    const result = await runMotif([
+      "a boxing match card",
+      "--look",
+      "ephemera",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      aspect: "2:3",
+      model: "ideogram4",
+    });
+  });
+
+  it("lets explicit model and aspect flags beat the look's defaults", async () => {
+    const result = await runMotif([
+      "a lamp",
+      "--look",
+      "object",
+      "-m",
+      "gpt2",
+      "-a",
+      "16:9",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      aspect: "16:9",
+      model: "gpt2",
+      prompt: `A lamp. ${clause("look", "object")}.`,
+    });
+  });
+
+  it("lets a preset flag beat the look's default aspect", async () => {
+    const result = await runMotif([
+      "a lamp",
+      "--look",
+      "ephemera",
+      "--og",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      aspect: "16:9",
+      model: "ideogram4",
+    });
   });
 
   it("accepts creative direction through stdin JSON dry-run payloads", async () => {
@@ -460,12 +721,11 @@ describe("CLI contract", () => {
       JSON.stringify({
         command: "generate",
         creative: {
-          lighting: "rim",
-          recipe: "cinematic",
+          look: "portrait",
+          mood: "dawn",
         },
         dryRun: true,
-        model: "banana",
-        prompt: "luxury watch on black marble",
+        prompt: "an abstract study",
       })
     );
 
@@ -474,29 +734,51 @@ describe("CLI contract", () => {
 
     const dryRun = parseJsonLine(result.stdout);
     expect(dryRun).toMatchObject({
-      basePrompt: "luxury watch on black marble",
+      aspect: "1:1",
+      basePrompt: "an abstract study",
       creative: {
         selected: {
-          lighting: "rim",
-          recipe: "cinematic",
+          look: "portrait",
+          mood: "dawn",
         },
       },
-      prompt:
-        "luxury watch on black marble, cinematic scene, rim lighting with defined edge highlights",
+      model: "seedream45",
+      prompt: `An abstract study. ${clause("look", "portrait")}. ${cap(clause("mood", "dawn"))}.`,
+    });
+  });
+
+  it("lets stdin model and aspect beat the look's defaults", async () => {
+    const result = await runMotif(
+      ["--format", "json"],
+      JSON.stringify({
+        aspect: "1:1",
+        command: "generate",
+        creative: { look: "ephemera" },
+        dryRun: true,
+        model: "banana",
+        prompt: "a boxing match card",
+      })
+    );
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      aspect: "1:1",
+      model: "banana",
     });
   });
 
   it("lets creative CLI flags override matching stdin JSON fields", async () => {
     const result = await runMotif(
-      ["--format", "json", "--recipe", "cinematic", "--lighting", "rim"],
+      ["--format", "json", "--mood", "lamplit"],
       JSON.stringify({
         command: "generate",
         creative: {
-          lighting: "missing",
+          look: "editorial",
+          mood: "missing",
         },
         dryRun: true,
         model: "banana",
-        prompt: "luxury watch on black marble",
+        prompt: "a reading corner",
       })
     );
 
@@ -507,23 +789,21 @@ describe("CLI contract", () => {
     expect(dryRun).toMatchObject({
       creative: {
         selected: {
-          lighting: "rim",
-          recipe: "cinematic",
+          look: "editorial",
+          mood: "lamplit",
         },
       },
     });
   });
 
-  it("emits field-specific details for invalid creative options", async () => {
+  it("emits field-specific details for an unknown look id", async () => {
     const result = await runMotif([
       "studio portrait",
       "--dry-run",
       "--format",
       "json",
-      "--model",
-      "banana",
-      "--lighting",
-      "rim-light",
+      "--look",
+      "cinematic",
     ]);
 
     expect(result.code).toBe(2);
@@ -531,12 +811,120 @@ describe("CLI contract", () => {
     expect(error).toMatchObject({
       code: "INVALID_OPTION",
       details: {
-        availableIds: ["rim"],
-        field: "lighting",
-        value: "rim-light",
+        availableIds: CREATIVE_TAXONOMY.look.map((option) => option.id),
+        field: "look",
+        value: "cinematic",
       },
       error: true,
     });
+  });
+
+  it("refuses a mood on a flat look with a structured error", async () => {
+    const result = await runMotif([
+      "oak veneer",
+      "--look",
+      "plate",
+      "--mood",
+      "lamplit",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    const error = parseJsonLine(result.stderr);
+    expect(error).toMatchObject({
+      code: "INVALID_OPTION",
+      details: {
+        availableIds: CREATIVE_TAXONOMY.look
+          .filter((look) => look.acceptsMood)
+          .map((look) => look.id),
+        field: "mood",
+        value: "lamplit",
+      },
+      error: true,
+    });
+    expect(String(error.message)).toContain("plate");
+  });
+
+  it("accepts a mood on a look that takes one", async () => {
+    const result = await runMotif([
+      "a reading chair",
+      "--look",
+      "editorial",
+      "--mood",
+      "lamplit",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      creative: { selected: { look: "editorial", mood: "lamplit" } },
+      model: "flux2-pro",
+    });
+  });
+
+  it("drops a stdin mood with --no-mood", async () => {
+    const result = await runMotif(
+      ["--format", "json", "--no-mood"],
+      JSON.stringify({
+        command: "generate",
+        creative: { look: "plate", mood: "dawn" },
+        dryRun: true,
+        prompt: "an oak plank",
+      })
+    );
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      creative: { selected: { look: "plate" } },
+    });
+  });
+
+  it("emits prompt warnings from the base prompt only during dry-run", async () => {
+    const warned = await runMotif([
+      "a shop poster on a wall, no text, no chairs",
+      "--look",
+      "lived-in",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(warned.code).toBe(0);
+    const warnings = asArray(parseJsonLine(warned.stdout).warnings).map(
+      (warning) => [asRecord(warning).rule, asRecord(warning).match]
+    );
+    expect(warnings).toStrictEqual([
+      ["negated-object", "no chairs"],
+      ["text-bearing-object", "poster"],
+    ]);
+
+    // The look text says "no logos, no people"; that never raises a warning.
+    const clean = await runMotif([
+      "a green kitchen",
+      "--look",
+      "lived-in",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(parseJsonLine(clean.stdout).warnings).toStrictEqual([]);
+  });
+
+  it("rejects the removed creative flags", async () => {
+    const result = await runMotif([
+      "studio portrait",
+      "--dry-run",
+      "--format",
+      "json",
+      "--lighting",
+      "rim",
+    ]);
+
+    expect(result.code).toBe(2);
   });
 
   it("refuses a bare positional prompt that matches a command word", async () => {

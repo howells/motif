@@ -1,7 +1,11 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import { GENERATION_MODELS } from "@howells/motif-sdk";
+import {
+  CREATIVE_FIELDS,
+  CREATIVE_TAXONOMY,
+  GENERATION_MODELS,
+} from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
 import { ERROR_CATALOG } from "../src/utils/error-catalog";
@@ -28,6 +32,19 @@ describe("docs sync", () => {
     const agents = read(cliAgentsPath);
     for (const code of Object.keys(ERROR_CATALOG)) {
       expect(agents, `missing error code: ${code}`).toContain(code);
+    }
+  });
+
+  it("documents every look and mood id in the CLI agent guide and README", () => {
+    for (const path of [cliAgentsPath, readmePath]) {
+      const doc = read(path);
+      for (const field of CREATIVE_FIELDS) {
+        for (const option of CREATIVE_TAXONOMY[field]) {
+          expect(doc, `missing ${field} id: ${option.id}`).toContain(
+            `\`${option.id}\``
+          );
+        }
+      }
     }
   });
 

@@ -14,6 +14,10 @@ Motif is a public creative automation interface for fal.ai media endpoints, with
 
 **Scene Prompt**: The per-image creative instruction generated from a **Theme** or supplied by the user. _Avoid_: Prompt when referring only to one image inside a series
 
+**Look**: A named house visual register - medium, finish, framing and exclusions - that Motif adds to a prompt, carrying its own default model and aspect ratio. _Avoid_: Style, preset, recipe
+
+**Mood**: A named light condition added to a prompt alongside a photographic **Look**. _Avoid_: Lighting, atmosphere, style
+
 ## Relationships
 
 - A **Series** contains zero or more **References**.
@@ -21,6 +25,9 @@ Motif is a public creative automation interface for fal.ai media endpoints, with
 - A **Series Run** contains one or more **Scene Prompts**.
 - A **Scene Prompt** is generated within exactly one **Series Run** when the user asks for a themed set.
 - A **Reference** can be reused by many **Series Runs** in the same **Series**.
+- A generation uses at most one **Look** and at most one **Mood**.
+- A **Mood** applies only to a photographic **Look**; flat **Looks** (scans, prints, paintings, studio objects) carry their own light and refuse a **Mood**.
+- A **Series** can pin one **Look** and one **Mood**, which then apply to every generation in it.
 
 ## Example Dialogue
 
@@ -29,3 +36,4 @@ Motif is a public creative automation interface for fal.ai media endpoints, with
 ## Flagged Ambiguities
 
 - "series generator" was used both for the existing persistent **Series** feature and for a new themed multi-image workflow; resolved: the new workflow is a **Series Run** inside a **Series**.
+- "style" meant three things: a model's own style parameter, a **Series** style prompt, and the house visual register; resolved: the house register is a **Look**, and "style" is kept for the first two only.

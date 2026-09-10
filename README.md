@@ -368,10 +368,42 @@ motif "compare current product packaging trends" --model banana2 --google-search
 
 ## Creative Direction
 
-Creative direction appends predefined clauses to the prompt before the fal request is built. Eight fields are available — `recipe`, `shot`, `lighting`, `genre`, `camera`, `color`, `material`, and `motion` — each set with a matching CLI flag or a key in the SDK `creative` option.
+Creative direction adds house presets to your prompt before the fal request is built. There are two fields: a **look** sets the kind of image, and a **mood** sets the light. Each adds one or two sentences after your prompt, look first, then mood. Set them with `--look <id>` and `--mood <id>`, or as keys in the SDK `creative` option.
+
+These are house looks. They reflect one studio's taste (quiet, material, interiors-led) and aren't neutral presets, so read the sentences in `motif --describe --format json` before relying on one.
+
+A look also comes with a default aspect ratio and model. The order of precedence is: an explicit flag (`-m`, `-a`, or a preset such as `--og`) or stdin value wins; then the look's default; then `defaultModel` and `defaultAspect` in `~/.motif/config.json`. The `drawing` look is experimental: it works, but its text and defaults may change.
+
+Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` and `object`. Pairing one with a mood fails with an `INVALID_OPTION` error. A mood on its own, with no look, is fine. `--no-mood` (or `"mood": null` in stdin JSON) drops any mood, including one pinned on a Series.
+
+Dry runs and successful generations include `warnings`, advice about phrasings image models tend to misread. They check your own prompt only, never the look or mood text, and never stop a generation. `negated-object` flags "no chairs" and the like, because naming an object tends to draw it in, so describe what is there instead. `text-bearing-object` flags a sign, poster, book or similar in a prompt that also asks for no text, because the model will probably letter it anyway.
+
+| Look            | What it's for                                                    | Aspect | Model        |
+| --------------- | ---------------------------------------------------------------- | ------ | ------------ |
+| `editorial` | Quiet, materially rich editorial photography | 1:1 | `flux2-pro` |
+| `still-life`    | Objects and material samples on a plaster ground                 | 1:1    | `flux2-pro`  |
+| `lived-in`      | Bright, collected rooms that feel lived in                       | 3:2    | `flux2-pro`  |
+| `architectural` | Whole rooms with one product installed, to show it at scale      | 4:5    | `banana`     |
+| `homeowner`     | Unstyled phone snapshots of real homes                           | 4:3    | `seedream45` |
+| `drawing` | Line and gouache room drawings of a colour scheme (experimental) | 1:1 | `gpt2` |
+| `plate`         | Flat, edge-to-edge surface photographs for textures and swatches | 1:1    | `flux2-pro`  |
+| `engraved`      | Grey-ink botanical engravings for patterns and backgrounds       | 1:1    | `gpt2`       |
+| `ephemera`      | Aged 1940s printed matter where the lettering matters            | 2:3    | `ideogram4`  |
+| `canvas`        | Loose abstract paintings on linen                                | 3:4    | `banana`     |
+| `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
+| `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
+
+| Mood       | Light                                    |
+| ---------- | ---------------------------------------- |
+| `window`   | Soft, even daylight from a window        |
+| `dawn`     | Cool, clear early morning light          |
+| `raking`   | Low side light that brings out texture   |
+| `overcast` | Soft grey light on a rainy afternoon     |
+| `lamplit`  | Warm evening lamps, candles and a fire   |
+| `nocturne` | Night, one warm low light, deep shadow   |
 
 ```bash
-motif "a ceramic desk lamp" --model banana2 --shot close-up --lighting rim
+motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
 ```
 
 ```ts
@@ -379,13 +411,13 @@ import { FalClient } from "@howells/motif-sdk";
 
 const fal = new FalClient(process.env.FAL_KEY!);
 const result = await fal.generate({
-  model: "banana2",
-  prompt: "a ceramic desk lamp",
-  creative: { shot: "close-up", lighting: "rim" },
+  model: "flux2-pro",
+  prompt: "a green kitchen",
+  creative: { look: "lived-in", mood: "overcast" },
 });
 ```
 
-An unknown option id fails validation with a structured `INVALID_OPTION` error. Option ids are versioned with the taxonomy; read the current ids from `motif --describe --format json`.
+The SDK only adds the look's sentences to the prompt. To use a look's default model and aspect in your own code, read them with `getLook(id)`. An unknown id fails validation with a structured `INVALID_OPTION` error. Read the current ids from `motif --describe --format json`.
 
 ## Post-Processing
 

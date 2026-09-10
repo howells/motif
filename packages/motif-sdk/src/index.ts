@@ -44,8 +44,20 @@ export {
   type CreativePromptResult,
   type EnrichPromptOptions,
   enrichPrompt,
+  getLook,
+  LOOKS,
+  type LookId,
+  type LookOption,
+  type MoodId,
   sanitizePrompt,
+  validateCreativeDirection,
 } from "./creative";
+export { ACCOUNT_LOCKED, isFalAccountLocked } from "./errors";
+export {
+  type PromptWarning,
+  type PromptWarningRule,
+  promptWarnings,
+} from "./prompt-warnings";
 export {
   getFalKeyFromEnv,
   type MotifEnv,

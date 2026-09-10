@@ -236,14 +236,9 @@ export async function runCli(
       "Disable MagicPrompt prompt expansion (ideogram)"
     )
     // Creative direction
-    .option("--recipe <id>", "Creative recipe id, e.g. cinematic")
-    .option("--shot <id>", "Shot/framing id, e.g. close-up")
-    .option("--lighting <id>", "Lighting id, e.g. rim")
-    .option("--genre <id>", "Genre id")
-    .option("--camera <id>", "Camera/lens language id")
-    .option("--color <id>", "Color treatment id")
-    .option("--material <id>", "Material or texture id")
-    .option("--motion <id>", "Motion treatment id")
+    .option("--look <id>", "House look id, e.g. editorial")
+    .option("--mood <id>", "Light mood id, e.g. overcast")
+    .option("--no-mood", "Drop any mood, including one from stdin JSON")
     // Video advanced
     .option("--video-negative <text>", "Negative prompt for video generation")
     .option(

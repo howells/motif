@@ -14,12 +14,15 @@ import {
   estimateCost,
   formatCost,
   GENERATION_MODELS,
+  getLook,
   MODELS,
+  promptWarnings,
   sumCosts,
 } from "@howells/motif-sdk";
 import type {
   AspectRatio,
   GenerateOptions,
+  PromptWarning,
   Resolution,
 } from "@howells/motif-sdk";
 import chalk from "chalk";
@@ -66,6 +69,13 @@ import {
 import { emit, emitError, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { firstText, hasText } from "../utils/text";
+
+/** Print prompt warnings in yellow for human output. */
+function printPromptWarnings(warnings: readonly PromptWarning[]): void {
+  for (const warning of warnings) {
+    console.log(chalk.yellow(`Warning (${warning.rule}): ${warning.message}`));
+  }
+}
 
 // -- Structured result for saved images --
 
@@ -210,19 +220,33 @@ export async function generateImage(
   config: Awaited<ReturnType<typeof loadConfig>>,
   emitOpts: EmitOptions
 ): Promise<void> {
+  // Creative direction resolves first: a look supplies the model and aspect
+  // defaults used when the caller named neither.
+  const creative = resolveCreativeDirection(options, stdinData?.creative);
+  const creativeResult = creative
+    ? validateOption(emitOpts.format, () => enrichPrompt({ creative, prompt }))
+    : undefined;
+  const requestPrompt = creativeResult?.prompt ?? prompt;
+  const look = hasText(creative?.look) ? getLook(creative.look) : undefined;
+  // Advisory only, and checked against the caller's own words, never the
+  // look or mood text.
+  const warnings = promptWarnings(creativeResult?.basePrompt ?? prompt);
+
   const { aspect, resolution } = validateOption(emitOpts.format, () =>
     resolvePreset(
       options,
       stdinData?.preset,
       stdinData?.aspect,
       stdinData?.resolution,
-      config.defaultAspect,
+      look?.aspect ?? config.defaultAspect,
       config.defaultResolution
     )
   );
 
   const modelId =
-    firstText(options.model, stdinData?.model) ?? config.defaultModel;
+    firstText(options.model, stdinData?.model) ??
+    look?.model ??
+    config.defaultModel;
 
   // Validate model name against hallucination patterns
   try {
@@ -334,11 +358,6 @@ export async function generateImage(
       ? false
       : (options.safetyChecker ?? stdinData?.enableSafetyChecker);
   const syncMode = options.syncMode ?? stdinData?.syncMode;
-  const creative = resolveCreativeDirection(options, stdinData?.creative);
-  const creativeResult = creative
-    ? validateOption(emitOpts.format, () => enrichPrompt({ creative, prompt }))
-    : undefined;
-  const requestPrompt = creativeResult?.prompt ?? prompt;
   const imageSize = validateOption(emitOpts.format, () =>
     parseImageSizeOption(options.imageSize ?? stdinData?.imageSize)
   );
@@ -442,6 +461,7 @@ export async function generateImage(
       dryRun: true,
       command: "generate",
       prompt: requestPrompt,
+      warnings,
       ...(creativeResult && {
         basePrompt: creativeResult.basePrompt,
         creative: creativeResult.creative,
@@ -494,6 +514,7 @@ export async function generateImage(
       console.log(`  Images: ${numImages}`);
       console.log(`  Output: ${chalk.dim(outputPath)}`);
       console.log(`  Cost:   ${chalk.yellow(formatCost(cost))}`);
+      printPromptWarnings(warnings);
       if (ephemeral === true) {
         console.log("  Fal IO: not retained after local download");
       }
@@ -516,6 +537,7 @@ export async function generateImage(
       `Prompt: ${chalk.dim(requestPrompt.slice(0, 80))}${requestPrompt.length > 80 ? "..." : ""}`
     );
     console.log(`Est. cost: ${chalk.yellow(formatCost(cost))}`);
+    printPromptWarnings(warnings);
     if (ephemeral === true) {
       console.log("Fal IO: not retained after local download");
     }
@@ -613,6 +635,7 @@ export async function generateImage(
           }),
           ...(hasText(payloadDeleteError) && { payloadDeleteError }),
           prompt: requestPrompt,
+          warnings,
           ...(creativeResult && {
             basePrompt: creativeResult.basePrompt,
             creative: creativeResult.creative,

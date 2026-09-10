@@ -1,3 +1,5 @@
+> Superseded by the look and mood creative direction (MOT-43). Kept as a historical record.
+
 # Creative Direction Prompt Enrichment Design
 
 ## Context

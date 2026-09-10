@@ -65,15 +65,14 @@ describe(buildGenerateBody, () => {
   it("enriches creative direction before building the fal request body", () => {
     const { body } = buildGenerateBody({
       creative: {
-        lighting: "rim",
-        recipe: "cinematic",
+        mood: "nocturne",
       },
       model: "banana",
       prompt: "luxury watch on black marble",
     });
 
     expect(body.prompt).toBe(
-      "luxury watch on black marble, cinematic scene, rim lighting with defined edge highlights"
+      "Luxury watch on black marble. Night, one warm low practical light, deep shadow, candlelit."
     );
     expect(body).not.toHaveProperty("creative");
   });

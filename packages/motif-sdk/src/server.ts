@@ -2,7 +2,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { estimateCost, estimateVideoCost } from "./cost";
-import { MotifError, toMotifError } from "./errors";
+import { falHttpError, MotifError, toMotifError } from "./errors";
 import {
   asNumber,
   asString,
@@ -688,12 +688,9 @@ export class FalClient {
 
         if (!response.ok) {
           const text = await response.text();
-          const message = `Request failed: ${response.status} ${text}`;
           const requestId =
             response.headers.get("x-fal-request-id") ?? requestIdFromBody(text);
-          return err(
-            new MotifError(message, response.status, undefined, requestId)
-          );
+          return err(falHttpError(response.status, text, requestId));
         }
 
         return ok(response);

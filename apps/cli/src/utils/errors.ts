@@ -1,4 +1,4 @@
-import { MotifError } from "@howells/motif-sdk";
+import { ACCOUNT_LOCKED, MotifError } from "@howells/motif-sdk";
 import type { Command } from "commander";
 
 import { getErrorMetadata } from "./error-catalog";
@@ -103,11 +103,22 @@ export function validateOutput(
   }
 }
 
+/**
+ * Error codes the SDK assigns that outrank a command's own failure code,
+ * because they name the real cause (a locked account is not a failed render).
+ */
+function sdkErrorCode(err: unknown): string | undefined {
+  return err instanceof MotifError && err.code === ACCOUNT_LOCKED
+    ? ACCOUNT_LOCKED
+    : undefined;
+}
+
 export function handleError(
   err: unknown,
-  code: string,
+  fallbackCode: string,
   format: OutputFormat
 ): never {
+  const code = sdkErrorCode(err) ?? fallbackCode;
   const metadata = getErrorMetadata(code);
   emitError(
     {

@@ -10,7 +10,6 @@
 
 import {
   ASPECT_RATIOS,
-  CREATIVE_FIELDS,
   CREATIVE_TAXONOMY,
   EDIT_CAPABLE_MODELS,
   FAL_TOOL_IDS,
@@ -23,6 +22,7 @@ import {
   GENERATION_MODELS,
   IMAGE_EDITING_TOP_20,
   IMAGE_TEXT_TO_IMAGE_TOP_20,
+  LOOKS,
   MODELS,
   RESOLUTIONS,
   UTILITY_MODELS,
@@ -40,30 +40,49 @@ import { PACKAGE_VERSION } from "../version";
 /**
  * Build creative direction properties for `motif describe` output.
  *
- * The enum metadata includes labels, descriptions, and appended prompt clauses
- * so agents can choose option ids without inspecting SDK source.
+ * Looks and moods are described from their own SDK lists, so look-only
+ * metadata (default aspect and model, whether a mood is accepted, whether the
+ * look is experimental) never depends on probing an option's shape.
  */
 function creativeSchemaProperties(): Record<string, object> {
-  return Object.fromEntries(
-    CREATIVE_FIELDS.map((field) => [
-      field,
-      {
-        description: `Creative direction ${field} id`,
-        enum: CREATIVE_TAXONOMY[field].map((option) => option.id),
-        enumDescriptions: Object.fromEntries(
-          CREATIVE_TAXONOMY[field].map((option) => [
-            option.id,
-            {
-              clause: option.clause,
-              description: option.description,
-              label: option.label,
-            },
-          ])
-        ),
-        type: "string",
-      },
-    ])
-  );
+  return {
+    look: {
+      description:
+        "House look id. Sets the prompt register, and the default model and aspect when none is given",
+      enum: LOOKS.map((look) => look.id),
+      enumDescriptions: Object.fromEntries(
+        LOOKS.map((look) => [
+          look.id,
+          {
+            acceptsMood: look.acceptsMood,
+            clause: look.clause,
+            defaultAspect: look.aspect,
+            defaultModel: look.model,
+            description: look.description,
+            experimental: look.experimental === true,
+            label: look.label,
+          },
+        ])
+      ),
+      type: "string",
+    },
+    mood: {
+      description:
+        "Light mood id, appended after the look. null (or --no-mood) drops any mood, including a Series' pinned one. Flat looks refuse a mood",
+      enum: CREATIVE_TAXONOMY.mood.map((mood) => mood.id),
+      enumDescriptions: Object.fromEntries(
+        CREATIVE_TAXONOMY.mood.map((mood) => [
+          mood.id,
+          {
+            clause: mood.clause,
+            description: mood.description,
+            label: mood.label,
+          },
+        ])
+      ),
+      type: ["string", "null"],
+    },
+  };
 }
 
 /** JSON Schema for the generate command's input */

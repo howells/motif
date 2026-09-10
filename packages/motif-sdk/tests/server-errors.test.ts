@@ -7,31 +7,31 @@ describe("FalClient builder-error contract", () => {
 
   it("generate resolves with an err() for unknown creative option ids", async () => {
     const result = await motif.generate({
-      creative: { lighting: "not-a-real-id" },
+      creative: { mood: "not-a-real-id" },
       model: "banana",
       prompt: "x",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.code).toBe("INVALID_OPTION");
-      expect(result.error.message).toContain("Unknown creative lighting");
+      expect(result.error.message).toContain("Unknown creative mood");
     }
   });
 
   it("submitGeneration resolves with an err() for unknown creative option ids", async () => {
     const result = await motif.submitGeneration({
-      creative: { lighting: "not-a-real-id" },
+      creative: { mood: "not-a-real-id" },
       model: "banana",
       prompt: "x",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.code).toBe("INVALID_OPTION");
-      expect(result.error.message).toContain("Unknown creative lighting");
+      expect(result.error.message).toContain("Unknown creative mood");
     }
   });
 
@@ -41,7 +41,7 @@ describe("FalClient builder-error contract", () => {
       prompt: "x",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("Unknown model: nope");
@@ -55,7 +55,7 @@ describe("FalClient builder-error contract", () => {
       quality: "high",
     });
 
-    expect(result.isErr()).toBe(true);
+    expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain(

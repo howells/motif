@@ -77,7 +77,7 @@ Structured errors include an `instance` field (an `urn:fal:request:<id>` URN) wh
 
 Error codes are grouped below. Every code the CLI can emit is listed; the live catalog is available from `motif --describe --format json`.
 
-- General: `MISSING_API_KEY`, `UNKNOWN_MODEL`, `INVALID_MODEL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `EDIT_PROMPT_SWALLOWED`, `TOO_MANY_REFERENCES`, `NO_PREVIOUS`, `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `DESCRIBE_FAILED`.
+- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_MODEL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `EDIT_PROMPT_SWALLOWED`, `TOO_MANY_REFERENCES`, `NO_PREVIOUS`, `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `DESCRIBE_FAILED`.
 
 `RESERVED_PROMPT` (status `400`, exit `2`) fires when the positional prompt is exactly a motif command word (e.g. `motif history` instead of `motif --history`). This protects agents from spending credits on a mistyped command. The error's `details.didYouMean` field carries the corrected invocation. To genuinely generate from such a one-word prompt, pass it via stdin JSON: `echo '{"prompt":"history"}' | motif`.
 
@@ -96,7 +96,7 @@ Structured failures exit with a semantic process code derived from the error's R
 | `0` | Success | — | — |
 | `1` | Unknown / unmapped | — | Unstructured crashes; any status outside the ranges below |
 | `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `EDIT_PROMPT_SWALLOWED`, `TOO_MANY_REFERENCES` |
-| `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY` |
+| `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
 | `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED` |
 
@@ -174,36 +174,76 @@ The four `tool*` commands reach every entry in the registry, including the 40-od
 
 ## Creative Direction
 
-Creative direction enriches the prompt with predefined clauses before the request body is built. There are eight fields, applied in this canonical order:
+Creative direction adds house presets to the prompt before the request body is built. There are two fields, applied in this order:
 
-| Field      | CLI flag          | Purpose                  |
-| ---------- | ----------------- | ------------------------ |
-| `recipe`   | `--recipe <id>`   | Overall creative recipe  |
-| `shot`     | `--shot <id>`     | Shot and framing         |
-| `lighting` | `--lighting <id>` | Lighting treatment       |
-| `genre`    | `--genre <id>`    | Genre and mood           |
-| `camera`   | `--camera <id>`   | Camera and lens language |
-| `color`    | `--color <id>`    | Color treatment          |
-| `material` | `--material <id>` | Material or texture      |
-| `motion`   | `--motion <id>`   | Motion treatment         |
+| Field  | CLI flag      | Purpose                                            |
+| ------ | ------------- | -------------------------------------------------- |
+| `look` | `--look <id>` | The kind of image, plus a default aspect and model |
+| `mood` | `--mood <id>` | The light, added after the look                    |
 
-Pass fields as CLI flags or as a `creative` object in stdin JSON:
+Each option is one or more full sentences. The final prompt is your prompt, then the look, then the mood, joined as sentences: any trailing period is stripped from each part, the parts are joined with `". "`, and the result ends with a period. With no look or mood the prompt is sent unchanged.
+
+### Looks
+
+In `generate`, a look sets the model and aspect when you gave none. Explicit `-m`/`--model`, `-a`/`--aspect`, a preset flag such as `--og`, or stdin `model`, `aspect` or `preset` always win. Resolution is never changed.
+
+Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` and `object` (`acceptsMood: false` in `--describe`). A mood with one of them fails with `INVALID_OPTION` (exit `2`) on field `mood`, and `details.availableIds` lists the looks that do accept a mood. A mood with no look is valid. `--no-mood` on `generate`, `series gen` and `series run` (or `"mood": null` in stdin `creative`) drops any mood, including a Series' pinned one, so `series gen <slug> "x" --look plate --no-mood` works on a Series pinned to a mood.
+
+The `drawing` look is experimental (`experimental: true` in `--describe`): it works, but its text and defaults may change. Look defaults outrank `defaultModel` and `defaultAspect` in `~/.motif/config.json`; explicit flags and stdin outrank both.
+
+| Look | What it's for | Aspect | Model |
+| --- | --- | --- | --- |
+| `editorial` | Quiet, materially rich editorial photography | 1:1 | `flux2-pro` |
+| `still-life` | Objects and material samples on a plaster ground | 1:1 | `flux2-pro` |
+| `lived-in` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
+| `architectural` | Whole rooms with one product installed, to show it at scale | 4:5 | `banana` |
+| `homeowner` | Unstyled phone snapshots of real homes | 4:3 | `seedream45` |
+| `drawing` | Line and gouache room drawings of a colour scheme (experimental) | 1:1 | `gpt2` |
+| `plate` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
+| `engraved` | Grey-ink botanical engravings for patterns and backgrounds | 1:1 | `gpt2` |
+| `ephemera` | Aged 1940s printed matter where the lettering matters | 2:3 | `ideogram4` |
+| `canvas` | Loose abstract paintings on linen | 3:4 | `banana` |
+| `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
+| `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
+
+### Moods
+
+| Mood       | Light                                  |
+| ---------- | -------------------------------------- |
+| `window`   | Soft, even daylight from a window      |
+| `dawn`     | Cool, clear early morning light        |
+| `raking`   | Low side light that brings out texture |
+| `overcast` | Soft grey light on a rainy afternoon   |
+| `lamplit`  | Warm evening lamps, candles and a fire |
+| `nocturne` | Night, one warm low light, deep shadow |
+
+### Usage
 
 ```bash
-# CLI flags
-motif "a ceramic desk lamp" -m banana2 --shot close-up --lighting rim
+# CLI flags - the look picks flux2-pro at 3:2
+motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
+
+# Explicit flags beat the look's defaults
+motif "a lamp" --look object -m flux2-pro -a 16:9 --dry-run --format json
 
 # Stdin JSON
-echo '{"prompt":"a ceramic desk lamp","model":"banana2","creative":{"shot":"close-up","lighting":"rim"}}' | motif
+echo '{"prompt":"a green kitchen","creative":{"look":"lived-in","mood":"overcast"},"dryRun":true}' | motif --format json
 ```
 
-Per-field flags override the matching key in the stdin `creative` object. Only the fields you set are applied; the rest are left untouched.
+Each flag overrides the matching key in the stdin `creative` object. Only the fields you set are applied. Dry-run JSON reports `basePrompt`, `creative.clauses`, `creative.selected`, `warnings`, and the final `prompt`, `model` and `aspect`.
 
-An unknown option id fails before any fal request with a structured `INVALID_OPTION` error whose details include the field and the available ids for that field.
+### Prompt warnings
 
-Option ids are versioned with the taxonomy. Do not hardcode them; read the live ids from `motif --describe --format json`.
+`generate` puts `warnings: [{rule, match, message}]` in dry-run JSON and in successful JSON output (empty when nothing matches), and prints them in yellow in human output. They are advisory: generation still goes ahead. They check the caller's own prompt only, never the look or mood text.
 
-The `generate` and `vary` commands both accept creative direction. Vary operates on the edit-capable model subset (`EDIT_CAPABLE_MODELS`) — the generation models whose fal endpoints support image editing.
+| Rule | Fires on | Why |
+| --- | --- | --- |
+| `negated-object` | `no <word>` (optionally `no a/an/the <word>`), except text, logos, logo, people, person, faces, watermark, watermarks, words, lettering | Negating an object tends to draw it into the picture; describe what is present instead |
+| `text-bearing-object` | `no text` or `no words` together with sign, label, poster, book, menu, newspaper, packaging, card, ticket, magazine or screen | The model is likely to render text on the object anyway |
+
+An unknown id fails before any fal request with a structured `INVALID_OPTION` error (exit `2`) whose details include the field and the available ids for that field. `--describe generate` lists every id with its label, sentence, and for looks the `defaultAspect` and `defaultModel`.
+
+`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. Vary keeps the last generation's model and aspect, and runs on the edit-capable model subset (`EDIT_CAPABLE_MODELS`), the generation models whose fal endpoints support image editing. A Series can pin a look and mood when it's created (see Series below). Series' free-text `--style <prompt>` and the model-native `--style` on `generate` are separate from looks.
 
 ## Schema Introspection
 
@@ -235,7 +275,7 @@ The schema includes:
 
 2. **Always use `--fields`** when you only need specific output fields. Full output includes paths, dimensions, costs, timestamps — most calls only need `id` and `path`.
 
-3. **Always specify `--model`** explicitly. Don't rely on defaults — they're user-configured and may change between sessions.
+3. **Always specify `--model` explicitly, except with `--look`.** Config defaults are user-set and may change between sessions. A look carries its own default model, so with `--look` leave `-m` out unless you mean to override it.
 
 4. **Always use `--no-open`** in automated pipelines. The default opens images in Preview.app, which will interrupt the agent.
 
@@ -516,6 +556,11 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 motif series create "Luna's Adventure" --from cover.png \
   --style "children's book, watercolor, soft pastels" -m banana -a 3:2
 
+# Pin a house look and mood; the look also sets the model and aspect
+# (flux2-pro, 3:2) because -m and -a are not given
+motif series create "Kitchen Stories" --style "warm family kitchens" \
+  --look lived-in --mood overcast
+
 # Add character references
 motif series ref-add luna-s-adventure character-luna.png --tag character -d "Luna front view"
 motif series ref-add luna-s-adventure forest-clearing.png --tag location -d "Forest clearing"
@@ -537,15 +582,17 @@ motif series history luna-s-adventure
 ```bash
 echo '{"command":"series-run","theme":"brutalist architecture","numImages":6,"dryRun":true}' | motif series --format json
 echo '{"command":"series-generate","series":"luna-s-adventure","prompt":"Luna meets the fox","refs":"character"}' | motif series
+echo '{"command":"series-create","name":"Kitchen Stories","creative":{"look":"lived-in","mood":"overcast"}}' | motif series --format json
 ```
 
 ### How It Works
 
 1. **Series run** turns a theme into one shared style prompt and one scene prompt per requested image
-2. **Reference images** (tagged) are passed as `--edit` images to the model
-3. **Outputs** are tracked per-series with full provenance (prompt, refs used, cost)
-4. **Live series runs** reuse the first generated image as a style anchor for later images when the model supports references
-5. **banana model** is recommended for series (14 reference images, best consistency)
+2. **Pinned look and mood** are stored on the series as `look` and `mood`, shown by `series show` and `series list`, and added to every scene prompt in `series gen` and `series run`. A `--look` or `--mood` flag on gen or run replaces the pinned value for that call only (flag, then stdin `creative`, then the pinned value). The `--style` prompt still goes first as the prefix, then the scene, then the look and mood sentences. `series create` validates the pair with the same rules as `generate`, so a mood on a flat look fails with `INVALID_OPTION`. A look fills in the series' model and aspect only where `-m` or `-a` wasn't given; after that, gen and run use the series settings, not the look's. `--no-mood` on gen or run drops the pinned mood for that call. A `series run` without `--series` creates a Series that pins the look and mood the run used.
+3. **Reference images** (tagged) are passed as `--edit` images to the model
+4. **Outputs** are tracked per-series with full provenance (prompt, refs used, cost)
+5. **Live series runs** reuse the first generated image as a style anchor for later images when the model supports references
+6. **banana model** is recommended for series (14 reference images, best consistency)
 
 ### Series Invariants
 
@@ -558,13 +605,13 @@ echo '{"command":"series-generate","series":"luna-s-adventure","prompt":"Luna me
 ### All Series Commands
 
 ```bash
-motif series create <name> [--from <img>] [--style <prompt>] [-m model] [-a aspect] [-r res]
+motif series create <name> [--from <img>] [--style <prompt>] [--look id] [--mood id] [-m model] [-a aspect] [-r res]
 motif series list
 motif series show <slug>
 motif series ref-add <slug> <image> [-t tag] [-d description]
 motif series ref-remove <slug> <filename>
-motif series gen <slug> "prompt" [--refs tags] [--dry-run] [-m model] [-a aspect] [-o output]
-motif series run "theme" [--count n] [--series slug] [--refs tags] [--dry-run] [-m model] [-a aspect]
+motif series gen <slug> "prompt" [--refs tags] [--look id] [--mood id] [--dry-run] [-m model] [-a aspect] [-o output]
+motif series run "theme" [--count n] [--series slug] [--refs tags] [--look id] [--mood id] [--dry-run] [-m model] [-a aspect]
 motif series history <slug> [--limit n] [--offset n]
 motif series delete <slug>
 ```

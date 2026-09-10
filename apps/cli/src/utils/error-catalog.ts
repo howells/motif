@@ -51,6 +51,11 @@ function metadata(
 }
 
 export const ERROR_CATALOG = {
+  ACCOUNT_LOCKED: metadata("ACCOUNT_LOCKED", 403, {
+    suggestions: [
+      "The fal account is out of credit. Top up at https://fal.ai/dashboard/billing, then run the command again",
+    ],
+  }),
   ASK_FAILED: metadata("ASK_FAILED", 502, { isRetriable: true }),
   DESCRIBE_FAILED: metadata("DESCRIBE_FAILED", 500, {
     isRetriable: true,

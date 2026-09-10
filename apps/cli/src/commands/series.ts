@@ -17,9 +17,11 @@ import {
   estimateCost,
   formatCost,
   GENERATION_MODELS,
+  getLook,
   MODELS,
   RESOLUTIONS,
   sanitizePrompt,
+  validateCreativeDirection,
 } from "@howells/motif-sdk";
 import type { CreativeDirection } from "@howells/motif-sdk";
 import chalk from "chalk";
@@ -35,6 +37,7 @@ import {
 } from "../utils/config";
 import type { Generation } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
+import type { CreativeInput } from "../utils/creative";
 import {
   exitForErrorCode,
   handleError,
@@ -98,8 +101,10 @@ function seriesAsJson(config: SeriesConfig): Record<string, unknown> {
     defaultAspect: config.defaultAspect,
     defaultResolution: config.defaultResolution,
     id: config.id,
+    look: config.look ?? null,
     model: config.model,
     modelName: MODELS[config.model]?.name ?? config.model,
+    mood: config.mood ?? null,
     name: config.name,
     outputCount: config.outputs.length,
     refCount: config.refs.length,
@@ -108,6 +113,29 @@ function seriesAsJson(config: SeriesConfig): Record<string, unknown> {
     stylePrompt: config.stylePrompt,
     updated: config.updated,
   };
+}
+
+/**
+ * Creative direction for one series call: CLI flags win, then the stdin
+ * `creative` object, then the look and mood pinned on the series. `--no-mood`
+ * or a stdin `mood: null` drops the pinned mood for this call.
+ */
+function seriesCreativeDirection(
+  flags: CreativeInput,
+  stdinCreative: CreativeInput | undefined,
+  series: SeriesConfig | null
+): CreativeDirection | undefined {
+  const pinned: CreativeDirection = {};
+  if (hasText(series?.look)) {
+    pinned.look = series.look;
+  }
+  if (hasText(series?.mood)) {
+    pinned.mood = series.mood;
+  }
+  return resolveCreativeDirection(
+    flags,
+    resolveCreativeDirection(stdinCreative ?? {}, pinned)
+  );
 }
 
 function validateSeriesOption<T>(emitOpts: EmitOptions, fn: () => T): T {
@@ -154,6 +182,8 @@ export function buildSeriesRunScenes(theme: string, count: number): string[] {
 export async function loadOrCreateRunSeries(options: {
   aspect: (typeof ASPECT_RATIOS)[number];
   model: string;
+  look?: string;
+  mood?: string;
   resolution: (typeof RESOLUTIONS)[number];
   series?: string;
   stylePrompt: string;
@@ -169,7 +199,9 @@ export async function loadOrCreateRunSeries(options: {
     return await createSeries({
       defaultAspect: options.aspect,
       defaultResolution: options.resolution,
+      look: options.look,
       model: options.model,
+      mood: options.mood,
       name,
       stylePrompt: options.stylePrompt,
     });
@@ -187,6 +219,8 @@ async function cmdCreate(
   name: string,
   opts: {
     from?: string;
+    look?: string;
+    mood?: string;
     style?: string;
     model?: string;
     aspect?: string;
@@ -195,6 +229,15 @@ async function cmdCreate(
   emitOpts: EmitOptions
 ): Promise<void> {
   try {
+    const requested = resolveCreativeDirection(opts);
+    const pinned = requested
+      ? validateSeriesOption(
+          emitOpts,
+          () => validateCreativeDirection(requested).selected
+        )
+      : undefined;
+    const look = hasText(pinned?.look) ? getLook(pinned.look) : undefined;
+
     if (hasText(opts.model)) {
       validateResourceId(opts.model, "model");
     }
@@ -214,11 +257,14 @@ async function cmdCreate(
         )
       : undefined;
 
+    // A pinned look fills in the model and aspect the caller left unset.
     const config = await createSeries({
-      defaultAspect,
+      defaultAspect: defaultAspect ?? look?.aspect,
       defaultResolution,
       fromImage: hasText(opts.from) ? resolve(opts.from) : undefined,
-      model,
+      look: pinned?.look,
+      model: model ?? look?.model,
+      mood: pinned?.mood,
       name,
       stylePrompt: opts.style,
     });
@@ -231,6 +277,11 @@ async function cmdCreate(
       console.log(
         `  Model: ${chalk.dim(MODELS[config.model]?.name ?? config.model)}`
       );
+      if (hasText(config.look) || hasText(config.mood)) {
+        console.log(
+          `  Look:  ${chalk.dim(config.look ?? "none")} | Mood: ${chalk.dim(config.mood ?? "none")}`
+        );
+      }
       if (config.stylePrompt) {
         console.log(
           `  Style: ${chalk.dim(config.stylePrompt.slice(0, 80))}...`
@@ -310,6 +361,11 @@ async function cmdShow(slug: string, emitOpts: EmitOptions): Promise<void> {
     console.log(
       `  Aspect: ${config.defaultAspect} | Resolution: ${config.defaultResolution}`
     );
+    if (hasText(config.look) || hasText(config.mood)) {
+      console.log(
+        `  Look:   ${config.look ?? "none"} | Mood: ${config.mood ?? "none"}`
+      );
+    }
     if (config.stylePrompt) {
       console.log(`  Style:  ${chalk.dim(config.stylePrompt)}`);
     }
@@ -394,22 +450,16 @@ async function cmdGenerate(
   prompt: string,
   opts: {
     aspect?: string;
-    camera?: string;
-    color?: string;
-    creative?: CreativeDirection;
+    creative?: CreativeInput;
     dryRun?: boolean;
-    genre?: string;
-    lighting?: string;
-    material?: string;
+    look?: string;
     model?: string;
-    motion?: string;
+    mood?: string | false;
     noOpen?: boolean;
     num?: string;
     output?: string;
-    recipe?: string;
     refs?: string;
     resolution?: string;
-    shot?: string;
   },
   emitOpts: EmitOptions
 ): Promise<void> {
@@ -426,7 +476,7 @@ async function cmdGenerate(
       exitForErrorCode("EMPTY_PROMPT");
     }
 
-    const creative = resolveCreativeDirection(opts, opts.creative);
+    const creative = seriesCreativeDirection(opts, opts.creative, config);
     const creativeResult = creative
       ? validateSeriesOption(emitOpts, () =>
           enrichPrompt({ creative, prompt: sanitized })
@@ -666,22 +716,16 @@ async function cmdRun(
   theme: string,
   opts: {
     aspect?: string;
-    camera?: string;
-    color?: string;
     count?: string;
-    creative?: CreativeDirection;
+    creative?: CreativeInput;
     dryRun?: boolean;
-    genre?: string;
-    lighting?: string;
-    material?: string;
+    look?: string;
     model?: string;
-    motion?: string;
+    mood?: string | false;
     noOpen?: boolean;
-    recipe?: string;
     refs?: string;
     resolution?: string;
     series?: string;
-    shot?: string;
     style?: string;
   },
   emitOpts: EmitOptions
@@ -752,7 +796,11 @@ async function cmdRun(
       exitForErrorCode("TOO_MANY_REFERENCES");
     }
 
-    const creative = resolveCreativeDirection(opts, opts.creative);
+    const creative = seriesCreativeDirection(
+      opts,
+      opts.creative,
+      existingSeries
+    );
     const baseScenePrompts = buildSeriesRunScenes(sanitizedTheme, count);
     const enrichedScenes = baseScenePrompts.map((baseScenePrompt) =>
       creative
@@ -819,9 +867,12 @@ async function cmdRun(
     const appConfig = await loadConfig();
     getApiKey(appConfig);
 
+    // A new Series pins the look and mood this run used.
     const config = await loadOrCreateRunSeries({
       aspect,
+      look: creative?.look,
       model: modelId,
+      mood: creative?.mood,
       resolution,
       series: opts.series,
       stylePrompt,
@@ -1029,7 +1080,7 @@ interface SeriesStdinPayload {
     | "series-history";
   description?: string;
   count?: number;
-  creative?: CreativeDirection;
+  creative?: CreativeInput;
   dryRun?: boolean;
   filename?: string;
   from?: string;
@@ -1105,8 +1156,13 @@ export async function runSeries(args: string[]): Promise<void> {
     .description("Create a new series")
     .option("--from <image>", "Initial style reference image")
     .option("--style <prompt>", "Style prompt prefix for all generations")
-    .option("-m, --model <model>", "Preferred model")
-    .option("-a, --aspect <ratio>", "Default aspect ratio")
+    .option("--look <id>", "Pin a house look for every image, e.g. editorial")
+    .option("--mood <id>", "Pin a light mood for every image, e.g. overcast")
+    .option("-m, --model <model>", "Preferred model (default: the look's)")
+    .option(
+      "-a, --aspect <ratio>",
+      "Default aspect ratio (default: the look's)"
+    )
     .option("-r, --resolution <res>", "Default resolution")
     .action(async (name: string, opts: Parameters<typeof cmdCreate>[1]) => {
       await cmdCreate(name, opts, emitOpts);
@@ -1164,14 +1220,9 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("-m, --model <model>", "Model (overrides series default)")
     .option("-o, --output <file>", "Output filename")
     .option("-n, --num <count>", "Number of images 1-4")
-    .option("--recipe <id>", "Creative recipe id, e.g. cinematic")
-    .option("--shot <id>", "Shot/framing id, e.g. close-up")
-    .option("--lighting <id>", "Lighting id, e.g. rim")
-    .option("--genre <id>", "Genre id")
-    .option("--camera <id>", "Camera/lens language id")
-    .option("--color <id>", "Color treatment id")
-    .option("--material <id>", "Material or texture id")
-    .option("--motion <id>", "Motion treatment id")
+    .option("--look <id>", "House look id, e.g. editorial")
+    .option("--mood <id>", "Light mood id, e.g. overcast")
+    .option("--no-mood", "Drop any mood, including the series' pinned one")
     .option("--no-open", "Don't open after generation")
     .option("--dry-run", "Validate without API call")
     .action(
@@ -1197,14 +1248,9 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("-a, --aspect <ratio>", "Aspect ratio")
     .option("-r, --resolution <res>", "Resolution")
     .option("-m, --model <model>", "Model")
-    .option("--recipe <id>", "Creative recipe id, e.g. cinematic")
-    .option("--shot <id>", "Shot/framing id, e.g. close-up")
-    .option("--lighting <id>", "Lighting id, e.g. rim")
-    .option("--genre <id>", "Genre id")
-    .option("--camera <id>", "Camera/lens language id")
-    .option("--color <id>", "Color treatment id")
-    .option("--material <id>", "Material or texture id")
-    .option("--motion <id>", "Motion treatment id")
+    .option("--look <id>", "House look id, e.g. editorial")
+    .option("--mood <id>", "Light mood id, e.g. overcast")
+    .option("--no-mood", "Drop any mood, including the series' pinned one")
     .option("--no-open", "Don't open after generation")
     .option("--dry-run", "Validate and plan without API call")
     .action(async (theme: string, opts: Parameters<typeof cmdRun>[1]) => {
@@ -1239,12 +1285,15 @@ async function handleStdinCommand(
       if (!hasText(data.name)) {
         throw new Error("name is required");
       }
+      const stdinPinned = resolveCreativeDirection(data.creative ?? {});
       await cmdCreate(
         data.name,
         {
           aspect: data.aspect,
           from: data.from,
+          look: stdinPinned?.look,
           model: data.model,
+          mood: stdinPinned?.mood,
           resolution: data.resolution,
           style: data.stylePrompt,
         },
