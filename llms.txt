@@ -70,4 +70,4 @@ Two invariants: `estimatedCost: null` means metered or per-unit billing, not fre
 
 - [CLI contract tests](./apps/cli/tests/cli-contract.test.ts) - Help, dry-run, stdin JSON, structured errors, tool commands, and fal body previews.
 - [SDK request tests](./packages/motif-sdk/tests/server-fetch.test.ts) - Mocked fal fetch behavior, no-store headers, and request payload deletion.
-- [CI workflow](./.github/workflows/ci.yml) - Typecheck, lint, and tests on push and pull request.
+- Checks run locally, not in CI: `pnpm check` builds, typechecks, lints, and runs the tests.

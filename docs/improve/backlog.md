@@ -41,7 +41,7 @@ Tracked in Linear (Motif team). Statuses here mirror Linear; update both when an
 - **Status:** shipped with the 0.4.0 release batch · **Linear:** MOT-12 (Done)
 - **Evidence:** zero mentions of `creative` in README.md, llms.txt, AGENTS.md, apps/cli/AGENTS.md, packages/motif-mcp/README.md, docs/surface/*. `apps/cli/AGENTS.md:42,73` list 9 of 18 models; error-code list (lines 45-47) has 14 of 24 codes — all 6 series codes missing despite the doc's own series section. Cost table also incomplete.
 - **Fix:** document creative direction in the three READMEs/guides; regenerate model + error-code lists; prefer a test asserting documented lists match SDK exports over one-off prose fixes. Refresh `docs/surface/scorecard.md` (stale since 2026-05-21) once done.
-- **Verify:** doc-sync test in CI; grep for `creative` hits in each doc surface.
+- **Verify:** doc-sync test in `pnpm check`; grep for `creative` hits in each doc surface.
 
 ## P3 — Safety net & consolidation
 

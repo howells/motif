@@ -136,7 +136,7 @@ Areas another session is changing right now (CLI flags, `-e`, output paths, `mot
 
 ### SURF-18: Routing eval
 
-- **Description:** 20 to 30 task prompts drawn from the transcript evidence ("remove the car from street.png", "make this 16:9 without cropping the subject", "put these six in a grid", "our usual editorial look", "six images that look like a set", "split this poster into layers", "which models can do 4K?"). Run each 3 times against a model given only what ships: the global quick reference, `motif --help`, `motif --describe tasks`. Grade the **first motif command** by string match on command and key flags, dry-run only, no spend. Report pass^3 per task and overall, and compare against a stored baseline. Opt-in in CI, like the fal canaries.
+- **Description:** 20 to 30 task prompts drawn from the transcript evidence ("remove the car from street.png", "make this 16:9 without cropping the subject", "put these six in a grid", "our usual editorial look", "six images that look like a set", "split this poster into layers", "which models can do 4K?"). Run each 3 times against a model given only what ships: the global quick reference, `motif --help`, `motif --describe tasks`. Grade the **first motif command** by string match on command and key flags, dry-run only, no spend. Report pass^3 per task and overall, and compare against a stored baseline. Opt-in and run locally, like the fal canaries.
 - **Files:** `evals/routing/cases.jsonl`, `evals/routing/run.ts`, `evals/routing/baseline.json`, root `package.json` script.
 - **Complexity:** M
 - **Score impact:** Testing 2→3. It's also the exit condition for this plan.

@@ -91,11 +91,37 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 
 Never print or commit a real API key, and never copy private Studio code, private service dependencies, database details, canvas implementation details, or private web app references into this public repo. Don't reintroduce private web app directories or private Studio topology docs. Preserve the strict package `files` allowlists and run `npm pack --dry-run` before publishing changes.
 
-Releases go through `.github/workflows/release.yml`, never from a laptop. It uses npm Trusted Publishing: GitHub Actions proves the repo's identity over OIDC and npm mints a short-lived token for that one publish, so no npm token exists in the repo, in Actions secrets, or on anyone's machine, and there is no 2FA prompt.
+## Checks and deploys run locally
 
-To release: bump the version in `package.json`, merge to `main`, then run the workflow (`gh workflow run release.yml`, or the Actions tab). It publishes only versions the registry does not already have, so re-running after a partial failure is safe.
+There is no GitHub Actions on this repo and nothing runs in CI. Every check, build, release and deploy happens on this machine. Run `pnpm check` before pushing. Deploy the site from the repo root:
 
-The workflow packs with pnpm and publishes with npm, and that split is load-bearing. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`; only pnpm rewrites that to a real version, and `npm pack` ships the literal string, making the release uninstallable. pnpm in turn has no OIDC support, so it cannot authenticate. The workflow greps the packed `package.json` for a surviving `workspace:` before publishing and reads the published dependencies back afterwards, because `npm pack --dry-run` does not catch this. It sank 1.8.0, now deprecated on the registry.
+```bash
+vercel pull --yes --environment=production && vercel build --prod && vercel deploy --prebuilt --prod
+```
+
+## Releases
+
+Releases are published from this machine. npm needs a logged-in user (`npm whoami`) or a token in the local environment.
+
+Packaging uses `pnpm pack` and publishing uses `npm publish`, and that split is load-bearing. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`; only pnpm rewrites that to a real version, and `npm pack` ships the literal string, making the release uninstallable. It sank 1.8.0, now deprecated on the registry. Check the packed `package.json` for a surviving `workspace:` before publishing, because `npm pack --dry-run` does not catch it.
+
+Publish in dependency order, the SDK first, because the CLI resolves a real published SDK version.
+
+```bash
+# bump the version in each package.json, then from the repo root:
+pnpm build
+pnpm check
+
+pnpm --filter @howells/motif-sdk pack --pack-destination /tmp
+tar -xzOf /tmp/howells-motif-sdk-<version>.tgz package/package.json | grep '"workspace:' && echo STOP
+npm publish /tmp/howells-motif-sdk-<version>.tgz --access public
+
+pnpm --filter @howells/motif-cli pack --pack-destination /tmp
+tar -xzOf /tmp/howells-motif-cli-<version>.tgz package/package.json | grep '"workspace:' && echo STOP
+npm publish /tmp/howells-motif-cli-<version>.tgz --access public
+```
+
+npm refuses a version already on the registry, so re-running after a partial failure is safe. Afterwards check `npm view @howells/motif-cli@<version> dependencies` shows a real SDK version rather than `workspace:*`.
 
 ## Agent skills
 

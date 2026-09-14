@@ -36,11 +36,16 @@ pnpm --filter @howells/motif-sdk pack --dry-run
 
 ## Releasing
 
-Releases run in CI, not from a laptop. Bump the version in the package's `package.json`, merge to `main`, then run the Release workflow:
+Nothing runs in CI. Releases are published from a local machine with npm logged in (`npm whoami`) or a token in the environment.
+
+Bump the version in the package's `package.json`, merge to `main`, run `pnpm check`, then pack with pnpm and publish with npm. The SDK goes first, because the CLI resolves a real published SDK version:
 
 ```bash
-gh workflow run release.yml                    # publish
-gh workflow run release.yml -f dry_run=true    # pack and verify only
+pnpm --filter @howells/motif-sdk pack --pack-destination /tmp
+npm publish /tmp/howells-motif-sdk-<version>.tgz --access public
+
+pnpm --filter @howells/motif-cli pack --pack-destination /tmp
+npm publish /tmp/howells-motif-cli-<version>.tgz --access public
 ```
 
-It publishes only versions npm does not already have, so it is safe to re-run. Authentication is npm Trusted Publishing over OIDC - there is no npm token to hold, rotate, or leak.
+pnpm packs and npm publishes because only pnpm rewrites the `workspace:*` dependency to a real version. Check each packed `package.json` for a surviving `workspace:` before publishing. npm refuses a version already on the registry, so a re-run after a partial failure is safe.
