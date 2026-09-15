@@ -24,10 +24,10 @@
     "@motif/bench-core": "workspace:*",
     "@motif/bench-env": "workspace:*",
     "pg": "^8.22.0",
-    "zod": "^4.4.3"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@howells/lint": "^3.0.0",
+    "@howells/lint": "^3.2.5",
     "@howells/typescript-config": "^0.1.6",
     "@types/node": "^26.1.1",
     "@types/pg": "^8.20.3",
