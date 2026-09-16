@@ -349,6 +349,15 @@ function generationError(
   return withCode(error, model, task);
 }
 
+/**
+ * `vary` carries no prompt of its own: the image is the whole instruction.
+ * Every generation Model still needs words, and an empty string is refused
+ * upstream, so ask for the picture again and let the Model's own variance
+ * do the work.
+ */
+const VARY_PROMPT =
+  "Another take of this image: the same subject, framing, palette and light, rendered afresh.";
+
 function generationPlan(
   task: TaskId,
   model: string,
@@ -411,7 +420,10 @@ function generationPlan(
     negativePrompt: input.negativePrompt,
     numImages: input.count,
     outputFormat: input.outputFormat,
-    prompt: input.prompt ?? "",
+    prompt:
+      task === "vary" && (input.prompt ?? "") === ""
+        ? VARY_PROMPT
+        : (input.prompt ?? ""),
     resolution: input.resolution,
     seed: input.seed,
   };

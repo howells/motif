@@ -252,6 +252,23 @@ describe("createMotif plan", () => {
     expect(plan.cost.usd).toBeCloseTo((0.07 * 1008 * 672) / 1_000_000);
   });
 
+  it("asks for the picture again when vary is given no prompt", () => {
+    const plan = planned("vary", { image: IMAGE, model: "banana" });
+
+    // An empty prompt is refused upstream with a 422, so vary must carry one.
+    expect(plan.body.prompt).toMatch(/^Another take of this image/);
+  });
+
+  it("keeps a prompt passed to vary", () => {
+    const plan = planned("vary", {
+      image: IMAGE,
+      model: "banana",
+      prompt: "in cobalt blue",
+    });
+
+    expect(plan.body.prompt).toBe("in cobalt blue");
+  });
+
   it("puts vary's source first in image_urls", () => {
     const reference = "https://example.com/reference.png";
     const plan = planned("vary", {
