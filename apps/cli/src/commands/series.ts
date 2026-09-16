@@ -17,7 +17,7 @@ import {
   enrichPrompt,
   formatCost,
   getLook,
-  MODELS,
+  modelProfile,
   RESOLUTIONS,
   sanitizePrompt,
   TIERS,
@@ -881,10 +881,8 @@ async function cmdRun(
       exitTaskError(planned.error, emitOpts.format, { task: "generate" });
     }
     const plan = planned.value;
-    const modelConfig = MODELS[plan.model];
-    const maxRefs = modelConfig?.maxReferenceImages ?? 0;
-    const canUseAnchorReference =
-      modelConfig?.supportsEdit === true && refPaths.length < maxRefs;
+    const maxRefs = modelProfile(plan.model)?.maxReferences ?? 0;
+    const canUseAnchorReference = refPaths.length < maxRefs;
     const estimatedCost = plan.cost.usd === null ? null : plan.cost.usd * count;
 
     if (dryRun) {

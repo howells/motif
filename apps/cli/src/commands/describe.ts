@@ -4,30 +4,19 @@
  * `motif describe` returns full machine-readable schema for all commands.
  * `motif describe <command>` returns schema for a specific command.
  *
- * Schemas are resolved at runtime from the live model registry,
- * so they always reflect the current API version.
+ * Model enums come from each Task's ranked Models, so they always match what
+ * the SDK can resolve.
  */
 
 import {
   ASPECT_RATIOS,
   CREATIVE_TAXONOMY,
-  EDIT_CAPABLE_MODELS,
-  describeModelOutput,
-  losslessAvailability,
-  modelOutput,
-  GENERATION_MODELS,
-  IMAGE_EDITING_TOP_20,
-  IMAGE_TEXT_TO_IMAGE_TOP_20,
   LOOKS,
-  MODELS,
   RESOLUTIONS,
   TASKS,
   TIERS,
-  UTILITY_MODELS,
-  VIDEO_IMAGE_TO_VIDEO_TOP_15,
-  VIDEO_MODELS,
-  VIDEO_TEXT_TO_VIDEO_TOP_15,
 } from "@howells/motif-sdk";
+import type { TaskId } from "@howells/motif-sdk";
 
 import { ERROR_CATALOG } from "../utils/error-catalog";
 import { emit } from "../utils/output";
@@ -43,6 +32,11 @@ import {
   taskRouting,
 } from "./verbs/tasks";
 import { promptSource, usageLine } from "./verbs/verb-kit";
+
+/** The Model ids a Task ranks, in rank order and without repeats. */
+function taskModelIds(task: TaskId): string[] {
+  return [...new Set(TASKS[task].models.map((entry) => entry.model))];
+}
 
 /**
  * Build creative direction properties for `motif describe` output.
@@ -164,26 +158,7 @@ function generateSchema() {
         model: {
           description:
             "Run this Model instead of the ranked choice. The SDK resolves every request, this one included",
-          enum: GENERATION_MODELS,
-          enumDescriptions: Object.fromEntries(
-            GENERATION_MODELS.map((m) => [
-              m,
-              {
-                benchmark: MODELS[m]?.benchmark,
-                falPricing: MODELS[m]?.falPricing,
-                maxReferenceImages: MODELS[m]?.maxReferenceImages,
-                name: MODELS[m]?.name,
-                pricing: MODELS[m]?.pricing,
-                supportedOutputFormats: MODELS[m]?.supportedOutputFormats,
-                supportsAspect: MODELS[m]?.supportsAspect,
-                supportsBackground: MODELS[m]?.supportsBackground,
-                supportsEdit: MODELS[m]?.supportsEdit,
-                supportsMaskImage: MODELS[m]?.supportsMaskImage,
-                supportsResolution: MODELS[m]?.supportsResolution,
-                transparencyRoute: MODELS[m]?.transparencyRoute,
-              },
-            ])
-          ),
+          enum: taskModelIds("generate"),
           type: "string",
         },
         ...TASK_INPUT_PROPERTIES,
@@ -369,7 +344,7 @@ function varySchema() {
           type: "string",
         },
         look: creativeSchemaProperties().look,
-        model: { enum: EDIT_CAPABLE_MODELS, type: "string" },
+        model: { enum: taskModelIds("vary"), type: "string" },
         mood: creativeSchemaProperties().mood,
         numImages: { default: 1, maximum: 4, minimum: 1, type: "integer" },
         prompt: {
@@ -521,7 +496,7 @@ function seriesSchema() {
         model: {
           description:
             "Run this Model instead of the ranked choice for every image in the series.",
-          enum: GENERATION_MODELS,
+          enum: taskModelIds("generate"),
           type: "string",
         },
         noOpen: { default: false, type: "boolean" },
@@ -760,7 +735,7 @@ function tasksSchema() {
   };
 }
 
-/** Full CLI schema with all commands, models, and runtime state */
+/** Full CLI schema with all commands, enums, and errors */
 function fullSchema() {
   return {
     // First, so the opening bytes of a large schema are the routing table.
@@ -774,10 +749,8 @@ function fullSchema() {
     description: "fal.ai image generation CLI",
     enums: {
       aspect_ratios: ASPECT_RATIOS,
-      generation_models: GENERATION_MODELS,
+      generation_models: taskModelIds("generate"),
       resolutions: RESOLUTIONS,
-      utility_models: UTILITY_MODELS,
-      video_models: VIDEO_MODELS,
     },
     errors: ERROR_CATALOG,
     global_flags: {
@@ -797,49 +770,6 @@ function fullSchema() {
       stdin_json:
         'Pipe a JSON payload to stdin: echo \'{"prompt":"a cat","model":"gpt"}\' | motif',
     },
-    leaderboards: {
-      image_editing_top_20: IMAGE_EDITING_TOP_20,
-      image_text_to_image_top_20: IMAGE_TEXT_TO_IMAGE_TOP_20,
-      video_image_to_video_top_15: VIDEO_IMAGE_TO_VIDEO_TOP_15,
-      video_text_to_video_top_15: VIDEO_TEXT_TO_VIDEO_TOP_15,
-    },
-    models: Object.fromEntries(
-      Object.entries(MODELS).map(([key, config]) => [
-        key,
-        {
-          benchmark: config.benchmark,
-          capabilities: {
-            aspect: config.supportsAspect,
-            edit: config.supportsEdit,
-            guidanceScale: config.supportsGuidanceScale,
-            inferenceSteps: config.supportsInferenceSteps,
-            maxReferenceImages: config.maxReferenceImages,
-            numImages: config.supportsNumImages,
-            outputFormat: config.supportsOutputFormat,
-            resolution: config.supportsResolution,
-            safetyTolerance: config.supportsSafetyTolerance,
-            seed: config.supportsSeed,
-            supportedOutputFormats: config.supportedOutputFormats,
-            webSearch: config.supportsWebSearch,
-          },
-          falPricing: config.falPricing,
-          name: config.name,
-          // What comes back, measured from real bytes, not what the endpoint
-          // accepts. `capabilities.outputFormat` says whether the argument is
-          // allowed; this says whether a lossless file is obtainable at all and
-          // what arrives if you ask for nothing.
-          output: modelOutput(key)
-            ? {
-                ...modelOutput(key),
-                lossless: losslessAvailability(key),
-                summary: describeModelOutput(key),
-              }
-            : undefined,
-          pricing: config.pricing,
-          type: config.type,
-        },
-      ])
-    ),
     name: "motif",
     security_posture:
       "The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (or the current directory outside a repo). Use --dry-run before mutating commands.",

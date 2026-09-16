@@ -1,6 +1,6 @@
 # @howells/motif-sdk
 
-Public Node SDK for Motif fal.ai generation, editing, utility tools, and model metadata.
+Public Node SDK for Motif: Task-first image, video and utility work on fal.ai, plus a provider-agnostic image layer.
 
 ## Install
 
@@ -8,129 +8,69 @@ Public Node SDK for Motif fal.ai generation, editing, utility tools, and model m
 npm install @howells/motif-sdk
 ```
 
-## Generate Images
+## Run a Task
 
-The primary image API is `createMotifImage` (`@howells/motif-sdk/image`) — provider-agnostic generate/edit across google, openai, replicate, and fal. See [Image Layer](#image-layer-howellsmotif-sdkimage) below.
-
-The examples in this section use the low-level `FalClient`, the fal-native client for fal-specific capabilities (queue, upload, upscale, background removal, video, and utility tools).
+The Task client, `createMotif`, is the fal surface: name a Task and, optionally, a Tier, and Motif chooses the Model, builds its request and runs it on fal. `createMotifImage` (`@howells/motif-sdk/image`) is the provider-agnostic generate/edit layer across google, openai, replicate, and fal. See [Image Layer](#image-layer-howellsmotif-sdkimage) below.
 
 ```ts
-import { FalClient } from "@howells/motif-sdk";
+import { createMotif } from "@howells/motif-sdk";
 
-const motif = new FalClient({
-  apiKey: process.env.FAL_KEY!,
-  retries: 3,
-  timeout: 120_000,
-});
+const motif = createMotif(); // reads FAL_KEY
 
 const result = await motif.generate({
-  model: "banana2",
   prompt: "editorial product photo",
   resolution: "2K",
-  enableGoogleSearch: true,
-  ephemeral: true,
+  tier: "quality",
 });
 
 if (result.isErr()) {
   throw result.error;
 }
 
-console.log(result.value.images[0]?.url);
+console.log(result.value.model, result.value.files[0]?.url, result.value.cost);
 ```
 
-Every async SDK method returns `Result<T, MotifError>` from `neverthrow`. Methods do not throw for fal request failures; check `isErr()` / `isOk()`.
+Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` and does not throw for fal request failures; check `isErr()` / `isOk()`.
 
-## Dry-Run Request Bodies
+## Plan Without Calling fal
 
-Use `buildGenerateBody` or `motif.buildRequestBody()` when you need the exact fal endpoint and request body without making an API call.
-
-```ts
-import { buildGenerateBody } from "@howells/motif-sdk";
-
-const preview = buildGenerateBody({
-  model: "gpt2",
-  prompt: "change the wall color",
-  editImageUrls: ["https://example.com/interior.png"],
-  imageSize: "1536x1024",
-  maskImageUrl: "https://example.com/wall-mask.png",
-  quality: "auto",
-  syncMode: true,
-});
-
-console.log(preview.endpoint);
-console.log(preview.body);
-```
-
-## Queue, Upload, and Cleanup
+`plan(task, input, { dryRun: true })` resolves the Model and returns the endpoint, body and projected cost with no I/O and no key.
 
 ```ts
-const job = await motif.submitGeneration({
-  model: "gpt2",
-  prompt: "gallery poster",
-});
+const plan = motif.plan(
+  "erase",
+  {
+    image: "https://example.com/room.png",
+    prompt: "the chair",
+  },
+  { dryRun: true }
+);
 
-if (job.isOk()) {
-  const status = await motif.getJobStatus(
-    job.value.endpoint,
-    job.value.requestId
-  );
-  const completed = await motif.getJobResult(
-    job.value.endpoint,
-    job.value.requestId
-  );
+if (plan.isOk()) {
+  console.log(plan.value.model, plan.value.cost);
 }
-
-const uploaded = await motif.uploadToFalCdn(fileBytes, {
-  contentType: "image/png",
-  fileName: "reference.png",
-});
-
-const deleted = await motif.deletePayloads("fal-request-id");
-```
-
-## Utility Tools and Video
-
-```ts
-const mask = await motif.runTool({
-  tool: "sam3-image",
-  input: "https://example.com/input.png",
-  options: { prompt: "shoe", max_masks: 2 },
-});
-
-const videoJob = await motif.submitVideo({
-  imageUrl: "https://example.com/frame.png",
-  prompt: "slow cinematic push-in",
-  duration: 5,
-  generateAudio: false,
-});
 ```
 
 ## Main Exports
 
-- `createMotifImage` (`@howells/motif-sdk/image`) - the primary image API: provider-agnostic generate/edit/best-of-N across google, openai, replicate, and fal.
-- `FalClient` - low-level fal-native client for generation, queue jobs, upload, utility tools, and payload deletion.
-- `buildGenerateBody` - Pure fal request normalization for dry runs and tests.
-- `MODELS`, `GENERATION_MODELS`, `UTILITY_MODELS`, `VIDEO_MODELS` - Motif model aliases, fal endpoints, capabilities, pricing, and benchmarks.
-- `FAL_TOOLS`, `FAL_TOOL_IDS`, `buildFalToolRequest`, `isFalToolId` - Normalized fal utility endpoints such as SAM, depth, upscaling, moderation, and background removal.
-- `ASPECT_RATIOS`, `RESOLUTIONS`, `FORMAT_PRESETS`, `aspectToGptSize`, `aspectToFalImageSize` - Shared sizing metadata and normalization helpers.
-- `IMAGE_TEXT_TO_IMAGE_TOP_20`, `IMAGE_EDITING_TOP_20`, `VIDEO_TEXT_TO_VIDEO_TOP_15`, `VIDEO_IMAGE_TO_VIDEO_TOP_15` - Bundled Artificial Analysis snapshots.
-- `estimateCost`, `estimateVideoCost` - Local cost estimates used by CLI dry runs and SDK previews.
-- `getFalKeyFromEnv` - `@howells/envy` backed `FAL_KEY` parsing.
+- `createMotif` - the Task client: one function per Task plus `run`, `plan`, `upload` and `deletePayloads`.
+- `TASKS`, `TASK_IDS`, `TIERS`, `resolveTask`, `modelProfile`, `tierChangesChoice` - the Task registry and Model resolution.
+- `createMotifImage` (`@howells/motif-sdk/image`) - provider-agnostic generate/edit/best-of-N across google, openai, replicate, and fal.
+- `ASPECT_RATIOS`, `RESOLUTIONS`, `FORMAT_PRESETS` - shared sizing metadata.
+- `LOOKS`, `CREATIVE_TAXONOMY`, `enrichPrompt`, `validateCreativeDirection` - house looks and moods.
+- `formatCost`, `sumCosts` - cost formatting and totals.
+- `getFalKeyFromEnv`, `getOpenAiKeyFromEnv` - `@howells/envy` backed key parsing.
 - Re-exported `neverthrow` helpers: `ok`, `err`, `Result`, `ResultAsync`.
 
 ## Common Types
 
-The package exports public types for generation, processing, queue, metadata, and utility tools:
-
-- `GenerateOptions`, `MotifResponse`, `MotifImage`
-- `UpscaleOptions`, `RemoveBackgroundOptions`, `VideoOptions`, `VideoResponse`
-- `QueuedJob`, `JobStatus`, `FalClientConfig`
-- `ModelConfig`, `AspectRatio`, `Resolution`, `ImageSize`, `ImageQuality`, `BackgroundMode`, `ThinkingLevel`
-- `FalToolConfig`, `FalToolId`, `FalToolRequest`, `FalToolRunOptions`
+- `MotifClient`, `MotifClientConfig`, `TaskInput`, `TaskOutput`, `TaskPlan`, `TaskFile`
+- `TaskId`, `Tier`, `TaskDefinition`, `RankedModel`, `TaskRequest`, `TaskResolution`, `ModelProfile`
+- `AspectRatio`, `Resolution`, `CustomImageSize`, `ImageSizeBounds`, `MotifError`
 
 ## Image Layer (`@howells/motif-sdk/image`)
 
-The primary, provider-agnostic image generation + editing layer — the recommended way to generate and edit images. The fal-specific `FalClient` surface above stays for fal-native extras. It is an ESM-only subpath export, built on the Vercel AI SDK image interface (`ai`'s `generateImage`).
+The provider-agnostic image generation + editing layer, for callers who choose the provider and model themselves. It is an ESM-only subpath export, built on the Vercel AI SDK image interface (`ai`'s `generateImage`).
 
 ```bash
 npm install @howells/motif-sdk
@@ -192,7 +132,7 @@ const refined = await image.edit({
 });
 ```
 
-These models use token-based billing. Motif has no static per-image estimate for them, so `cost` is `{ usd: 0, source: "unknown" }` unless the provider supplies a cost; this does not mean generation is free. See the official [Flare](https://developers.openai.com/api/docs/models/gpt-image-2.5-flare) and [Sunburst](https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst) model pages. The installed OpenAI adapter accepts `low`, `medium`, `high`, and `auto` quality; the new `xhigh` and `max` settings require a future adapter update. The fal-backed CLI and `FalClient` expose these models as `flare` and `sunburst`. Fal supports `xhigh` and `max`, up to 16 edit references, masks and transparent backgrounds. Fal generation estimates are `null` (metered), including `estimateCost()` and queued jobs.
+These models use token-based billing. Motif has no static per-image estimate for them, so `cost` is `{ usd: 0, source: "unknown" }` unless the provider supplies a cost; this does not mean generation is free. See the official [Flare](https://developers.openai.com/api/docs/models/gpt-image-2.5-flare) and [Sunburst](https://developers.openai.com/api/docs/models/gpt-image-2.5-sunburst) model pages. The installed OpenAI adapter accepts `low`, `medium`, `high`, and `auto` quality; the new `xhigh` and `max` settings require a future adapter update. The Task client and the CLI reach these models on fal as `flare` and `sunburst`. Fal supports `xhigh` and `max`, up to 16 edit references, masks and transparent backgrounds. Fal generation estimates are `null` (metered).
 
 ### Best-of-N with an injectable judge
 

@@ -1,26 +1,18 @@
 import { render } from "ink";
 import React from "react";
 
-import { setApiKey } from "./api/fal";
 import { runCli } from "./cli";
 import { refuseRemovedArgs } from "./commands/removed";
 import { runSeries } from "./commands/series";
 import { runSheet } from "./commands/sheet";
 import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
-import { getApiKey, loadConfig, loadHistory, saveConfig } from "./utils/config";
+import { loadConfig, loadHistory, saveConfig } from "./utils/config";
 import type { MotifConfig } from "./utils/config";
 import { formatForParseErrors } from "./utils/errors";
 
 async function main() {
-  // Load config and set API key
   const config = await loadConfig();
-  try {
-    const apiKey = getApiKey(config);
-    setApiKey(apiKey);
-  } catch {
-    // API key will be checked when needed
-  }
 
   const args = process.argv.slice(2);
 

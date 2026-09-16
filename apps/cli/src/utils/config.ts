@@ -10,7 +10,7 @@ import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-import { getFalKeyFromEnv, isTaskId, sumCosts } from "@howells/motif-sdk";
+import { isTaskId, sumCosts } from "@howells/motif-sdk";
 import type { AspectRatio, Resolution, TaskId } from "@howells/motif-sdk";
 
 import { parseJsonAs } from "./json";
@@ -401,21 +401,6 @@ export async function getLastGeneration(): Promise<Generation | null> {
 
 export const MISSING_FAL_KEY_MESSAGE =
   "FAL_KEY not found. Set FAL_KEY environment variable or add apiKey to ~/.motif/config.json";
-
-export function getApiKey(config: MotifConfig): string {
-  // Environment variable takes precedence
-  const envKey = getFalKeyFromEnv();
-  if (hasText(envKey)) {
-    return envKey;
-  }
-
-  // Fall back to config
-  if (hasText(config.apiKey)) {
-    return config.apiKey;
-  }
-
-  throw new Error(MISSING_FAL_KEY_MESSAGE);
-}
 
 export function generateId(): string {
   // Use cryptographically secure UUID for guaranteed uniqueness

@@ -50,7 +50,10 @@ describeCanary("fal live canaries", () => {
     });
 
     // oxlint-disable-next-line no-standalone-expect,valid-expect -- second arg is a debug label; vitest ignores it (tracked as a test-quality finding)
-    expect(result.isOk(), result.isErr() ? result.error.message : "").toBeTruthy();
+    expect(
+      result.isOk(),
+      result.isErr() ? result.error.message : ""
+    ).toBeTruthy();
     if (result.isOk()) {
       expect(result.value).toStrictEqual(expect.any(Object));
       expect(Object.keys(result.value).length).toBeGreaterThan(0);

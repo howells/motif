@@ -156,7 +156,6 @@ export default {
         "packages/motif-sdk/src/image/openai.ts",
         "packages/motif-sdk/src/image/replicate.ts",
         "packages/motif-sdk/src/image/fal.ts",
-        "apps/cli/src/api/fal.ts",
         "apps/cli/src/utils/image.ts",
         // The routing eval's one read: ANTHROPIC_API_KEY.
         "apps/cli/evals/routing/env.ts",

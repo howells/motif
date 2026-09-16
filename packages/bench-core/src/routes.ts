@@ -82,9 +82,14 @@ const buildRoute = (alias: GenerationModelName): BenchRoute => {
   };
 };
 
-/** Budgeted benchmarks exclude explicitly metered models until a cost bound exists. */
+/**
+ * Budgeted benchmarks exclude metered models, and token-billed ones fal has no
+ * price record for, until a cost bound exists.
+ */
 export const BENCH_ROUTES: readonly BenchRoute[] = GENERATION_MODELS.filter(
-  (alias) => MODELS[alias]?.pricePerImageUsd !== null
+  (alias) =>
+    MODELS[alias]?.pricePerImageUsd !== null &&
+    MODELS[alias]?.falPricing !== undefined
 ).map(buildRoute);
 
 /** Lookup by alias — throws `MissingPricingError` semantics are already

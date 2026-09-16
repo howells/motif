@@ -81,9 +81,15 @@ describe.each(SPECS)("align-params kernel — spec aspect %s", (_label, spec) =>
       }
       for (const [param, value] of Object.entries(FORCE_PROBES)) {
         const wasDropped = result.dropped.some((d) => d.param === param);
+        // A model limited to some resolutions is probed with one it takes, so
+        // the guard tests the capability rather than the value.
+        const probeValue =
+          param === "resolution" && result.options.resolution !== undefined
+            ? result.options.resolution
+            : value;
         const probe: GenerateOptions = {
           ...result.options,
-          [param]: value,
+          [param]: probeValue,
         };
         let threw = false;
         try {

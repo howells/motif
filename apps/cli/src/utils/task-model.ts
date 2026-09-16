@@ -6,10 +6,8 @@
 
 import {
   ACCOUNT_LOCKED,
-  FAL_TOOLS,
   getFalKeyFromEnv,
   getOpenAiKeyFromEnv,
-  MODELS,
   MotifError,
   NO_MODEL_AVAILABLE,
   resolveTask,
@@ -142,35 +140,16 @@ function stringField(
 }
 
 /**
- * Report an error from the SDK Task client and exit. A refused resolution or
- * option exits 2, a missing key exits 3, and anything that failed upstream is
- * TASK_FAILED (exit 5) naming the Task and the Model it ran.
+ * A fal endpoint id: `<owner>/<app>[/<path>]`, as in `fal-ai/flux-2-pro` or
+ * `openai/gpt-image-2/edit`. Not preceded by a URL, path or word character,
+ * and never a MIME type.
  */
-/** Every endpoint string a Model or tool names, longest first. */
-function collectEndpoints(value: unknown, into: Set<string>): void {
-  if (typeof value === "string") {
-    if (value.includes("/") && !value.includes("://") && !value.includes(" ")) {
-      into.add(value);
-    }
-    return;
-  }
-  if (typeof value === "object" && value !== null) {
-    for (const entry of Object.values(value)) {
-      collectEndpoints(entry, into);
-    }
-  }
-}
+const ENDPOINT_PATTERN =
+  /(?<![\w./:-])(?!(?:application|audio|font|image|message|model|multipart|text|video)\/)[a-z][a-z0-9-]*(?:\/[\w.-]*[\w-])+/g;
 
-let endpointList: readonly string[] | undefined;
-
-function endpoints(): readonly string[] {
-  if (endpointList === undefined) {
-    const found = new Set<string>();
-    collectEndpoints(MODELS, found);
-    collectEndpoints(FAL_TOOLS, found);
-    endpointList = [...found].toSorted((a, b) => b.length - a.length);
-  }
-  return endpointList;
+/** Every endpoint id has a hyphen, a digit or a sub-path, which `and/or` lacks. */
+function looksLikeEndpoint(candidate: string): boolean {
+  return /[-\d]/.test(candidate) || candidate.split("/").length > 2;
 }
 
 /**
@@ -179,13 +158,9 @@ function endpoints(): readonly string[] {
  * Model behind it.
  */
 export function withoutEndpoints(message: string, task: string): string {
-  let result = message;
-  for (const endpoint of endpoints()) {
-    if (result.includes(endpoint)) {
-      result = result.replaceAll(endpoint, task);
-    }
-  }
-  return result;
+  return message.replaceAll(ENDPOINT_PATTERN, (candidate) =>
+    looksLikeEndpoint(candidate) ? task : candidate
+  );
 }
 
 /**
@@ -217,6 +192,11 @@ export function exitTaskFailed(
   exitForErrorCode("TASK_FAILED");
 }
 
+/**
+ * Report an error from the SDK Task client and exit. A refused resolution or
+ * option exits 2, a missing key exits 3, and anything that failed upstream is
+ * TASK_FAILED (exit 5) naming the Task and the Model it ran.
+ */
 export function exitTaskError(
   error: unknown,
   format: OutputFormat,

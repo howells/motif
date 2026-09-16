@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { CREATIVE_TAXONOMY, EDIT_CAPABLE_MODELS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, TASKS } from "@howells/motif-sdk";
 import type { CreativeField } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -167,8 +167,8 @@ describe("CLI contract", () => {
     const schema = parseJsonLine(result.stdout);
     expect(schema.name).toBe("motif");
     expect(schema).toHaveProperty("commands");
-    expect(schema).toHaveProperty("models");
-    expect(schema).toHaveProperty("leaderboards");
+    expect(schema).not.toHaveProperty("models");
+    expect(schema).not.toHaveProperty("leaderboards");
     expect(schema).not.toHaveProperty("tools");
     expect(schema).toHaveProperty("errors");
   });
@@ -250,7 +250,9 @@ describe("CLI contract", () => {
       asRecord(asRecord(asRecord(commands.vary).input).properties).model
     );
 
-    expect(varyModel.enum).toStrictEqual([...EDIT_CAPABLE_MODELS]);
+    expect(varyModel.enum).toStrictEqual([
+      ...new Set(TASKS.vary.models.map((entry) => entry.model)),
+    ]);
   });
 
   it("advertises series commands in the primary schema", async () => {

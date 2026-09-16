@@ -38,7 +38,7 @@ const FRACTION_BOX_TOOLS: ReadonlySet<string> = new Set([
 ]);
 
 /** The TaskInput field that supplies each fal key a tool may require. */
-const FIELD_FOR_KEY: Readonly<Record<string, CarriedField>> = {
+export const FIELD_FOR_KEY: Readonly<Record<string, CarriedField>> = {
   aspect_ratio: "aspect",
   box_prompts: "boxes",
   canvas_size: "aspect",

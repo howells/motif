@@ -2,8 +2,8 @@
  * `@howells/motif-sdk/image` — provider-agnostic image generation + editing.
  *
  * ESM-only subpath export, built on the Vercel AI SDK image interface
- * (`generateImage`, `@ai-sdk/*`). Additive to the fal-specific `FalClient`
- * surface; reuses the SDK's Result convention (`Result<T, MotifError>` — no
+ * (`generateImage`, `@ai-sdk/*`). The caller names the provider and model;
+ * reuses the SDK's Result convention (`Result<T, MotifError>` — no
  * thrown exceptions). Google (Gemini) is the only provider in Phase 1a.
  *
  * @example

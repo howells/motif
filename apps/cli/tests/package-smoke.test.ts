@@ -105,8 +105,11 @@ describe("package smoke", () => {
   it("imports the public SDK", async () => {
     const sdk = await import("@howells/motif-sdk");
 
-    expect(sdk.FalClient).toBeTypeOf("function");
-    expect(sdk.FAL_TOOLS["sam3-image"].endpoint).toBe("fal-ai/sam-3/image");
+    expect(sdk.createMotif).toBeTypeOf("function");
+    expect(sdk.TASKS.generate.models.length).toBeGreaterThan(0);
+    for (const removed of ["FalClient", "FAL_TOOLS", "MODELS"]) {
+      expect(sdk).not.toHaveProperty(removed);
+    }
   });
 
   it("runs the built CLI binary without a Fal key", async () => {

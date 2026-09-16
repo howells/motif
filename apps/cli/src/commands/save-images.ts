@@ -10,7 +10,7 @@
 import { writeFile } from "node:fs/promises";
 import { join, parse, resolve } from "node:path";
 
-import { estimateCost, sumCosts } from "@howells/motif-sdk";
+import { sumCosts } from "@howells/motif-sdk";
 import type { AspectRatio, MotifClient, Resolution } from "@howells/motif-sdk";
 import chalk from "chalk";
 
@@ -57,8 +57,8 @@ export type ImageSource = { bytes: Uint8Array } | { url: string };
 /** What history records about the run, plus save-time checks. */
 export interface SaveMeta {
   aspect: AspectRatio;
-  /** Per-image USD from the provider, or null when unknown. Omit to estimate from the registry. */
-  costPerImage?: number | null;
+  /** Per-image USD from the plan, or null when unknown. */
+  costPerImage: number | null;
   editPaths?: string[];
   look?: string;
   model: string;
@@ -166,10 +166,7 @@ export async function saveGeneratedImages(
 
     generations.push({
       aspect: meta.aspect,
-      cost:
-        meta.costPerImage === undefined
-          ? estimateCost(meta.model, meta.resolution, 1)
-          : meta.costPerImage,
+      cost: meta.costPerImage,
       editedFrom,
       id: generateId(),
       ...(hasText(meta.look) && { look: meta.look }),

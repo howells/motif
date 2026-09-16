@@ -1,11 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
-import {
-  CREATIVE_FIELDS,
-  CREATIVE_TAXONOMY,
-  GENERATION_MODELS,
-} from "@howells/motif-sdk";
+import { CREATIVE_FIELDS, CREATIVE_TAXONOMY, TASKS } from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
 import { COMMAND_TASKS } from "../src/commands/verbs/tasks";
@@ -41,7 +37,7 @@ describe("docs sync", () => {
   it("documents every generation model id in the CLI cost reference and stdin schema", () => {
     for (const path of [cliCostsPath, cliGeneratePath]) {
       const doc = read(path);
-      for (const model of GENERATION_MODELS) {
+      for (const { model } of TASKS.generate.models) {
         expect(doc, `${path}: missing model id: ${model}`).toContain(model);
       }
     }

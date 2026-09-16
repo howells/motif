@@ -1,22 +1,14 @@
 /**
- * Local fal.ai client used by the Motif CLI.
+ * Motif SDK: task-first image work over fal.ai.
  *
- * SDK-style wrapper for AI image generation via fal.ai.
+ * Callers name a task and a tier; Motif picks the model. The per-model registry
+ * and the fal client stay internal.
  *
  * @example
  * ```typescript
- * import { FalClient } from "./fal";
+ * import { createMotif } from "@howells/motif-sdk";
  *
- * const motif = new FalClient(process.env.FAL_KEY!);
- *
- * // Synchronous generation (CLI use case)
- * const result = await motif.generate({ prompt: "a red balloon", model: "banana" });
- * if (result.isOk()) console.log(result.value.images[0].url);
- *
- * // Queue-based generation
- * const job = await motif.submitGeneration({ prompt: "sunset", model: "gpt" });
- * if (job.isErr()) throw job.error;
- * const status = await motif.getJobStatus(job.value.endpoint, job.value.requestId);
+ * const motif = createMotif();
  * ```
  */
 
@@ -24,16 +16,13 @@ export type { Result, ResultAsync } from "neverthrow";
 
 // ─── Result Types (re-exported from neverthrow) ─────────────────
 export { err, ok } from "neverthrow";
-// ─── Model Data ──────────────────────────────────────────────────
+// ─── Sizing ──────────────────────────────────────────────────────
 export {
   ASPECT_RATIOS,
-  aspectToFalImageSize,
-  aspectToGptSize,
   FORMAT_PRESETS,
   ImageSizeBoundsError,
   RESOLUTIONS,
 } from "./aspects";
-export { estimateCost, estimateVideoCost } from "./cost";
 export {
   CREATIVE_FIELDS,
   CREATIVE_TAXONOMY,
@@ -56,13 +45,6 @@ export {
 export { ACCOUNT_LOCKED, isFalAccountLocked } from "./errors";
 export { INVALID_OPTION } from "./task-plan-shared";
 export {
-  type ModelOption,
-  modelsSupporting,
-  OPTION_CAPABILITIES,
-  supportedOptions,
-  UnsupportedOptionError,
-} from "./capabilities";
-export {
   type PromptWarning,
   type PromptWarningRule,
   promptWarnings,
@@ -74,58 +56,9 @@ export {
   motifEnvSchema,
   parseMotifEnv,
 } from "./env";
-export { buildGenerateBody } from "./generate";
-export {
-  IMAGE_EDITING_TOP_20,
-  IMAGE_TEXT_TO_IMAGE_TOP_20,
-  type LeaderboardEntry,
-  type LeaderboardSnapshot,
-  VIDEO_IMAGE_TO_VIDEO_TOP_15,
-  VIDEO_TEXT_TO_VIDEO_TOP_15,
-} from "./leaderboards";
-export {
-  EDIT_CAPABLE_MODELS,
-  GENERATION_MODELS,
-  type GenerationModelName,
-  IDEOGRAM_STYLES,
-  MODELS,
-  RECRAFT_STYLES,
-  UTILITY_MODELS,
-  VIDEO_MODELS,
-} from "./models";
-export { FalClient, MotifError } from "./server";
-export {
-  buildFalToolRequest,
-  FAL_TOOL_IDS,
-  FAL_TOOLS,
-  FAL_TOOLS_CHECKED_AT,
-  type FalToolConfig,
-  type FalToolId,
-  type FalToolInputKind,
-  type FalToolPrice,
-  type FalToolRequest,
-  type FalToolRunOptions,
-  isFalToolId,
-} from "./tools";
-export {
-  formatCost,
-  measuredToolCost,
-  projectedToolCost,
-  sumCosts,
-} from "./tool-cost";
+export { MotifError } from "./server";
+export { formatCost, sumCosts } from "./tool-cost";
 export type { OutputDimensions, ResolvedCost } from "./tool-cost";
-export {
-  FAL_TOOL_PARAMETERS,
-  falToolParameters,
-} from "./tool-parameters.generated";
-export type { FalToolParameter } from "./tool-parameters.generated";
-export {
-  describeModelOutput,
-  losslessAvailability,
-  MODEL_OUTPUT,
-  modelOutput,
-} from "./model-output";
-export type { LosslessAvailability, ModelOutputShape } from "./model-output";
 
 // ─── Tasks ───────────────────────────────────────────────────────
 export {
@@ -173,31 +106,7 @@ export {
 // ─── Types ───────────────────────────────────────────────────────
 export type {
   AspectRatio,
-  BackgroundMode,
   CustomImageSize,
-  FalClientConfig,
-  FalImageSizePreset,
-  GenerateOptions,
-  GptImageSize,
-  ImageOutputFormat,
-  ImageQuality,
-  ImageSize,
   ImageSizeBounds,
-  JobStatus,
-  ModelConfig,
-  ProviderRoute,
-  ModelType,
-  MotifImage,
-  MotifResponse,
-  QueuedJob,
-  QueuedToolJob,
-  RemoveBackgroundOptions,
   Resolution,
-  SizeMode,
-  ThinkingLevel,
-  ToolResponse,
-  ToolRunOptions,
-  UpscaleOptions,
-  VideoOptions,
-  VideoResponse,
 } from "./types";

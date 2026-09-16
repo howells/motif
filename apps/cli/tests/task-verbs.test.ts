@@ -2,10 +2,12 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 
-import { CREATIVE_TAXONOMY, FAL_TOOL_IDS, MODELS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY } from "@howells/motif-sdk";
 import type { CreativeField } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { MODELS } from "../../../packages/motif-sdk/src/models";
+import { FAL_TOOL_IDS, FAL_TOOLS } from "../../../packages/motif-sdk/src/tools";
 import { generationRecord, historyPrompt } from "../src/commands/task-run";
 import { TASK_VERBS } from "../src/commands/verbs/task-verbs";
 import { withoutEndpoints } from "../src/utils/task-model";
@@ -776,6 +778,24 @@ describe("TASK_FAILED messages", () => {
       )
     ).toBe("Cannot access application generate");
     expect(withoutEndpoints("Rate limited", "upscale")).toBe("Rate limited");
+  });
+
+  it("replaces every endpoint a Model or tool routes to", () => {
+    const endpoints = [
+      ...Object.values(MODELS).map((model) => model.endpoint),
+      ...Object.values(FAL_TOOLS).map((tool) => tool.endpoint),
+    ];
+    for (const endpoint of endpoints) {
+      expect(withoutEndpoints(`Cannot access ${endpoint}.`, "task")).toBe(
+        "Cannot access task."
+      );
+    }
+  });
+
+  it("keeps MIME types, URLs, paths and and/or", () => {
+    const message =
+      "Expected image/png and/or video/mp4 at https://fal.ai/models/fal-ai/x or /tmp/a-1/b";
+    expect(withoutEndpoints(message, "task")).toBe(message);
   });
 });
 

@@ -202,13 +202,21 @@ export function alignParams(
   // Passing "2K" to a non-supporting model would not throw (the SDK special-
   // cases its own default) but would be a lie in the provenance record, so it
   // is dropped explicitly instead.
-  if (config.supportsResolution) {
-    options.resolution = spec.resolution;
-  } else {
+  if (!config.supportsResolution) {
     dropped.push({
       param: "resolution",
       reason: "model has no resolution control; size comes from aspect alone",
     });
+  } else if (
+    config.supportedResolutions !== undefined &&
+    !config.supportedResolutions.includes(spec.resolution)
+  ) {
+    dropped.push({
+      param: "resolution",
+      reason: `model takes only ${config.supportedResolutions.join(", ")}`,
+    });
+  } else {
+    options.resolution = spec.resolution;
   }
 
   // ── Seed ──────────────────────────────────────────────────────────────────

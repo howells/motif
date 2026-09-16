@@ -5,11 +5,12 @@
  * The registry is a description of the route; the response and the schema are
  * the truth. Two gaps follow from that and this prints both:
  *
- *   1. Arguments the endpoint accepts that nothing in Motif advertises. They
- *      are all still reachable - `motif tool run <id> --json '{...}'` passes
- *      anything through - so this is a discoverability gap, not a capability
- *      one. It matters because `--describe` is what an agent reads to decide
- *      what is possible, and undiscovered behaves like unavailable.
+ *   1. Arguments the endpoint accepts that no Task input field supplies. They
+ *      are all still reachable - `motif <verb> -m <id> --param key=value`
+ *      passes them through - so this is a discoverability gap, not a
+ *      capability one. It matters because a Task's inputs are what an agent
+ *      reads to decide what is possible, and undiscovered behaves like
+ *      unavailable.
  *   2. Outputs the endpoint returns that the registry's `outputKeys` omits, so
  *      `-o dir/` never downloads them and no consumer knows they exist. That is
  *      how half of seedream-layerize went missing for a day.
@@ -20,26 +21,29 @@
  *
  * Reads fal's public OpenAPI. Runs no model, spends nothing.
  *
- *   node scripts/audit-arguments.mjs                    # every image tool
+ *   node scripts/audit-arguments.mjs                    # every image tool a Task ranks
  *   node scripts/audit-arguments.mjs sam3-image patina  # named tools
  *   node scripts/audit-arguments.mjs --json
  */
 
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { importSdkSource } from "./sdk-source.mjs";
 
 const ROOT = join(import.meta.dirname, "..");
-const { FAL_TOOLS, FAL_TOOL_IDS } = await importSdkSource("tools.ts");
+const { FAL_TOOLS } = await importSdkSource("tools.ts");
+const { TASKS } = await importSdkSource("tasks.ts");
+const { FIELD_FOR_KEY } = await importSdkSource("task-plan-tools.ts");
 
-/** Flags the CLI maps to request options, read from the source rather than guessed. */
-function surfacedByCli() {
-  const src = readFileSync(join(ROOT, "apps/cli/src/commands/tool-run.ts"), "utf8");
-  // buildOptions writes `{ some_snake_case_key: ... }` for each supported flag.
-  return new Set([...src.matchAll(/\b([a-z][a-z0-9]*(?:_[a-z0-9]+)+)\s*:/g)].map((m) => m[1]));
-}
+/** Tools some Task ranks: the ones a verb can reach without naming a Model. */
+const RANKED_TOOL_IDS = [
+  ...new Set(
+    Object.values(TASKS).flatMap((task) =>
+      task.models.map((entry) => entry.model).filter((model) => model in FAL_TOOLS)
+    )
+  ),
+];
 
 /** Arguments every endpoint takes that say nothing about capability. */
 const PLUMBING = new Set(["sync_mode", "enable_safety_checker", "output_format", "seed"]);
@@ -47,7 +51,7 @@ const PLUMBING = new Set(["sync_mode", "enable_safety_checker", "output_format",
 const args = process.argv.slice(2);
 const asJson = args.includes("--json");
 const named = args.filter((a) => !a.startsWith("--"));
-const ids = (named.length > 0 ? named : FAL_TOOL_IDS).filter(
+const ids = (named.length > 0 ? named : RANKED_TOOL_IDS).filter(
   (id) => FAL_TOOLS[id] && FAL_TOOLS[id].inputKind !== "video"
 );
 
@@ -59,7 +63,7 @@ const schemas = JSON.parse(
   })
 );
 
-const cliFlags = surfacedByCli();
+const taskFields = new Set(Object.keys(FIELD_FOR_KEY));
 const byEndpoint = Object.fromEntries(ids.map((id) => [FAL_TOOLS[id].endpoint, id]));
 const report = [];
 
@@ -77,7 +81,7 @@ for (const schema of schemas) {
       (input) =>
         !declared.has(input.key) &&
         !media.has(input.key) &&
-        !cliFlags.has(input.key) &&
+        !taskFields.has(input.key) &&
         !PLUMBING.has(input.key)
     )
     .map((input) => (input.default === undefined ? input.key : `${input.key}=${JSON.stringify(input.default)}`));
@@ -119,6 +123,6 @@ if (asJson) {
   console.log(
     `\n${report.length} tools audited. ${hiddenTotal} arguments not advertised, ` +
       `${outputTotal} returned keys the registry does not claim.\n` +
-      "All arguments remain reachable through `--json`; this is what --describe does not tell you.\n"
+      "All arguments remain reachable through `-m <id> --param key=value`; this is what a Task's inputs do not tell you.\n"
   );
 }

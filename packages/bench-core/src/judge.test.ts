@@ -322,7 +322,10 @@ describe(judgeSample, () => {
 
     const result = await judgeSample(client, { imagePath, prompt: "a room" });
 
-    expect(result).toStrictEqual({ errorCode: "TIMEOUT", status: "inconclusive" });
+    expect(result).toStrictEqual({
+      errorCode: "TIMEOUT",
+      status: "inconclusive",
+    });
   });
 
   it("is inconclusive with INVALID_VERDICT when the client's text has no JSON object at all", async () => {

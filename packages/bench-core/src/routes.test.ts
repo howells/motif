@@ -12,11 +12,14 @@ describe("routes", () => {
   it("excludes metered models from budgeted routes and rejects explicit selection", () => {
     expect(BENCH_ROUTES.map((route) => route.alias)).toStrictEqual(
       GENERATION_MODELS.filter(
-        (alias) => MODELS[alias]?.pricePerImageUsd !== null
+        (alias) =>
+          MODELS[alias]?.pricePerImageUsd !== null &&
+          MODELS[alias]?.falPricing !== undefined
       )
     );
     expect(() => routeFor("flare")).toThrow(MissingPricingError);
     expect(() => routeFor("sunburst")).toThrow(MissingPricingError);
+    expect(() => routeFor("banana2-lite")).toThrow(MissingPricingError);
   });
 
   it("derives cost_basis from falPricing.unit, not a hardcoded alias list", () => {
