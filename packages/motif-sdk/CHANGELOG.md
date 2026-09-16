@@ -1,11 +1,12 @@
 # @howells/motif-sdk
 
-## Unreleased
+## 4.0.0
 
-Part of "tasks replace models" (ADR 0001, MOT-63). The rest of that change lands across the following releases; this is the engine.
+Released alongside `@howells/motif-cli` 3.0.0: "tasks replace models" (ADR 0001, MOT-63). Callers name a Task and Motif chooses the Model.
 
 ### Major Changes
 
+- Requires Node.js 22.12 or newer (`engines`), since the CommonJS entry loads the ESM-only `ai` package through `require`.
 - The public index no longer exports the per-model registry or the fal client (MOT-54); run Tasks through `createMotif` instead. Removed: `FalClient`, `FalClientConfig`, `MODELS`, `GENERATION_MODELS`, `GenerationModelName`, `EDIT_CAPABLE_MODELS`, `UTILITY_MODELS`, `VIDEO_MODELS`, `RECRAFT_STYLES`, `IDEOGRAM_STYLES`, `IMAGE_TEXT_TO_IMAGE_TOP_20`, `IMAGE_EDITING_TOP_20`, `VIDEO_TEXT_TO_VIDEO_TOP_15`, `VIDEO_IMAGE_TO_VIDEO_TOP_15`, `LeaderboardEntry`, `LeaderboardSnapshot`, `FAL_TOOLS`, `FAL_TOOL_IDS`, `FAL_TOOLS_CHECKED_AT`, `FAL_TOOL_PARAMETERS`, `falToolParameters`, `isFalToolId`, `buildFalToolRequest`, `FalToolConfig`, `FalToolId`, `FalToolInputKind`, `FalToolPrice`, `FalToolRequest`, `FalToolRunOptions`, `FalToolParameter`, `buildGenerateBody`, `estimateCost`, `estimateVideoCost`, `projectedToolCost`, `measuredToolCost`, `MODEL_OUTPUT`, `modelOutput`, `describeModelOutput`, `losslessAvailability`, `LosslessAvailability`, `ModelOutputShape`, `OPTION_CAPABILITIES`, `supportedOptions`, `modelsSupporting`, `ModelOption`, `UnsupportedOptionError`, `aspectToFalImageSize`, `aspectToGptSize`, and the types `ModelConfig`, `ModelType`, `ProviderRoute`, `GenerateOptions`, `MotifResponse`, `MotifImage`, `QueuedJob`, `QueuedToolJob`, `JobStatus`, `UpscaleOptions`, `RemoveBackgroundOptions`, `VideoOptions`, `VideoResponse`, `ToolRunOptions`, `ToolResponse`, `ImageSize`, `ImageQuality`, `ImageOutputFormat`, `BackgroundMode`, `SizeMode`, `ThinkingLevel`, `GptImageSize` and `FalImageSizePreset`. `ModelProfile` is now exported.
 - `@howells/motif-sdk/image` no longer chooses a model. `tier` and the `ImageTier` type are gone from `generate()` and `edit()`, `model` is required, and `GOOGLE_TIER_MODELS`, `OPENAI_TIER_MODELS`, `REPLICATE_TIER_MODELS` and `FAL_TIER_MODELS` are no longer exported. Task resolution is the one place a Model is chosen.
 
