@@ -7,7 +7,7 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { exactImageSize } from "./aspects";
+import { exactImageSize, FAL_PRESET_SIZES } from "./aspects";
 import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
 import { dataUrlImageSize } from "./source-size";
@@ -23,6 +23,7 @@ import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { TASKS } from "./tasks";
 import type { RankedModel, TaskId } from "./tasks";
 import { projectedToolCost } from "./tool-cost";
+import type { OutputDimensions } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
 import type { FalToolParameter } from "./tool-parameters.generated";
 import { buildFalToolRequest, FAL_TOOLS } from "./tools";
@@ -87,6 +88,65 @@ function isWholePixelBox({ height, width, x, y }: Box): boolean {
     y >= 0 &&
     width > 0 &&
     height > 0
+  );
+}
+
+/** Parameters that make a tool return something other than the source's size. */
+const RESIZING_KEYS: ReadonlySet<string> = new Set([
+  "target_resolution",
+  "upscale_factor",
+]);
+
+/**
+ * The size of each output a per-megapixel tool will bill, when it is known
+ * before the run: the body's `image_size`, or else the source's size for a tool
+ * that returns images at their source size. Empty when it can't be known.
+ */
+function projectedOutputs(
+  model: FalToolId,
+  input: TaskInput,
+  body: Readonly<Record<string, unknown>>
+): OutputDimensions[] {
+  const parameters = FAL_TOOL_PARAMETERS[model] ?? [];
+  if (parameters.some((parameter) => RESIZING_KEYS.has(parameter.key))) {
+    return [];
+  }
+  const count = typeof body.num_images === "number" ? body.num_images : 1;
+  const size = outputSize(parameters, input, body.image_size);
+  return size === undefined ? [] : Array.from({ length: count }, () => size);
+}
+
+function outputSize(
+  parameters: readonly FalToolParameter[],
+  input: TaskInput,
+  imageSize: unknown
+): CustomImageSize | undefined {
+  if (typeof imageSize === "string") {
+    return FAL_PRESET_SIZES[imageSize];
+  }
+  if (isPixelSize(imageSize)) {
+    return imageSize;
+  }
+  if (imageSize === undefined) {
+    const sizeParameter = parameters.find(
+      (parameter) => parameter.key === "image_size"
+    );
+    // A tool whose image_size falls back to a preset doesn't return the source's size.
+    return sizeParameter?.fallback === undefined
+      ? sourceSizeOf(input)
+      : undefined;
+  }
+  return undefined;
+}
+
+function isPixelSize(value: unknown): value is CustomImageSize {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "width" in value &&
+    "height" in value &&
+    typeof value.width === "number" &&
+    typeof value.height === "number"
   );
 }
 
@@ -413,9 +473,26 @@ export function toolPlan(
   if (missing !== undefined) {
     return err(missing);
   }
+  // fal falls back to a sample prompt; the objects to reconstruct must be named.
+  if (
+    model === "sam3-3d-objects" &&
+    (typeof body.prompt !== "string" || body.prompt === "")
+  ) {
+    return err(
+      invalidOption(`${model} needs a prompt naming the objects for ${task}.`, {
+        field: "prompt",
+        model,
+        task,
+      })
+    );
+  }
   return ok({
     body,
-    cost: projectedToolCost(tool.price, body),
+    cost: projectedToolCost(
+      tool.price,
+      body,
+      projectedOutputs(model, input, body)
+    ),
     endpoint,
     prompt: typeof body.prompt === "string" ? body.prompt : input.prompt,
     provider: "fal",

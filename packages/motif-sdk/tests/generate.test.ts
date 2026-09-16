@@ -176,11 +176,11 @@ describe(buildGenerateBody, () => {
       syncMode: true,
     });
 
-    expect(endpoint).toBe("openai/gpt-image-2/image-to-image");
+    expect(endpoint).toBe("openai/gpt-image-2/edit");
     expect(body).toMatchObject({
       image_size: { height: 720, width: 1280 },
       image_urls: ["https://example.com/interior.png"],
-      mask_image_url: "https://example.com/wall-mask.png",
+      mask_url: "https://example.com/wall-mask.png",
       prompt: "change the wall color",
       quality: "auto",
       sync_mode: true,
@@ -383,7 +383,7 @@ describe(buildGenerateBody, () => {
       prompt: "sticker sheet",
     });
 
-    expect(endpoint).toBe("fal-ai/bytedance/seedream/v5/lite/text-to-image");
+    expect(endpoint).toBe("bytedance/seedream/v5/lite/text-to-image");
     expect(body).toMatchObject({
       image_size: "square_hd",
       num_images: 2,
@@ -398,7 +398,7 @@ describe(buildGenerateBody, () => {
       prompt: "recolor the logo",
     });
 
-    expect(endpoint).toBe("fal-ai/bytedance/seedream/v5/lite/edit");
+    expect(endpoint).toBe("bytedance/seedream/v5/lite/edit");
     expect(body).toMatchObject({
       image_urls: ["https://example.com/logo.png"],
     });
@@ -427,21 +427,46 @@ describe(buildGenerateBody, () => {
     });
   });
 
-  it("maps Recraft V4 aspect and style to fal fields", () => {
+  it("maps Recraft V4 aspect to fal fields and refuses a style", () => {
     const { endpoint, body } = buildGenerateBody({
       aspect: "16:9",
       model: "recraft4",
       prompt: "flat brand illustration",
-      style: "vector_illustration",
     });
 
     expect(endpoint).toBe("fal-ai/recraft/v4/text-to-image");
-    expect(body).toMatchObject({
+    expect(body).toStrictEqual({
       image_size: "landscape_16_9",
       prompt: "flat brand illustration",
-      style: "vector_illustration",
     });
-    expect(body).not.toHaveProperty("num_images");
+    expect(() =>
+      buildGenerateBody({
+        model: "recraft4",
+        prompt: "flat brand illustration",
+        style: "vector_illustration",
+      })
+    ).toThrow("Recraft V4 does not support style");
+  });
+
+  it("refuses inputFidelity on a GPT Image 2 edit, which /edit doesn't take", () => {
+    expect(() =>
+      buildGenerateBody({
+        editImageUrls: ["https://example.com/ref.png"],
+        inputFidelity: "high",
+        model: "gpt2",
+        prompt: "replace the label",
+      })
+    ).toThrow("GPT Image 2 does not support inputFidelity");
+  });
+
+  it("caps Grok Imagine Image references at fal's 3", () => {
+    expect(() =>
+      buildGenerateBody({
+        editImageUrls: [1, 2, 3, 4].map((n) => `https://example.com/${n}.png`),
+        model: "grok-image",
+        prompt: "combine these",
+      })
+    ).toThrow("at most 3 reference images");
   });
 
   it("sends an exact size for a ratio no fal preset holds (MOT-46)", () => {

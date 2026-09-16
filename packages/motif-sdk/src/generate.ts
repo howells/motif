@@ -143,21 +143,33 @@ function validateGenerateOptions(
   ) {
     unsupported(config, "numImages");
   }
-  if (options.background !== undefined && config.supportsBackground !== true) {
+  // A transparent-only endpoint has no `background` parameter, but asking it
+  // for a transparent background is asking for what it always returns.
+  const transparentOnly =
+    config.transparentOutput === true && options.background === "transparent";
+  if (
+    options.background !== undefined &&
+    config.supportsBackground !== true &&
+    !transparentOnly
+  ) {
     unsupported(config, "background");
   }
   // Transparency needs a `background` parameter. `supportsOutputFormat` only
   // buys a PNG container, which is opaque unless the model was asked for an
   // alpha channel — accepting it here returned an opaque image for a request
   // that said transparent, and charged for it.
-  if (options.transparent === true && config.supportsBackground !== true) {
+  if (
+    options.transparent === true &&
+    config.supportsBackground !== true &&
+    config.transparentOutput !== true
+  ) {
     unsupported(config, "transparent output");
   }
   if (options.inputFidelity !== undefined) {
     if (!hasEditImages) {
       throw new Error("inputFidelity requires editImageUrls");
     }
-    if (config.sizeMode !== "gpt_size" && config.name !== "GPT Image 2") {
+    if (config.sizeMode !== "gpt_size") {
       unsupported(config, "inputFidelity");
     }
   }
@@ -378,7 +390,9 @@ export function buildGenerateBody(options: GenerateOptions): {
       }
       if (config.supportsResolution) {
         body.resolution =
-          model === "grok-image" ? resolution.toLowerCase() : resolution;
+          model === "grok-image" || model === "grok-image-2"
+            ? resolution.toLowerCase()
+            : resolution;
       }
       break;
     }
@@ -534,9 +548,6 @@ export function buildGenerateBody(options: GenerateOptions): {
     const editImagesField = config.editImagesField ?? "image_urls";
     body[editImagesField] =
       editImagesField === "image_url" ? editImages[0] : editImages;
-    if (model === "gpt2" && inputFidelity) {
-      body.input_fidelity = inputFidelity;
-    }
   }
 
   // GPT Image 1 edit mode

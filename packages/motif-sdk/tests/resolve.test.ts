@@ -167,7 +167,7 @@ describe("Tier and Source", () => {
   it.each(TIERS)("cuts out video at the %s Tier", (tier) => {
     expect(resolveTask("cutout", { source: "video", tier }, fal)).toMatchObject(
       {
-        model: "bria-video-rmbg",
+        model: "bria-video-rmbg-v3",
         ok: true,
         tier,
       }
@@ -303,8 +303,8 @@ describe("modes and required inputs", () => {
     ).toMatchObject({ model: "sam3-video-rle", ok: true });
   });
 
-  it("says the Tier never changes animate's single Model", () => {
-    expect(tierChangesChoice("animate", { source: "image" }, fal)).toBeFalsy();
+  it("says the Tier never changes restyle's single Model", () => {
+    expect(tierChangesChoice("restyle", { source: "image" }, fal)).toBeFalsy();
   });
 
   it("resolves reframe to bria-expand at fast, and mode margin to flux-outpaint", () => {

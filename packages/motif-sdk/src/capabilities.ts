@@ -26,8 +26,7 @@ export const OPTION_CAPABILITIES = {
   imagePromptStrength: (config) => config.supportsImagePromptStrength === true,
   imageSize: (config) =>
     config.sizeMode === "gpt_size" || config.sizeMode === "image_size_enum",
-  inputFidelity: (config) =>
-    config.sizeMode === "gpt_size" || config.name === "GPT Image 2",
+  inputFidelity: (config) => config.sizeMode === "gpt_size",
   limitGenerations: (config) => config.supportsLimitGenerations === true,
   maskImageUrl: (config) => config.supportsMaskImage === true,
   negativePrompt: (config) => config.supportsNegativePrompt === true,
@@ -43,7 +42,8 @@ export const OPTION_CAPABILITIES = {
   style: (config) => config.supportsStyle === true,
   syncMode: (config) => config.supportsSyncMode === true,
   thinkingLevel: (config) => config.supportsThinkingLevel === true,
-  "transparent output": (config) => config.supportsBackground === true,
+  "transparent output": (config) =>
+    config.supportsBackground === true || config.transparentOutput === true,
 } as const satisfies Record<string, Capability>;
 
 /** An option name a model can refuse, e.g. `"resolution"`. */

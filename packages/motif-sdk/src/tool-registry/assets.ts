@@ -229,9 +229,6 @@ export const ASSET_TOOLS = {
   },
   "sam3-3d-objects": {
     category: "3d",
-    defaultOptions: {
-      prompt: "car",
-    },
     description:
       "Reconstruct one or more 3D objects from an image and prompts.",
     endpoint: "fal-ai/sam-3/3d-objects",

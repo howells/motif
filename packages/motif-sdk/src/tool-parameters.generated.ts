@@ -66,6 +66,12 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
     { key: "output_container_and_codec", type: "enum(mp4_h265|mp4_h264|webm_vp9|mov_h265|mov_proresks|mkv_h265|mkv_h264|mkv_vp9|gif)", fallback: "webm_vp9" },
     { key: "preserve_audio", type: "boolean", fallback: true },
   ],
+  "bria-video-rmbg-v3": [
+    { key: "auto_zoom", type: "boolean", fallback: false },
+    { key: "background_color", type: "enum(Transparent|Black|White|Gray|Red|Green|Blue|Yellow|Cyan|Magenta|Orange)", fallback: "Black" },
+    { key: "output_container_and_codec", type: "enum(mp4_h265|mp4_h264|webm_vp9|mov_h265|mov_proresks|mkv_h265|mkv_h264|mkv_vp9|gif)", fallback: "webm_vp9" },
+    { key: "preserve_audio", type: "boolean", fallback: true },
+  ],
   "control-light": [
     { key: "enable_safety_checker", type: "boolean", fallback: true },
     { key: "guidance_scale", type: "number", fallback: 1 },

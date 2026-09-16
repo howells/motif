@@ -76,14 +76,23 @@ const FAL_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
     MODELS.seedream45?.pricePerImageUsd ?? 0.04, // MODELS.seedream45
   "bytedance/seedream/v5/pro/text-to-image":
     MODELS.seedream5?.pricePerImageUsd ?? 0.0675, // MODELS.seedream5
-  "fal-ai/bytedance/seedream/v5/lite/text-to-image":
+  "bytedance/seedream/v5/lite/text-to-image":
     MODELS["seedream5-lite"]?.pricePerImageUsd ?? 0.035, // MODELS["seedream5-lite"]
   // Other priced fal generation endpoints.
-  "fal-ai/recraft-v3": MODELS.recraft?.pricePerImageUsd ?? 0.04, // MODELS.recraft
+  "fal-ai/recraft/v3/text-to-image": MODELS.recraft?.pricePerImageUsd ?? 0.04, // MODELS.recraft
   "fal-ai/recraft/v4/text-to-image": MODELS.recraft4?.pricePerImageUsd ?? 0.04, // MODELS.recraft4
+  "fal-ai/recraft/v4.1/text-to-image":
+    MODELS.recraft41?.pricePerImageUsd ?? 0.035, // MODELS.recraft41
   "fal-ai/ideogram/v3": MODELS.ideogram?.pricePerImageUsd ?? 0.03, // MODELS.ideogram
   "ideogram/v4": MODELS.ideogram4?.pricePerImageUsd ?? 0.03, // MODELS.ideogram4
   "xai/grok-imagine-image": MODELS["grok-image"]?.pricePerImageUsd ?? 0.02, // MODELS["grok-image"]
+  "xai/grok-imagine-image/v2.0/text-to-image":
+    MODELS["grok-image-2"]?.pricePerImageUsd ?? 0.06, // MODELS["grok-image-2"]
+  "microsoft/mai-image-2.5-pro":
+    MODELS["mai-image-2.5-pro"]?.pricePerImageUsd ?? 0.17, // MODELS["mai-image-2.5-pro"]
+  "fal-ai/ideogram/v3/generate-transparent":
+    MODELS["ideogram3-transparent"]?.pricePerImageUsd ?? 0.06, // MODELS["ideogram3-transparent"]
+  "alibaba/qwen-image-3/text-to-image": MODELS.qwen3?.pricePerImageUsd ?? 0.04, // MODELS.qwen3
   "fal-ai/qwen-image": MODELS.qwen?.pricePerImageUsd ?? 0.02, // MODELS.qwen
 };
 

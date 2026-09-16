@@ -9,6 +9,8 @@ const FAL_PRICING_CHECKED_AT = "2026-05-12";
 // July 2026 tier-1 additions (MOT-18): verified against fal model pages.
 const FAL_PRICING_CHECKED_JUL_2026 = "2026-07-11";
 const FAL_PRICING_CHECKED_AUG_2026 = "2026-08-23";
+// MOT-59 additions and endpoint moves: verified against fal model pages and OpenAPI.
+const FAL_PRICING_CHECKED_SEP_2026 = "2026-09-16";
 
 export const MODELS: Record<string, ModelConfig> = {
   // ─── Generation Models ────────────────────────────────────────
@@ -96,7 +98,7 @@ export const MODELS: Record<string, ModelConfig> = {
       minPixels: 655_360,
       multipleOf: 16,
     },
-    editEndpoint: "openai/gpt-image-2/image-to-image",
+    editEndpoint: "openai/gpt-image-2/edit",
     endpoint: "openai/gpt-image-2",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_AT,
@@ -115,11 +117,15 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsEdit: true,
     supportsMaskImage: true,
+    // fal's /edit schema names the mask `mask_url`.
+    maskImageField: "mask_url",
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsQuality: true,
     supportsResolution: false,
     supportsSyncMode: true,
+    // fal's schema now lists `background` on openai/gpt-image-2, but no request has
+    // confirmed it returns alpha, so transparency stays on the OpenAI route.
     transparencyRoute: {
       apiKeyEnv: "OPENAI_API_KEY",
       model: "gpt-image-2",
@@ -459,8 +465,8 @@ export const MODELS: Record<string, ModelConfig> = {
     },
     customImageSize: { maxPixels: 16_777_216, minPixels: 3_686_400 },
     name: "Seedream 5.0 Lite",
-    endpoint: "fal-ai/bytedance/seedream/v5/lite/text-to-image",
-    editEndpoint: "fal-ai/bytedance/seedream/v5/lite/edit",
+    endpoint: "bytedance/seedream/v5/lite/text-to-image",
+    editEndpoint: "bytedance/seedream/v5/lite/edit",
     type: "generation",
     // Flat price regardless of resolution; native up to Auto 3K (~9.4MP).
     pricing: "$0.035",
@@ -468,7 +474,7 @@ export const MODELS: Record<string, ModelConfig> = {
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_JUL_2026,
       currency: "USD",
-      endpointId: "fal-ai/bytedance/seedream/v5/lite/text-to-image",
+      endpointId: "bytedance/seedream/v5/lite/text-to-image",
       estimatedCostPerImageUsd: 0.035,
       source: "fal-pricing-api",
       unit: "images",
@@ -761,11 +767,11 @@ export const MODELS: Record<string, ModelConfig> = {
   },
   recraft: {
     customImageSize: {},
-    endpoint: "fal-ai/recraft-v3",
+    endpoint: "fal-ai/recraft/v3/text-to-image",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_AT,
       currency: "USD",
-      endpointId: "fal-ai/recraft-v3",
+      endpointId: "fal-ai/recraft/v3/text-to-image",
       estimatedCostPerImageUsd: 0.04,
       source: "fal-pricing-api",
       unit: "images",
@@ -786,9 +792,8 @@ export const MODELS: Record<string, ModelConfig> = {
   reve: {
     benchmark: {
       artificialAnalysis: {
-        // #2 on BOTH boards, which almost nothing else manages - the top text-to-image model
-        // (GPT Image 2) drops to 3rd for editing, and the top editor (MAI-Image-2.5-Pro) is not
-        // on fal at all. Reve is the best editor motif can actually reach.
+        // #2 on both boards. fal lists Reve as unlisted (not deprecated) and Motif ranks it
+        // in no Task; the top editor, MAI-Image-2.5-Pro, is `mai-image-2.5-pro`.
         editing: { elo: 1263, rank: 2 },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
@@ -852,7 +857,7 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsEdit: false,
     supportsNumImages: false,
     supportsResolution: false,
-    supportsStyle: true,
+    // fal's v4 schema has no `style`; V3 is the Recraft that takes one.
     supportsSyncMode: true,
     type: "generation",
   },
@@ -949,7 +954,8 @@ export const MODELS: Record<string, ModelConfig> = {
       unit: "images",
       unitPrice: 0.02,
     },
-    maxReferenceImages: 4,
+    // fal's edit schema: "A maximum of 3 images are supported."
+    maxReferenceImages: 3,
     name: "Grok Imagine Image",
     pricePerImageUsd: 0.02,
     pricing: "$0.02",
@@ -1012,20 +1018,20 @@ export const MODELS: Record<string, ModelConfig> = {
       useCase: "Strong quality per dollar - 11th on text-to-image at $30/1k",
     },
     customImageSize: { maxPixels: 4_194_304, minPixels: 262_144 },
-    endpoint: "fal-ai/qwen-image-3/text-to-image",
+    endpoint: "alibaba/qwen-image-3/text-to-image",
     falPricing: {
-      checkedAt: "2026-08-05",
+      checkedAt: FAL_PRICING_CHECKED_SEP_2026,
       currency: "USD",
-      endpointId: "fal-ai/qwen-image-3/text-to-image",
-      estimatedCostPerImageUsd: 0.02,
+      endpointId: "alibaba/qwen-image-3/text-to-image",
+      estimatedCostPerImageUsd: 0.04,
       source: "fal-pricing-api",
-      unit: "megapixels",
-      unitPrice: 0.02,
+      unit: "images",
+      unitPrice: 0.04,
     },
     name: "Qwen Image 3",
-    pricePerImageUsd: 0.02,
-    pricing:
-      "$0.02/MP (assumed from qwen v1; fal pricing page bot-gated at check time)",
+    pricePerImageUsd: 0.04,
+    // Motif sends a 1K image_size; 2K output costs $0.075.
+    pricing: "$0.04 (1K) / $0.075 (2K)",
     sizeMode: "image_size_enum",
     supportsAspect: true,
     supportsEdit: false,
@@ -1038,12 +1044,168 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
 
+  "mai-image-2.5-pro": {
+    benchmark: {
+      artificialAnalysis: {
+        editing: { elo: 1272, rank: 1 },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: { elo: 1293, rank: 7 },
+      },
+      useCase: "Highest-ranked image editor, single reference image",
+    },
+    editEndpoint: "microsoft/mai-image-2.5-pro/edit",
+    editImagesField: "image_url",
+    endpoint: "microsoft/mai-image-2.5-pro",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_SEP_2026,
+      currency: "USD",
+      endpointId: "microsoft/mai-image-2.5-pro",
+      estimatedCostPerImageUsd: 0.17,
+      source: "fal-pricing-api",
+      unit: "images",
+      unitPrice: 0.17,
+    },
+    maxReferenceImages: 1,
+    name: "MAI Image 2.5 Pro",
+    // fal bills tokens: text $7.50/M in, image $162/M out. It quotes ~$0.17 per
+    // text-to-image image and ~$0.18-$0.27 per edit with one input image.
+    pricePerImageUsd: 0.17,
+    pricing: "~$0.17 (edit ~$0.18-$0.27)",
+    // fal's schema takes aspect_ratio from auto, 1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3.
+    sizeMode: "aspect_ratio",
+    supportsAspect: true,
+    supportsEdit: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: false,
+    supportsSyncMode: true,
+    type: "generation",
+  },
+  "banana2-lite": {
+    benchmark: {
+      artificialAnalysis: {
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: { elo: 1289, rank: 8 },
+      },
+    },
+    endpoint: "google/nano-banana-2-lite",
+    name: "Nano Banana 2 Lite",
+    // fal lists no edit endpoint for it; `/edit` answers a schema but is unlisted and unpriced.
+    pricing:
+      "Token-based: text $0.3125/M input, $1.875/M output; image $0.3125/M input, $37.50/M output; fixed 1K output",
+    pricePerImageUsd: null,
+    sizeMode: "aspect_ratio",
+    supportsAspect: true,
+    supportsEdit: false,
+    supportsLimitGenerations: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: false,
+    supportsSafetyTolerance: true,
+    supportsSeed: true,
+    supportsSyncMode: true,
+    supportsThinkingLevel: true,
+    type: "generation",
+  },
+  "ideogram3-transparent": {
+    endpoint: "fal-ai/ideogram/v3/generate-transparent",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_SEP_2026,
+      currency: "USD",
+      endpointId: "fal-ai/ideogram/v3/generate-transparent",
+      estimatedCostPerImageUsd: 0.06,
+      source: "fal-pricing-api",
+      unit: "images",
+      unitPrice: 0.06,
+    },
+    name: "Ideogram V3 Transparent",
+    // Priced at fal's default BALANCED rendering speed, which Motif leaves unset.
+    pricePerImageUsd: 0.06,
+    pricing: "$0.03 TURBO / $0.06 BALANCED / $0.09 QUALITY",
+    sizeMode: "aspect_ratio",
+    supportsAspect: true,
+    supportsEdit: false,
+    supportsExpandPrompt: true,
+    supportsNegativePrompt: true,
+    supportsNumImages: true,
+    supportsRenderingSpeed: true,
+    supportsResolution: false,
+    supportsSeed: true,
+    supportsSyncMode: true,
+    transparentOutput: true,
+    type: "generation",
+  },
+  recraft41: {
+    customImageSize: {},
+    endpoint: "fal-ai/recraft/v4.1/text-to-image",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_SEP_2026,
+      currency: "USD",
+      endpointId: "fal-ai/recraft/v4.1/text-to-image",
+      estimatedCostPerImageUsd: 0.035,
+      source: "fal-pricing-api",
+      unit: "images",
+      unitPrice: 0.035,
+    },
+    name: "Recraft V4.1",
+    pricePerImageUsd: 0.035,
+    pricing: "$0.035",
+    sizeMode: "image_size_enum",
+    supportsAspect: true,
+    supportsEdit: false,
+    supportsNumImages: false,
+    supportsResolution: false,
+    supportsSafetyChecker: true,
+    type: "generation",
+  },
+  "grok-image-2": {
+    editEndpoint: "xai/grok-imagine-image/v2.0/edit",
+    endpoint: "xai/grok-imagine-image/v2.0/text-to-image",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_SEP_2026,
+      currency: "USD",
+      endpointId: "xai/grok-imagine-image/v2.0/text-to-image",
+      estimatedCostPerImageUsd: 0.06,
+      source: "fal-pricing-api",
+      unit: "images",
+      unitPrice: 0.06,
+    },
+    // fal's edit schema: "A maximum of 3 images are supported."
+    maxReferenceImages: 3,
+    name: "Grok Imagine Image 2.0",
+    // Motif leaves quality at fal's default, medium, and sends 2K unless asked.
+    // Edits add $0.01 per input image.
+    pricePerImageUsd: 0.06,
+    pricing: "$0.06 (1K) / $0.08 (2K) at medium quality",
+    sizeMode: "aspect_ratio",
+    supportsAspect: true,
+    supportsEdit: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: true,
+    supportsSyncMode: true,
+    type: "generation",
+  },
+
   // ─── Video Models ─────────────────────────────────────────────
 
   kling: {
     endpoint: "fal-ai/kling-video/v3/pro/image-to-video",
     name: "Kling v3 Pro",
     pricing: "$0.11/sec",
+    sizeMode: "none",
+    supportsAspect: false,
+    supportsEdit: false,
+    supportsNumImages: false,
+    supportsResolution: false,
+    type: "video",
+  },
+  "kling-turbo": {
+    endpoint: "fal-ai/kling-video/v3/turbo/pro/image-to-video",
+    name: "Kling v3 Turbo Pro",
+    pricing: "$0.14/sec",
     sizeMode: "none",
     supportsAspect: false,
     supportsEdit: false,
@@ -1121,8 +1283,13 @@ export const GENERATION_MODELS = [
   "ideogram",
   "ideogram4",
   "grok-image",
+  "grok-image-2",
   "qwen",
   "qwen3",
+  "mai-image-2.5-pro",
+  "banana2-lite",
+  "ideogram3-transparent",
+  "recraft41",
 ] as const;
 
 /** Models whose fal endpoints support image editing (vary/edit flows). */
@@ -1132,7 +1299,7 @@ export const EDIT_CAPABLE_MODELS = GENERATION_MODELS.filter(
 
 export const UTILITY_MODELS = ["clarity", "crystal", "rmbg", "bria"] as const;
 
-export const VIDEO_MODELS = ["kling"] as const;
+export const VIDEO_MODELS = ["kling", "kling-turbo"] as const;
 
 export type GenerationModelName = (typeof GENERATION_MODELS)[number];
 

@@ -167,6 +167,11 @@ export interface ModelConfig {
    * endpoint has no `background` parameter (GPT Image 2 through OpenAI).
    */
   transparencyRoute?: ProviderRoute;
+  /**
+   * The endpoint only makes transparent images and takes no `background`
+   * parameter (Ideogram V3 Transparent). Every output has an alpha channel.
+   */
+  transparentOutput?: boolean;
   type: ModelType;
   /** Use fal queue submit/status/result even for generate() calls. */
   useQueue?: boolean;

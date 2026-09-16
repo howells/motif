@@ -20,6 +20,13 @@ export function estimateCost(
       // (2K/4K settings map to the larger, doubled tier).
       return configuredPrice * 2 * numImages;
     }
+    if (
+      model === "grok-image-2" &&
+      (resolution === "2K" || resolution === "4K")
+    ) {
+      // fal tiers Grok Imagine Image 2.0 at medium quality: 1K $0.06, 2K $0.08.
+      return 0.08 * numImages;
+    }
     if (model === "banana2") {
       // fal tiers nano-banana-2 by resolution: 0.5K $0.06, 1K $0.08, 2K $0.12, 4K $0.16
       const multiplier =
@@ -79,8 +86,13 @@ export function estimateCost(
 /** Estimate cost for video generation */
 export function estimateVideoCost(
   durationSeconds = 5,
-  generateAudio = true
+  generateAudio = true,
+  model = "kling"
 ): number {
+  if (model === "kling-turbo") {
+    // Kling v3 Turbo Pro has no audio option: $0.14 a second.
+    return 0.14 * durationSeconds;
+  }
   const perSecond = generateAudio ? 0.168 : 0.112;
   return perSecond * durationSeconds;
 }

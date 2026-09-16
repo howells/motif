@@ -73,17 +73,26 @@ function callPrice(
 /**
  * The figure to show before a run, from the rate alone.
  *
- * Only a flat per-call price survives this: everything else depends on an
- * output that does not exist yet, and guessing its size is how a dry run comes
- * to promise a number the invoice contradicts.
+ * A flat per-call price is the whole answer. A per-megapixel rate projects only
+ * from `outputs` whose size is already known, such as a source the tool
+ * returns at its own size; guessing a size is how a dry run comes to promise a
+ * number the invoice contradicts.
  */
 export function projectedToolCost(
   price: FalToolPrice,
-  body: Readonly<Record<string, unknown>> = {}
+  body: Readonly<Record<string, unknown>> = {},
+  outputs: readonly OutputDimensions[] = []
 ): ResolvedCost {
-  return price.kind === "call"
-    ? { basis: "projected", usd: callPrice(price, body) }
-    : UNKNOWN;
+  if (price.kind === "call") {
+    return { basis: "projected", usd: callPrice(price, body) };
+  }
+  if (price.kind === "megapixel") {
+    const megapixels = totalMegapixels(outputs);
+    return megapixels === null
+      ? UNKNOWN
+      : { basis: "projected", usd: price.usd * megapixels };
+  }
+  return UNKNOWN;
 }
 
 /**

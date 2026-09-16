@@ -90,10 +90,18 @@ const GENERATION_MODELS_RANKED: readonly RankedModel[] = [
   { model: "gpt", tier: "quality" },
   { model: "sunburst", tier: "quality" },
   { model: "gemini3", tier: "quality" },
+  { model: "mai-image-2.5-pro", tier: "quality" },
   { model: "seedream5", tier: "quality" },
   { model: "flux2-max", tier: "quality" },
   { model: "banana", tier: "balanced" },
+  {
+    model: "ideogram3-transparent",
+    requires: ["transparency"],
+    supports: ["transparency"],
+    tier: "balanced",
+  },
   { model: "flare", tier: "balanced" },
+  { model: "banana2-lite", tier: "balanced" },
   { model: "qwen3", tier: "balanced" },
   { model: "seedream4", tier: "balanced" },
   { model: "flux2-flex", tier: "balanced" },
@@ -102,6 +110,8 @@ const GENERATION_MODELS_RANKED: readonly RankedModel[] = [
   { model: "recraft4", tier: "balanced" },
   { model: "flux2-pro", tier: "balanced" },
   { model: "seedream45", tier: "balanced" },
+  { model: "grok-image-2", tier: "balanced" },
+  { model: "recraft41", tier: "balanced" },
   { model: "flux2-turbo", tier: "fast" },
   { model: "flux2-dev", tier: "fast" },
   { model: "flux-fast", tier: "fast" },
@@ -116,8 +126,12 @@ const GENERATION_MODELS_RANKED: readonly RankedModel[] = [
 /** Every Task with a Model. A Task is absent here until it has at least one Model. */
 export const TASKS = {
   animate: {
-    basis: "Hand-ranked. One Model: Kling v3 Pro image-to-video.",
-    models: [{ model: "kling", tier: "balanced" }],
+    basis:
+      "Hand-ranked. Kling v3 Pro leads with audio, an end frame and a negative prompt at $0.112-$0.168/sec; Kling v3 Turbo Pro is the fast pick at $0.14/sec without them.",
+    models: [
+      { model: "kling", tier: "balanced" },
+      { model: "kling-turbo", tier: "fast" },
+    ],
     notFor: "A still image (generate), or variations of one (vary).",
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
@@ -152,12 +166,13 @@ export const TASKS = {
   },
   cutout: {
     basis:
-      "Hand-ranked from fal price and edge quality: Bria for commercial-safe edges, BEN v2 and BiRefNet as the balanced picks, rembg as the cheap one. Bria's video remover is the only video Model.",
+      "Hand-ranked from fal price and edge quality: Bria for commercial-safe edges, BEN v2 and BiRefNet as the balanced picks, rembg as the cheap one. For video, Bria's VRMBG 3.0 ($0.05/sec) leads the older Bria remover ($0.14/sec).",
     models: [
       { model: "bria-rmbg", tier: "quality" },
       { model: "birefnet", tier: "balanced" },
       { model: "ben-v2", tier: "balanced" },
       { model: "rembg", tier: "fast" },
+      { model: "bria-video-rmbg-v3", tier: "balanced" },
       { model: "bria-video-rmbg", tier: "balanced" },
     ],
     notFor:
@@ -211,7 +226,7 @@ export const TASKS = {
   },
   generate: {
     basis:
-      "Hand-ranked. Tiers set by fal price per image (quality ≥ $0.07, balanced $0.02-$0.15 with edit quality, fast ≤ $0.04); order within a tier by Artificial Analysis text-to-image Elo, snapshot 2026-08-23, unranked models last. banana leads balanced because it is the house default the looks are tuned on.",
+      "Hand-ranked. Tiers set by fal price per image (quality ≥ $0.07, balanced $0.02-$0.15 with edit quality, fast ≤ $0.04); order within a tier by Artificial Analysis text-to-image Elo, snapshot 2026-08-23, unranked models last. banana leads balanced because it is the house default the looks are tuned on. Ideogram V3 Transparent follows it but is chosen only for a transparent request, so transparency needs no OpenAI key at balanced; token-metered Nano Banana 2 Lite sits in balanced by its Elo.",
     models: GENERATION_MODELS_RANKED,
     notFor:
       "Variations of an image you already have (vary), or a consistent set of images (series run).",

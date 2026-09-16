@@ -82,6 +82,7 @@ export const IMAGE_TEXT_TO_IMAGE_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "MAI-Image-2.5-Pro",
       rank: 7,
+      routableModelId: "mai-image-2.5-pro",
     },
     {
       apiPricing: "$34/1k images",
@@ -90,6 +91,7 @@ export const IMAGE_TEXT_TO_IMAGE_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "Nano Banana 2 Lite (Gemini 3.1 Flash Lite Image)",
       rank: 8,
+      routableModelId: "banana2-lite",
     },
     {
       apiPricing: "$43/1k images",
@@ -207,6 +209,7 @@ export const IMAGE_EDITING_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "MAI-Image-2.5-Pro",
       rank: 1,
+      routableModelId: "mai-image-2.5-pro",
     },
     {
       apiPricing: "$200/1k images",

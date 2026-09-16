@@ -204,12 +204,23 @@ function presentKey(value: string | undefined): string | undefined {
   return value === undefined || value === "" ? undefined : value;
 }
 
-/** Output keys holding files, by the kind of Model. */
-function outputKeysFor(model: string): readonly string[] {
+const RIGGED_MESH_KEY = "rigged_character_glb";
+
+/**
+ * Output keys holding files, by the kind of Model, primary file first. A rig
+ * request's rigged mesh is the file it asked for, so it leads.
+ */
+function outputKeysFor(
+  model: string,
+  body: Readonly<Record<string, unknown>>
+): readonly string[] {
   if (isFalToolId(model)) {
-    return FAL_TOOLS[model].outputKeys;
+    const keys: readonly string[] = FAL_TOOLS[model].outputKeys;
+    return body.enable_rigging === true && keys.includes(RIGGED_MESH_KEY)
+      ? [RIGGED_MESH_KEY, ...keys.filter((key) => key !== RIGGED_MESH_KEY)]
+      : keys;
   }
-  if (model === "kling") {
+  if (model === "kling" || model === "kling-turbo") {
     return ["video"];
   }
   if (model === "clarity" || model === "crystal") {
@@ -246,7 +257,7 @@ function outputDimensions(
 
 function falOutput(plan: TaskPlan, result: FalRequestResult): TaskOutput {
   const { data, requestId } = result;
-  const keys = outputKeysFor(plan.model);
+  const keys = outputKeysFor(plan.model, plan.body);
   const urls = collectUrls(data, keys);
   const declared = isFalToolId(plan.model) ? FAL_TOOLS[plan.model] : undefined;
   const labels: OutputLabels =

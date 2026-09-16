@@ -578,6 +578,184 @@ describe("createMotif plan", () => {
       start_image_url: IMAGE,
     });
   });
+
+  it("sends a fast animate to Kling v3 Turbo Pro as image_url", () => {
+    const plan = planned("animate", {
+      image: IMAGE,
+      prompt: "slow pan",
+      tier: "fast",
+    });
+
+    expect(plan.model).toBe("kling-turbo");
+    expect(plan.endpoint).toBe(
+      "fal-ai/kling-video/v3/turbo/pro/image-to-video"
+    );
+    expect(plan.queued).toBeTruthy();
+    expect(plan.body).toStrictEqual({
+      duration: "5",
+      image_url: IMAGE,
+      prompt: "slow pan",
+    });
+    expect(plan.cost.usd).toBeCloseTo(0.7);
+  });
+
+  it("generates and edits on MAI Image 2.5 Pro with one image_url", () => {
+    const plan = planned("generate", {
+      aspect: "3:2",
+      model: "mai-image-2.5-pro",
+      prompt: "a red chair",
+    });
+
+    expect(plan.endpoint).toBe("microsoft/mai-image-2.5-pro");
+    expect(plan.body).toStrictEqual({
+      aspect_ratio: "3:2",
+      num_images: 1,
+      prompt: "a red chair",
+    });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.17 });
+
+    const edit = planned("vary", { image: IMAGE, model: "mai-image-2.5-pro" });
+    expect(edit.endpoint).toBe("microsoft/mai-image-2.5-pro/edit");
+    expect(edit.body).toMatchObject({ image_url: IMAGE });
+    expect(edit.body).not.toHaveProperty("image_urls");
+  });
+
+  it("resolves a transparent generate without an OpenAI key to Ideogram V3 Transparent", () => {
+    const motif = createMotif({
+      falKey: "test",
+      fetch: noNetwork.fetch,
+      openAiKey: "",
+    });
+    const plan = motif
+      .plan("generate", { prompt: "a red chair", transparent: true })
+      ._unsafeUnwrap();
+
+    expect(plan.model).toBe("ideogram3-transparent");
+    expect(plan.provider).toBe("fal");
+    expect(plan.endpoint).toBe("fal-ai/ideogram/v3/generate-transparent");
+    expect(plan.body).toStrictEqual({
+      aspect_ratio: "1:1",
+      num_images: 1,
+      prompt: "a red chair",
+    });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.06 });
+    expect(planned("generate", { prompt: "a red chair" }).model).not.toBe(
+      "ideogram3-transparent"
+    );
+  });
+
+  it("sends a GPT Image 2 edit to /edit with mask_url", () => {
+    const mask = "https://example.com/mask.png";
+    const plan = planned("generate", {
+      mask,
+      model: "gpt2",
+      prompt: "a red chair",
+      references: [REFERENCE],
+    });
+
+    expect(plan.endpoint).toBe("openai/gpt-image-2/edit");
+    expect(plan.body).toMatchObject({
+      image_urls: [REFERENCE],
+      mask_url: mask,
+    });
+    expect(plan.body).not.toHaveProperty("mask_image_url");
+  });
+
+  it("generates on Nano Banana 2 Lite without a resolution", () => {
+    const plan = planned("generate", {
+      model: "banana2-lite",
+      prompt: "a red chair",
+    });
+
+    expect(plan.endpoint).toBe("google/nano-banana-2-lite");
+    expect(plan.body).toStrictEqual({
+      aspect_ratio: "1:1",
+      num_images: 1,
+      prompt: "a red chair",
+    });
+    expect(plan.cost.usd).toBeNull();
+  });
+
+  it("generates on Recraft V4.1 with an image_size", () => {
+    const plan = planned("generate", {
+      model: "recraft41",
+      prompt: "a red chair",
+    });
+
+    expect(plan.endpoint).toBe("fal-ai/recraft/v4.1/text-to-image");
+    expect(plan.body).toStrictEqual({
+      image_size: "square_hd",
+      prompt: "a red chair",
+    });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.035 });
+  });
+
+  it("sends Grok Imagine Image 2.0 a lower-case resolution and edits on v2.0", () => {
+    const plan = planned("generate", {
+      model: "grok-image-2",
+      prompt: "a red chair",
+    });
+
+    expect(plan.endpoint).toBe("xai/grok-imagine-image/v2.0/text-to-image");
+    expect(plan.body).toStrictEqual({
+      aspect_ratio: "1:1",
+      num_images: 1,
+      prompt: "a red chair",
+      resolution: "2k",
+    });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.08 });
+
+    const edit = planned("vary", { image: IMAGE, model: "grok-image-2" });
+    expect(edit.endpoint).toBe("xai/grok-imagine-image/v2.0/edit");
+    expect(edit.body).toMatchObject({ image_urls: [IMAGE] });
+  });
+
+  it("projects IC-Light's megapixel price from a data URL source", () => {
+    const plan = planned("relight", {
+      image: pngDataUrl(2000, 1000),
+      mood: "dawn",
+    });
+
+    expect(plan.model).toBe("iclight-v2");
+    expect(plan.cost.basis).toBe("projected");
+    expect(plan.cost.usd).toBeCloseTo(0.1 * 2);
+    expect(
+      planned("relight", { image: IMAGE, mood: "dawn" }).cost
+    ).toStrictEqual({ basis: "unknown", usd: null });
+  });
+
+  it("projects TeleStyle's megapixel price from sourceSize", () => {
+    const plan = planned("restyle", {
+      image: IMAGE,
+      references: [REFERENCE],
+      sourceSize: { height: 1000, width: 1500 },
+    });
+
+    expect(plan.model).toBe("telestyle-v2");
+    expect(plan.cost.basis).toBe("projected");
+    expect(plan.cost.usd).toBeCloseTo(0.035 * 1.5);
+  });
+
+  it("sends mesh objects the prompt naming the objects", () => {
+    const plan = planned("mesh", {
+      image: IMAGE,
+      mode: "objects",
+      prompt: "chair",
+    });
+
+    expect(plan.model).toBe("sam3-3d-objects");
+    expect(plan.body).toStrictEqual({ image_url: IMAGE, prompt: "chair" });
+  });
+
+  it("cuts out a video on Bria VRMBG 3.0", () => {
+    const plan = planned("cutout", { video: "https://example.com/clip.mp4" });
+
+    expect(plan.model).toBe("bria-video-rmbg-v3");
+    expect(plan.endpoint).toBe("bria/video/background-removal/v3");
+    expect(plan.body).toMatchObject({
+      video_url: "https://example.com/clip.mp4",
+    });
+  });
 });
 
 describe("createMotif refusals", () => {
@@ -824,6 +1002,16 @@ describe("createMotif refusals", () => {
     expect(error.details).toStrictEqual({ field: "image", task: "tile" });
   });
 
+  it("refuses mesh objects without a prompt naming the objects", () => {
+    const error = refused("mesh", { image: IMAGE, mode: "objects" });
+
+    expect(error.code).toBe("INVALID_OPTION");
+    expect(error.details).toMatchObject({
+      field: "prompt",
+      model: "sam3-3d-objects",
+    });
+  });
+
   it("refuses an erase without an image", () => {
     const error = refused("erase", { prompt: "the car" });
 
@@ -920,6 +1108,39 @@ describe("createMotif run", () => {
     expect(output.files).toStrictEqual([{ key: "image", url: restored }]);
     expect(output.requestId).toBe("req-q");
     expect(output.cost).toStrictEqual({ basis: "measured", usd: 0.02 });
+  }, 10_000);
+
+  it("puts the rigged mesh first when a mesh run rigs", async () => {
+    const endpoint = FAL_TOOLS["meshy-v7"].endpoint;
+    const mesh = "https://fal.media/files/mesh.glb";
+    const rigged = "https://fal.media/files/rigged.glb";
+    const { fetch } = fakeFetch((call) => {
+      if (call.method === "POST") {
+        return {
+          data: {
+            request_id: "req-rig",
+            response_url: `https://queue.fal.run/${endpoint}/requests/req-rig`,
+          },
+        };
+      }
+      if (call.url.includes("/status")) {
+        return { data: { status: "COMPLETED" } };
+      }
+      return {
+        data: {
+          model_glb: { url: mesh },
+          rigged_character_glb: { url: rigged },
+        },
+      };
+    });
+    const result = await client(fetch).mesh({ image: IMAGE, rig: true });
+
+    const output = result._unsafeUnwrap();
+    expect(output.files[0]).toStrictEqual({
+      key: "rigged_character_glb",
+      url: rigged,
+    });
+    expect(output.files[1]).toStrictEqual({ key: "model_glb", url: mesh });
   }, 10_000);
 
   it("merges params into a generation's sent body", async () => {

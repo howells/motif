@@ -11,24 +11,29 @@ What each generation model, processing model, video model and fal tool costs. Pa
 | `flux2-dev` | ~$0.012 | Open FLUX.2, billed per compute second ($0.00167/sec) |
 | `grok-image` | $0.02 | Fast, cheap generation and edits |
 | `qwen` | $0.02/MP | Low-cost open-weight generation |
-| `qwen3` | $0.02/MP (assumed) | Qwen Image 3 - successor to qwen |
+| `qwen3` | $0.04 | Qwen Image 3 - successor to qwen; $0.075 at 2K |
 | `seedream4` | $0.03 | Low-cost, high-ranked generation and edits |
 | `flux2-pro` | $0.03/MP | Production FLUX quality per megapixel |
 | `ideogram` | $0.03 | Best text rendering in images |
 | `ideogram4` | $0.03 | Per-MP tiers: TURBO $0.03 / BALANCED $0.06 / QUALITY $0.10 per MP |
+| `recraft41` | $0.035 | Recraft V4.1 design generation |
 | `seedream5-lite` | $0.035 | Flat per image up to Auto 3K (~9.4MP), generation and edits |
 | `gemini` | $0.0398 | Cheap, no resolution control |
 | `recraft` | $0.04 | Best for design/brand work, vector art |
 | `recraft4` | $0.04 | Recraft V4 design generation |
 | `seedream45` | $0.04 | Current Seedream generation and edits |
+| `banana2-lite` | Metered | Nano Banana 2 Lite: token-billed, fixed 1K output, no edits |
 | `flux2-flex` | $0.05/MP | FLUX with guidance and step controls |
 | `flux` | $0.06 | Photorealism benchmark |
+| `grok-image-2` | $0.06 ($0.08 at 2K) | Grok Imagine Image 2.0 at medium quality; edits add $0.01 per input image, up to 3 |
+| `ideogram3-transparent` | $0.06 | Always transparent, no OpenAI key. TURBO $0.03 / BALANCED $0.06 / QUALITY $0.09 |
 | `flux2-max` | $0.07/MP | Highest-quality FLUX |
 | `seedream5` | $0.0675 / $0.135 | $0.0675 up to 1536², $0.135 up to 2048² (2K/4K); generation and edits |
 | `banana2` | $0.08 | $0.06 / $0.08 / $0.12 / $0.16 at 0.5K / 1K / 2K / 4K (0.75x / 1x / 1.5x / 2x) |
 | `gpt` | $0.133 | Supports transparency, 4 reference images |
 | `banana` | $0.15 ($0.30 at 4K) | 14 reference images, best editing |
 | `gemini3` | $0.15 ($0.30 at 4K) | Full feature support |
+| `mai-image-2.5-pro` | ~$0.17 | Top-ranked editor, one reference image; edits ~$0.18-$0.27 |
 | `flare` | Metered | GPT Image 2.5 Flare: fast generation, transparency, 16 references |
 | `sunburst` | Metered | GPT Image 2.5 Sunburst: precise edits, transparency, 16 references |
 | `gpt2` | $0.211 | Frontier OpenAI generation; transparent PNGs via the OpenAI route (cost unknown) |
@@ -48,6 +53,7 @@ What each generation model, processing model, video model and fal tool costs. Pa
 | ------------------- | ---------- | --------------- |
 | `kling` (audio off) | $0.112/sec | 5s clip = $0.56 |
 | `kling` (audio on)  | $0.168/sec | 5s clip = $0.84 |
+| `kling-turbo`       | $0.14/sec  | 5s clip = $0.70 |
 
 ## Fal Tools
 

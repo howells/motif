@@ -126,7 +126,7 @@ interface ModelProfile {
 function generationProfile(config: ModelConfig): ModelProfile {
   const capabilities = new Set<Capability>(["image"]);
   const keyed = new Map<Capability, string>();
-  if (config.supportsBackground === true) {
+  if (config.supportsBackground === true || config.transparentOutput === true) {
     capabilities.add("transparency");
   } else if (config.transparencyRoute !== undefined) {
     keyed.set("transparency", config.transparencyRoute.apiKeyEnv);
