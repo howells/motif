@@ -11,12 +11,13 @@
 import {
   ASPECT_RATIOS,
   CREATIVE_TAXONOMY,
+  isTaskId,
   LOOKS,
   RESOLUTIONS,
   TASKS,
   TIERS,
 } from "@howells/motif-sdk";
-import type { TaskId } from "@howells/motif-sdk";
+import type { TaskDefinition, TaskId } from "@howells/motif-sdk";
 
 import { ERROR_CATALOG } from "../utils/error-catalog";
 import { emit } from "../utils/output";
@@ -719,17 +720,44 @@ function describeCommand(
   };
 }
 
+/**
+ * What a Task verb's row adds in `--describe tasks`: the SDK's summary and
+ * notFor, the Tiers its ranking offers, its modes, and the Model ids `-m`
+ * accepts as overrides, best-ranked first.
+ */
+function taskDetails(command: string): Record<string, unknown> {
+  if (!isTaskId(command)) {
+    return {};
+  }
+  const definition: TaskDefinition = TASKS[command];
+  const plain = definition.models.filter((entry) => entry.mode === undefined);
+  return {
+    task: command,
+    taskSummary: definition.summary,
+    notFor: definition.notFor,
+    tiers: TIERS.filter((tier) => plain.some((entry) => entry.tier === tier)),
+    modes: (definition.modes ?? []).map(({ id, summary }) => ({ id, summary })),
+    models: [...new Set(definition.models.map((entry) => entry.model))],
+    rankedFrom: definition.rankedFrom,
+  };
+}
+
 /** The task table alone: `motif --describe tasks`. */
 function tasksSchema() {
   return {
     command: "tasks",
     description:
-      "Which command does which job. `tasks` maps a task word to its command; `commands` says when to use each, what to use instead, and how to invoke it.",
+      "Which command does which job. `tasks` maps a task word to its command; `commands` says when to use each, what to use instead, how to invoke it, and for each Task its Tiers, modes and the Model ids -m accepts.",
     tasks: TASK_INDEX,
     commands: Object.fromEntries(
       COMMAND_TASKS.map((row) => [
         row.command,
-        { summary: row.summary, usage: row.usage, ...taskRouting(row) },
+        {
+          summary: row.summary,
+          usage: row.usage,
+          ...taskRouting(row),
+          ...taskDetails(row.command),
+        },
       ])
     ),
   };

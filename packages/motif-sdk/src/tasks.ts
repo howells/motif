@@ -319,7 +319,7 @@ export const TASKS = {
       { id: "body", summary: "Reconstruct a human body mesh with keypoints." },
       {
         id: "objects",
-        summary: "Reconstruct several prompted objects from one image.",
+        summary: "Reconstruct a named object from one image.",
       },
     ],
     models: [

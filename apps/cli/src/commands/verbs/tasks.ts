@@ -248,7 +248,7 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     usage: "motif --describe [command]",
     summary: "print the CLI schema as JSON",
     whenToUse:
-      "Look up commands, flags, enums, prices and output shapes as JSON before building a command.",
+      "Look up commands, flags, enums, Tiers and the Model ids -m accepts, as JSON, before building a command.",
     notFor: "The task routing alone (motif --describe tasks).",
     tasks: ["capabilities", "models", "schema"],
     inHelp: false,
