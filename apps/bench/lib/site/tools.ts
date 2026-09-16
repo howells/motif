@@ -187,4 +187,27 @@ export const TOOL_CAPABILITIES: Capability[] = [
       "It also writes metalness and height maps, which aren't shown. The roughness map still carries a lighter band from the light on the fold.",
     title: "Make material maps from a photo",
   },
+  {
+    caption:
+      "The figure as a textured 3D mesh with a skeleton already inside, ready to pose or animate.",
+    command: "motif mesh source-figure.jpg --rig -o mesh-rig/",
+    demo: {
+      kind: "set",
+      outputs: [
+        {
+          alt: "A render of the mesh: the person standing in loose pale linen, on a transparent background",
+          height: 512,
+          src: "/demo/mesh/rigged.png",
+          width: 512,
+        },
+      ],
+      source: FIGURE,
+    },
+    group: "tools",
+    id: "mesh-rig",
+    model: "meshy-v7",
+    notes:
+      "The mesh comes back as GLB and FBX files for a 3D tool. The image here is the preview render that comes with them.",
+    title: "Make a rigged 3D figure from a photo",
+  },
 ];

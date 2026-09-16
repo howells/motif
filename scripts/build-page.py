@@ -462,7 +462,7 @@ def media_for(demo, number):
         shapes = [source["w"] / source["h"]]
         for path in directory_files(plate):
             name = os.path.basename(path)
-            if path.endswith((".glb", ".ply", ".zip")):
+            if path.endswith((".glb", ".fbx", ".ply", ".zip")):
                 size = os.path.getsize(path)
                 tiles.append(
                     '<figure class="artefact"><div class="filecard">'

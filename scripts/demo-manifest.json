@@ -357,8 +357,7 @@
       "argv": ["relight", "$source", "--mood", "dawn"],
       "model": "iclight-v2",
       "source": "interior",
-      "pending": true,
-      "why": "A house mood applied to a photograph that already exists. The same six moods a generation takes, without regenerating the room.",
+      "why": "A house mood applied to a photograph that already exists, using the same six moods a generation takes. The furniture stays; what the new light needs, here a window, is redrawn.",
       "section": "relight",
       "title": "Give a photograph a house mood"
     },
@@ -367,7 +366,6 @@
       "argv": ["restyle", "$source", "--like", "$source:drawing"],
       "model": "telestyle-v2",
       "source": "interior",
-      "pending": true,
       "why": "The room redrawn in the manner of another picture, here the watercolour drawing look. The composition stays; the handling changes.",
       "section": "restyle",
       "title": "Redraw it in another picture's style"
@@ -377,7 +375,6 @@
       "argv": ["try-on", "$source", "--garment", "$source:garment"],
       "model": "virtual-try-on",
       "source": "figure",
-      "pending": true,
       "why": "A person dressed in a garment from a flat product photograph. Pose, light and room stay; only the clothes change.",
       "section": "restyle",
       "title": "Dress a person in another garment"
@@ -388,7 +385,6 @@
       "model": "meshy-v7",
       "source": "figure",
       "dir": true,
-      "pending": true,
       "why": "A figure turned into a mesh with a skeleton already in it, ready to pose or animate in a 3D tool.",
       "section": "material",
       "title": "A rigged figure from one photograph"

@@ -178,7 +178,7 @@ for demo in MANIFEST["demos"]:
         meaningful = len([v for v in str(payload) if v.isalnum()]) > 12
         rows.append((plate, "ok" if meaningful else "EMPTY", text[:88].replace("\n", " ")))
         continue
-    if out.endswith((".svg", ".glb", ".zip", ".ply")):
+    if out.endswith((".svg", ".glb", ".fbx", ".zip", ".ply")):
         size = os.path.getsize(out)
         rows.append((plate, "ok" if size > 500 else "THIN", f"{os.path.basename(out)}, {size:,} bytes"))
         continue

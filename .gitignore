@@ -33,3 +33,4 @@ coverage/
 docs/tools/examples/**/*.glb
 docs/tools/examples/**/*.zip
 docs/tools/examples/**/*.ply
+docs/tools/examples/**/*.fbx

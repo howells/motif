@@ -16,6 +16,7 @@ import {
 import { SERIES_CAPABILITY } from "@/lib/site/series";
 import {
   APOTHECARY,
+  FIGURE,
   INTERIOR,
   LABEL,
   MARK,
@@ -381,6 +382,70 @@ export const CAPABILITIES: Capability[] = [
     id: "vectorize",
     model: "recraft-vectorize",
     title: "Trace an image to SVG",
+  },
+  {
+    caption:
+      "The room under the dawn mood: low warm sun from a tall window, long light across the floor.",
+    command:
+      "motif relight source-interior.jpg --mood dawn -o relight-dawn.jpg --no-open --format json",
+    demo: {
+      after: {
+        alt: "The bench, throw and vases kept, now in front of tall glazing with low warm sun and a city skyline beyond",
+        height: 772,
+        src: "/demo/relight/dawn.jpg",
+        width: 1400,
+      },
+      before: INTERIOR,
+      kind: "pair",
+    },
+    group: "edit",
+    id: "relight-mood",
+    model: "iclight-v2",
+    notes:
+      "The bench, throw and vases stay put, but the plain wall became a window. Relighting redraws what the new light needs.",
+    title: "Give a photo a house mood",
+  },
+  {
+    caption:
+      "The same room redrawn as a loose ink and watercolour sketch, taken from the drawing look's proof image.",
+    command:
+      "motif restyle source-interior.jpg --like drawing.jpg -o restyle.jpg --no-open --format json",
+    demo: {
+      after: {
+        alt: "The bench, throw, branch and two vases as an ink and watercolour drawing on cream paper",
+        height: 781,
+        src: "/demo/restyle/interior.jpg",
+        width: 1400,
+      },
+      before: INTERIOR,
+      kind: "pair",
+    },
+    group: "edit",
+    id: "restyle",
+    model: "telestyle-v2",
+    title: "Redraw an image in another image's style",
+  },
+  {
+    caption:
+      "The figure wearing a rust cotton overshirt, taken from a flat product photograph. The pose, room and light stay the same.",
+    command:
+      "motif try-on source-figure.jpg --garment garment.jpg -o try-on.jpg --no-open --format json",
+    demo: {
+      after: {
+        alt: "The same person in the plaster room, now wearing a rust-coloured overshirt with patch pockets over the linen trousers",
+        height: 1400,
+        src: "/demo/try-on/figure.jpg",
+        width: 939,
+      },
+      before: FIGURE,
+      kind: "pair",
+    },
+    group: "edit",
+    id: "try-on",
+    model: "virtual-try-on",
+    notes:
+      "garment.jpg is a flat-lay photograph of the overshirt, made with motif for this page.",
+    title: "Dress a person in a garment",
   },
 
   // Understand
