@@ -1,63 +1,62 @@
 # Field masks, chaining and pagination
 
-Which `--fields` to ask for per workflow, how to chain one command's output path into the next, and how to page through history. Part of the [CLI agent guide](../AGENTS.md), which carries the table of where each command family puts its output path.
+Which `--fields` to ask for per workflow, how to chain one command's output path into the next, and how to page through history. Part of the [CLI agent guide](../AGENTS.md).
 
-## Recommended Field Masks
+## Where the path is
 
-Use `--fields` to limit output to what you need. This protects your context window and reduces token usage in multi-step workflows.
+Field masks are top-level only, so this matters:
 
-| Workflow | Command | Recommended `--fields` |
+| Family                       | Where the path is | jq                        |
+| ---------------------------- | ----------------- | ------------------------- |
+| `generate`, `vary`           | `images[].path`   | `jq -r '.images[0].path'` |
+| Every other Task verb        | `path`            | `jq -r .path`             |
+| Any Task verb with `-o dir/` | `files[].path`    | `jq -r '.files[].path'`   |
+| `sheet`                      | `path`            | `jq -r .path`             |
+
+A dry run has no `path`. It reports `output`, where the file would go. Each entry in `images` also carries `remoteUrl`, the provider-hosted URL the file came from, which expires.
+
+## Recommended field masks
+
+| Workflow | Command | `--fields` |
 | --- | --- | --- |
-| Generate and confirm | `generate` | `id,images,cost` |
-| Batch exploration | `generate` | `id,images` |
-| Cost tracking | `generate` | `id,cost,model` |
-| Upscale/rmbg result | `upscale`, `rmbg` | `path,size` |
-| Video result | `video` | `path,duration,cost` |
-| History scan | `history` | `id,prompt,model,cost` |
-| Last generation check | `last` | `id,prompt,output` |
-| Verb result | `segment`, `erase`, `reframe`, `enhance`, `layers`, `vectorize` | `path,cost` |
-| Verb, every artefact | any verb with `-o dir/` | `files` |
-| Segment geometry only | `segment` | `boxes,scores` (add `rle` with `--rle`) |
+| Generate and confirm | `generate` | `images,cost` |
+| Cost tracking | `generate` or any verb | `model,tier,cost,costBasis` |
+| Price before running | any, with `--dry-run` | `model,cost,costBasis,output` |
+| Verb result | any Task verb | `path,cost` |
+| Every file a verb wrote | any Task verb with `-o dir/` | `files` |
+| Segment geometry only | `segment` | `boxes,scores` |
 | Ask | `ask` | `answer` (also `reasoning`, `objects`, `points`) |
-| Tool result | `tool run` | `saved` |
-| Tool, every artefact | `tool run -o dir/` | `files` |
-| Tool pricing check | `tool run --dry-run` | `estimatedCost,pricing,queued` |
+| History scan | `--history` | `id,prompt,model,cost` |
+| Last generation check | `--last` | `id,prompt,output` |
 
 ## Examples
 
 ```bash
-# Batch: generate 4 images, only get paths
-motif "sunset over mountains" -m flux-fast -n 4 --fields images | jq -r '.images[].path'
+# Several images, paths only
+motif "sunset over mountains" --tier fast -n 4 --no-open --fields images | jq -r '.images[].path'
 
-# Pipeline: generate → upscale (chain by path)
-IMG=$(motif "a cat" -m flux --fields images | jq -r '.images[0].path')
-motif --up "$IMG" --fields path,size
+# generate, then upscale
+IMG=$(motif "a cat" --no-open --fields images | jq -r '.images[0].path')
+motif upscale "$IMG" --no-open --fields path,size
 
-# Pipeline: verb → verb (verbs put the path at the top level)
+# verb, then verb
 ERASED=$(motif erase "the parked car" street.png -o erased.jpg --no-open --fields path | jq -r .path)
-motif reframe --story "$ERASED" -o story.png --no-open --fields path
+motif reframe "$ERASED" --story -o story.png --no-open --fields path
 
-# Cost audit: check recent spending
+# Recent spend
 motif --history --limit 20 --fields model,cost
 ```
 
 ## Output format from -o
 
-An `-o` path ending in `.png`, `.jpg`, `.jpeg` or `.webp` asks the Model for that format when it supports one, so the saved file's bytes match its extension.
+An `-o` path ending in `.png`, `.jpg`, `.jpeg` or `.webp` asks the Model for that format when it supports one, so the saved file's bytes match its extension. Files that can only be one type (`.svg`, `.glb`, `.mp4`) take that extension.
 
 ## Pagination
 
-History supports offset-based pagination:
-
 ```bash
-# First page
 motif --history --limit 10
-
-# Next page
 motif --history --limit 10 --offset 10
-
-# Stream all as NDJSON
 motif --history --limit 100 --format ndjson
 ```
 
-JSON response includes `hasMore: true` when more pages exist.
+JSON output includes `hasMore: true` when more pages exist.

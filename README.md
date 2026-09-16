@@ -4,435 +4,98 @@
 <h1 align="center">Motif</h1>
 
 <p align="center">
-  Public SDK and CLI for <a href="https://fal.ai">fal.ai</a> image, video, editing, and utility endpoints<br>
-  <code>npm install @howells/motif-sdk</code> · <code>npm install -g @howells/motif-cli</code>
+  Images and video through <a href="https://fal.ai">fal.ai</a>, by task<br>
+  <code>npm install -g @howells/motif-cli</code> · <code>npm install @howells/motif-sdk</code>
 </p>
 
-Motif is a public TypeScript toolkit for fal.ai. It provides a Node SDK and an agent-friendly CLI over the same model registry, request normalization, cost estimates, utility tools, and benchmark metadata.
+Motif is a CLI and a Node SDK for image work on fal.ai. You say what you want done (erase this, upscale that, relight it) and Motif chooses the Model that does it best at the Tier you ask for. Every call can be priced with a dry run before it spends anything.
 
-## Quick Start
-
-### SDK
+## Quick start
 
 ```bash
-npm install @howells/motif-sdk
+npm install -g @howells/motif-cli
+export FAL_KEY="your-fal-key"
+
+motif "a ceramic desk lamp on an oak desk" --dry-run    # choose the Model and price it
+motif "a ceramic desk lamp on an oak desk"              # make it
+motif erase "the cable" lamp.png                         # take something out
+motif upscale lamp-erase.png --scale 2                   # make it larger
 ```
 
-The primary image API is `createMotifImage` (`@howells/motif-sdk/image`) — one provider-agnostic surface to `generate` and `edit` across google, openai, replicate, and fal:
-
-```ts
-import { createMotifImage } from "@howells/motif-sdk/image";
-
-const img = createMotifImage({ defaultProvider: "google" });
-
-const result = await img.generate({
-  prompt: "editorial product photo of a ceramic desk lamp",
-  aspectRatio: "1:1",
-  tier: "quality",
-});
-
-if (result.isOk()) {
-  result.value.images; // MotifImageFile[] (bytes + base64)
-  result.value.cost; // { usd, source }
-}
-```
-
-For fal-native capabilities — upscaling, background removal, image-to-video, fal utility tools, the fal queue, and CDN upload — reach for the low-level `FalClient`:
-
-```ts
-import { FalClient } from "@howells/motif-sdk";
-
-const fal = new FalClient(process.env.FAL_KEY!);
-const upscaled = await fal.upscale({
-  imageUrl,
-  model: "clarity",
-  scaleFactor: 4,
-});
-```
-
-### CLI
-
-```bash
-# Set your fal.ai API key
-export FAL_KEY="your-api-key"
-
-# Generate an image with the default model, Nano Banana Pro
-motif "a cinematic product photo of a ceramic desk lamp"
-
-# Pick a model, preset, resolution, and output path
-motif "mountain vista at dawn" --model gemini3 --landscape --resolution 4K --output vista.png
-
-# Edit using one or more reference images
-motif "turn this into a watercolor poster" --edit photo.png --model banana
-
-# Use agent-safe validation before spending money
-motif "futuristic city map" --model ideogram --style DESIGN --dry-run --format json
-```
-
-Run `motif` with no arguments to show help. Use `motif studio` to launch the interactive terminal studio.
+Run `motif` with no arguments for help, and `motif <verb> --help` for one Task.
 
 ## What do you want to do?
 
 | Task | Command | Instead, when |
 | --- | --- | --- |
-| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
-| Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
-| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
-| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
-| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
-| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
-| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
-| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
-| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
-| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
-| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
-| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
-| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
-| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
-| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
-| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
+| Make an image from a prompt, or change one passed with -e | `motif "prompt"` | Variations of an image you already have (vary), or a consistent set of images (series run). |
+| Variations of an image | `motif vary [image]` | A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run). |
+| Remove something and fill the gap | `motif erase "what" [image]` | The whole background (cutout), or extending the canvas (reframe). |
+| Remove the background | `motif cutout [image-or-video]` | Taking one object out and filling the gap (erase), or masking a named thing (segment). |
+| Extend to a new aspect ratio | `motif reframe [image] --og` | A new image at a given ratio (generate with a ratio). |
+| Make it larger | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
+| Fix noise, blur, damage or colour | `motif restore [image]` | Making an image larger (upscale). |
+| Relight a photo | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |
+| Redraw in a reference's style | `motif restyle [image] --like <image>` | A house style kept across images (generate with a look). |
+| Mask a named thing | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
+| Caption, count, find or ask | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
+| Split into transparent layers | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |
+| Trace to a clean SVG | `motif vectorize [image]` | Drawing a new image from a prompt (generate). |
+| Depth, edge, normal or pose map | `motif map [image]` | Masks of a named thing (segment), or PBR material maps (material). |
+| PBR maps from a surface photo | `motif material [image]` | A seamless texture without PBR maps (tile), or depth and normals of a scene (map). |
+| A seamlessly tiling texture | `motif tile "prompt" [image]` | PBR maps of a surface (material). |
+| A textured 3D mesh | `motif mesh [image] [--rig]` | A flat image of an object (generate), or depth of a scene (map). |
+| Dress a person in a garment | `motif try-on [image] --garment <image>` | Changing clothes by description (generate with a reference). |
+| Turn an image into a video | `motif animate "prompt" [image]` | A still image (generate), or variations of one (vary). |
+| A captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| A consistent set from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of an image (vary). |
+| A reusable style and references | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| The interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
+
+Each Task's modes, flags and examples are in [apps/cli/docs/verbs.md](apps/cli/docs/verbs.md). `motif --describe tasks --format json` maps task words ("inpaint", "rmbg", "depth") to the verb.
+
+The trailing image is optional and falls back to your last generation.
+
+## Tiers
+
+Every Task ranks the Models that can do it. `--tier fast|balanced|quality` moves Motif along that ranking, trading cost and speed for quality; `balanced` is the default.
 
 ```bash
-# What is in this image, and where
-motif segment "the white ceramic bowl" shelf.jpg -o segment/   # SAM 3, $0.005
-motif ask "how many bottles are there?" shelf.jpg              # Moondream, prose back, writes no file
-
-# Take something out, put something back, recut
-motif erase "the parked car" street.jpg                        # $0.024 - leaves cast shadows
-motif reframe --story cover.png                                # $0.06, needs a target ratio
-
-# Repair and enlarge
-motif enhance --restore old-photo.jpg                          # eight Topaz modes, one per call
-
-# Take a design apart
-motif layers poster.png -o layers/                             # stacked RGBA layers
-motif vectorize logo.png -o logo.svg                           # raster to clean SVG
+motif "a green kitchen" --tier fast --dry-run
+motif erase "the parked car" street.jpg --tier quality --dry-run   # also removes the car's shadow
 ```
 
-## Install
+Motif never reads the prompt to choose, so the same command picks the same Model. A request that needs something (a mask, transparency, several references, a video) rules out the Models that can't do it.
 
-SDK:
+## Overriding the Model
+
+Let Motif choose unless you have a reason not to. To run a specific Model, name it with `-m`. Options only that Model understands go through `--param key=value`, which needs `-m`.
 
 ```bash
-npm install @howells/motif-sdk
+motif "a jazz night poster" -m ideogram --param style=DESIGN --dry-run
+motif "a ceramic vase in window light" -m flare --param quality=xhigh --dry-run
 ```
 
-For direct OpenAI generation and editing, the [image SDK](./packages/motif-sdk/README.md#image-layer-howellsmotif-sdkimage) supports GPT Image 2.5 Flare and Sunburst through `@howells/motif-sdk/image`.
+The generate default is `banana` (Nano Banana Pro). Override Models by Tier are listed in [generate and vary](apps/cli/docs/generate.md#override-models) and priced in the [cost reference](apps/cli/docs/costs.md). JSON output always records the Model that ran, as `model`, with `chosenBy` saying why.
 
-CLI:
+## Looks and moods
 
-```bash
-npm install -g @howells/motif-cli
-```
+Creative direction adds house sentences to your prompt. A **look** sets the kind of image and brings its own Model and aspect ratio; a **mood** sets the light.
 
-Or run without installing:
-
-```bash
-npx @howells/motif-cli "your prompt"
-```
-
-For local development:
-
-```bash
-git clone https://github.com/howells/motif.git
-cd motif
-pnpm install
-pnpm build
-pnpm link --global
-```
-
-## What Motif Does
-
-- SDK: `createMotifImage` (`@howells/motif-sdk/image`) is the primary image API — a provider-agnostic generate/edit/best-of-N layer over google, openai, replicate, and fal with per-call cost tracking. The low-level `FalClient` covers fal-native extras (upscaling, background removal, video jobs, fal utility tools, queue polling, CDN upload, and payload cleanup), alongside `buildGenerateBody`, model/tool registries, leaderboard snapshots, sizing helpers, and cost estimates.
-- CLI: text-to-image, reference-image editing, upscaling, background removal, image-to-video, local history and costs, series management, contact sheets, terminal Studio, output paths kept inside the git root, and validated inputs.
-- Agent interfaces: `--format json`, `--format ndjson`, `--fields`, `--dry-run`, stdin JSON, `--describe`, and structured errors.
-- Model coverage: OpenAI, Gemini, FLUX, Recraft, Ideogram, Nano Banana, Seedream, Grok, Qwen, Kling video, and fal utility endpoints.
-
-## Agent Entry Points
-
-- `AGENTS.md` - repo commands, package map, architecture boundaries, and permission rules.
-- `llms.txt` - compact agent-readable index of docs, package surfaces, tests, and source entrypoints.
-- `docs/security.md` - `FAL_KEY`, local history exposure, and `--ephemeral` caveats.
-- `docs/surface/scorecard.md` - current agent-readiness scorecard.
-- `motif --describe --format json` - live CLI schema for commands, models, tools, leaderboards, and errors.
-
-## SDK
-
-Install the Node SDK when you want Motif's fal normalization and metadata inside another app:
-
-```bash
-npm install @howells/motif-sdk
-```
-
-Generate and edit images through the primary, provider-agnostic image API:
-
-```ts
-import { createMotifImage } from "@howells/motif-sdk/image";
-
-const img = createMotifImage({ defaultProvider: "google" });
-const result = await img.generate({
-  prompt: "editorial product photo",
-  aspectRatio: "1:1",
-  tier: "quality",
-});
-```
-
-For fal-native work, the low-level `FalClient` and `buildGenerateBody` expose the fal request path directly:
-
-```ts
-import { FalClient, buildGenerateBody } from "@howells/motif-sdk";
-
-const options = {
-  model: "banana2",
-  prompt: "editorial product photo",
-  resolution: "2K",
-  enableGoogleSearch: true,
-} as const;
-
-const preview = buildGenerateBody(options); // exact fal endpoint + body, no API call
-const fal = new FalClient(process.env.FAL_KEY!);
-const result = await fal.generate(options);
-```
-
-The SDK exports `createMotifImage` (the primary image API) plus `FalClient`, `buildGenerateBody`, model/tool registries, leaderboard snapshots, sizing helpers, cost estimators, `FAL_KEY` parsing, public option/response types, and `neverthrow` `Result` helpers. `FalClient` is the fal-native client: sync and queued generation, upscaling, background removal, Kling video queue jobs, fal CDN upload, utility tools, and fal request payload deletion.
-
-## Models
-
-Motif keeps two model views:
-
-- Runnable fal models in the `MODELS` registry, with normalized CLI arguments where fal exposes matching fields.
-- Ranking snapshots from Artificial Analysis so agents can see the broader market context, including models that do not currently have a verified fal route in Motif.
-
-### Recommended Image Models
-
-| Need | Use | Why | Speed | fal price |
-| --- | --- | --- | --- | --: |
-| Best overall quality | `flare` | GPT Image 2.5 Flare | Fast generation, edits and transparency | 16 | Image size enum | Metered |
-| `sunburst` | GPT Image 2.5 Sunburst | Precise generation and edits | 16 | Image size enum | Metered |
-| `gpt2` | #1 text-to-image on Artificial Analysis | Very slow | ~$0.211/image |
-| Best edits | `gpt` | #2 editing, strong reference fidelity, transparent PNGs | Slow | ~$0.133/image |
-| Best balanced choice | `banana2` | Top-3 quality, top-5 edits, web search, 1K/2K/4K | Varies | $0.08/image |
-| Best budget quality | `seedream4` | Top-6 quality at low fal price | Balanced | $0.03/image |
-| Fast and cheap | `grok-image` | Top-12 quality, top-7 edits, ~5s median | Fast | $0.02/image |
-| Best FLUX | `flux2-max` | Highest-ranked FLUX model | Slow | $0.07/MP |
-| Best controllable FLUX | `flux2-flex` | Guidance/steps controls | Balanced | $0.05/MP |
-| Cheap open FLUX | `flux2-dev` | Open FLUX.2 route, low average cost | Fast/variable | $0.00167 compute-sec |
-
-### Runnable Image Registry
-
-| ID | Model | Best For | Edit Refs | Sizing | Estimate |
-| --- | --- | --- | --: | --- | --: |
-| `gpt2` | GPT Image 2 | Frontier OpenAI generation, edits, transparent PNGs | 4 | Image size enum | ~$0.211 |
-| `gpt` | GPT Image 1.5 | OpenAI edits and transparent PNGs | 4 | GPT fixed sizes | ~$0.133 |
-| `banana2` | Nano Banana 2 | Balanced default, web search, strong edits | 4 | Aspect + 1K/2K/4K | $0.08 |
-| `banana` | Nano Banana Pro | Premium Gemini generation and multi-reference edits | 14 | Aspect + 1K/2K/4K | $0.15, ~$0.30 at 4K |
-| `gemini` | Gemini 2.5 Flash | Fast, low-cost generation and edits | 4 | Aspect | $0.0398 |
-| `gemini3` | Gemini 3 Pro | Higher-quality Gemini generation and edits | 4 | Aspect + 1K/2K/4K | $0.15, ~$0.30 at 4K |
-| `seedream4` | Seedream 4.0 | Low-cost high-ranked generation and edits | 10 | Image size enum | $0.03 |
-| `seedream45` | Seedream 4.5 | Current Seedream generation and edits | 10 | Image size enum | $0.04 |
-| `flux2-max` | FLUX.2 Max | Highest-quality FLUX generation and edits | 10 | Image size enum | $0.07/MP |
-| `flux2-pro` | FLUX.2 Pro | Production FLUX quality at low MP price | 10 | Image size enum | $0.03/MP |
-| `flux2-flex` | FLUX.2 Flex | FLUX with guidance and step controls | 10 | Image size enum | $0.05/MP |
-| `flux2-dev` | FLUX.2 Dev | Open FLUX.2 route with variable compute billing | 10 | Image size enum | $0.00167/sec |
-| `flux` | FLUX Pro Ultra | Photorealistic FLUX output, raw/enhanced prompts | 1 | Aspect | $0.06 |
-| `flux-fast` | FLUX Schnell | Very low-cost rapid drafts | No edit | Image size enum | $0.003 |
-| `recraft` | Recraft V3 | Design and illustration styles | No edit | Image size enum | $0.04 |
-| `ideogram` | Ideogram V3 | Design/text-aware images, MagicPrompt, rendering speed controls | No edit | Image size enum | $0.03 |
-| `grok-image` | Grok Imagine Image | Fast, cheap generation and edits | 4 | Aspect + 1K/2K | $0.02 |
-| `qwen` | Qwen Image | Low-cost open-weight image generation | No edit | Image size enum | $0.02/MP |
-
-Fal pricing is captured from the authenticated fal pricing API on 2026-05-12. Artificial Analysis rank and speed snapshots are also captured in the model registry; run `motif --describe --format json` to inspect `falPricing`, `benchmark`, and `leaderboards`.
-
-Motif validates model-specific options before spending credits where fal constraints are known. For example, `flux2-flex` accepts `jpeg` and `png` output formats, not `webp`; `--dry-run --format json` returns a structured `INVALID_OPTION` instead of submitting a doomed request.
-
-### Artificial Analysis Image Top 20
-
-Text-to-image snapshot, 2026-05-12:
-
-| Rank | Model                       |  Elo | Motif        |
-| ---: | --------------------------- | ---: | ------------ |
-|    1 | GPT Image 2 (high)          | 1337 | `gpt2`       |
-|    2 | GPT Image 1.5 (high)        | 1268 | `gpt`        |
-|    3 | Nano Banana 2               | 1263 | `banana2`    |
-|    4 | Riverflow 2.0               | 1256 | Not routed   |
-|    5 | Nano Banana Pro             | 1220 | `banana`     |
-|    6 | Seedream 4.0                | 1198 | `seedream4`  |
-|    7 | MAI-Image-2                 | 1198 | Not routed   |
-|    8 | FLUX.2 Max                  | 1197 | `flux2-max`  |
-|    9 | Peanut                      | 1187 | Not routed   |
-|   10 | FLUX.2 Pro                  | 1186 | `flux2-pro`  |
-|   11 | Imagen 4 Ultra Preview 0606 | 1184 | Not routed   |
-|   12 | grok-imagine-image          | 1182 | `grok-image` |
-|   13 | FLUX.2 Flex                 | 1182 | `flux2-flex` |
-|   14 | ImagineArt 2.0              | 1181 | Not routed   |
-|   15 | Imagen 4 Ultra              | 1171 | Not routed   |
-|   16 | Imagen 4 Preview 0606       | 1169 | Not routed   |
-|   17 | Seedream 4.5                | 1167 | `seedream45` |
-|   18 | FLUX.2 Dev Turbo            | 1161 | Not routed   |
-|   19 | FLUX.2 Dev                  | 1160 | `flux2-dev`  |
-|   20 | Qwen Image Max 2512         | 1158 | `qwen`       |
-
-Editing snapshot, 2026-05-12:
-
-| Rank | Model                           |  Elo | Motif        |
-| ---: | ------------------------------- | ---: | ------------ |
-|    1 | Riverflow 2.0                   | 1286 | Not routed   |
-|    2 | GPT Image 1.5 (high)            | 1262 | `gpt`        |
-|    3 | GPT Image 2 (high)              | 1249 | `gpt2`       |
-|    4 | Nano Banana Pro                 | 1241 | `banana`     |
-|    5 | Nano Banana 2                   | 1231 | `banana2`    |
-|    6 | HunyuanImage 3.0 Instruct (Fal) | 1222 | Not routed   |
-|    7 | grok-imagine-image              | 1213 | `grok-image` |
-|    8 | grok-imagine-image-pro          | 1212 | Not routed   |
-|    9 | Kling Image 3.0 Omni            | 1207 | Not routed   |
-|   10 | FLUX.2 Max                      | 1206 | `flux2-max`  |
-|   11 | Wan 2.7 Pro                     | 1200 | Not routed   |
-|   12 | Kling Image 3.0                 | 1196 | Not routed   |
-|   13 | Kling Image O1                  | 1193 | Not routed   |
-|   14 | Wan 2.6 Image                   | 1188 | Not routed   |
-|   15 | Riverflow 1                     | 1184 | Not routed   |
-|   16 | Seedream 4.0                    | 1184 | `seedream4`  |
-|   17 | Seedream 4.5                    | 1184 | `seedream45` |
-|   18 | Wan 2.7                         | 1181 | Not routed   |
-|   19 | Nano Banana                     | 1173 | `gemini`     |
-|   20 | Reve V1 (December)              | 1172 | Not routed   |
-
-Built-in utility and video shortcuts:
-
-| ID | Model | Used By | Estimate |
-| --- | --- | --- | --: |
-| `clarity` | Clarity Upscaler | `--up` default | $0.02 |
-| `crystal` | Crystal Upscaler | Optional upscaler in config | $0.02 |
-| `rmbg` | BiRefNet Background Removal | `--rmbg` default | $0.02 |
-| `bria` | Bria RMBG 2.0 | Optional background remover in config | $0.02 |
-| `kling` | Kling v3 Pro image-to-video | `--video` | $0.112/sec without audio, $0.168/sec with audio |
-
-Fal utility tool registry, checked 2026-05-12 against [fal Explore](https://fal.ai/explore), [fal Image Utils](https://fal.ai/image-utils), and fal model API pages:
-
-| ID | Endpoint | Use | Input | Pricing note |
-| --- | --- | --- | --- | --- |
-| `nsfw` | `fal-ai/x-ailab/nsfw` | Moderation | Images | $0.001/image |
-| `topaz-image` | `fal-ai/topaz/upscale/image` | Best image upscale | Image | $0.08+ by output MP |
-| `topaz-video` | `fal-ai/topaz/upscale/video` | Best video upscale | Video | $0.01-$0.08/sec |
-| `bria-rmbg` | `fal-ai/bria/background/remove` | Commercial image background removal | Image | $0.02/image |
-| `birefnet` | `fal-ai/birefnet/v2` | General image background removal | Image | fal compute pricing |
-| `rembg` | `fal-ai/imageutils/rembg` | Generic image background removal | Image | fal compute pricing |
-| `bria-video-rmbg` | `bria/video/background-removal` | Video background removal | Video | $0.14/sec |
-| `lineart` | `fal-ai/image-preprocessors/lineart` | Line art preprocessing | Image | fal compute pricing |
-| `sam-preprocessor` | `fal-ai/image-preprocessors/sam` | SAM preprocessing map | Image | fal compute pricing |
-| `midas-depth` | `fal-ai/imageutils/depth` | MiDaS depth map | Image | fal compute pricing |
-| `midas-preprocessor` | `fal-ai/image-preprocessors/midas` | Depth and normal maps | Image | fal compute pricing |
-| `marigold-depth` | `fal-ai/imageutils/marigold-depth` | Marigold depth map | Image | fal compute pricing |
-| `depth-anything` | `fal-ai/image-preprocessors/depth-anything/v2` | Depth Anything v2 map | Image | fal compute pricing |
-| `sam2-auto` | `fal-ai/sam2/auto-segment` | Automatic image segmentation | Image | fal compute pricing |
-| `sam3-image` | `fal-ai/sam-3/image` | Promptable image segmentation | Image | $0.005/request |
-| `sam3-image-rle` | `fal-ai/sam-3/image-rle` | Promptable image segmentation to RLE | Image | $0.005/request |
-| `sam3-video` | `fal-ai/sam-3/video` | Promptable video segmentation | Video | $0.005/16 frames |
-| `sam3-video-rle` | `fal-ai/sam-3/video-rle` | Promptable video segmentation to RLE | Video | $0.005/16 frames |
-| `sam3-1-video` | `fal-ai/sam-3-1/video` | Multi-object video segmentation | Video | fal frame pricing |
-| `sam3-3d-objects` | `fal-ai/sam-3/3d-objects` | Single-image 3D object reconstruction | Image | $0.02/generation |
-| `sam3-3d-body` | `fal-ai/sam-3/3d-body` | Single-image 3D body reconstruction | Image | $0.015/inference |
-| `sam3-3d-align` | `fal-ai/sam-3/3d-align` | 3D scene alignment | Image | fal scene pricing |
-
-Use `--dry-run` to see the estimated cost for a specific command. Per-megapixel and compute-second models are estimates because the final billed amount depends on output dimensions and runtime.
-
-### Artificial Analysis Video Top 15
-
-Text-to-video snapshot, 2026-05-12:
-
-| Rank | Model                          |  Elo | API pricing |
-| ---: | ------------------------------ | ---: | ----------: |
-|    1 | HappyHorse-1.0                 | 1354 |  $14.40/min |
-|    2 | Dreamina Seedance 2.0 720p     | 1273 |      No API |
-|    3 | Kling 3.0 1080p (Pro)          | 1249 |  $13.44/min |
-|    4 | Kling 3.0 Omni 1080p (Pro)     | 1233 |  $13.44/min |
-|    5 | grok-imagine-video             | 1233 |   $4.20/min |
-|    6 | Vidu Q3 Pro                    | 1225 |   $9.60/min |
-|    7 | Bach-1.0 Preview               | 1224 |   $3.00/min |
-|    8 | Kling 3.0 Omni 720p (Standard) | 1224 |  $10.08/min |
-|    9 | PixVerse V6                    | 1222 |   $5.40/min |
-|   10 | PixVerse V5.6                  | 1221 |   $9.00/min |
-|   11 | Runway Gen-4.5                 | 1220 |      No API |
-|   12 | Veo 3                          | 1218 |  $12.00/min |
-|   13 | Kling 3.0 720p (Standard)      | 1215 |  $10.08/min |
-|   14 | Veo 3.1 Lite                   | 1214 |   $3.00/min |
-|   15 | Kling O1 Pro (January)         | 1209 |  $10.08/min |
-
-Image-to-video snapshot, 2026-05-12:
-
-| Rank | Model                          |  Elo | API pricing |
-| ---: | ------------------------------ | ---: | ----------: |
-|    1 | HappyHorse-1.0                 | 1395 | Coming soon |
-|    2 | Dreamina Seedance 2.0 720p     | 1348 |      No API |
-|    3 | grok-imagine-video             | 1326 |   $4.20/min |
-|    4 | PixVerse V6                    | 1322 |   $5.40/min |
-|    5 | Vidu Q3 Pro                    | 1287 |   $9.60/min |
-|    6 | Kling 2.5 Turbo 1080p          | 1283 |   $4.20/min |
-|    7 | Kling 3.0 1080p (Pro)          | 1280 |  $13.44/min |
-|    8 | PixVerse V5.6                  | 1279 |   $9.00/min |
-|    9 | Kling 3.0 Omni 1080p (Pro)     | 1277 |  $13.44/min |
-|   10 | Kling 2.6 Standard (January)   | 1271 | Coming soon |
-|   11 | PixVerse V5.5                  | 1271 |   $6.40/min |
-|   12 | Veo 3.1 Fast                   | 1268 |   $6.00/min |
-|   13 | Runway Gen-4.5                 | 1263 |      No API |
-|   14 | Kling 3.0 Omni 720p (Standard) | 1263 |  $10.08/min |
-|   15 | Kling 3.0 720p (Standard)      | 1263 |  $10.08/min |
-
-## Common Commands
-
-```bash
-# Generate multiple images
-motif "packaging concepts for a matcha drink" --num 4
-
-# Transparent PNG with a GPT model
-motif "minimal app icon, white fox" --model gpt --square --transparent
-
-# gpt2 transparency runs through OpenAI and needs OPENAI_API_KEY
-motif "minimal app icon, white fox" --model gpt2 --square --transparent
-
-# Reproducible generation
-motif "brutalist gallery interior" --seed 42
-
-# Direct fal sizing / GPT controls
-motif "clean app screenshot, transparent background" --model gpt --background transparent --quality high
-motif "wide installation art, empty gallery" --model gpt2 --image-size 1536x1024
-
-# Model-specific controls
-motif "editorial fashion portrait" --model flux --raw --enhance-prompt --safety 3
-motif "pixel art ramen shop logo" --model recraft --style digital_illustration/pixel_art
-motif "poster for a jazz night" --model ideogram --style DESIGN --rendering-speed QUALITY --expand-prompt
-
-# Use web search context where supported
-motif "current F1 champion as a magazine cover" --model gemini3 --web-search
-motif "compare current product packaging trends" --model banana2 --google-search
-```
-
-## Creative Direction
-
-Creative direction adds house presets to your prompt before the fal request is built. There are two fields: a **look** sets the kind of image, and a **mood** sets the light. Each adds one or two sentences after your prompt, look first, then mood. Set them with `--look <id>` and `--mood <id>`, or as keys in the SDK `creative` option.
-
-These are house looks. They reflect one studio's taste (quiet, material, interiors-led) and aren't neutral presets, so read the sentences in `motif --describe --format json` before relying on one.
-
-A look also comes with a default aspect ratio and model. The order of precedence is: an explicit flag (`-m`, `-a`, or a preset such as `--og`) or stdin value wins; then the look's default; then `defaultModel` and `defaultAspect` in `~/.motif/config.json`. The `drawing` look is experimental: it works, but its text and defaults may change.
-
-Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` and `object`. Pairing one with a mood fails with an `INVALID_OPTION` error. A mood on its own, with no look, is fine. `--no-mood` (or `"mood": null` in stdin JSON) drops any mood, including one pinned on a Series.
-
-Dry runs and successful generations include `warnings`, advice about phrasings image models tend to misread. They check your own prompt only, never the look or mood text, and never stop a generation. `negated-object` flags "no chairs" and the like, because naming an object tends to draw it in, so describe what is there instead. `text-bearing-object` flags a sign, poster, book or similar in a prompt that also asks for no text, because the model will probably letter it anyway.
-
-| Look | What it's for | Aspect | Model |
-| --- | --- | --- | --- |
-| `editorial` | Quiet, materially rich editorial photography | 1:1 | `flux2-pro` |
-| `still-life` | Objects and material samples on a plaster ground | 1:1 | `flux2-pro` |
-| `lived-in` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
-| `architectural` | Whole rooms with one product installed, to show it at scale | 4:5 | `banana` |
-| `homeowner` | Unstyled phone snapshots of real homes | 4:3 | `seedream45` |
-| `drawing` | Line and gouache room drawings of a colour scheme (experimental) | 1:1 | `gpt2` |
-| `plate` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
-| `engraved` | Grey-ink botanical engravings for patterns and backgrounds | 1:1 | `gpt2` |
-| `ephemera` | Aged 1940s printed matter where the lettering matters | 2:3 | `ideogram4` |
-| `canvas` | Loose abstract paintings on linen | 3:4 | `banana` |
-| `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
-| `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
+| Look | What it's for |
+| --- | --- |
+| `editorial` | Quiet, materially rich editorial photography |
+| `still-life` | Objects and material samples on a plaster ground |
+| `lived-in` | Bright, collected rooms that feel lived in |
+| `architectural` | Whole rooms with one product installed, to show it at scale |
+| `homeowner` | Unstyled phone snapshots of real homes |
+| `drawing` | Line and gouache room drawings of a colour scheme (experimental) |
+| `plate` | Flat, edge-to-edge surface photographs for textures and swatches |
+| `engraved` | Grey-ink botanical engravings for patterns and backgrounds |
+| `ephemera` | Aged 1940s printed matter where the lettering matters |
+| `canvas` | Loose abstract paintings on linen |
+| `portrait` | Natural, unposed documentary portraits |
+| `object` | One object in one colour on a clean ground |
 
 | Mood       | Light                                  |
 | ---------- | -------------------------------------- |
@@ -444,295 +107,117 @@ Dry runs and successful generations include `warnings`, advice about phrasings i
 | `nocturne` | Night, one warm low light, deep shadow |
 
 ```bash
-motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
+motif "a green kitchen" --look lived-in --mood overcast --dry-run
+motif relight kitchen.jpg --mood dawn --dry-run
 ```
 
-```ts
-import { FalClient } from "@howells/motif-sdk";
-
-const fal = new FalClient(process.env.FAL_KEY!);
-const result = await fal.generate({
-  model: "flux2-pro",
-  prompt: "a green kitchen",
-  creative: { look: "lived-in", mood: "overcast" },
-});
-```
-
-The SDK only adds the look's sentences to the prompt. To use a look's default model and aspect in your own code, read them with `getLook(id)`. An unknown id fails validation with a structured `INVALID_OPTION` error. Read the current ids from `motif --describe --format json`.
-
-## Post-Processing
-
-```bash
-# Show the most recent generation
-motif --last
-
-# Create variations of the last image
-motif --vary --num 4
-motif "same scene at night" --vary --num 2
-
-# Upscale the last image, or pass a source path
-motif --up --scale 4
-motif image.png --up --scale 2 --output image-upscaled.png
-
-# Remove the background from the last image
-motif --rmbg --output cutout.png
-```
-
-## Contact Sheets
-
-```bash
-# Lay out chosen images, captioned with model, look, mood and cost from history
-motif sheet hero-1.png hero-2.png hero-3.png -o sheet.png
-
-# Or the newest n generations
-motif sheet --last 6 --cols 3 --no-open --format json
-```
-
-Each cell is fitted into a 512 px square on a warm off-white ground. Images with no history entry are captioned with their filename.
-
-## Fal Tools
-
-Seventy-one fal endpoints beyond generation: segmentation, visual question answering, erasers, upscalers, control-map preprocessors, layer and text extraction, vectorisers, PBR material decomposition, relighting, reframing, 3D reconstruction and moderation. Local images and videos are uploaded automatically; remote `https://` URLs pass through.
-
-Seven of them have a command of their own, shown under [What do you want to do?](#what-do-you-want-to-do). The rest run through `motif tool run <id>`. `motif tool list` marks each tool a command wraps with its `verb`.
-
-```bash
-motif tool list --format json                                  # the live registry
-motif tool describe patina --format json                       # one tool: outputs, pricing, queue behaviour
-motif tool run depth-anything room.jpg -o depth.png            # control map for conditioned generation
-motif tool run patina linen.jpg -o pbr/                        # basecolor, normal, roughness, metalness, height
-motif tool run finegrain-eraser shelf.jpg --prompt "the bottle" -o clean.jpg   # $0.27 - shadows go too
-```
-
-`-o` ending in a slash writes every output the tool produced, named by its registry output key. Anything else writes the primary output only.
-
-Shared normalized flags include `--prompt`, `--output-format`, `--scale`, `--model`, `--apply-mask`, `--crop-to-bbox`, `--mask-only`, `--return-multiple-masks`, `--include-scores`, `--include-boxes`, `--max-masks`, `--detection-threshold`, `--operating-resolution`, `--points-per-side`, `--pred-iou-thresh`, `--stability-score-thresh`, `--min-mask-region-area`, `--num-inference-steps`, `--ensemble-size`, `--background-color`, `--codec`, `--preserve-audio`, `--target-fps`, `--h264`, and `--video-output-type`. Provider-specific fields go through `--json '{"field":true}'` or repeatable `--option key=value`. Inputs are validated before any API call where the constraint is known - `marigold-depth --ensemble-size` must be at least `2`.
-
-Two things to know before budgeting. Metered and per-unit endpoints report `estimatedCost: null` with `estimatedCostPerMegapixel` or `estimatedCostPerSecond` beside it - the cost genuinely is not knowable before the call, and `null` is not free. And 29 of the 71 entries are marked `queued`: they outrun the 120-second synchronous window and route through fal's queue, so a run taking minutes is normal.
-
-### Guides
-
-- [Understanding images](docs/tools/understanding-images.md) - segment, ask, detect, OCR, and the segment-then-edit pipeline.
-- [Preprocessors](docs/tools/preprocessors.md) - depth, pose and the edge family: which map for which job.
-- [Repair and restore](docs/tools/repair-and-restore.md) - erase vs fill vs Topaz, and when $0.024 beats $0.27.
-- [Layers, vectors and materials](docs/tools/layers-vectors-materials.md) - what layerize is actually for, generate-then-vectorise, photo-to-PBR.
-- [Pipelines](docs/tools/pipelines.md) - chained one-liners, field masks, and where each command puts its output path.
-
-## Video
-
-`--video` creates an image-to-video clip with Kling v3 Pro. If you do not pass an image path, Motif uses the last generated image.
-
-```bash
-motif image.png --video
-motif image.png --video --video-duration 8 --video-no-audio
-motif image.png --video --video-negative "jitter, warping" --video-cfg-scale 0.7
-```
-
-Video jobs run through the fal.ai queue and can take 30-120 seconds. Use `--dry-run` first for cost estimates.
-
-Motif stores the queue endpoint returned by fal and validates the output path before submitting the video job, so invalid output paths fail before credits are spent. Output paths must stay within the current working directory.
-
-## Presets
-
-| Preset        | Aspect | Resolution | Use                               |
-| ------------- | ------ | ---------- | --------------------------------- |
-| `--cover`     | `2:3`  | `2K`       | Kindle/eBook covers               |
-| `--square`    | `1:1`  | Default    | Icons, avatars, square posts      |
-| `--landscape` | `16:9` | Default    | Desktop and presentation images   |
-| `--portrait`  | `2:3`  | Default    | Portrait images                   |
-| `--story`     | `9:16` | Default    | Stories and vertical social media |
-| `--reel`      | `9:16` | Default    | Reels and vertical video inputs   |
-| `--feed`      | `4:5`  | Default    | Instagram feed portraits          |
-| `--og`        | `16:9` | Default    | Open Graph/social share images    |
-| `--wallpaper` | `9:16` | `2K`       | Phone wallpapers                  |
-| `--wide`      | `21:9` | Default    | Cinematic wide images             |
-| `--ultra`     | `21:9` | `2K`       | Ultra-wide banners                |
-
-Supported aspect ratios: `auto`, `1:1`, `4:3`, `3:4`, `16:9`, `9:16`, `3:2`, `2:3`, `4:5`, `5:4`, `21:9`, `4:1`, `1:4`, `8:1`, `1:8`.
-
-Supported resolutions: `0.5K`, `1K`, `2K`, `4K`. Not every model accepts resolution; unsupported controls are ignored by the model adapter.
-
-## Agent and Script Mode
-
-Motif is designed to be callable by agents and automation.
-
-```bash
-# JSON output
-motif "a cat on a windowsill" --format json
-
-# NDJSON output for history streams
-motif --history --limit 20 --format ndjson
-
-# Return only selected fields
-motif "a logo mark" --format json --fields id,cost,images
-
-# Read command input from stdin JSON
-echo '{"prompt":"a cat","model":"gpt2","aspect":"1:1","numImages":2}' | motif
-
-# Run fal utility tools from stdin JSON
-echo '{"command":"tool","tool":"sam3-image","input":"https://example.com/input.png","prompt":"person","dryRun":true}' | motif --format json
-
-# Inspect the live command schema
-motif --describe
-motif --describe generate --format json
-motif --describe series --format json
-motif --describe tool --format json
-```
-
-When stdout is not a TTY, Motif defaults to structured JSON. Human-readable terminal output is used for interactive sessions.
-
-Each entry in `images` carries `path` (the local file), `width`, `height`, `size`, and `remoteUrl` — the provider-hosted HTTPS URL the image was downloaded from. Reach for `remoteUrl` when something downstream cannot read a local file: design tools, previews, or any service that needs to fetch the image itself. The provider expires these, so treat it as a convenience rather than durable storage.
+These reflect one studio's taste (quiet, material, interiors-led). A look's Model wins over the Tier. `plate`, `engraved`, `ephemera`, `canvas` and `object` carry their own light and refuse a mood. `relight --mood` applies a mood to an existing photo.
 
 ## Series
 
-Series help keep a consistent style, character, location, or visual system across related images. Series data lives under `~/.motif/series`.
+A Series keeps a style prompt, tagged reference images, a pinned look and mood, and its own history, so later images match.
 
 ```bash
-# Plan a cohesive themed set before spending credits
-motif series run "brutalist architecture" --count 6 --dry-run --format json
-
-# Generate the planned set into an auto-created series
-motif series run "brutalist architecture" --count 6
-
-# Create a series with a style prompt and optional starting reference
-motif series create "Luna Book Covers" --from cover-style.png --style "moody watercolor fantasy cover"
-
-# Add tagged references
-motif series ref-add luna-book-covers character.png --tag character --description "Luna, red coat"
-motif series ref-add luna-book-covers forest.png --tag location
-
-# Generate using all refs, or selected tags
-motif series gen luna-book-covers "Luna entering the old forest" --refs character,location
-
-# Inspect and manage
-motif series list
-motif series show luna-book-covers
-motif series history luna-book-covers
-motif series delete luna-book-covers
+motif series run "brutalist architecture" --count 6 --dry-run
+motif series create "Luna Book Covers" --from cover-style.png --style "moody watercolour fantasy cover"
+motif series ref-add luna-book-covers character.png --tag character
+motif series gen luna-book-covers "Luna entering the old forest" --refs character --dry-run
 ```
 
-`series run` creates a shared style plan from the theme and one scene prompt per image. For live runs, Motif stores outputs in a series and reuses the first generated image as a style anchor for later images when the selected model supports references.
+More in [apps/cli/docs/series.md](apps/cli/docs/series.md).
 
-Series commands also support `--format json`, `--format ndjson`, `--fields`, stdin JSON, and `motif --describe series --format json`.
+## Studio
 
-## Options Reference
+`motif studio` opens an interactive terminal app to browse, generate and review images. Agents and scripts should call the commands directly.
 
-```text
-motif [prompt] [options]
+## Scripts and agents
 
-Global:
-  --format <json|human|ndjson>  Output format, auto-detected by default
-  --fields <fields>             Comma-separated output field mask
-  --dry-run                     Validate inputs and estimate cost without API calls
-  --ephemeral                   Save locally, skip Motif history, delete fal IO payloads
-  --describe [command]          Emit command schema as JSON
-  --no-open                     Do not open generated media after saving
+When stdout isn't a terminal, Motif writes JSON. Useful flags everywhere: `--dry-run`, `--format json|ndjson|human`, `--fields`, `--no-open`.
 
-Generation:
-  -m, --model <model>           Generation model ID
-  -e, --edit <file>             Reference image; repeat for more (-e a.png -e b.png)
-  --loose                       Lower input fidelity for GPT reference edits
-  -a, --aspect <ratio>          Aspect ratio
-  -r, --resolution <res>        Resolution: 0.5K, 1K, 2K, 4K
-  -o, --output <file>           Output path within the current working directory
-  -n, --num <count>             Number of images, 1-4
-  --transparent                 Transparent PNG: gpt on fal, gpt2 via OpenAI (OPENAI_API_KEY)
-  --background <mode>           GPT background mode: auto, transparent, opaque
-  --quality <quality>           Image quality: auto, low, medium, high
-  --image-size <size>           Direct fal image_size override, such as auto, square_hd, 1536x1024
-  --sync-mode                   Ask fal to return media as a data URI where supported
-  --mask <url>                  Mask image URL for supported edit/inpainting models
-  --ephemeral                   Local-only generation after download when fal returns a request id
-  --seed <n>                    Reproducible generation seed
-  --output-format <format>      jpeg, png, or webp
-
-Model-specific:
-  --negative <text>             Negative prompt, ideogram
-  --style <style>               Recraft style or ideogram AUTO/GENERAL/REALISTIC/DESIGN
-  --safety <level>              Safety tolerance 1-6, supported by selected Gemini/FLUX models
-  --web-search                  Web search context, banana2/banana/gemini3
-  --google-search               Enable fal enable_google_search alias where supported
-  --limit-generations           Limit model-internal generation rounds where supported
-  --disable-limit-generations   Disable model-internal generation limiting where supported
-  --thinking <level>            Thinking level where supported: minimal, high
-  --safety-checker              Enable fal safety checker where supported
-  --disable-safety-checker      Disable fal safety checker where supported
-  --image-prompt-strength <n>   Reference image strength where supported, 0-1
-  --guidance-scale <n>          CFG guidance, supported by FLUX controllable models
-  --steps <n>                   Inference steps, supported by FLUX controllable models
-  --raw                         Less processed output, flux
-  --enhance-prompt              Prompt enhancement, flux
-  --rendering-speed <speed>     TURBO, BALANCED, or QUALITY, ideogram
-  --expand-prompt               Enable MagicPrompt, ideogram
-  --no-expand-prompt            Disable MagicPrompt, ideogram
-
-History and post-processing:
-  --last                        Show last generation
-  --history                     Show generation history
-  --limit <n>                   History page size
-  --offset <n>                  History offset
-  --vary                        Generate variations of the last image
-  --up                          Upscale an image path or the last image
-  --scale <factor>              Upscale factor: 2, 4, 6, 8
-  --rmbg                        Remove background from the last image
-  tool list                     List fal utility tools
-  tool describe <tool>          Describe one fal utility tool
-  tool <tool> <input>           Run a fal utility tool with normalized flags
-
-Video:
-  --video                       Generate video from an image path or the last image
-  --video-duration <seconds>    Duration, 3-15 seconds
-  --video-no-audio              Disable generated audio
-  --video-negative <text>       Negative prompt for video
-  --video-cfg-scale <n>         Video CFG scale, 0-1
+```bash
+motif "a logo mark" --no-open --fields images,cost
+motif segment "the bowl" shelf.jpg -o segment/ --no-open --fields files
+motif --history --limit 20 --fields model,cost
+motif --describe erase --format json
+echo '{"prompt":"a cat","tier":"fast"}' | motif --dry-run
 ```
+
+`generate` and `vary` put paths in `images[].path`; every other verb puts the primary file at `path` and every file at `files`. A `cost` of `null` means the price depends on what the call returns (tokens, megapixels, seconds). It is not free. Exit codes are semantic: `2` bad input, `3` auth, `4` not found, `5` provider failure. See [output](apps/cli/docs/output.md) and [errors](apps/cli/docs/errors.md).
+
+Guides with worked examples: [understanding images](docs/tools/understanding-images.md), [control maps](docs/tools/preprocessors.md), [repair and restore](docs/tools/repair-and-restore.md), [layers, vectors and materials](docs/tools/layers-vectors-materials.md), [pipelines](docs/tools/pipelines.md).
+
+## SDK
+
+```bash
+npm install @howells/motif-sdk
+```
+
+`createMotif()` returns a client with one function per Task. Each resolves the Model the same way the CLI does and returns a `Result` (from `neverthrow`) rather than throwing.
+
+```ts
+import { createMotif } from "@howells/motif-sdk";
+
+const motif = createMotif(); // reads FAL_KEY
+
+// Resolve the Model, build the request and price it. No key, no network.
+const plan = motif.plan(
+  "erase",
+  {
+    image: "https://example.com/street.jpg",
+    prompt: "the parked car",
+    tier: "quality",
+  },
+  { dryRun: true }
+);
+if (plan.isOk()) console.log(plan.value.model, plan.value.cost);
+
+// Run it.
+const result = await motif.erase({
+  image: "https://example.com/street.jpg",
+  prompt: "the parked car",
+});
+if (result.isOk())
+  console.log(
+    result.value.files[0]?.url,
+    result.value.model,
+    result.value.cost
+  );
+```
+
+`motif.run(task, input)` does the same by Task id. Input takes `image` or `video` as an https or data URL, plus `prompt`, `mask`, `references`, `aspect`, `count`, `seed`, `transparent`, `look`, `mood`, `tier`, `model`, `mode` and `params`. `motif.upload(bytes, contentType)` puts a local file on fal storage and returns its URL.
+
+`TASKS` holds each Task's summary, modes and ranked Models; `resolveTask` is the pure function that chooses one. `createMotif({ pins: { generate: "gpt2" } })` pins a Model per Task. The provider-agnostic image layer (`@howells/motif-sdk/image`) is documented in the [SDK README](packages/motif-sdk/README.md).
 
 ## Configuration
 
-Motif reads configuration in this order:
-
-1. Built-in defaults.
-2. Global config at `~/.motif/config.json`.
-3. Project config at `.motifrc`.
-4. `FAL_KEY` from the environment for the API key, which takes precedence over any `apiKey` saved in config.
-
-Environment values are parsed through `@howells/envy`; an empty `FAL_KEY` is treated as missing so dry runs and config fallback keep working.
-
-Example:
+Motif reads `~/.motif/config.json`, then `.motifrc` in the project. `FAL_KEY` in the environment wins over a saved `apiKey`.
 
 ```json
 {
-  "apiKey": "your-api-key",
-  "defaultModel": "banana",
+  "apiKey": "your-fal-key",
   "defaultAspect": "1:1",
   "defaultResolution": "2K",
   "openAfterGenerate": true,
-  "upscaler": "clarity",
-  "backgroundRemover": "rmbg"
+  "tasks": {
+    "generate": { "model": "flux2-pro" },
+    "upscale": { "model": "topaz-precision" }
+  }
 }
 ```
 
-Generated history is stored in `~/.motif/history.json` and keeps the last 100 generations.
+`tasks.<task>.model` pins a Model for one Task, so a ranking change in a new release doesn't change its results. A config written before Tasks is migrated when read: `defaultModel` becomes `tasks.generate.model`, `upscaler` becomes `tasks.upscale.model` and `backgroundRemover` becomes `tasks.cutout.model` (unless they held the old shipped defaults).
+
+`--transparent` at the quality Tier runs through OpenAI and needs `OPENAI_API_KEY`. History is kept in `~/.motif/history.json` (the last 100 generations). See [security notes](docs/security.md).
 
 ## Development
 
 ```bash
+git clone https://github.com/howells/motif.git
+cd motif
 pnpm install
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm check
+pnpm check    # build, typecheck, lint, test
 ```
 
 ## License
 
 MIT
-
-### GPT Image 2.5 on fal
-
-```bash
-motif "A ceramic vase in window light" --model flare --quality xhigh --dry-run --no-open --format json --fields model,quality,estimatedCost,valid
-motif "Change only the glaze to green" --model sunburst --edit vase.png --quality max --dry-run --no-open --format json --fields model,quality,estimatedCost,valid
-```
-
-Both aliases use `FAL_KEY` and support generation, editing with up to 16 references, masks, and transparent backgrounds. Pricing is token-based: `estimatedCost: null` means metered, not free. Remove `--dry-run` to generate.

@@ -4,53 +4,50 @@ Every error code the CLI can emit, grouped by where it comes from. Part of the [
 
 ## Envelope
 
-In JSON mode, errors are written to stderr as:
+In JSON mode, errors are written to stderr as one object:
 
 ```json
 {
+  "type": "urn:motif:error:removed-command",
+  "title": "Removed Command",
+  "status": 400,
+  "doc_uri": "motif://describe/errors#removed-command",
   "error": true,
-  "code": "UNKNOWN_MODEL",
-  "message": "Unknown model: foo",
+  "code": "REMOVED_COMMAND",
+  "message": "--rmbg was removed. Use motif cutout instead.",
+  "details": { "removed": "--rmbg", "use": "motif cutout" },
   "is_retriable": false,
-  "details": {
-    "available": [
-      "gpt2",
-      "gpt",
-      "banana2",
-      "banana",
-      "gemini",
-      "gemini3",
-      "seedream4",
-      "seedream45",
-      "seedream5",
-      "seedream5-lite",
-      "flux2-max",
-      "flux2-pro",
-      "flux2-flex",
-      "flux2-dev",
-      "flux2-turbo",
-      "flux",
-      "flux-fast",
-      "recraft",
-      "recraft4",
-      "ideogram",
-      "ideogram4",
-      "grok-image",
-      "qwen",
-      "qwen3"
-    ]
-  }
+  "suggestions": ["details.use names the replacement; run that instead"]
 }
 ```
 
 ## Codes
 
-Every code the CLI can emit is listed; the live catalog is available from `motif --describe --format json`.
-
-- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `REMOVED_COMMAND`, `NO_MODEL_AVAILABLE`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`.
-- Tasks: `TASK_FAILED`, from any Task verb, with `details.task` and `details.model`.
+- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`.
+- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`, `REMOVED_COMMAND`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
-`NO_MODEL_AVAILABLE` exits `2` and means no Model can do what the request asks. Its `details` carry `blockedBy`, `unblockedBy` and `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input.
+## Task errors
 
-`MISSING_API_KEY` from `--transparent` on `gpt2` and `TRANSPARENCY_MISSING` are explained with the OpenAI transparency route in [generate input](generate.md#transparency).
+`NO_MODEL_AVAILABLE` exits `2`: no Model can do what the request asks. Its `details` say why and what would fix it.
+
+- `blockedBy` is what ruled the Models out: a capability the request needs (`seed`, `mask`, `transparency`, `references`, `video`, `rig` and the rest), `key` for a missing API key, `mode`, or `unknown-model`.
+- `unblockedBy` lists the fixes that would work: `model` (name one with `-m`), `key` (set it; `missingKey` names the variable), `option` (drop the option) or `input` (supply the input, such as a mask).
+
+```json
+{
+  "code": "NO_MODEL_AVAILABLE",
+  "message": "gpt2 (model) cannot do seed.",
+  "details": {
+    "blockedBy": "seed",
+    "task": "generate",
+    "unblockedBy": ["option"]
+  }
+}
+```
+
+`TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran.
+
+`REMOVED_COMMAND` exits `2`: a flag or command from before Tasks. `details.removed` is what you typed and `details.use` the replacement. The full list is in [tasks](verbs.md#removed-commands).
+
+`MISSING_API_KEY` from `--transparent` at the quality Tier and `TRANSPARENCY_MISSING` are explained with the OpenAI transparency route in [generate and vary](generate.md#transparency).

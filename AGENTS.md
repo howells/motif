@@ -1,13 +1,13 @@
 # Motif
 
-Motif is the public SDK and CLI for fal.ai image, video, editing, and utility endpoints. This repo is public.
+Motif is the public SDK and CLI for image and video work on fal.ai, organised by Task: the caller says what to do and Motif chooses the Model. This repo is public.
 
-`apps/cli/AGENTS.md` is the detailed CLI operating guide - read it before changing CLI behaviour or driving the CLI in anger. `CONTEXT.md` holds the domain language (Series, Series Run, Reference, Theme, Scene Prompt).
+`apps/cli/AGENTS.md` is the detailed CLI operating guide - read it before changing CLI behaviour or driving the CLI in anger. `CONTEXT.md` holds the domain language (Task, Model, Tier, Source, Reference, Series, Look, Mood), and `docs/adr/0001-tasks-replace-models.md` records why the surface is by Task.
 
 ## Packages
 
 - `apps/cli` - `@howells/motif-cli`, the `motif` command and terminal Studio.
-- `packages/motif-sdk` - `@howells/motif-sdk`, the canonical Node SDK and fal request normalisation.
+- `packages/motif-sdk` - `@howells/motif-sdk`, the canonical Node SDK: Task rankings, Model resolution and fal request normalisation.
 
 ## Commands
 
@@ -26,42 +26,53 @@ RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.
 
 ## Using the CLI
 
-Generations cost real money ($0.003 to $0.30 an image; video is 5-10x that). Full flags, models, costs, error codes, and Series workflow are in `apps/cli/AGENTS.md`.
+Generations cost real money ($0.003 to $0.30 an image; video is 5-10x that). Per-Task flags and modes, override Model prices, error codes and the Series workflow are in `apps/cli/AGENTS.md` and `apps/cli/docs/`.
 
 ### What do you want to do?
 
-Pick the command by task. The last column is the same advice `motif --describe tasks` gives.
+One verb per Task. The last column is the same advice `motif --describe tasks` gives.
 
 | Task | Command | Instead, when |
 | --- | --- | --- |
-| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
+| Make an image from a prompt, or change one passed with -e | `motif "prompt"` | Variations of an image you already have (vary), or a consistent set of images (series run). |
 | Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
-| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
-| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
-| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
-| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
-| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
-| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
-| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
-| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
-| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
-| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
-| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
-| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
-| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
-| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
+| Variations of an image | `motif vary [image]` | A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run). |
+| Remove something and fill the gap | `motif erase "what" [image]` | The whole background (cutout), or extending the canvas (reframe). |
+| Remove the background | `motif cutout [image-or-video]` | Taking one object out and filling the gap (erase), or masking a named thing (segment). |
+| Extend to a new aspect ratio | `motif reframe [image] --og` | A new image at a given ratio (generate with a ratio). |
+| Make it larger | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
+| Fix noise, blur, damage or colour | `motif restore [image]` | Making an image larger (upscale). |
+| Relight a photo | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |
+| Redraw in a reference's style | `motif restyle [image] --like <image>` | A house style kept across images (generate with a look). |
+| Mask a named thing | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
+| Caption, count, find or ask | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
+| Split into transparent layers | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |
+| Trace to a clean SVG | `motif vectorize [image]` | Drawing a new image from a prompt (generate). |
+| Depth, edge, normal or pose map | `motif map [image]` | Masks of a named thing (segment), or PBR material maps (material). |
+| PBR maps from a surface photo | `motif material [image]` | A seamless texture without PBR maps (tile), or depth and normals of a scene (map). |
+| A seamlessly tiling texture | `motif tile "prompt" [image]` | PBR maps of a surface (material). |
+| A textured 3D mesh | `motif mesh [image] [--rig]` | A flat image of an object (generate), or depth of a scene (map). |
+| Dress a person in a garment | `motif try-on [image] --garment <image>` | Changing clothes by description (generate with a reference). |
+| Turn an image into a video | `motif animate "prompt" [image]` | A still image (generate), or variations of one (vary). |
+| A captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| A consistent set from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of an image (vary). |
+| A reusable style and references | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| The interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
 
 ```bash
-motif --describe --format json          # live schema: models, presets, enums, error catalogue
-motif --dry-run "a cat" -m gpt --og     # validate and price before spending
-motif "a cat" -m flux-fast --no-open --fields id,path,cost
-echo '{"prompt":"a cat","model":"gpt","preset":"og"}' | motif   # stdin JSON; flags override it
+motif --describe tasks --format json                       # which verb does which job
+motif --describe erase --format json                       # one Task: flags, modes, output fields
+motif "a cat" --og --dry-run                               # choose the Model and price it, no key needed
+motif "a cat" --tier fast --no-open --fields images,cost
+motif erase "the parked car" street.jpg --tier quality --dry-run
+echo '{"prompt":"a cat","tier":"fast","preset":"og"}' | motif --dry-run   # stdin JSON; flags override it
 motif --history --limit 10 --fields id,prompt,model,cost
 motif series run "brutalist architecture" --count 6 --dry-run --format json
 ```
 
-- Always `--dry-run` first, name `--model` explicitly (except with `--look`, which picks its own model, so leave `-m` out unless you mean to override it), always `--no-open` in a pipeline, and always `--fields` to keep output small.
-- Model names are short aliases (`gpt`, `banana`, `gemini3`), never fal endpoint strings. Read live ids from `--describe`; don't hardcode taxonomy option ids.
+- Always `--dry-run` first, always `--no-open` in a pipeline, and always `--fields` to keep output small.
+- Let Motif choose the Model. `--tier fast|balanced|quality` trades cost for quality; `-m <model>` is an override for when a specific Model is needed, and `--param key=value` (Model-only request fields) needs it. Read live ids from `--describe`; don't hardcode Model or taxonomy ids.
+- `--rmbg`, `--up`, `--vary`, `--video`, `enhance` and `tool` are gone and exit `2` with `REMOVED_COMMAND` naming the verb.
 - Output paths must stay inside the git root of the current directory (or the current directory outside a repo); anything else fails with `INVALID_OUTPUT_PATH`. Human output carries ANSI and spinners - parse JSON, never the human format.
 - Exit codes are semantic: `2` bad input, `3` auth, `4` not found, `5` upstream fal failure.
 
@@ -73,13 +84,15 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 
 ## Public surface
 
-- SDK image layer, the primary image API: `@howells/motif-sdk/image` (ESM-only subpath). `createMotifImage(config?)` returns a client with `generate()` (text to image) and `edit()` (multi-image plus optional mask) over four providers - google, openai, replicate, fal - each returning `Result<MotifImageResult, MotifError>` with per-call cost tracking. This is THE documented way to generate and edit images.
-- SDK: `FalClient` for fal-specific extras (upscale, background removal, video, utility tools, queue, upload), plus `buildGenerateBody`, model metadata, and Result-returning methods.
-- Discovery: `README.md`, `llms.txt`, `docs/security.md`, `docs/surface/`.
+- SDK Task client, the documented API: `createMotif(config?)` from `@howells/motif-sdk` returns one function per Task (`generate`, `erase`, `upscale` and the rest), plus `plan(task, input)` to resolve the Model, build the request and price it without I/O, and `run(task, input)`. Every call returns a `Result<TaskOutput, MotifError>` with `model`, `tier`, `chosenBy`, `files` and `cost`.
+- SDK Task data: `TASKS` (summary, notFor, modes and ranked Models with Tiers per Task), `TASK_IDS`, `TIERS`, and `resolveTask`, the pure function that chooses a Model.
+- `FalClient`, `MODELS`, `FAL_TOOLS` and the other model-keyed exports are no longer exported.
+- SDK image layer: `@howells/motif-sdk/image` (ESM-only subpath). `createMotifImage(config?)` carries provider requests (`generate()`, `edit()`) over google, openai, replicate and fal with per-call cost tracking; it doesn't choose Models.
+- Discovery: `README.md`, `llms.txt`, `apps/cli/docs/`, `docs/security.md`, `docs/surface/`.
 
 ## Environment
 
-`FAL_KEY` is the primary public Motif variable, used by `FalClient` and the CLI. The CLI can also read `apiKey` from `~/.motif/config.json`; environment values win.
+`FAL_KEY` is the primary public Motif variable, used by `createMotif` and the CLI. The CLI can also read `apiKey` from `~/.motif/config.json`; environment values win.
 
 `@howells/motif-sdk/image` reads one key per adapter: `GOOGLE_GENERATIVE_AI_API_KEY`, `OPENAI_API_KEY`, `REPLICATE_API_TOKEN`, and `FAL_KEY`. Each is optional per call - only the key for the provider in use is required - and each falls back from `MotifImageConfig` overrides to the env var.
 
