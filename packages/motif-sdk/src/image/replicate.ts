@@ -14,22 +14,6 @@ import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
 import type { ImageProviderAdapter } from "./provider";
-import type { ImageTier } from "./types";
-
-/**
- * Replicate is wired to a single high-quality model for now, so every tier maps
- * to FLUX 1.1 Pro Ultra. (The benchmark found Replicate ~1.45× faster than fal
- * for this model at the same price — see the design doc §10.)
- */
-const REPLICATE_MODEL = "black-forest-labs/flux-1.1-pro-ultra";
-
-/** Tier → Replicate model id (all tiers → FLUX 1.1 Pro Ultra for now). */
-export const REPLICATE_TIER_MODELS: Readonly<Record<ImageTier, string>> = {
-  fast: REPLICATE_MODEL,
-  balanced: REPLICATE_MODEL,
-  quality: REPLICATE_MODEL,
-  hero: REPLICATE_MODEL,
-};
 
 /** Env var read for the Replicate API token when `apiToken` is not in config. */
 export const REPLICATE_API_KEY_ENV = "REPLICATE_API_TOKEN";
@@ -66,7 +50,6 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
 /** The Replicate provider adapter registered in the provider registry. */
 export const replicateAdapter: ImageProviderAdapter = {
   id: "replicate",
-  tierModels: REPLICATE_TIER_MODELS,
   apiKeyEnv: REPLICATE_API_KEY_ENV,
   resolveModel,
   priceUsdByModel: REPLICATE_IMAGE_PRICE_USD,

@@ -143,14 +143,14 @@ const img = createMotifImage({ defaultProvider: "google" });
 
 // text -> image
 const generated = await img.generate({
-  tier: "fast",
+  model: "gemini-3.1-flash-image-preview",
   prompt: "a plain room, bare concrete wall",
   aspectRatio: "1:1",
 });
 
 // multi-image edit (images + instruction, optional mask -> image out)
 const edited = await img.edit({
-  tier: "balanced",
+  model: "gemini-3.1-flash-image-preview",
   images: [roomBytes, tileBytes],
   instruction: "Apply the oak texture from image 2 onto the wall in image 1.",
   mask: surfaceMaskBytes,
@@ -171,13 +171,13 @@ Four providers are implemented, each reading its own API key from the environmen
 | Provider | Env var | Notes |
 | --- | --- | --- |
 | `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | Default provider; Gemini gen + edit |
-| `openai` | `OPENAI_API_KEY` | GPT Image 2.5 Flare (fast/balanced), Sunburst (quality/hero) |
+| `openai` | `OPENAI_API_KEY` | GPT Image 2.5 Flare and Sunburst |
 | `replicate` | `REPLICATE_API_TOKEN` | flux-1.1-pro-ultra |
 | `fal` | `FAL_KEY` | fal-hosted adapter |
 
-`generate()` and `edit()` accept `tier` (`"fast" | "balanced" | "quality" | "hero"`) to resolve a model per provider, or an explicit `model` id. Every result carries a normalized per-call `cost: { usd, source }`.
+`generate()` and `edit()` take a provider model id; Task resolution chooses which model to pass, not the image layer. Every result carries a normalized per-call `cost: { usd, source }`.
 
-For OpenAI, `fast` and `balanced` (the default tier) select `gpt-image-2.5-flare`; `quality` and `hero` select `gpt-image-2.5-sunburst`. This updates the previous OpenAI tier default of `gpt-image-1`; pass that explicit model to retain it. Both new models support generation and multi-image editing:
+Both `gpt-image-2.5-flare` and `gpt-image-2.5-sunburst` support generation and multi-image editing:
 
 ```ts
 const image = createMotifImage({ defaultProvider: "openai" });

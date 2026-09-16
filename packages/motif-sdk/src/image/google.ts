@@ -13,29 +13,9 @@ import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
 import type { ImageProviderAdapter } from "./provider";
-import type { ImageTier } from "./types";
-
-/**
- * Tier → Gemini image model id.
- *
- * Seeded from Material Desk's `RENDER_IMAGE_MODEL_BY_QUALITY` (the driving
- * consumer, see the design doc). `gemini-2.5-flash-image` is the proven-reachable
- * floor; the preview ids may require allowlist/tier access.
- */
-export const GOOGLE_TIER_MODELS: Readonly<Record<ImageTier, string>> = {
-  fast: "gemini-2.5-flash-image",
-  balanced: "gemini-3.1-flash-image-preview",
-  quality: "gemini-3-pro-image-preview",
-  hero: "gemini-3-pro-image-preview",
-};
 
 /** Env var read for the Google API key when `apiKey` is not supplied in config. */
 export const GOOGLE_API_KEY_ENV = "GOOGLE_GENERATIVE_AI_API_KEY";
-
-/** Resolve the Gemini image model id for a tier. */
-export function googleModelForTier(tier: ImageTier): string {
-  return GOOGLE_TIER_MODELS[tier];
-}
 
 /**
  * Static Google-direct USD/image, keyed by model id.
@@ -79,7 +59,6 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
 /** The Google (Gemini) provider adapter registered in the provider registry. */
 export const googleAdapter: ImageProviderAdapter = {
   id: "google",
-  tierModels: GOOGLE_TIER_MODELS,
   apiKeyEnv: GOOGLE_API_KEY_ENV,
   resolveModel,
   priceUsdByModel: GOOGLE_IMAGE_PRICE_USD,

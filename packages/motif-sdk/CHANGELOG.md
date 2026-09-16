@@ -1,5 +1,20 @@
 # @howells/motif-sdk
 
+## Unreleased
+
+Part of "tasks replace models" (ADR 0001, MOT-63). The rest of that change lands across the following releases; this is the engine.
+
+### Major Changes
+
+- `@howells/motif-sdk/image` no longer chooses a model. `tier` and the `ImageTier` type are gone from `generate()` and `edit()`, `model` is required, and `GOOGLE_TIER_MODELS`, `OPENAI_TIER_MODELS`, `REPLICATE_TIER_MODELS` and `FAL_TIER_MODELS` are no longer exported. Task resolution is the one place a Model is chosen.
+
+### Minor Changes
+
+- Add the Task registry, `TASKS`, with `cutout`, `generate`, `upscale` and `vary`. Each Task ranks its Models best-first as data, tagged with a Tier (`fast`, `balanced`, `quality`), and records where the order came from (`rankedFrom`, `rankedAt`, `basis`). Every Task is hand-ranked today.
+- Add `resolveTask(task, request, environment)`, a pure function that chooses the Model: an explicit Model, then a Look's Model, then a Model pinned per Task, then the highest-ranked Model that can do what the request asks for at the Tier. A Model whose provider key is missing is skipped; naming one explicitly fails. The result carries `model`, `tier`, `rankedFrom` and `chosenBy`.
+- Add the `NO_MODEL_AVAILABLE` result for when no Model qualifies, with `blockedBy` (the capability, `key`, or `unknown-model`), `unblockedBy` (`model`, `key`, `option`) and `missingKey`.
+- Add `tierChangesChoice`, `modelProfile`, `TASK_IDS`, `isTaskId`, `TIERS`, `DEFAULT_TIER` and the `TaskId`, `Tier`, `RankedFrom`, `RankedModel`, `TaskDefinition`, `TaskRequest`, `TaskEnvironment`, `TaskResolution`, `Capability`, `Blocker`, `Unblocker` and `ChosenBy` types.
+
 ## 3.0.0
 
 Released alongside `@howells/motif-cli` 2.0.0.

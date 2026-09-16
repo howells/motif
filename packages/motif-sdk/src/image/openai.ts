@@ -11,18 +11,6 @@ import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
 import type { ImageProviderAdapter } from "./provider";
-import type { ImageTier } from "./types";
-
-/**
- * Flare favors speed for everyday generation; Sunburst favors editing precision.
- * Explicit model ids still override tiers, including older GPT Image models.
- */
-export const OPENAI_TIER_MODELS: Readonly<Record<ImageTier, string>> = {
-  fast: "gpt-image-2.5-flare",
-  balanced: "gpt-image-2.5-flare",
-  quality: "gpt-image-2.5-sunburst",
-  hero: "gpt-image-2.5-sunburst",
-};
 
 /** Env var read for the OpenAI API key when `apiKey` is not supplied in config. */
 export const OPENAI_API_KEY_ENV = "OPENAI_API_KEY";
@@ -65,7 +53,6 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
 /** The OpenAI provider adapter registered in the provider registry. */
 export const openaiAdapter: ImageProviderAdapter = {
   id: "openai",
-  tierModels: OPENAI_TIER_MODELS,
   apiKeyEnv: OPENAI_API_KEY_ENV,
   resolveModel,
   priceUsdByModel: OPENAI_IMAGE_PRICE_USD,

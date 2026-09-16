@@ -14,7 +14,7 @@
  * need a specific size. Example:
  *   img.generate({
  *     provider: "fal",
- *     tier: "balanced",
+ *     model: "fal-ai/gpt-image-1.5",
  *     prompt: "...",
  *     providerOptions: { fal: { image_size: "1024x1024" } },
  *   });
@@ -26,35 +26,20 @@ import type { ImageModel } from "ai";
 import { MODELS } from "../models";
 import { MotifError } from "../server";
 import type { ImageProviderAdapter } from "./provider";
-import type { ImageTier } from "./types";
 
 /**
- * fal model ids by tier. `fast` uses FLUX Pro Ultra (fast, cheap); the higher
- * tiers use fal's gpt-image endpoint for its edit quality. Both are proven fal
- * endpoints that also exist in the `../models` registry snapshot.
+ * fal endpoint ids proven to work with this adapter and priced in
+ * {@link FAL_IMAGE_PRICE_USD} below (FLUX Pro Ultra + gpt-image).
  */
 const FAL_FLUX_MODEL = "fal-ai/flux-pro/v1.1-ultra";
 const FAL_GPT_IMAGE_MODEL = "fal-ai/gpt-image-1.5";
-
-/**
- * Tier → fal model id. For fal, explicit `model:` endpoint ids are the primary
- * path (any fal endpoint resolves via passthrough); this tier map is a
- * convenience covering the two most common (FLUX Pro Ultra + gpt-image).
- */
-export const FAL_TIER_MODELS: Readonly<Record<ImageTier, string>> = {
-  fast: FAL_FLUX_MODEL,
-  balanced: FAL_GPT_IMAGE_MODEL,
-  quality: FAL_GPT_IMAGE_MODEL,
-  hero: FAL_GPT_IMAGE_MODEL,
-};
 
 /** Env var read for the fal key when `apiKey` is not supplied in config. */
 export const FAL_API_KEY_ENV = "FAL_KEY";
 
 /**
- * Static fal USD/image, keyed by the fal ENDPOINT id. Explicit `model:` endpoint
- * ids are fal's primary path (the tier map covers only two), so cost tracking
- * must price the endpoints consumers actually pass — kiln uses
+ * Static fal USD/image, keyed by the fal ENDPOINT id. Cost tracking must price
+ * the endpoints consumers actually pass — kiln uses
  * `fal-ai/flux/schnell`, `fal-ai/flux-2-pro`, `fal-ai/flux-2-max`. Every price is
  * sourced from the fal registry snapshot in `../models`
  * (`MODELS[...].pricePerImageUsd`) so this table stays in sync rather than
@@ -119,7 +104,6 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
 /** The fal provider adapter registered in the provider registry. */
 export const falAdapter: ImageProviderAdapter = {
   id: "fal",
-  tierModels: FAL_TIER_MODELS,
   apiKeyEnv: FAL_API_KEY_ENV,
   resolveModel,
   priceUsdByModel: FAL_IMAGE_PRICE_USD,

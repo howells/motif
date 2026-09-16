@@ -14,18 +14,15 @@ import { falAdapter } from "./fal";
 import { googleAdapter } from "./google";
 import { openaiAdapter } from "./openai";
 import { replicateAdapter } from "./replicate";
-import type { ImageProviderId, ImageTier } from "./types";
+import type { ImageProviderId } from "./types";
 
 /**
  * A single image provider. A thin wrapper over the provider's `@ai-sdk/*` image
- * model, plus the metadata the layer needs to route by tier, resolve keys, and
- * meter spend.
+ * model, plus the metadata the layer needs to resolve keys and meter spend.
  */
 export interface ImageProviderAdapter {
   /** Provider id, matching the key it is registered under in {@link PROVIDERS}. */
   readonly id: ImageProviderId;
-  /** Tier → model id map, used when a call does not pass an explicit `model`. */
-  readonly tierModels: Readonly<Record<ImageTier, string>>;
   /** Env var read for the API key when no key is supplied in config. */
   readonly apiKeyEnv: string;
   /**

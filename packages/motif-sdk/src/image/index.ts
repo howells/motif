@@ -11,7 +11,7 @@
  * import { createMotifImage } from "@howells/motif-sdk/image";
  *
  * const img = createMotifImage({ defaultProvider: "google" });
- * const r = await img.generate({ tier: "fast", prompt: "a bare concrete wall" });
+ * const r = await img.generate({ model: "gemini-2.5-flash-image", prompt: "a bare concrete wall" });
  * if (r.isOk()) console.log(r.value.images[0].mediaType, r.value.cost);
  * ```
  */
@@ -32,7 +32,6 @@ import type {
   EditImageOptions,
   GenerateImageOptions,
   ImageProviderId,
-  ImageTier,
   MotifImageClient,
   MotifImageConfig,
   MotifImageFile,
@@ -48,22 +47,20 @@ export type {
   ImageCostSource,
   ImageJudge,
   ImageProviderId,
-  ImageTier,
   MotifImageClient,
   MotifImageConfig,
   MotifImageFile,
   MotifImageResult,
 } from "./types";
-export { GOOGLE_API_KEY_ENV, GOOGLE_TIER_MODELS } from "./google";
-export { OPENAI_API_KEY_ENV, OPENAI_TIER_MODELS } from "./openai";
-export { REPLICATE_API_KEY_ENV, REPLICATE_TIER_MODELS } from "./replicate";
-export { FAL_API_KEY_ENV, FAL_TIER_MODELS } from "./fal";
+export { GOOGLE_API_KEY_ENV } from "./google";
+export { OPENAI_API_KEY_ENV } from "./openai";
+export { REPLICATE_API_KEY_ENV } from "./replicate";
+export { FAL_API_KEY_ENV } from "./fal";
 export { PROVIDERS, getProviderAdapter } from "./provider";
 export type { ImageProviderAdapter } from "./provider";
 export { providerPricePerImageUsd } from "./cost";
 export { costForImages, costFromProviderMetadata } from "./cost";
 
-const DEFAULT_TIER: ImageTier = "balanced";
 const DEFAULT_PROVIDER: ImageProviderId = "google";
 
 /**
@@ -111,7 +108,7 @@ export function createMotifImage(
   ): Promise<Result<MotifImageResult, MotifError>> {
     const provider = resolveProvider(opts.provider);
     try {
-      const modelId = resolveModelId(provider, opts.model, opts.tier);
+      const modelId = opts.model;
       const model = resolveModelFn(provider, modelId, apiKeyFor(provider));
       const result = await generateImageFn({
         model,
@@ -139,7 +136,7 @@ export function createMotifImage(
   ): Promise<Result<MotifImageResult, MotifError>> {
     const provider = resolveProvider(opts.provider);
     try {
-      const modelId = resolveModelId(provider, opts.model, opts.tier);
+      const modelId = opts.model;
       const model = resolveModelFn(provider, modelId, apiKeyFor(provider));
       const result = await generateImageFn({
         model,
@@ -316,19 +313,6 @@ function defaultResolveModel(
   apiKey?: string
 ): ImageModel {
   return getProviderAdapter(provider).resolveModel(modelId, apiKey);
-}
-
-/** Resolve the model id: explicit `model` wins, else the provider's tier map. */
-function resolveModelId(
-  provider: ImageProviderId,
-  model: string | undefined,
-  tier: ImageTier | undefined
-): string {
-  if (model !== undefined && model !== "") {
-    return model;
-  }
-  const resolvedTier = tier ?? DEFAULT_TIER;
-  return getProviderAdapter(provider).tierModels[resolvedTier];
 }
 
 /** Map the AI SDK result → normalized MotifImageResult (with cost + requestId). */

@@ -12,12 +12,6 @@ import type { Result } from "neverthrow";
 import type { MotifError } from "../server";
 
 /**
- * Quality/latency tier. Resolves through a provider-aware tier→model map when no
- * explicit `model` id is given. `balanced` is the default when a tier is omitted.
- */
-export type ImageTier = "fast" | "balanced" | "quality" | "hero";
-
-/**
  * Image provider id. All four Phase 1b adapters are implemented
  * (`google`, `openai`, `replicate`, `fal`); the type keeps an open union tail so
  * further adapters can slot in without a breaking type change.
@@ -74,10 +68,8 @@ export interface MotifImageConfig {
 export interface GenerateImageOptions {
   /** The text prompt. */
   prompt: string;
-  /** Quality/latency tier. Ignored when `model` is set. */
-  tier?: ImageTier;
-  /** Explicit provider model id. Overrides `tier`. */
-  model?: string;
+  /** Provider model id. Task resolution chooses it; the image layer never does. */
+  model: string;
   /** Provider override for this call. */
   provider?: ImageProviderId;
   /**
@@ -135,10 +127,8 @@ export interface EditImageOptions {
    * `images[0]`.
    */
   mask?: Uint8Array | string;
-  /** Quality/latency tier. Ignored when `model` is set. */
-  tier?: ImageTier;
-  /** Explicit provider model id. Overrides `tier`. */
-  model?: string;
+  /** Provider model id. Task resolution chooses it; the image layer never does. */
+  model: string;
   /** Provider override for this call. */
   provider?: ImageProviderId;
   /** Number of images to generate. */

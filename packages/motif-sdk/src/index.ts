@@ -125,6 +125,35 @@ export {
 } from "./model-output";
 export type { LosslessAvailability, ModelOutputShape } from "./model-output";
 
+// ─── Tasks ───────────────────────────────────────────────────────
+export {
+  DEFAULT_TIER,
+  isTaskId,
+  type RankedFrom,
+  type RankedModel,
+  TASK_IDS,
+  TASKS,
+  type TaskDefinition,
+  type TaskId,
+  type Tier,
+  TIERS,
+} from "./tasks";
+export {
+  type Blocker,
+  type Capability,
+  type ChosenBy,
+  modelProfile,
+  NO_MODEL_AVAILABLE,
+  resolveTask,
+  type TaskEnvironment,
+  type TaskRequest,
+  type TaskResolution,
+  type TaskResolved,
+  type TaskUnresolved,
+  tierChangesChoice,
+  type Unblocker,
+} from "./resolve";
+
 // ─── Types ───────────────────────────────────────────────────────
 export type {
   AspectRatio,

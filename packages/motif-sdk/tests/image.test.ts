@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { MotifImageDeps } from "../src/image/deps";
 import { createMotifImage, PROVIDERS } from "../src/image/index";
-import type { ImageProviderId, ImageTier } from "../src/image/index";
+import type { ImageProviderId } from "../src/image/index";
 import { MODELS, MotifError } from "../src/index";
 
 /**
@@ -107,14 +107,16 @@ describe("createMotifImage.generate", () => {
       { resolveModel: () => fakeImageModel() }
     );
 
-    const result = await img.generate({ prompt: "a bare concrete wall" });
+    const result = await img.generate({
+      prompt: "a bare concrete wall",
+      model: "gemini-3.1-flash-image-preview",
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.images[0]?.uint8Array.length).toBeGreaterThan(0);
       expect(result.value.provider).toBe("google");
-      // balanced tier (default) resolves to the flash preview id.
       expect(result.value.model).toBe("gemini-3.1-flash-image-preview");
       expect(result.value.cost.source).toBe("table");
       expect(result.value.cost.usd).toBeGreaterThan(0);
@@ -135,7 +137,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
@@ -143,7 +148,7 @@ describe("createMotifImage.generate", () => {
     }
   });
 
-  it("lets an explicit model override the tier", async () => {
+  it("passes the explicit model straight through to the resolved adapter", async () => {
     const seen: { provider: ImageProviderId; modelId: string }[] = [];
     const img = createMotifImage(
       {},
@@ -157,7 +162,6 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({
       prompt: "x",
-      tier: "fast",
       model: "custom-model-x",
     });
 
@@ -167,33 +171,6 @@ describe("createMotifImage.generate", () => {
     ]);
     if (result.isOk()) {
       expect(result.value.model).toBe("custom-model-x");
-    }
-  });
-
-  it("maps each tier to the documented Gemini model id", async () => {
-    const cases: { tier: ImageTier; modelId: string }[] = [
-      { tier: "fast", modelId: "gemini-2.5-flash-image" },
-      { tier: "balanced", modelId: "gemini-3.1-flash-image-preview" },
-      { tier: "quality", modelId: "gemini-3-pro-image-preview" },
-      { tier: "hero", modelId: "gemini-3-pro-image-preview" },
-    ];
-
-    for (const { tier, modelId } of cases) {
-      const seen: string[] = [];
-      const img = createMotifImage(
-        {},
-        {
-          resolveModel: (_provider, resolvedId) => {
-            seen.push(resolvedId);
-            return fakeImageModel();
-          },
-        }
-      );
-
-      const result = await img.generate({ prompt: "x", tier });
-
-      expect(result.isOk()).toBeTruthy();
-      expect(seen).toStrictEqual([modelId]);
     }
   });
 
@@ -211,7 +188,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x", tier: "fast" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
@@ -226,7 +206,10 @@ describe("createMotifImage.generate", () => {
       { resolveModel: () => fakeImageModel({ throwErr: true }) }
     );
 
-    const result = await img.generate({ prompt: "x", tier: "fast" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
@@ -249,7 +232,10 @@ describe("createMotifImage.generate", () => {
           },
         }
       );
-      const result = await img.generate({ prompt: "x" });
+      const result = await img.generate({
+        prompt: "x",
+        model: "gemini-2.5-flash-image",
+      });
       expect(result.isErr()).toBeTruthy();
       if (result.isErr()) {
         expect(result.error).toBeInstanceOf(MotifError);
@@ -276,7 +262,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "a bare concrete wall" });
+    const result = await img.generate({
+      prompt: "a bare concrete wall",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isOk()).toBeTruthy();
     expect(captured?.prompt).toBe("a bare concrete wall");
@@ -285,9 +274,15 @@ describe("createMotifImage.generate", () => {
   });
 
   it("returns Result.err naming an unknown provider", async () => {
-    const img = createMotifImage({}, { resolveModel: () => fakeImageModel() });
+    // No injected resolveModel: the real adapter registry must run to reject
+    // an unsupported provider id.
+    const img = createMotifImage({});
 
-    const result = await img.generate({ prompt: "x", provider: "not-real" });
+    const result = await img.generate({
+      prompt: "x",
+      provider: "not-real",
+      model: "some-model",
+    });
 
     expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
@@ -313,6 +308,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({
       prompt: "x",
+      model: "gemini-2.5-flash-image",
       n: 3,
       size: "512x512",
       seed: 42,
@@ -342,7 +338,11 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x", aspectRatio: "16:9" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+      aspectRatio: "16:9",
+    });
 
     expect(result.isOk()).toBeTruthy();
     expect(call?.aspectRatio).toBe("16:9");
@@ -369,7 +369,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
@@ -413,7 +416,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
@@ -429,7 +435,10 @@ describe("createMotifImage.generate", () => {
       { resolveModel: () => fakeImageModel() }
     );
 
-    const result = await img.generate({ prompt: "x" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
@@ -445,6 +454,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({
       prompt: "x",
+      model: "gemini-2.5-flash-image",
       providerOptions: { google: { big: 10n } },
     });
 
@@ -463,6 +473,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({
       prompt: "x",
+      model: "gemini-2.5-flash-image",
       providerOptions: { google: { cb: () => 1 } },
     });
 
@@ -484,7 +495,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
@@ -507,7 +521,10 @@ describe("createMotifImage.generate", () => {
       }
     );
 
-    const result = await img.generate({ prompt: "x" });
+    const result = await img.generate({
+      prompt: "x",
+      model: "gemini-2.5-flash-image",
+    });
 
     expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
@@ -532,6 +549,7 @@ describe("createMotifImage.generate", () => {
 
     const result = await img.generate({
       prompt: "x",
+      model: "gemini-2.5-flash-image",
       headers: { "X-Fal-Store-IO": "0" },
     });
 
@@ -560,7 +578,7 @@ describe("createMotifImage.edit", () => {
     );
 
     const result = await img.edit({
-      tier: "balanced",
+      model: "gemini-3.1-flash-image-preview",
       images: [roomBytes, tileBytes],
       instruction:
         "Apply the oak texture from image 2 onto the wall in image 1.",
@@ -586,6 +604,7 @@ describe("createMotifImage.edit", () => {
     );
 
     const result = await img.edit({
+      model: "gemini-2.5-flash-image",
       images: [new Uint8Array([9, 9, 9])],
       instruction: "brighten the wall",
     });
@@ -616,6 +635,7 @@ describe("createMotifImage.edit", () => {
     );
 
     const result = await img.edit({
+      model: "gemini-2.5-flash-image",
       images: [roomBytes, tileBytes],
       instruction: "Apply the oak texture from image 2 onto image 1.",
       mask: maskBytes,
@@ -649,6 +669,7 @@ describe("createMotifImage.edit", () => {
     );
 
     const result = await img.edit({
+      model: "gemini-2.5-flash-image",
       images: [new Uint8Array([9, 9, 9])],
       instruction: "brighten the wall",
     });
@@ -674,6 +695,7 @@ describe("createMotifImage.edit", () => {
     );
 
     const result = await img.edit({
+      model: "gemini-2.5-flash-image",
       images: [new Uint8Array([9, 9, 9])],
       instruction: "brighten the wall",
       headers: { "X-Fal-Store-IO": "0" },
@@ -709,8 +731,8 @@ describe("createMotifImage — fal explicit-model pricing", () => {
 });
 
 /**
- * Phase 1b providers. Each case documents its tier→model map, the balanced-tier
- * default model, its static table price for that model, and the env var its real
+ * Phase 1b providers. Each case documents a representative model id for that
+ * provider, its static table price for that model, and the env var its real
  * adapter reads. All exercised offline via the injected fake `resolveModel`
  * (dispatch/cost) or the real adapter with the env var removed (missing-key).
  */
@@ -718,8 +740,7 @@ interface ProviderCase {
   provider: ImageProviderId;
   apiKeyEnv: string;
   config: Parameters<typeof createMotifImage>[0];
-  tierModels: Record<ImageTier, string>;
-  /** balanced tier (the default) resolves to this model id. */
+  /** A representative model id for this provider. */
   defaultModel: string;
   /** static table USD/image for `defaultModel`. */
   priceUsd: number | undefined;
@@ -730,12 +751,6 @@ const PROVIDER_CASES: ProviderCase[] = [
     provider: "openai",
     apiKeyEnv: "OPENAI_API_KEY",
     config: { openai: { apiKey: "test-key" } },
-    tierModels: {
-      fast: "gpt-image-2.5-flare",
-      balanced: "gpt-image-2.5-flare",
-      quality: "gpt-image-2.5-sunburst",
-      hero: "gpt-image-2.5-sunburst",
-    },
     defaultModel: "gpt-image-2.5-flare",
     priceUsd: undefined,
   },
@@ -743,12 +758,6 @@ const PROVIDER_CASES: ProviderCase[] = [
     provider: "replicate",
     apiKeyEnv: "REPLICATE_API_TOKEN",
     config: { replicate: { apiToken: "test-token" } },
-    tierModels: {
-      fast: "black-forest-labs/flux-1.1-pro-ultra",
-      balanced: "black-forest-labs/flux-1.1-pro-ultra",
-      quality: "black-forest-labs/flux-1.1-pro-ultra",
-      hero: "black-forest-labs/flux-1.1-pro-ultra",
-    },
     defaultModel: "black-forest-labs/flux-1.1-pro-ultra",
     priceUsd: 0.06,
   },
@@ -756,12 +765,6 @@ const PROVIDER_CASES: ProviderCase[] = [
     provider: "fal",
     apiKeyEnv: "FAL_KEY",
     config: { fal: { apiKey: "test-key" } },
-    tierModels: {
-      fast: "fal-ai/flux-pro/v1.1-ultra",
-      balanced: "fal-ai/gpt-image-1.5",
-      quality: "fal-ai/gpt-image-1.5",
-      hero: "fal-ai/gpt-image-1.5",
-    },
     defaultModel: "fal-ai/gpt-image-1.5",
     priceUsd: 0.133,
   },
@@ -769,30 +772,30 @@ const PROVIDER_CASES: ProviderCase[] = [
 
 describe.each(PROVIDER_CASES)(
   "createMotifImage — $provider provider",
-  ({ provider, apiKeyEnv, config, tierModels, defaultModel, priceUsd }) => {
-    it("registers an adapter whose tierModels match the documented map", () => {
+  ({ provider, apiKeyEnv, config, defaultModel, priceUsd }) => {
+    it("registers an adapter for this provider", () => {
       const adapter = PROVIDERS[provider];
       expect(adapter).toBeDefined();
       expect(adapter?.id).toBe(provider);
-      expect(adapter?.tierModels).toStrictEqual(tierModels);
     });
 
-    it("dispatches each tier through the registry to the right model id", async () => {
-      const tiers: ImageTier[] = ["fast", "balanced", "quality", "hero"];
-      for (const tier of tiers) {
-        const seen: { provider: ImageProviderId; modelId: string }[] = [];
-        const img = createMotifImage(config, {
-          resolveModel: (resolvedProvider, modelId) => {
-            seen.push({ provider: resolvedProvider, modelId });
-            return fakeImageModel();
-          },
-        });
+    it("dispatches an explicit model through the registry to the right ImageModel", async () => {
+      const seen: { provider: ImageProviderId; modelId: string }[] = [];
+      const img = createMotifImage(config, {
+        resolveModel: (resolvedProvider, modelId) => {
+          seen.push({ provider: resolvedProvider, modelId });
+          return fakeImageModel();
+        },
+      });
 
-        const result = await img.generate({ prompt: "x", provider, tier });
+      const result = await img.generate({
+        prompt: "x",
+        provider,
+        model: defaultModel,
+      });
 
-        expect(result.isOk()).toBeTruthy();
-        expect(seen).toStrictEqual([{ provider, modelId: tierModels[tier] }]);
-      }
+      expect(result.isOk()).toBeTruthy();
+      expect(seen).toStrictEqual([{ provider, modelId: defaultModel }]);
     });
 
     it("dispatches edit through the registry to the right ImageModel", async () => {
@@ -806,6 +809,7 @@ describe.each(PROVIDER_CASES)(
 
       const result = await img.edit({
         provider,
+        model: defaultModel,
         images: [new Uint8Array([1, 2, 3])],
         instruction: "apply texture",
       });
@@ -823,7 +827,11 @@ describe.each(PROVIDER_CASES)(
         resolveModel: () => fakeImageModel(),
       });
 
-      const result = await img.generate({ prompt: "x", provider });
+      const result = await img.generate({
+        prompt: "x",
+        provider,
+        model: defaultModel,
+      });
 
       expect(result.isOk()).toBeTruthy();
       if (result.isOk()) {
@@ -850,7 +858,7 @@ describe.each(PROVIDER_CASES)(
           }
         );
 
-        const result = await img.generate({ prompt: "x" });
+        const result = await img.generate({ prompt: "x", model: defaultModel });
 
         expect(result.isErr()).toBeTruthy();
         if (result.isErr()) {
@@ -954,6 +962,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({
       prompt: "a bare concrete wall",
+      model: "gemini-3.1-flash-image-preview",
       n: 3,
       judge: (candidates) => {
         expect(candidates).toHaveLength(3);
@@ -968,7 +977,7 @@ describe("createMotifImage.bestOfN", () => {
       expect(value.chosenIndex).toBe(1);
       expect(value.best).toBe(value.candidates[1]);
       expect(value.reason).toBe("second is sharpest");
-      // balanced google default = gemini-3.1-flash-image-preview @ $0.039/image.
+      // gemini-3.1-flash-image-preview @ $0.039/image.
       expect(value.totalCostUsd).toBeCloseTo(0.117, 6);
       // Candidates are distinguishable: distinct trailing bytes per call.
       const trailingBytes = value.candidates.map((candidate) =>
@@ -985,7 +994,11 @@ describe("createMotifImage.bestOfN", () => {
       { resolveModel: () => countingImageModel(state) }
     );
 
-    const result = await img.bestOfN({ prompt: "x", n: 2 });
+    const result = await img.bestOfN({
+      prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
+      n: 2,
+    });
 
     expect(result.isOk()).toBeTruthy();
     if (result.isOk()) {
@@ -1004,6 +1017,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({
       images: [new Uint8Array([1, 2, 3])],
+      model: "gemini-3.1-flash-image-preview",
       instruction: "apply the oak texture",
       mask: new Uint8Array([4, 5, 6]),
       n: 2,
@@ -1028,7 +1042,12 @@ describe("createMotifImage.bestOfN", () => {
       { resolveModel: () => countingImageModel(state) }
     );
 
-    const result = await img.bestOfN({ prompt: "x", n: 3, seed: 100 });
+    const result = await img.bestOfN({
+      prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
+      n: 3,
+      seed: 100,
+    });
 
     expect(result.isOk()).toBeTruthy();
     // Order across the parallel fan-out is not guaranteed; assert the set.
@@ -1046,6 +1065,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({
       prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
       n: 3,
       judge: (candidates) => {
         // One of three candidates failed; the judge sees only the survivors.
@@ -1068,7 +1088,11 @@ describe("createMotifImage.bestOfN", () => {
       { resolveModel: () => fakeImageModel({ throwErr: true }) }
     );
 
-    const result = await img.bestOfN({ prompt: "x", n: 2 });
+    const result = await img.bestOfN({
+      prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
+      n: 2,
+    });
 
     expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
@@ -1085,6 +1109,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({
       prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
       n: 2,
       judge: () => {
         throw new Error("judge blew up");
@@ -1107,6 +1132,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({
       prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
       n: 3,
       judge: () => ({ index: 5 }),
     });
@@ -1125,7 +1151,11 @@ describe("createMotifImage.bestOfN", () => {
       { resolveModel: () => countingImageModel(state) }
     );
 
-    const result = await img.bestOfN({ prompt: "x", n: 0 });
+    const result = await img.bestOfN({
+      prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
+      n: 0,
+    });
 
     expect(result.isErr()).toBeTruthy();
     if (result.isErr()) {
@@ -1145,6 +1175,7 @@ describe("createMotifImage.bestOfN", () => {
 
     const result = await img.bestOfN({
       prompt: "x",
+      model: "gemini-3.1-flash-image-preview",
       n: 3,
       signal: controller.signal,
     });
