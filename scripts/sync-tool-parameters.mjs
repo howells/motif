@@ -22,12 +22,12 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { importSdkSource } from "./sdk-source.mjs";
+
 const ROOT = join(import.meta.dirname, "..");
 const TARGET = join(ROOT, "packages/motif-sdk/src/tool-parameters.generated.ts");
 
-const { FAL_TOOLS, FAL_TOOL_IDS } = await import(
-  join(ROOT, "packages/motif-sdk/dist/index.cjs")
-).then((m) => m.default ?? m);
+const { FAL_TOOLS, FAL_TOOL_IDS } = await importSdkSource("tools.ts");
 
 /** Present on nearly every endpoint and says nothing about what a tool can do. */
 const PLUMBING = new Set(["sync_mode"]);

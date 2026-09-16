@@ -137,6 +137,24 @@ function validateGenerateOptions(
     unsupported(config, "resolution");
   }
   if (
+    options.aspect !== undefined &&
+    config.supportedAspects !== undefined &&
+    !config.supportedAspects.includes(options.aspect)
+  ) {
+    throw new Error(
+      `${config.name} aspect must be one of ${config.supportedAspects.join(", ")}`
+    );
+  }
+  if (
+    options.resolution !== undefined &&
+    config.supportedResolutions !== undefined &&
+    !config.supportedResolutions.includes(options.resolution)
+  ) {
+    throw new Error(
+      `${config.name} resolution must be one of ${config.supportedResolutions.join(", ")}`
+    );
+  }
+  if (
     options.numImages !== undefined &&
     options.numImages !== 1 &&
     !config.supportsNumImages

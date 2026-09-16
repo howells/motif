@@ -23,6 +23,11 @@ export type FalToolPrice =
       extras?: Readonly<Record<string, number>>;
     }
   | { kind: "megapixel"; usd: number }
+  /**
+   * `usd` for every started `megapixels` of each output, at least one step:
+   * Topaz bills $0.08 for any output up to 24MP, not $0.08/24 per megapixel.
+   */
+  | { kind: "megapixel-step"; megapixels: number; usd: number }
   | { kind: "second"; usd: number }
   | { kind: "metered" };
 

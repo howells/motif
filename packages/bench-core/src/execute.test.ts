@@ -3,17 +3,17 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 import { err, MotifError, ok } from "@howells/motif-sdk";
-import type {
-  GenerateOptions,
-  GenerationModelName,
-  MotifResponse,
-  Result,
-} from "@howells/motif-sdk";
+import type { Result } from "@howells/motif-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { AlignmentOk } from "./align-params";
 import type { ExecuteErrorCode, GenerationClient } from "./execute";
 import { executeGeneration } from "./execute";
+import type {
+  GenerateOptions,
+  GenerationModelName,
+  MotifResponse,
+} from "./sdk-internal";
 
 const minimalPngBytes = (width: number, height: number): Buffer => {
   const png = Buffer.alloc(24);
@@ -106,7 +106,7 @@ describe("executeGeneration — success path", () => {
     vi.stubGlobal(
       "fetch",
       fetchResolving(
-        new Response(pngBytes, {
+        new Response(new Uint8Array(pngBytes), {
           headers: { "content-type": "image/png" },
           status: 200,
         })
@@ -134,18 +134,18 @@ describe("executeGeneration — success path", () => {
     });
     expect(
       typeof result.providerMs === "number" && result.providerMs >= 0
-    ).toBe(true);
+    ).toBeTruthy();
     expect(
       typeof result.downloadMs === "number" && result.downloadMs >= 0
-    ).toBe(true);
+    ).toBeTruthy();
     expect(result.totalMs).toBeGreaterThanOrEqual(0);
 
     const written = await readFile(imagePath);
-    expect(written.equals(pngBytes)).toBe(true);
+    expect(written.equals(pngBytes)).toBeTruthy();
 
     // Temp-write-then-rename: no leftover .tmp-* artifact after success.
     const entries = await readdir(workDir);
-    expect(entries).toEqual(["sample.png"]);
+    expect(entries).toStrictEqual(["sample.png"]);
   });
 
   it("leaves width/height null when the downloaded bytes are not a recognized format", async () => {
@@ -207,7 +207,7 @@ describe("executeGeneration — closed error vocabulary", () => {
       expect(result).toMatchObject({ errorCode: expectedCode, ok: false });
       // The closed-vocabulary result type has no message/text field at all —
       // structurally impossible for provider text to leak through.
-      expect(Object.keys(result).sort()).toEqual(
+      expect(Object.keys(result).sort()).toStrictEqual(
         ["downloadMs", "errorCode", "ok", "providerMs", "totalMs"].sort()
       );
     }

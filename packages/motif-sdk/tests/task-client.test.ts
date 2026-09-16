@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  createMotif,
-  FAL_TOOLS,
-  measuredToolCost,
-  MODELS,
-  NO_MODEL_AVAILABLE,
-  TASK_IDS,
-} from "../src/index";
+import { createMotif, NO_MODEL_AVAILABLE, TASK_IDS } from "../src/index";
 import type {
   FalFetch,
   MotifClient,
@@ -15,6 +8,9 @@ import type {
   TaskId,
   TaskInput,
 } from "../src/index";
+import { MODELS } from "../src/models";
+import { measuredToolCost } from "../src/tool-cost";
+import { FAL_TOOLS } from "../src/tools";
 
 interface RecordedCall {
   body: unknown;
@@ -673,7 +669,7 @@ describe("createMotif plan", () => {
       num_images: 1,
       prompt: "a red chair",
     });
-    expect(plan.cost.usd).toBeNull();
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.048 });
   });
 
   it("generates on Recraft V4.1 with an image_size", () => {
@@ -1107,7 +1103,7 @@ describe("createMotif run", () => {
     ]);
     expect(output.files).toStrictEqual([{ key: "image", url: restored }]);
     expect(output.requestId).toBe("req-q");
-    expect(output.cost).toStrictEqual({ basis: "measured", usd: 0.02 });
+    expect(output.cost).toStrictEqual({ basis: "measured", usd: 0.48 });
   }, 10_000);
 
   it("puts the rigged mesh first when a mesh run rigs", async () => {

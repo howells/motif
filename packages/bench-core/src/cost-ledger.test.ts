@@ -1,4 +1,3 @@
-import type { GenerationModelName } from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,16 +8,17 @@ import {
   MissingPricingError,
   usdToMicros,
 } from "./cost-ledger";
+import type { GenerationModelName } from "./sdk-internal";
 
-describe("usdToMicros", () => {
+describe(usdToMicros, () => {
   it("converts USD to integer micros", () => {
     expect(usdToMicros(1)).toBe(1_000_000);
     expect(usdToMicros(0.003)).toBe(3000);
-    expect(Number.isInteger(usdToMicros(0.211))).toBe(true);
+    expect(Number.isInteger(usdToMicros(0.211))).toBeTruthy();
   });
 });
 
-describe("estimateWorstCaseMicros", () => {
+describe(estimateWorstCaseMicros, () => {
   it("sums per-model cost × samplesPerModel in integer micros", () => {
     // flux-fast ($0.003) + grok-image ($0.02) — BRIEF.md's cheapest smoke pair.
     const totalMicros = estimateWorstCaseMicros({
@@ -26,7 +26,7 @@ describe("estimateWorstCaseMicros", () => {
       samplesPerModel: 1,
     });
     expect(totalMicros).toBe(usdToMicros(0.003) + usdToMicros(0.02));
-    expect(Number.isInteger(totalMicros)).toBe(true);
+    expect(Number.isInteger(totalMicros)).toBeTruthy();
   });
 
   it("scales linearly with samplesPerModel", () => {
@@ -52,7 +52,7 @@ describe("estimateWorstCaseMicros", () => {
   });
 });
 
-describe("assertWithinCostCap", () => {
+describe(assertWithinCostCap, () => {
   it("returns the worst-case total when under the cap", () => {
     const worstCaseMicros = assertWithinCostCap(
       { models: ["flux-fast"], samplesPerModel: 1 },
@@ -68,7 +68,7 @@ describe("assertWithinCostCap", () => {
   });
 });
 
-describe("CostLedger", () => {
+describe(CostLedger, () => {
   it("reserves within the cap and reports the committed total", () => {
     const ledger = new CostLedger(1);
     ledger.reserve("a", usdToMicros(0.3));

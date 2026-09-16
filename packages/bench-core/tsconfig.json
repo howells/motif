@@ -1,5 +1,5 @@
 {
-  "extends": "@howells/typescript-config/bundler-no-dom-library-monorepo",
+  "extends": "@howells/typescript-config/bundler-dom-library-monorepo",
   "compilerOptions": {
     "noEmit": true,
     "types": ["node"]

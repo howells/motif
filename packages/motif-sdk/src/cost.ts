@@ -1,15 +1,28 @@
 import { MODELS } from "./models";
 import type { Resolution } from "./types";
 
-/** Estimate cost based on model and settings */
+/**
+ * Estimate cost based on model and settings. `editImages` is the number of
+ * input images on an edit, for Models whose edits cost more than generation.
+ */
 export function estimateCost(
   model: string,
   resolution?: Resolution,
-  numImages = 1
+  numImages = 1,
+  editImages = 0
 ): number | null {
   const configuredPrice = MODELS[model]?.pricePerImageUsd;
   if (configuredPrice === null) {
     return null;
+  }
+  if (model === "mai-image-2.5-pro" && editImages > 0) {
+    // fal quotes ~$0.18-$0.27 per output image with one input; project the top.
+    return 0.27 * numImages;
+  }
+  if (model === "grok-image-2" && editImages > 0) {
+    // fal adds $0.01 per input image to a Grok Imagine Image 2.0 edit.
+    const perImage = resolution === "2K" || resolution === "4K" ? 0.08 : 0.06;
+    return perImage * numImages + 0.01 * editImages;
   }
   if (configuredPrice !== undefined) {
     if ((model === "banana" || model === "gemini3") && resolution === "4K") {

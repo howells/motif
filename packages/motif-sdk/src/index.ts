@@ -146,6 +146,7 @@ export {
   type Capability,
   type ChosenBy,
   modelProfile,
+  type ModelProfile,
   NO_MODEL_AVAILABLE,
   resolveTask,
   type TaskEnvironment,

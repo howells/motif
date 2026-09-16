@@ -4,7 +4,8 @@ import { describe, expect, it } from "vitest";
 import type { MotifImageDeps } from "../src/image/deps";
 import { createMotifImage, PROVIDERS } from "../src/image/index";
 import type { ImageProviderId } from "../src/image/index";
-import { MODELS, MotifError } from "../src/index";
+import { MotifError } from "../src/index";
+import { MODELS } from "../src/models";
 
 /**
  * A minimal stand-in for the AI SDK's `APICallError`: an `Error` subclass that

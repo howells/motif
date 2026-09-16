@@ -1,5 +1,3 @@
-import type { GenerationModelName } from "@howells/motif-sdk";
-
 // `MissingPricingError` is the single "we cannot compute a safe cost" failure
 // for the whole package — `routes.ts` is the only module that knows about
 // `falPricing`, so it owns the error, and this module (which never reads
@@ -8,6 +6,7 @@ import type { GenerationModelName } from "@howells/motif-sdk";
 // (`BRIEF.md` rule 9), so a request naming an unpriced model is a hard
 // failure, not a silently-skipped model.
 import { routeFor } from "./routes";
+import type { GenerationModelName } from "./sdk-internal";
 
 export { MissingPricingError } from "./routes";
 

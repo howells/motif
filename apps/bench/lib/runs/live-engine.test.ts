@@ -7,7 +7,8 @@
  * exercises its full flow stubs both `FalClient.prototype.uploadToFalCdn`
  * and `globalThis.fetch` — no live fal call is ever made.
  */
-import { err, FalClient, MotifError, ok } from "@howells/motif-sdk";
+import { err, MotifError, ok } from "@howells/motif-sdk";
+import { FalClient } from "@motif/bench-core/sdk-internal";
 import sharp from "sharp";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -46,7 +47,7 @@ const tinyPng = async (width: number, height: number): Promise<Buffer> =>
     .png()
     .toBuffer();
 
-describe("timeoutMsForAlias", () => {
+describe(timeoutMsForAlias, () => {
   it("computes p95Seconds × 1.5 for a model with published speed data", () => {
     // grok-image: benchmark.speed.p95Seconds = 6.5 (packages/motif-sdk/src/models.ts)
     expect(timeoutMsForAlias("grok-image")).toBe(Math.round(6.5 * 1.5 * 1000));
@@ -61,7 +62,7 @@ describe("timeoutMsForAlias", () => {
   });
 });
 
-describe("createFalGenerationClient", () => {
+describe(createFalGenerationClient, () => {
   it("cannot be constructed without an API key", () => {
     expect(() =>
       createFalGenerationClient({ apiKey: "", timeoutMs: 1000 })
@@ -85,7 +86,7 @@ const LIVE_ENV: NodeJS.ProcessEnv = {
   FAL_KEY: "fal_test_key",
 };
 
-describe("createLiveEngine", () => {
+describe(createLiveEngine, () => {
   const originalFalKey = process.env.FAL_KEY;
 
   afterEach(() => {
@@ -107,7 +108,7 @@ describe("createLiveEngine", () => {
 
   it("constructs successfully, flagged isMock: false, given a complete env", () => {
     const engine = createLiveEngine(LIVE_ENV);
-    expect(engine.isMock).toBe(false);
+    expect(engine.isMock).toBeFalsy();
     expect(engine.judgeModelLabel).toBe(FAL_JUDGE_MODEL_ID);
   });
 });
@@ -121,15 +122,15 @@ describe("bufferFromFilePartData — the base64/data-URI rule, narrowing side", 
   it("converts a Uint8Array to a Buffer", () => {
     const data = new Uint8Array([1, 2, 3]);
     const result = bufferFromFilePartData(data);
-    expect(Buffer.isBuffer(result)).toBe(true);
-    expect([...result]).toEqual([1, 2, 3]);
+    expect(Buffer.isBuffer(result)).toBeTruthy();
+    expect([...result]).toStrictEqual([1, 2, 3]);
   });
 
   it("converts an ArrayBuffer to a Buffer", () => {
     const data = new Uint8Array([4, 5, 6]).buffer;
     const result = bufferFromFilePartData(data);
-    expect(Buffer.isBuffer(result)).toBe(true);
-    expect([...result]).toEqual([4, 5, 6]);
+    expect(Buffer.isBuffer(result)).toBeTruthy();
+    expect([...result]).toStrictEqual([4, 5, 6]);
   });
 
   it("refuses a string — the last line of defense against a base64/data URI reaching fal", () => {
@@ -145,7 +146,7 @@ describe("buildFalVisionRequestBody — the verified fal any-llm/vision contract
       "judge this room image",
       "https://fal.media/files/panda/judge-sample.png"
     );
-    expect(body).toEqual({
+    expect(body).toStrictEqual({
       image_url: "https://fal.media/files/panda/judge-sample.png",
       model: FAL_JUDGE_MODEL_ID,
       prompt: "judge this room image",
@@ -163,7 +164,7 @@ describe("buildFalVisionRequestBody — the verified fal any-llm/vision contract
   });
 });
 
-describe("parseFalVisionOutput", () => {
+describe(parseFalVisionOutput, () => {
   it("returns the output string on a clean success response", () => {
     expect(parseFalVisionOutput({ output: "Elephant" })).toBe("Elephant");
   });
@@ -233,9 +234,9 @@ describe("normalizeJudgeImageForUpload — the uniform-payload fix", () => {
 
   it("operates on Buffers, never a base64 string or a data: URI", async () => {
     const png = await tinyPng(10, 10);
-    expect(Buffer.isBuffer(png)).toBe(true);
+    expect(Buffer.isBuffer(png)).toBeTruthy();
     const { bytes } = await normalizeJudgeImageForUpload(png);
-    expect(Buffer.isBuffer(bytes)).toBe(true);
+    expect(Buffer.isBuffer(bytes)).toBeTruthy();
   });
 });
 
@@ -272,7 +273,7 @@ describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
 
     expect(output).toBe("Elephant");
 
-    expect(uploadSpy).toHaveBeenCalledTimes(1);
+    expect(uploadSpy).toHaveBeenCalledOnce();
     const [uploadedBytes, uploadOptions] = uploadSpy.mock.calls[0] ?? [];
     if (!Buffer.isBuffer(uploadedBytes)) {
       throw new TypeError("expected the upload call to carry a Buffer");
@@ -284,7 +285,7 @@ describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
     const metadata = await sharp(uploadedBytes).metadata();
     expect(metadata.format).toBe("jpeg");
 
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledOnce();
     const [url, requestInit] = fetchSpy.mock.calls[0] ?? [];
     if (typeof url !== "string") {
       throw new TypeError("expected the vision judge call to use a string URL");
@@ -314,7 +315,7 @@ describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
 const PAIR_URL_A = "https://fal.media/files/panda/a.png";
 const PAIR_URL_B = "https://fal.media/files/panda/b.png";
 
-describe("buildFalVisionPairRequestBody", () => {
+describe(buildFalVisionPairRequestBody, () => {
   it("carries both CDN URLs in image_urls (plural), A first", () => {
     const body = buildFalVisionPairRequestBody(
       "compare these",
@@ -364,7 +365,7 @@ describe("buildFalPairJudgeModelClient — full flow, network stubbed", () => {
     // The pair client never re-uploads: the driver uploads each sample once
     // and reuses the URL across every comparison it appears in.
     expect(uploadSpy).not.toHaveBeenCalled();
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledOnce();
 
     const [url, requestInit] = fetchSpy.mock.calls[0] ?? [];
     expect(url).toBe("https://fal.run/fal-ai/any-llm/vision");

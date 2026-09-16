@@ -3,14 +3,14 @@ import {
   aspectToGptSize,
   buildGenerateBody,
   MODELS,
-} from "@howells/motif-sdk";
+} from "./sdk-internal";
 import type {
   GenerateOptions,
   GenerationModelName,
   ImageOutputFormat,
   ModelConfig,
   SizeMode,
-} from "@howells/motif-sdk";
+} from "./sdk-internal";
 
 /**
  * Canonical, model-agnostic description of what we asked for. One of these is

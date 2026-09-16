@@ -1,4 +1,3 @@
-import { GENERATION_MODELS, MODELS } from "@howells/motif-sdk";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,6 +6,7 @@ import {
   MissingPricingError,
   routeFor,
 } from "./routes";
+import { GENERATION_MODELS, MODELS } from "./sdk-internal";
 
 describe("routes", () => {
   it("excludes metered models from budgeted routes and rejects explicit selection", () => {
@@ -40,12 +40,12 @@ describe("routes", () => {
     );
   });
 
-  it("full sweep of 24 models × 1 sample costs ≈ $1.369 (verified sum)", () => {
+  it("full sweep of 28 models × 1 sample costs ≈ $1.714 (verified sum)", () => {
     const totalUsd = BENCH_ROUTES.reduce(
       (sum, route) => sum + route.pricing.estimatedCostUsd,
       0
     );
-    expect(totalUsd).toBeCloseTo(1.369, 3);
+    expect(totalUsd).toBeCloseTo(1.714, 3);
   });
 
   it("carries observedAt/sourceUrl provenance derived from falPricing, never invented", () => {
@@ -57,11 +57,11 @@ describe("routes", () => {
     }
   });
 
-  it("flags 13 of 24 models with no benchmark.speed.p95Seconds — the timeout floor is the common path", () => {
+  it("flags 17 of 28 models with no benchmark.speed.p95Seconds — the timeout floor is the common path", () => {
     const missing = BENCH_ROUTES.filter(
       (route) => route.speedP95Seconds === null
     );
-    expect(missing).toHaveLength(13);
+    expect(missing).toHaveLength(17);
   });
 
   it("flags gpt2 as the only queue-polled model", () => {

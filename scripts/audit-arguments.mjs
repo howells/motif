@@ -29,10 +29,10 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { importSdkSource } from "./sdk-source.mjs";
+
 const ROOT = join(import.meta.dirname, "..");
-const { FAL_TOOLS, FAL_TOOL_IDS } = await import(
-  join(ROOT, "packages/motif-sdk/dist/index.cjs")
-).then((m) => m.default ?? m);
+const { FAL_TOOLS, FAL_TOOL_IDS } = await importSdkSource("tools.ts");
 
 /** Flags the CLI maps to request options, read from the source rather than guessed. */
 function surfacedByCli() {

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { FalClient } from "../src/index";
+import { FalClient } from "../src/server";
 
 function jsonResponse(data: unknown): Response {
   return new Response(JSON.stringify(data), {

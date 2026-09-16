@@ -1,5 +1,5 @@
-import { GENERATION_MODELS, MODELS } from "@howells/motif-sdk";
-import type { GenerationModelName } from "@howells/motif-sdk";
+import { GENERATION_MODELS, MODELS } from "./sdk-internal";
+import type { GenerationModelName } from "./sdk-internal";
 
 /**
  * `BenchmarkPricing`-shaped cost provenance for one model, derived entirely

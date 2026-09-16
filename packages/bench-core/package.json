@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./execute": "./src/execute.ts",
     "./judge": "./src/judge.ts",
-    "./rank-judge": "./src/rank-judge.ts"
+    "./rank-judge": "./src/rank-judge.ts",
+    "./sdk-internal": "./src/sdk-internal.ts"
   },
   "scripts": {
     "lint": "howells-check src",

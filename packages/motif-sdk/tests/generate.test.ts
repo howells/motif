@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  buildFalToolRequest,
-  buildGenerateBody,
-  estimateCost,
-  ImageSizeBoundsError,
-} from "../src/index";
+import { estimateCost } from "../src/cost";
+import { buildGenerateBody } from "../src/generate";
+import { ImageSizeBoundsError } from "../src/index";
+import { buildFalToolRequest } from "../src/tools";
 
 describe(buildGenerateBody, () => {
   it.each(["flare", "sunburst"])(

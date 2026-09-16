@@ -18,7 +18,6 @@
 import { mkdir, readFile, rename, rm } from "node:fs/promises";
 import path from "node:path";
 
-import { FalClient } from "@howells/motif-sdk";
 import { routeFor } from "@motif/bench-core";
 import type { GenerationClient } from "@motif/bench-core/execute";
 import { executeGeneration } from "@motif/bench-core/execute";
@@ -29,6 +28,7 @@ import type {
 import { judgeSample } from "@motif/bench-core/judge";
 import type { PairJudgeModelClient } from "@motif/bench-core/rank-judge";
 import { judgePair } from "@motif/bench-core/rank-judge";
+import { FalClient } from "@motif/bench-core/sdk-internal";
 import { getLiveCredentials } from "@motif/bench-env/runtime";
 import sharp from "sharp";
 

@@ -52,6 +52,23 @@ function totalMegapixels(outputs: readonly OutputDimensions[]): number | null {
   return measured === 0 ? null : pixels / 1_000_000;
 }
 
+/** USD for outputs billed per started step of megapixels. Null if none carry dimensions. */
+function steppedPrice(
+  price: Extract<FalToolPrice, { kind: "megapixel-step" }>,
+  outputs: readonly OutputDimensions[]
+): number | null {
+  let usd = 0;
+  let measured = 0;
+  for (const output of outputs) {
+    if (output.width !== undefined && output.height !== undefined) {
+      const megapixels = (output.width * output.height) / 1_000_000;
+      usd += price.usd * Math.max(1, Math.ceil(megapixels / price.megapixels));
+      measured += 1;
+    }
+  }
+  return measured === 0 ? null : usd;
+}
+
 /** A call price, per image where it says so, plus every extra the body switches on. */
 function callPrice(
   price: Extract<FalToolPrice, { kind: "call" }>,
@@ -92,6 +109,10 @@ export function projectedToolCost(
       ? UNKNOWN
       : { basis: "projected", usd: price.usd * megapixels };
   }
+  if (price.kind === "megapixel-step") {
+    const usd = steppedPrice(price, outputs);
+    return usd === null ? UNKNOWN : { basis: "projected", usd };
+  }
   return UNKNOWN;
 }
 
@@ -115,6 +136,10 @@ export function measuredToolCost(
     return megapixels === null
       ? UNKNOWN
       : { basis: "measured", usd: price.usd * megapixels };
+  }
+  if (price.kind === "megapixel-step") {
+    const usd = steppedPrice(price, outputs);
+    return usd === null ? UNKNOWN : { basis: "measured", usd };
   }
   return UNKNOWN;
 }

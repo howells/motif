@@ -114,13 +114,17 @@ export type TaskResolution = TaskResolved | TaskUnresolved;
 
 const FAL_KEY = "FAL_KEY";
 
-interface ModelProfile {
+export interface ModelProfile {
   readonly capabilities: ReadonlySet<Capability>;
   /** Capabilities reachable only when this key variable is set. */
   readonly keyedCapabilities: ReadonlyMap<Capability, string>;
   /** Key variables the Model needs for any request. */
   readonly keys: readonly string[];
   readonly maxReferences: number;
+  /** Aspect ratios the Model accepts. Absent means any. */
+  readonly aspects?: readonly string[];
+  /** Resolutions the Model accepts. Absent means any. */
+  readonly resolutions?: readonly string[];
 }
 
 function generationProfile(config: ModelConfig): ModelProfile {
@@ -156,10 +160,12 @@ function generationProfile(config: ModelConfig): ModelProfile {
     capabilities.add("outputFormat");
   }
   return {
+    aspects: config.supportedAspects,
     capabilities,
     keyedCapabilities: keyed,
     keys: [FAL_KEY],
     maxReferences: config.supportsEdit ? (config.maxReferenceImages ?? 1) : 0,
+    resolutions: config.supportedResolutions,
   };
 }
 
@@ -268,6 +274,33 @@ function requirements(request: TaskRequest): Capability[] {
   return needed;
 }
 
+/** Whether the request's value for a capability is one the Model takes. */
+function withinLimits(
+  profile: ModelProfile,
+  capability: Capability,
+  request: TaskRequest
+): boolean {
+  if (capability === "references") {
+    return (request.references ?? 0) <= profile.maxReferences;
+  }
+  if (capability === "aspect") {
+    return accepts(profile.aspects, request.aspect);
+  }
+  if (capability === "resolution") {
+    return accepts(profile.resolutions, request.resolution);
+  }
+  return true;
+}
+
+function accepts(
+  allowed: readonly string[] | undefined,
+  value: string | undefined
+): boolean {
+  return (
+    allowed === undefined || value === undefined || allowed.includes(value)
+  );
+}
+
 type Check =
   | { readonly ok: true }
   | {
@@ -297,11 +330,8 @@ function check(
   }
   for (const capability of needed) {
     if (profile.capabilities.has(capability)) {
-      if (
-        capability === "references" &&
-        (request.references ?? 0) > profile.maxReferences
-      ) {
-        return { blockedBy: "references", ok: false };
+      if (!withinLimits(profile, capability, request)) {
+        return { blockedBy: capability, ok: false };
       }
       continue;
     }

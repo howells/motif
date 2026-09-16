@@ -1,5 +1,4 @@
-import { GENERATION_MODELS } from "@howells/motif-sdk";
-import type { GenerationModelName } from "@howells/motif-sdk";
+import { TASKS } from "@howells/motif-sdk";
 import { createStep } from "@mastra/core/workflows";
 /**
  * `planRun`: turns a `BenchRunSpec` into the array of `(model, sample)` work
@@ -27,25 +26,26 @@ import {
   usdToMicros,
 } from "@motif/bench-core";
 import type { BenchSpec } from "@motif/bench-core";
+import type { GenerationModelName } from "@motif/bench-core/sdk-internal";
 import { z } from "zod";
 
 import { perModelTimeoutMs } from "./constants";
 import { BenchRunSpecSchema, ModelWorkItemSchema } from "./schemas";
 import type { ModelWorkItem } from "./schemas";
 
-const KNOWN_MODEL_NAMES: readonly string[] = GENERATION_MODELS;
+const KNOWN_MODEL_NAMES: ReadonlySet<string> = new Set(
+  TASKS.generate.models.map((entry) => entry.model)
+);
 
 /** Narrows a `spec.models` entry to `GenerationModelName` via a runtime
- * membership check against `GENERATION_MODELS` — never an unchecked `as`
+ * membership check against `TASKS.generate.models` — never an unchecked `as`
  * cast. An unrecognized alias fails the whole run before any provider work,
  * the same posture as the cost-cap check below. */
 function assertGenerationModelName(
   value: string
 ): asserts value is GenerationModelName {
-  if (!KNOWN_MODEL_NAMES.includes(value)) {
-    throw new Error(
-      `Unknown model alias "${value}" — not in GENERATION_MODELS`
-    );
+  if (!KNOWN_MODEL_NAMES.has(value)) {
+    throw new Error(`Unknown model alias "${value}" — not a generate model`);
   }
 }
 

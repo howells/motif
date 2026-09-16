@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { FalClient, MotifError } from "../src/index";
+import { FalClient, MotifError } from "../src/server";
 
 describe("FalClient builder-error contract", () => {
   const motif = new FalClient({ apiKey: "test-key" });

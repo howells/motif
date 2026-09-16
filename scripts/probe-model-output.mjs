@@ -23,14 +23,14 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { importSdkSource } from "./sdk-source.mjs";
+
 const ROOT = join(import.meta.dirname, "..");
 const CLI = join(ROOT, "apps/cli/dist/index.js");
 const WORK = join(ROOT, ".probe");
 const TARGET = join(ROOT, "packages/motif-sdk/src/model-output.generated.ts");
 
-const { GENERATION_MODELS, MODELS } = await import(
-  join(ROOT, "packages/motif-sdk/dist/index.cjs")
-).then((m) => m.default ?? m);
+const { GENERATION_MODELS, MODELS } = await importSdkSource("models.ts");
 
 const args = process.argv.slice(2);
 const confirmed = args.includes("--confirm");

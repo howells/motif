@@ -2,19 +2,19 @@
 // standalone verifier. Keeps the same four checks the standalone script
 // performs, but drives the actual `alignParams` export (not a hand-mirrored
 // copy) against the real built SDK — no network, no fal calls.
+import { ASPECT_RATIOS } from "@howells/motif-sdk";
+import { describe, expect, it } from "vitest";
+
+import { alignParams, outputFormatReach } from "./align-params";
+import type { BenchSpec } from "./align-params";
 import {
-  ASPECT_RATIOS,
   aspectToFalImageSize,
   aspectToGptSize,
   buildGenerateBody,
   GENERATION_MODELS,
   MODELS,
-} from "@howells/motif-sdk";
-import type { GenerateOptions } from "@howells/motif-sdk";
-import { describe, expect, it } from "vitest";
-
-import { alignParams, outputFormatReach } from "./align-params";
-import type { BenchSpec } from "./align-params";
+} from "./sdk-internal";
+import type { GenerateOptions } from "./sdk-internal";
 
 const BASE_PROMPT = "a sunlit mid-century living room, wide angle";
 

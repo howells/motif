@@ -3,14 +3,11 @@ import { mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { MotifError } from "@howells/motif-sdk";
-import type {
-  GenerateOptions,
-  MotifResponse,
-  Result,
-} from "@howells/motif-sdk";
+import type { Result } from "@howells/motif-sdk";
 
 import type { AlignmentOk } from "./align-params";
 import { sniffImageDimensions } from "./image-dimensions";
+import type { GenerateOptions, MotifResponse } from "./sdk-internal";
 
 /**
  * Closed error vocabulary (`BRIEF.md` rule 2) — provider text (fal's error

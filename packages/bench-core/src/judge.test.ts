@@ -2,7 +2,6 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { GENERATION_MODELS } from "@howells/motif-sdk";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type {
@@ -17,6 +16,7 @@ import {
   ROOM_RUBRIC_WEIGHTS,
   weightedGeometricMeanWithSlopGate,
 } from "./judge";
+import { GENERATION_MODELS } from "./sdk-internal";
 
 const allLevels = (
   level: RoomJudgeLevels[keyof RoomJudgeLevels]
@@ -29,7 +29,7 @@ const allLevels = (
   spatialPlausibility: level,
 });
 
-describe("weightedGeometricMeanWithSlopGate", () => {
+describe(weightedGeometricMeanWithSlopGate, () => {
   it("returns 4 when every criterion is editorial", () => {
     expect(
       weightedGeometricMeanWithSlopGate(
@@ -80,7 +80,7 @@ describe("weightedGeometricMeanWithSlopGate", () => {
   });
 });
 
-describe("qualityLevelForScore", () => {
+describe(qualityLevelForScore, () => {
   it("buckets around the midpoints between the four scale values (0, 1, 3, 4)", () => {
     expect(qualityLevelForScore(0)).toBe("slop");
     expect(qualityLevelForScore(0.49)).toBe("slop");
@@ -93,7 +93,7 @@ describe("qualityLevelForScore", () => {
   });
 });
 
-describe("parseJudgeVerdictText", () => {
+describe(parseJudgeVerdictText, () => {
   it("parses a clean JSON object", () => {
     const verdict = parseJudgeVerdictText(
       JSON.stringify({
@@ -106,7 +106,7 @@ describe("parseJudgeVerdictText", () => {
         spatialPlausibility: "editorial",
       })
     );
-    expect(verdict).toEqual({
+    expect(verdict).toStrictEqual({
       critique: "Clean render.",
       levels: {
         artifacts: "editorial",
@@ -147,7 +147,7 @@ describe("parseJudgeVerdictText", () => {
         spatialPlausibility: "totally failed",
       })
     );
-    expect(verdict?.levels).toEqual({
+    expect(verdict?.levels).toStrictEqual({
       artifacts: "editorial",
       lightingCoherence: "competent",
       materialFidelity: "stock",
@@ -197,7 +197,7 @@ const wellFormedVerdictText = JSON.stringify({
   spatialPlausibility: "competent",
 });
 
-describe("judgeSample", () => {
+describe(judgeSample, () => {
   let tempDir: string;
   let imagePath: string;
 
@@ -242,8 +242,8 @@ describe("judgeSample", () => {
     }
     expect(call.imagePart.type).toBe("file");
     // The base64 rule: raw bytes, not a base64-encoded string, not a data URI.
-    expect(Buffer.isBuffer(call.imagePart.data)).toBe(true);
-    expect(typeof call.imagePart.data).not.toBe("string");
+    expect(Buffer.isBuffer(call.imagePart.data)).toBeTruthy();
+    expect(call.imagePart.data).not.toBeTypeOf("string");
   });
 
   it("never reveals which generation model produced the image — no alias appears in the prompt handed to the client", async () => {
@@ -288,7 +288,7 @@ describe("judgeSample", () => {
       prompt: "irrelevant",
     });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       errorCode: "IMAGE_READ_FAILED",
       status: "inconclusive",
     });
@@ -304,7 +304,7 @@ describe("judgeSample", () => {
 
     const result = await judgeSample(client, { imagePath, prompt: "a room" });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       errorCode: "JUDGE_UNAVAILABLE",
       status: "inconclusive",
     });
@@ -322,7 +322,7 @@ describe("judgeSample", () => {
 
     const result = await judgeSample(client, { imagePath, prompt: "a room" });
 
-    expect(result).toEqual({ errorCode: "TIMEOUT", status: "inconclusive" });
+    expect(result).toStrictEqual({ errorCode: "TIMEOUT", status: "inconclusive" });
   });
 
   it("is inconclusive with INVALID_VERDICT when the client's text has no JSON object at all", async () => {
@@ -333,7 +333,7 @@ describe("judgeSample", () => {
 
     const result = await judgeSample(client, { imagePath, prompt: "a room" });
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       errorCode: "INVALID_VERDICT",
       status: "inconclusive",
     });

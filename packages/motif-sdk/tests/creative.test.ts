@@ -5,11 +5,11 @@ import {
   CREATIVE_FIELDS,
   CREATIVE_TAXONOMY,
   enrichPrompt,
-  GENERATION_MODELS,
   getLook,
   LOOKS,
   validateCreativeDirection,
 } from "../src/index";
+import { GENERATION_MODELS } from "../src/models";
 
 const LIVED_IN_CLAUSE =
   "Interior photograph shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, slightly imperfect and lived-in rather than showroom-perfect, photographic realism. No text, no logos, no people";

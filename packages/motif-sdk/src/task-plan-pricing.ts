@@ -70,7 +70,17 @@ export function generationCost(
   if (rate !== undefined && pixels !== undefined) {
     return projected((rate * pixels * count) / 1_000_000);
   }
-  return projected(estimateCost(model, resolutionOf(body.resolution), count));
+  return projected(
+    estimateCost(model, resolutionOf(body.resolution), count, editImages(body))
+  );
+}
+
+/** Input images an edit body carries, under either field a Model uses. */
+function editImages(body: Record<string, unknown>): number {
+  if (Array.isArray(body.image_urls)) {
+    return body.image_urls.length;
+  }
+  return typeof body.image_url === "string" ? 1 : 0;
 }
 
 /** Body keys each TaskInput field sets, so `params` can't replace them. */

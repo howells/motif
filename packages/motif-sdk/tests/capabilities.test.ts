@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  buildGenerateBody,
-  MODELS,
   modelsSupporting,
   supportedOptions,
   UnsupportedOptionError,
-} from "../src/index";
+} from "../src/capabilities";
+import { buildGenerateBody } from "../src/generate";
+import { MODELS } from "../src/models";
 
 function refusal(run: () => unknown): UnsupportedOptionError {
   try {

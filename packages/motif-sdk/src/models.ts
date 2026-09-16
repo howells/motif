@@ -251,6 +251,21 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.15,
     pricing: "$0.15",
     sizeMode: "aspect_ratio",
+    // From fal's enums on fal-ai/nano-banana-pro and /edit.
+    supportedAspects: [
+      "auto",
+      "21:9",
+      "16:9",
+      "3:2",
+      "4:3",
+      "5:4",
+      "1:1",
+      "4:5",
+      "3:4",
+      "2:3",
+      "9:16",
+    ],
+    supportedResolutions: ["1K", "2K", "4K"],
     supportsAspect: true,
     supportsEdit: true,
     supportsGoogleSearch: true,
@@ -288,6 +303,19 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.0398,
     pricing: "$0.04",
     sizeMode: "aspect_ratio",
+    // From fal's enums on fal-ai/gemini-25-flash-image; only /edit takes auto.
+    supportedAspects: [
+      "21:9",
+      "16:9",
+      "3:2",
+      "4:3",
+      "5:4",
+      "1:1",
+      "4:5",
+      "3:4",
+      "2:3",
+      "9:16",
+    ],
     supportsAspect: true,
     supportsEdit: true,
     supportsNumImages: true,
@@ -323,6 +351,21 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.15,
     pricing: "$0.15",
     sizeMode: "aspect_ratio",
+    // From fal's enums on fal-ai/gemini-3-pro-image-preview and /edit.
+    supportedAspects: [
+      "auto",
+      "21:9",
+      "16:9",
+      "3:2",
+      "4:3",
+      "5:4",
+      "1:1",
+      "4:5",
+      "3:4",
+      "2:3",
+      "9:16",
+    ],
+    supportedResolutions: ["1K", "2K", "4K"],
     supportsAspect: true,
     supportsEdit: true,
     supportsNumImages: true,
@@ -821,6 +864,8 @@ export const MODELS: Record<string, ModelConfig> = {
     // fal's schema takes aspect_ratio from a fixed set and has no width/height or resolution
     // parameter, so aspect is supported and resolution is not.
     sizeMode: "aspect_ratio",
+    // From fal's enums on fal-ai/reve/text-to-image.
+    supportedAspects: ["16:9", "9:16", "3:2", "2:3", "4:3", "3:4", "1:1"],
     supportsAspect: true,
     supportsEdit: true,
     supportsNumImages: true,
@@ -960,6 +1005,9 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.02,
     pricing: "$0.02",
     sizeMode: "aspect_ratio",
+    // From fal's enums on xai/grok-imagine-image; only /edit takes auto.
+    supportedAspects: ["16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16"],
+    supportedResolutions: ["1K", "2K"],
     supportsAspect: true,
     supportsEdit: true,
     supportsNumImages: true,
@@ -1074,6 +1122,17 @@ export const MODELS: Record<string, ModelConfig> = {
     pricing: "~$0.17 (edit ~$0.18-$0.27)",
     // fal's schema takes aspect_ratio from auto, 1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3.
     sizeMode: "aspect_ratio",
+    // From fal's enums on microsoft/mai-image-2.5-pro and /edit.
+    supportedAspects: [
+      "auto",
+      "1:1",
+      "4:3",
+      "3:4",
+      "16:9",
+      "9:16",
+      "3:2",
+      "2:3",
+    ],
     supportsAspect: true,
     supportsEdit: true,
     supportsNumImages: true,
@@ -1093,9 +1152,10 @@ export const MODELS: Record<string, ModelConfig> = {
     endpoint: "google/nano-banana-2-lite",
     name: "Nano Banana 2 Lite",
     // fal lists no edit endpoint for it; `/edit` answers a schema but is unlisted and unpriced.
+    // Projected: a 1K image is 1,290 output tokens at $37.50/M, about $0.048.
     pricing:
-      "Token-based: text $0.3125/M input, $1.875/M output; image $0.3125/M input, $37.50/M output; fixed 1K output",
-    pricePerImageUsd: null,
+      "Token-based: text $0.3125/M input, $1.875/M output; image $0.3125/M input, $37.50/M output; fixed 1K output (~$0.048)",
+    pricePerImageUsd: 0.048,
     sizeMode: "aspect_ratio",
     supportsAspect: true,
     supportsEdit: false,
@@ -1125,6 +1185,18 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.06,
     pricing: "$0.03 TURBO / $0.06 BALANCED / $0.09 QUALITY",
     sizeMode: "aspect_ratio",
+    // From fal's enums on fal-ai/ideogram/v3/generate-transparent.
+    supportedAspects: [
+      "16:9",
+      "9:16",
+      "3:2",
+      "2:3",
+      "4:3",
+      "3:4",
+      "5:4",
+      "4:5",
+      "1:1",
+    ],
     supportsAspect: true,
     supportsEdit: false,
     supportsExpandPrompt: true,
@@ -1180,6 +1252,9 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.06,
     pricing: "$0.06 (1K) / $0.08 (2K) at medium quality",
     sizeMode: "aspect_ratio",
+    // From fal's enums on xai/grok-imagine-image/v2.0; only /edit takes auto.
+    supportedAspects: ["16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16"],
+    supportedResolutions: ["1K", "2K"],
     supportsAspect: true,
     supportsEdit: true,
     supportsNumImages: true,

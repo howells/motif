@@ -113,7 +113,13 @@ function projectedOutputs(
   }
   const count = typeof body.num_images === "number" ? body.num_images : 1;
   const size = outputSize(parameters, input, body.image_size);
-  return size === undefined ? [] : Array.from({ length: count }, () => size);
+  if (size === undefined) {
+    return [];
+  }
+  // Topaz's transparent upscale always returns 4x the source's width and height.
+  const scale = model === "topaz-transparent" ? 4 : 1;
+  const output = { height: size.height * scale, width: size.width * scale };
+  return Array.from({ length: count }, () => output);
 }
 
 function outputSize(

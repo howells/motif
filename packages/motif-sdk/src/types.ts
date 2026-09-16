@@ -135,6 +135,13 @@ export interface ModelConfig {
   /** How this model accepts dimensions (default: "aspect_ratio") */
   sizeMode?: SizeMode;
   supportsAspect: boolean;
+  /**
+   * The aspect ratios fal's `aspect_ratio` enum accepts, where it is narrower
+   * than `ASPECT_RATIOS`. Absent means every ratio is accepted.
+   */
+  supportedAspects?: readonly AspectRatio[];
+  /** The resolutions fal's `resolution` enum accepts, where it is narrower than `RESOLUTIONS`. */
+  supportedResolutions?: readonly Resolution[];
   supportsBackground?: boolean;
   supportsEdit: boolean;
   supportsEnhancePrompt?: boolean;
