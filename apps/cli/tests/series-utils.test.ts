@@ -54,7 +54,7 @@ describe("slugify", () => {
 
   it("caps the slug length at 64 characters", () => {
     const slug = series.slugify("a".repeat(120));
-    expect(slug.length).toBe(64);
+    expect(slug).toHaveLength(64);
   });
 });
 
@@ -63,28 +63,27 @@ describe("createSeries", () => {
     const config = await series.createSeries({ name: "My Series" });
 
     expect(config.slug).toBe("my-series");
-    expect(config.model).toBe("banana");
+    expect(config).not.toHaveProperty("model");
     expect(config.defaultAspect).toBe("1:1");
     expect(config.defaultResolution).toBe("2K");
-    expect(config.refs).toEqual([]);
-    expect(config.outputs).toEqual([]);
+    expect(config.refs).toStrictEqual([]);
+    expect(config.outputs).toStrictEqual([]);
 
     const dir = join(series.SERIES_DIR, "my-series");
-    expect(existsSync(join(dir, "series.json"))).toBe(true);
-    expect(existsSync(join(dir, "refs"))).toBe(true);
-    expect(existsSync(join(dir, "outputs"))).toBe(true);
+    expect(existsSync(join(dir, "series.json"))).toBeTruthy();
+    expect(existsSync(join(dir, "refs"))).toBeTruthy();
+    expect(existsSync(join(dir, "outputs"))).toBeTruthy();
   });
 
-  it("honors supplied model, aspect, resolution, and style prompt", async () => {
+  it("honors supplied aspect, resolution, and style prompt", async () => {
     const config = await series.createSeries({
       defaultAspect: "3:2",
       defaultResolution: "4K",
-      model: "gpt",
       name: "Custom",
       stylePrompt: "watercolor, soft pastels",
     });
 
-    expect(config.model).toBe("gpt");
+    expect(config).not.toHaveProperty("model");
     expect(config.defaultAspect).toBe("3:2");
     expect(config.defaultResolution).toBe("4K");
     expect(config.stylePrompt).toBe("watercolor, soft pastels");
@@ -103,7 +102,7 @@ describe("createSeries", () => {
     expect(ref?.filename).toBe("style-cover.png");
     expect(
       existsSync(join(series.seriesRefsDir("cover"), "style-cover.png"))
-    ).toBe(true);
+    ).toBeTruthy();
   });
 
   it("throws when the series already exists", async () => {
@@ -177,7 +176,7 @@ describe("addRef / removeRef / resolveRefs", () => {
     expect(resolved[0]).toBe(
       join(series.seriesRefsDir("refs"), "character-luna.png")
     );
-    expect(existsSync(resolved[0] ?? "")).toBe(true);
+    expect(existsSync(resolved[0] ?? "")).toBeTruthy();
   });
 
   it("filters resolveRefs by tag and removes references", async () => {
@@ -194,10 +193,10 @@ describe("addRef / removeRef / resolveRefs", () => {
 
     await series.removeRef("tagged", "character-a.png");
     const after = await series.loadSeries("tagged");
-    expect(after.refs.map((r) => r.filename)).toEqual(["location-b.png"]);
+    expect(after.refs.map((r) => r.filename)).toStrictEqual(["location-b.png"]);
     expect(
       existsSync(join(series.seriesRefsDir("tagged"), "character-a.png"))
-    ).toBe(false);
+    ).toBeFalsy();
   });
 
   it("throws when removing a reference that does not exist", async () => {
@@ -251,7 +250,7 @@ describe("path traversal guards", () => {
     // Nothing escaped the refs directory.
     const refsDir = series.seriesRefsDir("guarded");
     expect(readdirSync(refsDir)).toHaveLength(0);
-    expect(existsSync(join(series.SERIES_DIR, "escape"))).toBe(false);
+    expect(existsSync(join(series.SERIES_DIR, "escape"))).toBeFalsy();
   });
 
   it("rejects removing a ref whose filename escapes the refs directory", async () => {
@@ -275,6 +274,6 @@ describe("path traversal guards", () => {
       /escapes series refs directory/
     );
     // The guard threw before unlink — the outside file is untouched.
-    expect(existsSync(sentinel)).toBe(true);
+    expect(existsSync(sentinel)).toBeTruthy();
   });
 });

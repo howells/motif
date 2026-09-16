@@ -55,12 +55,10 @@ afterEach(() => {
 const config: MotifConfig = {
   // Placeholder: fal is mocked, but generateImage checks a key is configured.
   apiKey: "test-key",
-  backgroundRemover: "rmbg",
   defaultAspect: "1:1",
-  defaultModel: "banana",
   defaultResolution: "2K",
   openAfterGenerate: true,
-  upscaler: "clarity",
+  tasks: { generate: { model: "banana" } },
 };
 
 describe("generateImage save flow", () => {

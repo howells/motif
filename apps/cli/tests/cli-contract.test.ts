@@ -392,8 +392,6 @@ describe("CLI contract", () => {
         "Studio Campaign",
         "--style",
         "editorial product language",
-        "--model",
-        "banana",
         "--format",
         "json",
       ],
@@ -434,8 +432,8 @@ describe("CLI contract", () => {
           mood: "window",
         },
       },
-      // Series keeps its own model rather than the look's flux2-pro default.
-      model: "banana",
+      // A Series has no model of its own, so the look's flux2-pro runs.
+      model: "flux2-pro",
       scenePrompt: "hero watch on steel table",
     });
     expect(payload.prompt).toBe(
@@ -464,14 +462,14 @@ describe("CLI contract", () => {
     );
     expect(created.code).toBe(0);
     const series = parseJsonLine(created.stdout);
-    // No -m or -a, so the look's flux2-pro and 3:2 become the series defaults.
+    // No -a, so the look's 3:2 becomes the series default.
     expect(series).toMatchObject({
       command: "series-create",
       defaultAspect: "3:2",
       look: "lived-in",
-      model: "flux2-pro",
       mood: "overcast",
     });
+    expect(series).not.toHaveProperty("model");
     const slug = String(series.slug);
 
     const shown = await runMotif(
@@ -600,15 +598,13 @@ describe("CLI contract", () => {
     });
   });
 
-  it("keeps explicit model and aspect when a series pins a look", async () => {
+  it("keeps an explicit aspect when a series pins a look", async () => {
     const result = await runMotif([
       "series",
       "create",
       "Fight Night",
       "--look",
       "ephemera",
-      "-m",
-      "banana",
       "-a",
       "1:1",
       "--format",
@@ -619,7 +615,6 @@ describe("CLI contract", () => {
     expect(parseJsonLine(result.stdout)).toMatchObject({
       defaultAspect: "1:1",
       look: "ephemera",
-      model: "banana",
       mood: null,
     });
   });

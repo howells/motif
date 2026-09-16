@@ -10,7 +10,6 @@ import {
   ASPECT_RATIOS,
   formatCost,
   GENERATION_MODELS,
-  MODELS,
   RESOLUTIONS,
   sanitizePrompt,
 } from "@howells/motif-sdk";
@@ -61,14 +60,7 @@ async function showLastGeneration(emitOpts: EmitOptions): Promise<void> {
   }
 
   if (isStructured(emitOpts.format)) {
-    emit(
-      {
-        command: "last",
-        ...last,
-        modelName: MODELS[last.model]?.name ?? last.model,
-      },
-      emitOpts
-    );
+    emit({ command: "last", ...last }, emitOpts);
     return;
   }
 
@@ -76,9 +68,7 @@ async function showLastGeneration(emitOpts: EmitOptions): Promise<void> {
   console.log(
     `  Prompt: ${chalk.cyan(last.prompt.slice(0, 60))}${last.prompt.length > 60 ? "..." : ""}`
   );
-  console.log(
-    `  Model:  ${chalk.green(MODELS[last.model]?.name ?? last.model)}`
-  );
+  console.log(`  Model:  ${chalk.green(last.model)}`);
   console.log(`  Aspect: ${last.aspect} | Resolution: ${last.resolution}`);
   console.log(`  Output: ${chalk.dim(last.output)}`);
   console.log(`  Cost:   ${chalk.yellow(formatCost(last.cost))}`);

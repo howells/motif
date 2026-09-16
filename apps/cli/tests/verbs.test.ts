@@ -31,12 +31,10 @@ vi.mock(import("../src/api/fal"), () => ({
 }));
 
 const TEST_CONFIG: MotifConfig = {
-  backgroundRemover: "rmbg",
   defaultAspect: "1:1",
-  defaultModel: "banana",
   defaultResolution: "2K",
   openAfterGenerate: false,
-  upscaler: "clarity",
+  tasks: { generate: { model: "banana" } },
 };
 
 /**

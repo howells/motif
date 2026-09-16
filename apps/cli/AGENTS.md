@@ -153,10 +153,12 @@ Structured failures exit with a semantic process code derived from the error's R
 | --- | --- | --- | --- |
 | `0` | Success | — | — |
 | `1` | Unknown / unmapped | — | Unstructured crashes; any status outside the ranges below |
-| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `TOO_MANY_REFERENCES` |
+| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `TOO_MANY_REFERENCES`, `NO_MODEL_AVAILABLE` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
 | `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED`, `TRANSPARENCY_MISSING` |
+
+`NO_MODEL_AVAILABLE` (exit `2`) means no Model can do what the request asks. Its `details` carry `blockedBy` (the capability, `key` or input that stopped it), `unblockedBy` and, when a key would help, `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input. A missing `FAL_KEY` is still reported as `MISSING_API_KEY`.
 
 Every structured error still carries the machine-readable `status` field, so the exit code and the JSON envelope always agree. Unstructured crashes (unexpected exceptions the CLI did not classify) still exit `1`.
 

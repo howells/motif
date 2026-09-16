@@ -3,7 +3,7 @@
  * Supports NDJSON streaming for large histories.
  */
 
-import { formatCost, MODELS } from "@howells/motif-sdk";
+import { formatCost } from "@howells/motif-sdk";
 import chalk from "chalk";
 
 import { loadHistory } from "../utils/config";
@@ -32,10 +32,7 @@ export async function runHistory(
   if (emitOpts.format === "ndjson") {
     // Stream each generation as a separate NDJSON line
     emitStream(
-      page.map((g) => ({
-        ...g,
-        modelName: MODELS[g.model]?.name ?? g.model,
-      })),
+      page.map((g) => ({ ...g })),
       emitOpts
     );
     return;
@@ -45,10 +42,7 @@ export async function runHistory(
     emit(
       {
         costs: history.totalCost,
-        generations: page.map((g) => ({
-          ...g,
-          modelName: MODELS[g.model]?.name ?? g.model,
-        })),
+        generations: page,
         hasMore: offset + limit < total,
         limit,
         offset,
@@ -72,13 +66,12 @@ export async function runHistory(
   );
 
   for (const gen of page) {
-    const modelName = MODELS[gen.model]?.name ?? gen.model;
     const date = new Date(gen.timestamp).toLocaleString();
     console.log(
       `  ${chalk.dim(gen.id.slice(0, 8))} ${chalk.cyan(gen.prompt.slice(0, 50))}${gen.prompt.length > 50 ? "..." : ""}`
     );
     console.log(
-      `    ${chalk.green(modelName)} | ${gen.aspect} | ${formatCost(gen.cost)} | ${chalk.dim(date)}`
+      `    ${chalk.green(gen.model)} | ${gen.aspect} | ${formatCost(gen.cost)} | ${chalk.dim(date)}`
     );
     console.log(`    ${chalk.dim(gen.output)}`);
     console.log();

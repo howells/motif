@@ -28,7 +28,8 @@ import ora from "ora";
 
 import { generate } from "../api/fal";
 import type { CliOptions, StdinPayload } from "../utils/cli-types";
-import { getApiKey, loadConfig } from "../utils/config";
+import { getApiKey } from "../utils/config";
+import type { MotifConfig } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
 import { exitForErrorCode, handleError, validateOption } from "../utils/errors";
 import {
@@ -52,6 +53,7 @@ import {
 } from "../utils/input";
 import { emit, emitError, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
+import { defaultGenerateModel } from "../utils/task-model";
 import { firstText, hasText } from "../utils/text";
 import {
   requireRouteKey,
@@ -78,8 +80,10 @@ export async function generateImage(
   prompt: string,
   options: CliOptions,
   stdinData: StdinPayload | null,
-  config: Awaited<ReturnType<typeof loadConfig>>,
-  emitOpts: EmitOptions
+  config: MotifConfig,
+  emitOpts: EmitOptions,
+  /** Fields a caller adds to every JSON result, e.g. vary's `varyModel`. */
+  extra: { varyModel?: "reused" | "resolved" } = {}
 ): Promise<void> {
   // Creative direction resolves first: a look supplies the model and aspect
   // defaults used when the caller named neither.
@@ -106,10 +110,12 @@ export async function generateImage(
     )
   );
 
+  // An explicit Model or a Look's Model keeps its own validation below, so an
+  // unknown id stays UNKNOWN_MODEL and a missing key stays MISSING_API_KEY.
   const modelId =
     firstText(options.model, stdinData?.model) ??
     look?.model ??
-    config.defaultModel;
+    defaultGenerateModel(options, stdinData, config, emitOpts.format);
 
   // Validate model name against hallucination patterns
   try {
@@ -378,6 +384,7 @@ export async function generateImage(
       }),
       model: modelId,
       modelName: modelConfig.name,
+      ...extra,
       aspect,
       resolution,
       numImages,
@@ -519,6 +526,7 @@ export async function generateImage(
             }),
             model: modelId,
             modelName: modelConfig.name,
+            ...extra,
             route: openAiRoute.provider,
             provider: openAiRoute.provider,
             providerModel: result.model,
@@ -609,6 +617,7 @@ export async function generateImage(
           }),
           model: modelId,
           modelName: modelConfig.name,
+          ...extra,
           route: "fal",
           aspect,
           resolution,

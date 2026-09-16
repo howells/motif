@@ -94,6 +94,11 @@ export const ERROR_CATALOG = {
   MISSING_API_KEY: metadata("MISSING_API_KEY", 401, {
     suggestions: [...ERROR_SUGGESTIONS.apiKey],
   }),
+  NO_MODEL_AVAILABLE: metadata("NO_MODEL_AVAILABLE", 400, {
+    suggestions: [
+      "Name a Model with --model, set the missing key, or drop the option that no Model can honour",
+    ],
+  }),
   NO_PREVIOUS: metadata("NO_PREVIOUS", 404),
   REFRAME_FAILED: metadata("REFRAME_FAILED", 502, { isRetriable: true }),
   RESERVED_PROMPT: metadata("RESERVED_PROMPT", 400, {

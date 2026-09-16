@@ -18,6 +18,11 @@ import {
   imageToDataUrl,
   openImage,
 } from "../../utils/image";
+import {
+  legacyBackgroundRemover,
+  legacyUpscaler,
+  studioGenerateModel,
+} from "../../utils/task-model";
 import { hasText } from "../../utils/text";
 import { Spinner } from "../components/spinner";
 
@@ -29,10 +34,10 @@ function getModelForMode(
   sourceModel: string
 ): string {
   if (mode === "upscale") {
-    return config.upscaler;
+    return legacyUpscaler(config);
   }
   if (mode === "rmbg") {
-    return config.backgroundRemover;
+    return legacyBackgroundRemover(config);
   }
   return sourceModel;
 }
@@ -41,8 +46,9 @@ function getEditModel(config: MotifConfig, sourceModel: string): string {
   if (MODELS[sourceModel]?.supportsEdit === true) {
     return sourceModel;
   }
-  if (MODELS[config.defaultModel]?.supportsEdit === true) {
-    return config.defaultModel;
+  const pinned = studioGenerateModel(config);
+  if (MODELS[pinned]?.supportsEdit === true) {
+    return pinned;
   }
   return "banana2";
 }
@@ -115,7 +121,7 @@ export function EditScreen({
     if (useCustomPath && hasText(customPath)) {
       return {
         aspect: config.defaultAspect,
-        model: config.defaultModel,
+        model: studioGenerateModel(config),
         output: customPath.trim(),
         prompt: basename(customPath),
         resolution: config.defaultResolution,
@@ -368,7 +374,7 @@ export function EditScreen({
         setStatus("Upscaling...");
         const result = await upscale({
           imageUrl: imageData,
-          model: config.upscaler,
+          model: legacyUpscaler(config),
           scaleFactor: scale,
         });
 
@@ -385,7 +391,7 @@ export function EditScreen({
         setStatus("Removing background...");
         const result = await removeBackground({
           imageUrl: imageData,
-          model: config.backgroundRemover,
+          model: legacyBackgroundRemover(config),
         });
 
         outputPath = source.output.replace(IMAGE_EXT_REGEX, "-nobg.png");
@@ -590,7 +596,9 @@ export function EditScreen({
                 </Text>
                 <Text>
                   Model:{" "}
-                  <Text color="green">{MODELS[config.upscaler]?.name}</Text>
+                  <Text color="green">
+                    {MODELS[legacyUpscaler(config)]?.name}
+                  </Text>
                 </Text>
               </>
             )}
@@ -598,7 +606,7 @@ export function EditScreen({
               <Text>
                 Model:{" "}
                 <Text color="green">
-                  {MODELS[config.backgroundRemover]?.name}
+                  {MODELS[legacyBackgroundRemover(config)]?.name}
                 </Text>
               </Text>
             )}

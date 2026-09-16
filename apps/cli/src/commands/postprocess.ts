@@ -5,18 +5,16 @@
 
 import { basename, resolve } from "node:path";
 
+import { MODELS, TASKS } from "@howells/motif-sdk";
 import type { AspectRatio, Resolution } from "@howells/motif-sdk";
 import chalk from "chalk";
 import ora from "ora";
 
 import { removeBackground, upscale } from "../api/fal";
 import type { CliOptions, StdinPayload } from "../utils/cli-types";
-import {
-  addGeneration,
-  generateId,
-  getLastGeneration,
-  loadConfig,
-} from "../utils/config";
+import { addGeneration, generateId, getLastGeneration } from "../utils/config";
+import type { MotifConfig } from "../utils/config";
+import { resolveCreativeDirection } from "../utils/creative";
 import {
   exitForErrorCode,
   handleError,
@@ -38,6 +36,12 @@ import {
 } from "../utils/input";
 import { emit, emitError, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
+import {
+  exitNoModelAvailable,
+  legacyBackgroundRemover,
+  legacyUpscaler,
+  resolveTaskModel,
+} from "../utils/task-model";
 import { firstText, hasText } from "../utils/text";
 import { generateImage } from "./generate";
 
@@ -61,7 +65,7 @@ export async function generateVariations(
   customPrompt: string | undefined,
   options: CliOptions,
   stdinData: StdinPayload | null,
-  config: Awaited<ReturnType<typeof loadConfig>>,
+  config: MotifConfig,
   emitOpts: EmitOptions
 ): Promise<void> {
   const last = await getLastGeneration();
@@ -84,6 +88,30 @@ export async function generateVariations(
     })
   );
 
+  const explicitModel = firstText(options.model, stdinData?.model);
+  let model = explicitModel;
+  let varyModel: "reused" | "resolved" | undefined;
+  if (explicitModel === undefined) {
+    // Reuse the varied image's Model while vary still ranks it.
+    if (TASKS.vary.models.some((entry) => entry.model === last.model)) {
+      model = last.model;
+      varyModel = "reused";
+    } else {
+      const look = resolveCreativeDirection(options, stdinData?.creative)?.look;
+      const resolution = resolveTaskModel(
+        "vary",
+        { count: numImages, look, references: 1 },
+        config,
+        { dryRun: options.dryRun === true }
+      );
+      if (!resolution.ok) {
+        exitNoModelAvailable(resolution, emitOpts.format);
+      }
+      model = resolution.model;
+      varyModel = "resolved";
+    }
+  }
+
   if (!isStructured(emitOpts.format)) {
     console.log(chalk.bold("\nGenerating variations..."));
     console.log(`Base: ${chalk.dim(last.prompt.slice(0, 50))}...`);
@@ -94,14 +122,20 @@ export async function generateVariations(
     {
       ...options,
       aspect: firstText(options.aspect, stdinData?.aspect) ?? last.aspect,
-      model: firstText(options.model, stdinData?.model) ?? last.model,
+      model,
       num: String(numImages),
+      // The varied image's resolution carries over only to a Model that
+      // takes one; a named --resolution is still validated as usual.
       resolution:
-        firstText(options.resolution, stdinData?.resolution) ?? last.resolution,
+        firstText(options.resolution, stdinData?.resolution) ??
+        (MODELS[model ?? ""]?.supportsResolution === true
+          ? last.resolution
+          : undefined),
     },
     null, // Don't pass stdinData again (already merged into options)
     config,
-    emitOpts
+    emitOpts,
+    varyModel === undefined ? {} : { varyModel }
   );
 }
 
@@ -109,7 +143,7 @@ export async function upscaleLast(
   imagePath: string | undefined,
   options: CliOptions,
   stdinData: StdinPayload | null,
-  config: Awaited<ReturnType<typeof loadConfig>>,
+  config: MotifConfig,
   emitOpts: EmitOptions
 ): Promise<void> {
   let sourceImagePath: string;
@@ -149,6 +183,7 @@ export async function upscaleLast(
       )
     )
   );
+  const upscaler = legacyUpscaler(config);
   const rawOutput = firstText(options.output, stdinData?.output);
   const outputPath =
     rawOutput === undefined
@@ -161,7 +196,7 @@ export async function upscaleLast(
       command: "upscale",
       dryRun: true,
       estimatedCost: 0.02,
-      model: config.upscaler,
+      model: upscaler,
       output: outputPath,
       scale: scaleFactor,
       source: sourceImagePath,
@@ -172,7 +207,7 @@ export async function upscaleLast(
       console.log(chalk.bold("\n🔍 Dry run — no API call made\n"));
       console.log(`  Source: ${chalk.dim(sourceImagePath)}`);
       console.log(`  Scale:  ${scaleFactor}x`);
-      console.log(`  Model:  ${config.upscaler}`);
+      console.log(`  Model:  ${upscaler}`);
       console.log(`  Output: ${chalk.dim(outputPath)}`);
       console.log(`  Cost:   ${chalk.yellow("~$0.02")}`);
     }
@@ -182,7 +217,7 @@ export async function upscaleLast(
   if (!isStructured(emitOpts.format)) {
     console.log(chalk.bold("\nUpscaling..."));
     console.log(`Source: ${chalk.dim(sourceImagePath)}`);
-    console.log(`Scale: ${scaleFactor}x | Model: ${config.upscaler}`);
+    console.log(`Scale: ${scaleFactor}x | Model: ${upscaler}`);
   }
 
   const spinner = isStructured(emitOpts.format)
@@ -194,7 +229,7 @@ export async function upscaleLast(
 
     const result = await upscale({
       imageUrl: imageData,
-      model: config.upscaler,
+      model: upscaler,
       scaleFactor,
       // Clarity upscale params from stdin (power-user API access)
       ...(hasText(stdinData?.upscalePrompt) && {
@@ -237,7 +272,7 @@ export async function upscaleLast(
       cost: 0.02,
       editedFrom: sourceImagePath,
       id: generateId(),
-      model: config.upscaler,
+      model: upscaler,
       output: resolve(actualOutputPath),
       prompt: `[upscale ${scaleFactor}x] ${sourcePrompt}`,
       resolution: sourceResolution,
@@ -250,7 +285,7 @@ export async function upscaleLast(
           command: "upscale",
           cost: 0.02,
           height: dims?.height,
-          model: config.upscaler,
+          model: upscaler,
           path: resolve(actualOutputPath),
           scale: scaleFactor,
           size,
@@ -277,7 +312,7 @@ export async function upscaleLast(
 export async function removeBackgroundLast(
   options: CliOptions,
   stdinData: StdinPayload | null,
-  config: Awaited<ReturnType<typeof loadConfig>>,
+  config: MotifConfig,
   emitOpts: EmitOptions
 ): Promise<void> {
   const last = await getLastGeneration();
@@ -292,6 +327,7 @@ export async function removeBackgroundLast(
     exitForErrorCode("NO_PREVIOUS");
   }
 
+  const backgroundRemover = legacyBackgroundRemover(config);
   const rawOutput = firstText(options.output, stdinData?.output);
   const outputPath =
     rawOutput === undefined
@@ -304,7 +340,7 @@ export async function removeBackgroundLast(
       command: "rmbg",
       dryRun: true,
       estimatedCost: 0.02,
-      model: config.backgroundRemover,
+      model: backgroundRemover,
       output: outputPath,
       source: last.output,
       valid: true,
@@ -313,7 +349,7 @@ export async function removeBackgroundLast(
     if (!isStructured(emitOpts.format)) {
       console.log(chalk.bold("\n🔍 Dry run — no API call made\n"));
       console.log(`  Source: ${chalk.dim(last.output)}`);
-      console.log(`  Model:  ${config.backgroundRemover}`);
+      console.log(`  Model:  ${backgroundRemover}`);
       console.log(`  Output: ${chalk.dim(outputPath)}`);
       console.log(`  Cost:   ${chalk.yellow("~$0.02")}`);
     }
@@ -323,7 +359,7 @@ export async function removeBackgroundLast(
   if (!isStructured(emitOpts.format)) {
     console.log(chalk.bold("\nRemoving background..."));
     console.log(`Source: ${chalk.dim(last.output)}`);
-    console.log(`Model: ${config.backgroundRemover}`);
+    console.log(`Model: ${backgroundRemover}`);
   }
 
   const spinner = isStructured(emitOpts.format)
@@ -335,7 +371,7 @@ export async function removeBackgroundLast(
 
     const result = await removeBackground({
       imageUrl: imageData,
-      model: config.backgroundRemover,
+      model: backgroundRemover,
       // BiRefNet params from stdin. These are deliberate pass-throughs: fal
       // validates the values server-side, and validating locally would change
       // the error envelope (INVALID_OPTION instead of RMBG_FAILED).
@@ -387,7 +423,7 @@ export async function removeBackgroundLast(
       cost: 0.02,
       editedFrom: last.output,
       id: generateId(),
-      model: config.backgroundRemover,
+      model: backgroundRemover,
       output: resolve(actualOutputPath),
       prompt: `[rmbg] ${last.prompt}`,
       resolution: last.resolution,
@@ -400,7 +436,7 @@ export async function removeBackgroundLast(
           command: "rmbg",
           cost: 0.02,
           height: dims?.height,
-          model: config.backgroundRemover,
+          model: backgroundRemover,
           path: resolve(actualOutputPath),
           size,
           source: last.output,

@@ -23,6 +23,7 @@ import {
   getImageDimensions,
   openImage,
 } from "../../utils/image";
+import { studioGenerateModel } from "../../utils/task-model";
 import { Spinner } from "../components/spinner";
 
 type Step =
@@ -162,7 +163,7 @@ export function GenerateScreen({
 }: GenerateScreenProps) {
   const [step, setStep] = useState<Step>("prompt");
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(config.defaultModel);
+  const [model, setModel] = useState(() => studioGenerateModel(config));
   const [aspect, setAspect] = useState<AspectRatio>(config.defaultAspect);
   const [resolution, setResolution] = useState<Resolution>(
     config.defaultResolution

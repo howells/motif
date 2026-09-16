@@ -4,7 +4,7 @@
  * A series is a named collection with:
  * - A style prompt prefix (prepended to every generation)
  * - Reference images (tagged for selective inclusion)
- * - A preferred model and settings
+ * - Default settings
  * - Output history for cumulative reference
  */
 
@@ -71,8 +71,6 @@ export interface SeriesConfig {
   id: string;
   /** Pinned house look id, applied to every scene prompt */
   look?: string;
-  /** Preferred model for this series */
-  model: string;
   /** Pinned light mood id, applied to every scene prompt */
   mood?: string;
   /** Human-readable name */
@@ -127,7 +125,6 @@ function seriesOutputsDir(slug: string): string {
 export async function createSeries(options: {
   name: string;
   stylePrompt?: string;
-  model?: string;
   defaultAspect?: AspectRatio;
   defaultResolution?: Resolution;
   fromImage?: string;
@@ -152,7 +149,6 @@ export async function createSeries(options: {
     defaultAspect: options.defaultAspect ?? "1:1",
     defaultResolution: options.defaultResolution ?? "2K",
     id: randomUUID(),
-    model: options.model ?? "banana",
     name: options.name,
     outputs: [],
     refs: [],
@@ -197,6 +193,12 @@ export async function loadSeries(slug: string): Promise<SeriesConfig> {
   const parsed: unknown = JSON.parse(raw);
   if (!isSeriesConfig(parsed)) {
     throw new Error(`Invalid series config file: ${configPath}`);
+  }
+  // Series written before Tasks carry a preferred model; the generate Task
+  // chooses now, so it is dropped on load and gone from the next save.
+  if ("model" in parsed) {
+    const { model: _model, ...series } = parsed;
+    return series;
   }
   return parsed;
 }

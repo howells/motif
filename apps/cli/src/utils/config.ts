@@ -10,8 +10,8 @@ import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
-import { getFalKeyFromEnv, sumCosts } from "@howells/motif-sdk";
-import type { AspectRatio, Resolution } from "@howells/motif-sdk";
+import { getFalKeyFromEnv, isTaskId, sumCosts } from "@howells/motif-sdk";
+import type { AspectRatio, Resolution, TaskId } from "@howells/motif-sdk";
 
 import { parseJsonAs } from "./json";
 import { hasText } from "./text";
@@ -21,14 +21,17 @@ const CONFIG_PATH = join(MOTIF_DIR, "config.json");
 const HISTORY_PATH = join(MOTIF_DIR, "history.json");
 const LOCAL_CONFIG_PATH = ".motifrc";
 
+/** A Model pinned for one Task: `tasks.<task>.model` in config. */
+export interface TaskPin {
+  model: string;
+}
+
 export interface MotifConfig {
   apiKey?: string;
-  backgroundRemover: "rmbg" | "bria";
   defaultAspect: AspectRatio;
-  defaultModel: string;
   defaultResolution: Resolution;
   openAfterGenerate: boolean;
-  upscaler: "clarity" | "crystal";
+  tasks?: Partial<Record<TaskId, TaskPin>>;
 }
 
 export interface Generation {
@@ -78,13 +81,81 @@ export interface History {
 }
 
 const DEFAULT_CONFIG: MotifConfig = {
-  backgroundRemover: "rmbg",
   defaultAspect: "1:1",
-  defaultModel: "banana",
   defaultResolution: "2K",
   openAfterGenerate: true,
-  upscaler: "clarity",
 };
+
+/** A config file as stored: known fields plus whatever else the user wrote. */
+export type StoredConfig = Partial<MotifConfig> & Record<string, unknown>;
+
+export interface MigratedConfig {
+  /** Whether the file had legacy keys, so the global file is rewritten. */
+  changed: boolean;
+  config: StoredConfig;
+}
+
+/**
+ * One legacy key's move onto a Task pin. `shippedDefault` is the value the old
+ * `saveConfig` wrote into every saved file, so it is not a user choice and is
+ * dropped rather than pinned. `renames` maps values whose Model id changed.
+ */
+function legacyPin(
+  value: unknown,
+  shippedDefault: string,
+  renames: Readonly<Record<string, string>> = {}
+): TaskPin | undefined {
+  if (
+    typeof value !== "string" ||
+    !hasText(value) ||
+    value === shippedDefault
+  ) {
+    return undefined;
+  }
+  return { model: renames[value] ?? value };
+}
+
+/**
+ * Move a config written before Tasks onto `tasks.<task>.model`. Pure. An
+ * existing `tasks` entry wins over a legacy key, and legacy keys are removed
+ * whether or not they became a pin.
+ */
+export function migrateLegacyConfig(raw: StoredConfig): MigratedConfig {
+  const { backgroundRemover, defaultModel, upscaler, ...config } = raw;
+  const changed = ["backgroundRemover", "defaultModel", "upscaler"].some(
+    (key) => Object.hasOwn(raw, key)
+  );
+  if (!changed) {
+    return { changed, config: raw };
+  }
+  const tasks: Partial<Record<TaskId, TaskPin>> = {
+    cutout: legacyPin(backgroundRemover, "rmbg", {
+      bria: "bria-rmbg",
+      rmbg: "birefnet",
+    }),
+    generate: legacyPin(defaultModel, "banana"),
+    upscale: legacyPin(upscaler, "clarity"),
+    ...raw.tasks,
+  };
+  const pinned = Object.fromEntries(
+    Object.entries(tasks).filter(([, pin]) => pin !== undefined)
+  );
+  if (Object.keys(pinned).length > 0) {
+    config.tasks = pinned;
+  }
+  return { changed, config };
+}
+
+/** The Model pinned per Task, for `resolveTask`'s environment. */
+export function taskPins(config: MotifConfig): Partial<Record<TaskId, string>> {
+  const pins: Partial<Record<TaskId, string>> = {};
+  for (const [task, pin] of Object.entries(config.tasks ?? {})) {
+    if (isTaskId(task) && hasText(pin?.model)) {
+      pins[task] = pin.model;
+    }
+  }
+  return pins;
+}
 
 const emptyTotalCost = (): TotalCost => ({
   allTime: 0,
@@ -132,6 +203,40 @@ export async function atomicWrite(
   }
 }
 
+/**
+ * Migrate a parsed global config and try to write the migrated file back once.
+ * A failed write only warns: the migrated values are still used this run.
+ */
+export async function migrateGlobalConfig(
+  stored: StoredConfig,
+  rewrite: (data: string) => Promise<void>,
+  path: string = CONFIG_PATH
+): Promise<StoredConfig> {
+  const { changed, config } = migrateLegacyConfig(stored);
+  if (changed) {
+    try {
+      await rewrite(JSON.stringify(config, null, 2));
+    } catch (error) {
+      console.error(
+        `Warning: Could not rewrite ${path}: ${error instanceof Error ? error.message : String(error)}`
+      );
+    }
+  }
+  return config;
+}
+
+/** Layer one config over another; `tasks` merges per Task. */
+export function mergeConfigLayers(
+  base: MotifConfig,
+  layer: StoredConfig
+): MotifConfig {
+  const merged: MotifConfig = { ...base, ...layer };
+  if (base.tasks !== undefined || layer.tasks !== undefined) {
+    merged.tasks = { ...base.tasks, ...layer.tasks };
+  }
+  return merged;
+}
+
 export async function loadConfig(): Promise<MotifConfig> {
   ensureMotifDir();
 
@@ -139,15 +244,20 @@ export async function loadConfig(): Promise<MotifConfig> {
 
   // Load global config
   if (existsSync(CONFIG_PATH)) {
+    let stored: StoredConfig | undefined;
     try {
-      const raw = await readFile(CONFIG_PATH, "utf-8");
-      const globalConfig = parseJsonAs<Partial<MotifConfig>>(raw);
-      config = { ...config, ...globalConfig };
+      stored = parseJsonAs<StoredConfig>(await readFile(CONFIG_PATH, "utf-8"));
     } catch (error) {
       console.error(
         `Warning: Failed to parse ${CONFIG_PATH}: ${error instanceof Error ? error.message : String(error)}`
       );
       console.error("Using default configuration.");
+    }
+    if (stored !== undefined) {
+      const globalConfig = await migrateGlobalConfig(stored, async (data) => {
+        await atomicWrite(CONFIG_PATH, data);
+      });
+      config = mergeConfigLayers(config, globalConfig);
     }
   }
 
@@ -155,8 +265,11 @@ export async function loadConfig(): Promise<MotifConfig> {
   if (existsSync(LOCAL_CONFIG_PATH)) {
     try {
       const raw = await readFile(LOCAL_CONFIG_PATH, "utf-8");
-      const localConfig = parseJsonAs<Partial<MotifConfig>>(raw);
-      config = { ...config, ...localConfig };
+      // Migrated in memory only: a project's .motifrc is never rewritten.
+      const { config: localConfig } = migrateLegacyConfig(
+        parseJsonAs<StoredConfig>(raw)
+      );
+      config = mergeConfigLayers(config, localConfig);
     } catch (error) {
       console.error(
         `Warning: Failed to parse ${LOCAL_CONFIG_PATH}: ${error instanceof Error ? error.message : String(error)}`
@@ -170,13 +283,13 @@ export async function loadConfig(): Promise<MotifConfig> {
 export async function saveConfig(config: Partial<MotifConfig>): Promise<void> {
   ensureMotifDir();
 
-  let existing: MotifConfig = DEFAULT_CONFIG;
+  let existing: StoredConfig = {};
   if (existsSync(CONFIG_PATH)) {
     try {
       const raw = await readFile(CONFIG_PATH, "utf-8");
-      existing = parseJsonAs<MotifConfig>(raw);
+      existing = migrateLegacyConfig(parseJsonAs<StoredConfig>(raw)).config;
     } catch {
-      // Use defaults if existing config is corrupted
+      // Start from an empty file if the existing config is corrupted
     }
   }
 
@@ -284,6 +397,9 @@ export async function getLastGeneration(): Promise<Generation | null> {
   return history.generations.at(-1) ?? null;
 }
 
+export const MISSING_FAL_KEY_MESSAGE =
+  "FAL_KEY not found. Set FAL_KEY environment variable or add apiKey to ~/.motif/config.json";
+
 export function getApiKey(config: MotifConfig): string {
   // Environment variable takes precedence
   const envKey = getFalKeyFromEnv();
@@ -296,9 +412,7 @@ export function getApiKey(config: MotifConfig): string {
     return config.apiKey;
   }
 
-  throw new Error(
-    "FAL_KEY not found. Set FAL_KEY environment variable or add apiKey to ~/.motif/config.json"
-  );
+  throw new Error(MISSING_FAL_KEY_MESSAGE);
 }
 
 export function generateId(): string {

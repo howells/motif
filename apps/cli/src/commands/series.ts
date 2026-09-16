@@ -35,7 +35,7 @@ import {
   getApiKey,
   loadConfig,
 } from "../utils/config";
-import type { Generation } from "../utils/config";
+import type { Generation, MotifConfig } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
 import type { CreativeInput } from "../utils/creative";
 import {
@@ -79,6 +79,7 @@ import {
   slugify,
 } from "../utils/series";
 import type { SeriesConfig } from "../utils/series";
+import { exitNoModelAvailable, resolveTaskModel } from "../utils/task-model";
 import { hasText } from "../utils/text";
 
 // -- Helpers --
@@ -102,8 +103,6 @@ function seriesAsJson(config: SeriesConfig): Record<string, unknown> {
     defaultResolution: config.defaultResolution,
     id: config.id,
     look: config.look ?? null,
-    model: config.model,
-    modelName: MODELS[config.model]?.name ?? config.model,
     mood: config.mood ?? null,
     name: config.name,
     outputCount: config.outputs.length,
@@ -136,6 +135,25 @@ function seriesCreativeDirection(
     flags,
     resolveCreativeDirection(stdinCreative ?? {}, pinned)
   );
+}
+
+/**
+ * The generate Model for a Series call that named none: the Look's, a pin, or
+ * the ranking. Exits with NO_MODEL_AVAILABLE when nothing qualifies.
+ */
+function seriesModel(
+  request: { look?: string; references: number },
+  appConfig: MotifConfig,
+  dryRun: boolean,
+  emitOpts: EmitOptions
+): string {
+  const resolution = resolveTaskModel("generate", request, appConfig, {
+    dryRun,
+  });
+  if (resolution.ok) {
+    return resolution.model;
+  }
+  exitNoModelAvailable(resolution, emitOpts.format);
 }
 
 function validateSeriesOption<T>(emitOpts: EmitOptions, fn: () => T): T {
@@ -181,7 +199,6 @@ export function buildSeriesRunScenes(theme: string, count: number): string[] {
 
 export async function loadOrCreateRunSeries(options: {
   aspect: (typeof ASPECT_RATIOS)[number];
-  model: string;
   look?: string;
   mood?: string;
   resolution: (typeof RESOLUTIONS)[number];
@@ -200,7 +217,6 @@ export async function loadOrCreateRunSeries(options: {
       defaultAspect: options.aspect,
       defaultResolution: options.resolution,
       look: options.look,
-      model: options.model,
       mood: options.mood,
       name,
       stylePrompt: options.stylePrompt,
@@ -222,7 +238,6 @@ async function cmdCreate(
     look?: string;
     mood?: string;
     style?: string;
-    model?: string;
     aspect?: string;
     resolution?: string;
   },
@@ -238,14 +253,6 @@ async function cmdCreate(
       : undefined;
     const look = hasText(pinned?.look) ? getLook(pinned.look) : undefined;
 
-    if (hasText(opts.model)) {
-      validateResourceId(opts.model, "model");
-    }
-    const model = hasText(opts.model)
-      ? validateSeriesOption(emitOpts, () =>
-          validateEnumOption(opts.model ?? "", GENERATION_MODELS, "model")
-        )
-      : undefined;
     const defaultAspect = hasText(opts.aspect)
       ? validateSeriesOption(emitOpts, () =>
           validateEnumOption(opts.aspect ?? "", ASPECT_RATIOS, "aspect")
@@ -257,13 +264,12 @@ async function cmdCreate(
         )
       : undefined;
 
-    // A pinned look fills in the model and aspect the caller left unset.
+    // A pinned look fills in the aspect the caller left unset.
     const config = await createSeries({
       defaultAspect: defaultAspect ?? look?.aspect,
       defaultResolution,
       fromImage: hasText(opts.from) ? resolve(opts.from) : undefined,
       look: pinned?.look,
-      model: model ?? look?.model,
       mood: pinned?.mood,
       name,
       stylePrompt: opts.style,
@@ -274,9 +280,6 @@ async function cmdCreate(
     } else {
       console.log(chalk.green(`✓ Created series: ${config.name}`));
       console.log(`  Slug:  ${chalk.cyan(config.slug)}`);
-      console.log(
-        `  Model: ${chalk.dim(MODELS[config.model]?.name ?? config.model)}`
-      );
       if (hasText(config.look) || hasText(config.mood)) {
         console.log(
           `  Look:  ${chalk.dim(config.look ?? "none")} | Mood: ${chalk.dim(config.mood ?? "none")}`
@@ -331,7 +334,7 @@ async function cmdList(emitOpts: EmitOptions): Promise<void> {
   for (const s of series) {
     console.log(`  ${chalk.cyan(s.slug)} — ${s.name}`);
     console.log(
-      `    ${chalk.dim(`${MODELS[s.model]?.name ?? s.model} | ${s.refs.length} refs | ${s.outputs.length} outputs | ${new Date(s.updated).toLocaleDateString()}`)}`
+      `    ${chalk.dim(`${s.refs.length} refs | ${s.outputs.length} outputs | ${new Date(s.updated).toLocaleDateString()}`)}`
     );
   }
 }
@@ -355,9 +358,6 @@ async function cmdShow(slug: string, emitOpts: EmitOptions): Promise<void> {
     console.log(chalk.bold(`\n${config.name}`));
     console.log(`  ID:     ${chalk.dim(config.id)}`);
     console.log(`  Slug:   ${chalk.cyan(config.slug)}`);
-    console.log(
-      `  Model:  ${chalk.green(MODELS[config.model]?.name ?? config.model)}`
-    );
     console.log(
       `  Aspect: ${config.defaultAspect} | Resolution: ${config.defaultResolution}`
     );
@@ -494,7 +494,14 @@ async function cmdGenerate(
     if (hasText(opts.model)) {
       validateResourceId(opts.model, "model");
     }
-    const modelId = opts.model ?? config.model;
+    const modelId =
+      opts.model ??
+      seriesModel(
+        { look: creative?.look, references: refPaths.length },
+        appConfig,
+        opts.dryRun === true,
+        emitOpts
+      );
     const aspect = hasText(opts.aspect)
       ? validateSeriesOption(emitOpts, () =>
           validateEnumOption(opts.aspect ?? "", ASPECT_RATIOS, "aspect")
@@ -749,19 +756,6 @@ async function cmdRun(
     if (hasText(opts.model)) {
       validateResourceId(opts.model, "model");
     }
-    const modelId = opts.model ?? existingSeries?.model ?? "banana";
-    const modelConfig = MODELS[modelId];
-    if (!modelConfig) {
-      emitError(
-        {
-          code: "UNKNOWN_MODEL",
-          details: { available: GENERATION_MODELS },
-          message: `Unknown model: ${modelId}`,
-        },
-        emitOpts.format
-      );
-      exitForErrorCode("UNKNOWN_MODEL");
-    }
 
     const count = validateSeriesOption(emitOpts, () =>
       parseIntegerOption(opts.count ?? "4", "series run count", {
@@ -785,6 +779,32 @@ async function cmdRun(
       buildSeriesRunStylePrompt(sanitizedTheme);
     const refTags = splitRefTags(opts.refs);
     const refPaths = existingSeries ? resolveRefs(existingSeries, refTags) : [];
+    const creative = seriesCreativeDirection(
+      opts,
+      opts.creative,
+      existingSeries
+    );
+    const appConfig = await loadConfig();
+    const modelId =
+      opts.model ??
+      seriesModel(
+        { look: creative?.look, references: refPaths.length },
+        appConfig,
+        opts.dryRun === true,
+        emitOpts
+      );
+    const modelConfig = MODELS[modelId];
+    if (!modelConfig) {
+      emitError(
+        {
+          code: "UNKNOWN_MODEL",
+          details: { available: GENERATION_MODELS },
+          message: `Unknown model: ${modelId}`,
+        },
+        emitOpts.format
+      );
+      exitForErrorCode("UNKNOWN_MODEL");
+    }
     const maxRefs = modelConfig.maxReferenceImages ?? 0;
 
     if (refPaths.length > maxRefs) {
@@ -798,11 +818,6 @@ async function cmdRun(
       exitForErrorCode("TOO_MANY_REFERENCES");
     }
 
-    const creative = seriesCreativeDirection(
-      opts,
-      opts.creative,
-      existingSeries
-    );
     const baseScenePrompts = buildSeriesRunScenes(sanitizedTheme, count);
     const enrichedScenes = baseScenePrompts.map((baseScenePrompt) =>
       creative
@@ -866,14 +881,12 @@ async function cmdRun(
       return;
     }
 
-    const appConfig = await loadConfig();
     getApiKey(appConfig);
 
     // A new Series pins the look and mood this run used.
     const config = await loadOrCreateRunSeries({
       aspect,
       look: creative?.look,
-      model: modelId,
       mood: creative?.mood,
       resolution,
       series: opts.series,
@@ -1162,7 +1175,6 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("--style <prompt>", "Style prompt prefix for all generations")
     .option("--look <id>", "Pin a house look for every image, e.g. editorial")
     .option("--mood <id>", "Pin a light mood for every image, e.g. overcast")
-    .option("-m, --model <model>", "Preferred model (default: the look's)")
     .option(
       "-a, --aspect <ratio>",
       "Default aspect ratio (default: the look's)"
@@ -1296,7 +1308,6 @@ async function handleStdinCommand(
           aspect: data.aspect,
           from: data.from,
           look: stdinPinned?.look,
-          model: data.model,
           mood: stdinPinned?.mood,
           resolution: data.resolution,
           style: data.stylePrompt,

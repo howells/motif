@@ -108,7 +108,6 @@ describe("loadOrCreateRunSeries", () => {
     const created = await createSeries({ name: "Existing Run" });
     const loaded = await loadOrCreateRunSeries({
       aspect: "1:1",
-      model: "banana",
       resolution: "2K",
       series: created.slug,
       stylePrompt: "ignored",
@@ -125,14 +124,12 @@ describe("loadOrCreateRunSeries", () => {
 
     const config = await loadOrCreateRunSeries({
       aspect: "3:2",
-      model: "gpt",
       resolution: "4K",
       stylePrompt: "editorial",
       theme: "Glass Towers",
     });
 
     expect(config.slug).toBe("glass-towers");
-    expect(config.model).toBe("gpt");
     expect(config.defaultAspect).toBe("3:2");
     expect(config.stylePrompt).toBe("editorial");
     // Persisted, not just returned.
@@ -147,7 +144,6 @@ describe("loadOrCreateRunSeries", () => {
     const config = await loadOrCreateRunSeries({
       aspect: "3:2",
       look: "lived-in",
-      model: "flux2-pro",
       mood: "overcast",
       resolution: "2K",
       stylePrompt: "warm kitchens",
@@ -170,7 +166,6 @@ describe("loadOrCreateRunSeries", () => {
     // and the helper recovers by loading the existing series.
     const recovered = await loadOrCreateRunSeries({
       aspect: "1:1",
-      model: "banana",
       resolution: "2K",
       stylePrompt: "should-be-ignored",
       theme: "Repeat Theme",

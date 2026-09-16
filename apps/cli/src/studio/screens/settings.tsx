@@ -11,8 +11,13 @@ import { useState } from "react";
 import type { MotifConfig } from "../../utils/config";
 import { firstText } from "../../utils/text";
 
+/** The generate option that removes the pin, so the Task ranking chooses. */
+const RANKING = "ranking";
+
+type SettingKey = Exclude<keyof MotifConfig, "tasks"> | "generateModel";
+
 interface SettingItem {
-  key: keyof MotifConfig;
+  key: SettingKey;
   label: string;
   options?: readonly string[];
   type: "select" | "toggle" | "text";
@@ -20,9 +25,9 @@ interface SettingItem {
 
 const SETTINGS: SettingItem[] = [
   {
-    key: "defaultModel",
-    label: "Default Model",
-    options: GENERATION_MODELS,
+    key: "generateModel",
+    label: "Generate model",
+    options: [RANKING, ...GENERATION_MODELS],
     type: "select",
   },
   {
@@ -37,21 +42,34 @@ const SETTINGS: SettingItem[] = [
     options: RESOLUTIONS,
     type: "select",
   },
-  {
-    key: "upscaler",
-    label: "Upscaler",
-    options: ["clarity", "crystal"],
-    type: "select",
-  },
-  {
-    key: "backgroundRemover",
-    label: "Background Remover",
-    options: ["rmbg", "bria"],
-    type: "select",
-  },
   { key: "openAfterGenerate", label: "Open After Generate", type: "toggle" },
   { key: "apiKey", label: "API Key", type: "text" },
 ];
+
+function readSetting(config: MotifConfig, key: SettingKey): unknown {
+  if (key === "generateModel") {
+    return config.tasks?.generate?.model ?? RANKING;
+  }
+  return config[key];
+}
+
+function writeSetting(
+  config: MotifConfig,
+  key: SettingKey,
+  value: unknown
+): MotifConfig {
+  if (key !== "generateModel") {
+    return { ...config, [key]: value };
+  }
+  const { generate: _pin, ...otherPins } = config.tasks ?? {};
+  // The tasks key stays present, even when empty, so saving replaces the
+  // stored pins rather than keeping a removed one.
+  const tasks =
+    typeof value === "string" && value !== RANKING
+      ? { ...otherPins, generate: { model: value } }
+      : otherPins;
+  return { ...config, tasks };
+}
 
 interface SettingsScreenProps {
   config: MotifConfig;
@@ -99,24 +117,22 @@ export function SettingsScreen({
       const setting = SETTINGS[selectedIndex]!;
       if (setting.type === "toggle") {
         // Toggle boolean value
-        setLocalConfig((c) => ({
-          ...c,
-          [setting.key]: c[setting.key] !== true,
-        }));
+        setLocalConfig((c) =>
+          writeSetting(c, setting.key, readSetting(c, setting.key) !== true)
+        );
       } else if (setting.type === "text") {
-        const raw = localConfig[setting.key];
+        const raw = readSetting(localConfig, setting.key);
         setEditValue(typeof raw === "string" ? raw : "");
         setEditing(true);
       } else if (setting.type === "select" && setting.options) {
         // Cycle through options
-        const rawValue = localConfig[setting.key];
+        const rawValue = readSetting(localConfig, setting.key);
         const currentValue = typeof rawValue === "string" ? rawValue : "";
         const currentIdx = setting.options.indexOf(currentValue);
         const nextIdx = (currentIdx + 1) % setting.options.length;
-        setLocalConfig((c) => ({
-          ...c,
-          [setting.key]: setting.options?.[nextIdx],
-        }));
+        setLocalConfig((c) =>
+          writeSetting(c, setting.key, setting.options?.[nextIdx])
+        );
       }
     }
 
@@ -129,15 +145,12 @@ export function SettingsScreen({
   });
 
   const handleTextSubmit = (value: string) => {
-    setLocalConfig((c) => ({
-      ...c,
-      [currentSetting.key]: value,
-    }));
+    setLocalConfig((c) => writeSetting(c, currentSetting.key, value));
     setEditing(false);
   };
 
   const formatValue = (setting: SettingItem): string => {
-    const value = localConfig[setting.key];
+    const value = readSetting(localConfig, setting.key);
     if (setting.type === "toggle") {
       return value === true ? "Yes" : "No";
     }
@@ -147,7 +160,10 @@ export function SettingsScreen({
     if (setting.key === "apiKey") {
       return `${value.slice(0, 8)}...${value.slice(-4)}`;
     }
-    if (setting.key === "defaultModel") {
+    if (setting.key === "generateModel") {
+      if (value === RANKING) {
+        return "Best available (ranking)";
+      }
       return firstText(MODELS[value]?.name) ?? value;
     }
     return value;

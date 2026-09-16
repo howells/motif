@@ -177,10 +177,9 @@ describe("history --format ndjson (spawned CLI)", () => {
 
     const records = lines.map((line): unknown => JSON.parse(line));
     // History is newest-first.
-    expect(records[0]).toMatchObject({
-      id: "gen-two",
-      modelName: "FLUX Pro Ultra",
-    });
+    // Records carry the stored model id; the display name is not looked up.
+    expect(records[0]).toMatchObject({ id: "gen-two", model: "flux" });
+    expect(records[0]).not.toHaveProperty("modelName");
     expect(records[1]).toMatchObject({ id: "gen-one" });
     for (const record of records) {
       expect(record).toHaveProperty("prompt");
