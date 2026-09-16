@@ -171,6 +171,12 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     ["3d", "glb", "model-3d", "rig"]
   ),
   verbRow(
+    "try-on",
+    "motif try-on [image] --garment <image>",
+    "dress a person in a garment",
+    ["dress", "outfit", "wear"]
+  ),
+  verbRow(
     "animate",
     'motif animate "prompt" [image]',
     "turn an image into a video",

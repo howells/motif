@@ -48,6 +48,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 | Turn a surface photograph into PBR maps: colour, normal, roughness, metalness, height. | `motif material [image]` | A seamless texture without PBR maps (tile), or depth and normals of a scene (map). |
 | Make a seamlessly tiling texture. | `motif tile "prompt" [image]` | PBR maps of a surface (material). |
 | Make a textured 3D mesh from one image. | `motif mesh [image] [--rig]` | A flat image of an object (generate), or depth of a scene (map). |
+| Dress a person in a garment from another image. | `motif try-on [image] --garment <image>` | Changing clothes by description (generate with a reference). |
 | Turn a still image into a short video clip. | `motif animate "prompt" [image]` | A still image (generate), or variations of one (vary). |
 | Compare several saved images side by side on one captioned grid, from files or the last few generations. | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
 | Make a set of related images that share one style from a single theme, such as six brutalist buildings. | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of an image (vary). |

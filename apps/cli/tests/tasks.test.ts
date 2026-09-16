@@ -46,9 +46,7 @@ describe("task table", () => {
 
   it("gives every Task verb a row", async () => {
     const { TASK_IDS } = await import("@howells/motif-sdk");
-    // try-on joined the SDK after MOT-53's verb list was set.
-    const unrouted = new Set(["try-on"]);
-    for (const task of TASK_IDS.filter((id) => !unrouted.has(id))) {
+    for (const task of TASK_IDS) {
       expect(
         COMMAND_TASKS.map((row) => row.command),
         task

@@ -45,3 +45,5 @@
 {"id":"relight-mood-dawn","request":"give kitchen.jpg our dawn light without regenerating the photo","command":"relight","flags":["--mood dawn"],"args":["kitchen.jpg"],"source":"MOT-55: relight with a house mood"}
 {"id":"restyle-like-gouache","request":"redraw room.jpg in the style of gouache.jpg","command":"restyle","flags":["--like gouache.jpg"],"args":["room.jpg"],"source":"MOT-56: restyle from one style reference"}
 {"id":"mesh-rig-figure","request":"make a rigged 3D model of the character in figure.png that I can animate","command":"mesh","flags":["--rig"],"args":["figure.png"],"source":"MOT-57: mesh with a skeleton"}
+{"id":"mesh-objects-named","request":"make 3D models of just the chair and the lamp in room.png","command":"mesh","flags":["--objects"],"args":["room.png"],"source":"MOT-57: mesh --objects takes the objects to reconstruct"}
+{"id":"try-on-garment","request":"show the person in person.jpg wearing the coat from coat.jpg","command":"try-on","flags":["--garment coat.jpg"],"args":["person.jpg"],"source":"MOT-58: try-on with one garment"}

@@ -123,23 +123,48 @@ function moodInput(options: VerbOptions, format: OutputFormat): TaskInput {
   return { mood: parsed(format, () => validateEnumOption(mood, ids, "mood")) };
 }
 
-/** `--like <path>`, the one style Reference restyle needs. */
+/** A required image flag, sent as the Task's one Reference. */
+async function referenceInput(
+  options: VerbOptions,
+  format: OutputFormat,
+  flag: string,
+  usage: string
+): Promise<TaskInput> {
+  const path = stringOption(options, flag);
+  if (path === undefined) {
+    invalid(usage, format);
+  }
+  try {
+    return { references: [await imageSource(path)] };
+  } catch (error) {
+    handleError(error, "INVALID_IMAGE_PATH", format);
+  }
+}
+
+/** `--like <path>`, the style restyle copies. */
 async function likeInput(
   options: VerbOptions,
   format: OutputFormat
 ): Promise<TaskInput> {
-  const like = stringOption(options, "like");
-  if (like === undefined) {
-    invalid(
-      "motif restyle needs a style reference: motif restyle [image] --like <image>",
-      format
-    );
-  }
-  try {
-    return { references: [await imageSource(like)] };
-  } catch (error) {
-    handleError(error, "INVALID_IMAGE_PATH", format);
-  }
+  return await referenceInput(
+    options,
+    format,
+    "like",
+    "motif restyle needs a style reference: motif restyle [image] --like <image>"
+  );
+}
+
+/** `--garment <path>`, what try-on dresses the person in. */
+async function garmentInput(
+  options: VerbOptions,
+  format: OutputFormat
+): Promise<TaskInput> {
+  return await referenceInput(
+    options,
+    format,
+    "garment",
+    "motif try-on needs a garment: motif try-on [image] --garment <image>"
+  );
 }
 
 export const TASK_VERBS: readonly VerbDefinition[] = [
@@ -314,14 +339,18 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     input: (options) => (options.rig === true ? { rig: true } : {}),
     modes: [
       { description: "Reconstruct a human body", mode: "body" },
-      { description: "Reconstruct several prompted objects", mode: "objects" },
+      {
+        description: 'Reconstruct the named objects: --objects "chair, lamp"',
+        mode: "objects",
+        prompt: 'the objects to reconstruct, e.g. "chair, lamp"',
+      },
     ],
     options: (command) =>
       command.option("--rig", "Rig the mesh with a skeleton for animation"),
-    promptFirst: never,
+    promptFirst: (mode) => mode === "objects",
     sourceKind: "image",
     task: "mesh",
-    usage: "[image]",
+    usage: "[image] [objects]",
     verb: "Making a mesh",
   },
   {
@@ -482,6 +511,18 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     task: "upscale",
     usage: "[image-or-video]",
     verb: "Upscaling",
+  },
+  {
+    command: "try-on",
+    input: garmentInput,
+    modes: [],
+    options: (command) =>
+      command.option("--garment <image>", "The garment to dress the person in"),
+    promptFirst: never,
+    sourceKind: "image",
+    task: "try-on",
+    usage: "[image]",
+    verb: "Dressing",
   },
   {
     command: "vectorize",

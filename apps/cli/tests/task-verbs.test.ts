@@ -105,7 +105,7 @@ const DRY_RUNS: { args: string[]; mode?: string }[] = [
   { args: ["material", SOURCE] },
   { args: ["material", "--extract", "the rug", SOURCE], mode: "extract" },
   { args: ["mesh", SOURCE] },
-  { args: ["mesh", "--objects", SOURCE], mode: "objects" },
+  { args: ["mesh", SOURCE, "--objects", "chair, lamp"], mode: "objects" },
   { args: ["mesh", "--body", SOURCE], mode: "body" },
   { args: ["mesh", SOURCE, "--rig"] },
   { args: ["reframe", "--og", SOURCE] },
@@ -120,6 +120,7 @@ const DRY_RUNS: { args: string[]; mode?: string }[] = [
   { args: ["segment", "--auto", SOURCE], mode: "auto" },
   { args: ["tile", "oak planks", SOURCE] },
   { args: ["tile", "--upscale", SOURCE], mode: "upscale" },
+  { args: ["try-on", SOURCE, "--garment", SOURCE] },
   { args: ["upscale", SOURCE] },
   { args: ["upscale", "--creative", SOURCE], mode: "creative" },
   { args: ["vectorize", SOURCE] },
@@ -486,6 +487,83 @@ describe("mesh", () => {
   );
 });
 
+describe("mesh --objects", () => {
+  it("sends the named objects as the prompt", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "mesh",
+      join(home, "in.png"),
+      "--objects",
+      "chair, lamp",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    expect(asRecord(parseJson(result.stdout).request)).toMatchObject({
+      prompt: "chair, lamp",
+    });
+  });
+
+  it("asks for the objects when none are named", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "mesh",
+      join(home, "in.png"),
+      "--objects",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(String(parseJson(result.stderr).message)).toContain(
+      "the objects to reconstruct"
+    );
+  });
+});
+
+describe("try-on", () => {
+  it("sends the person and one --garment reference", async () => {
+    const home = tempHome();
+    writeFileSync(join(home, "coat.png"), PNG_1X1);
+    const result = await runMotifIn(home, [
+      "try-on",
+      join(home, "in.png"),
+      "--garment",
+      join(home, "coat.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    const payload = parseJson(result.stdout);
+    expect(payload).toMatchObject({
+      source: join(home, "in.png"),
+      task: "try-on",
+    });
+    const request = asRecord(payload.request);
+    expect(request.person_image_url).toBeTypeOf("string");
+    expect(request.product_image_url).toBeTypeOf("string");
+  });
+
+  it("refuses a try-on without --garment", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "try-on",
+      join(home, "in.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(String(parseJson(result.stderr).message)).toContain("--garment");
+  });
+});
+
 describe("history prompts", () => {
   it("tags a Task run once, replacing an earlier Task's tag (MOT-48 #3)", () => {
     expect(historyPrompt("layers", "[layers]")).toBe("[layers]");
@@ -629,6 +707,8 @@ describe("no model names in human output", () => {
     ["segment", "the chair", SOURCE],
     ["relight", SOURCE, "--mood", "dawn"],
     ["restyle", SOURCE, "--like", SOURCE],
+    ["try-on", SOURCE, "--garment", SOURCE],
+    ["mesh", SOURCE, "--objects", "chair, lamp"],
   ])("keeps them out of the human dry run of %j", async (...args) => {
     const home = tempHome();
     const result = await runMotifIn(home, [

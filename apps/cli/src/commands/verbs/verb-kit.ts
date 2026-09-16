@@ -19,6 +19,8 @@ export interface ModeFlag {
   value?: string;
   /** Whether a value flag's value is the prompt. */
   valueIsPrompt?: boolean;
+  /** What the prompt is in this mode, for the error when it's missing. */
+  prompt?: string;
 }
 
 export interface VerbDefinition {

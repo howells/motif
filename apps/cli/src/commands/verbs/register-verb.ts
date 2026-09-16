@@ -30,7 +30,18 @@ export function usageLine(definition: VerbDefinition): string {
   return `motif ${definition.command} ${definition.usage}`;
 }
 
-function needsPrompt(definition: VerbDefinition, format: OutputFormat): never {
+function needsPrompt(
+  definition: VerbDefinition,
+  mode: string | undefined,
+  format: OutputFormat
+): never {
+  const modeFlag = definition.modes.find((flag) => flag.mode === mode);
+  if (modeFlag?.prompt !== undefined) {
+    invalid(
+      `motif ${definition.command} --${modeFlag.mode} needs ${modeFlag.prompt}: ${usageLine(definition)}`,
+      format
+    );
+  }
   const alternative =
     definition.promptFlag === undefined
       ? ""
@@ -82,7 +93,7 @@ function positionals(
       return {};
     }
     if (!hasText(first) || isSourcePath(first)) {
-      needsPrompt(definition, format);
+      needsPrompt(definition, mode, format);
     }
     return { prompt: first, source: second };
   }

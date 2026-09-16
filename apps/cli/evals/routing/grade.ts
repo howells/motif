@@ -171,6 +171,7 @@ const SUBCOMMANDS = new Set([
   "sheet",
   "studio",
   "tile",
+  "try-on",
   "upscale",
   "vary",
   "vectorize",
