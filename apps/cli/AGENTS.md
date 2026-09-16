@@ -1,24 +1,29 @@
-# motif CLI — Agent Integration Guide
+# motif CLI - Agent Integration Guide
 
-> **Security posture**: The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (the nearest parent holding `.git`), or the current directory outside a repo. Post-processing (`--up`, `--rmbg`) writes alongside the source image by default. Always use `--dry-run` before mutating commands.
+> **Security posture**: The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (the nearest parent holding `.git`), or the current directory outside a repo. Task verbs write alongside the source image by default. Always use `--dry-run` before mutating commands.
+
+Motif is organised by Task: one verb per job, and Motif chooses the Model that does it. `--tier fast|balanced|quality` trades cost for quality; `-m <model>` overrides the choice.
 
 ## Quick Start
 
 ```bash
-# Introspect the full CLI schema (models, commands, enums, flags)
-motif --describe
+# Which verb does which job, and what to use instead
+motif --describe tasks --format json
 
-# Introspect a specific command
-motif --describe generate
+# One Task's flags, modes and output fields
+motif --describe erase --format json
 
-# Dry-run to validate without spending money
-motif --dry-run "a sunset over mountains" -m gpt --og
+# Dry-run: choose the Model and price the call, no key needed
+motif "a sunset over mountains" --og --dry-run --format json
 
 # Generate with JSON output (auto-detected when piped)
-motif "a sunset over mountains" -m gpt --og | jq .
+motif "a sunset over mountains" --og --no-open | jq .
+
+# A Task verb at a higher Tier
+motif erase "the parked car" street.png --tier quality --dry-run --format json
 
 # Raw JSON input via stdin
-echo '{"prompt":"a sunset","model":"gpt","preset":"og"}' | motif
+echo '{"prompt":"a sunset","tier":"fast","preset":"og"}' | motif --dry-run
 
 # History with pagination and field masks
 motif --history --limit 5 --fields id,prompt,cost
@@ -63,38 +68,38 @@ Pick the command by task. The last column is the same advice `motif --describe t
 
 **ALWAYS do these things:**
 
-1. **Always use `--dry-run` first** for any mutating command (generate, upscale, rmbg, vary, video, the seven verbs `segment`, `ask`, `erase`, `reframe`, `enhance`, `layers` and `vectorize`, `tool run`, `series gen` and `series run`). Generations cost real money ($0.02–$0.30 per image). Validate before spending.
+1. **Always use `--dry-run` first** for any command that calls a Model: `generate`, `vary`, every Task verb, `series gen` and `series run`. Generations cost real money ($0.003 to $0.30 an image; video and 3D cost more). The dry run needs no key and reports `model`, `cost` and `costBasis`.
 
-2. **Always use `--fields`** when you only need specific output fields. Full output includes paths, dimensions, costs, timestamps — most calls only need `id` and `path`.
+2. **Always use `--fields`** when you only need specific output fields. Full output includes paths, dimensions, costs, timestamps - most calls only need `path` (or `images`) and `cost`.
 
-3. **Always specify `--model` explicitly, except with `--look`.** Config defaults are user-set and may change between sessions. A look carries its own default model, so with `--look` leave `-m` out unless you mean to override it.
+3. **Let Motif choose the Model.** Use `--tier` to trade cost for quality. Name a Model with `-m` only when a job needs that one, taking the id from that Task's `models` in `motif --describe tasks --format json` (best-ranked first); prices are in the [cost reference](docs/costs.md). Model-only request fields go through `--param key=value`, which needs `-m`.
 
-4. **Always use `--no-open`** in automated pipelines. The default opens images in Preview.app, which will interrupt the agent.
+4. **Always use `--no-open`** in automated pipelines. The default opens results in a viewer, which will interrupt the agent.
 
-5. **Always validate model names** against `motif --describe` output. Model names are short aliases (`gpt`, `banana`, `gemini`, `gemini3`), not full fal.ai endpoint names.
+5. **Treat `cost: null` as unknown, not free.** `costBasis: "unknown"` means the price depends on what the call returns (tokens, megapixels, seconds, layers).
 
 **NEVER do these things:**
 
-1. **Never pass fal.ai endpoint strings as model names.** Use `gpt`, not `fal-ai/gpt-image-1.5`.
+1. **Never pass fal endpoint strings as model names.** Use `gpt`, not `fal-ai/gpt-image-1.5`.
 
 2. **Keep output paths inside the repo.** Any path under the git root of the current directory is allowed (the current directory itself outside a repo). Anything else, and any `%2e` encoding, is rejected with `INVALID_OUTPUT_PATH`, whose message names the allowed root.
 
-3. **Never assume the last generation exists.** Always handle `NO_PREVIOUS` errors when using `--vary`, `--up`, or `--rmbg`.
+3. **Never rely on the last generation in a pipeline.** Verbs fall back to it when the image is omitted and fail with `NO_PREVIOUS` when there is none; pass the path explicitly.
 
-4. **Never parse human-formatted output.** Always use `--format json` or pipe the command. Human output contains ANSI color codes, spinner animations, and emoji.
+4. **Never parse human-formatted output.** Always use `--format json` or pipe the command. Human output contains ANSI colour codes, spinner animations, and emoji.
 
 5. **Never send prompts with control characters.** They are stripped during sanitization, which may change the intended meaning.
+
+6. **Never retry a slow queued call.** Topaz, material, layers, mesh and try-on run through fal's queue and can take minutes; every retry is billed.
 
 ## Reference
 
 Read these when a task reaches them:
 
-- [Generate input](docs/generate.md) - before building stdin JSON for `generate`, passing several `-e` references, using `--transparent`, or acting on a prompt `warnings` entry.
-- [Promoted verbs](docs/verbs.md) - when you need the fal tool behind a verb, or a flag only one verb takes, such as `enhance --restore` or `segment --rle`.
-- [Fal tools](docs/tools.md) - before `motif tool run`: why `estimatedCost: null` is not free, why a queued tool that looks stuck must not be retried, and how to pass arguments that have no flag.
+- [Tasks](docs/verbs.md) - every verb's usage, modes and flags, what to use instead, and the removed commands with their replacements.
+- [Generate and vary](docs/generate.md) - before building stdin JSON for `generate`, choosing a Tier, overriding the Model, passing several `-e` references, using `--transparent`, or acting on a prompt `warnings` entry.
 - [Series](docs/series.md) - before `motif series create`, `gen` or `run`: references, pinned looks and moods, and every Series command.
-- [Video generation](docs/video.md) - before `motif --video`, which costs 5-10x an image.
-- [Cost reference](docs/costs.md) - when choosing a model on price or budgeting a plan of several calls.
+- [Cost reference](docs/costs.md) - per-Model prices by Task, when overriding with `-m` or budgeting a plan of several calls. Video (`animate`) and 3D (`mesh`) cost far more than an image.
 - [Field masks, chaining and pagination](docs/output.md) - when picking `--fields` for a workflow, chaining commands by path, or paging through `--history`.
 - [Error catalogue](docs/errors.md) - when you need every error code grouped by source.
 
@@ -113,11 +118,10 @@ motif auto-detects the output context:
 | Family                 | Where the path is | jq                        |
 | ---------------------- | ----------------- | ------------------------- |
 | `generate`, `vary`     | `images[].path`   | `jq -r '.images[0].path'` |
-| The seven verbs        | `path`            | `jq -r .path`             |
-| `tool run`             | `saved.path`      | `jq -r '.saved.path'`     |
-| Either, with `-o dir/` | `files[].path`    | `jq -r '.files[].path'`   |
+| Every other Task verb  | `path`            | `jq -r .path`             |
+| A Task verb, `-o dir/` | `files[].path`    | `jq -r '.files[].path'`   |
 
-A dry run has no `path` at all - it reports `output`, the path the file _would_ take.
+A dry run has no `path` at all - it reports `output`, the path the file _would_ take. Every run also reports `task`, `model`, `tier`, `chosenBy` (`ranking`, `model`, `look` or `pin`), `cost` and `costBasis`.
 
 ## Errors
 
@@ -145,7 +149,7 @@ Structured errors include an `instance` field (an `urn:fal:request:<id>` URN) wh
 
 `RESERVED_PROMPT` (status `400`, exit `2`) fires when the positional prompt is exactly a motif command word (e.g. `motif history` instead of `motif --history`). This protects agents from spending credits on a mistyped command. The error's `details.didYouMean` field carries the corrected invocation. To genuinely generate from such a one-word prompt, pass it via stdin JSON: `echo '{"prompt":"history"}' | motif`.
 
-A model that refuses an option fails with `INVALID_OPTION` (exit `2`) and names the fix: the message reads like "Seedream 4.5 does not support resolution. Models that do: …", and `details` carries `model`, `option`, `supportedOptions` (what this model does take) and `modelsSupporting` (generation models that take the option), all derived from the registry.
+A request no Model can honour fails with `NO_MODEL_AVAILABLE` (exit `2`): `-m seedream45 -r 4K` reads "seedream45 (model) cannot do resolution.", with `details.blockedBy` naming what stopped it and `details.unblockedBy` what would fix it.
 
 What a code means, whether a retry can help and how to recover: `motif --describe errors --format json`.
 
@@ -155,8 +159,8 @@ Structured failures exit with a semantic process code derived from the error's R
 
 | Exit | Meaning | Status | Example error codes |
 | --- | --- | --- | --- |
-| `0` | Success | — | — |
-| `1` | Unknown / unmapped | — | Unstructured crashes; any status outside the ranges below |
+| `0` | Success | - | - |
+| `1` | Unknown / unmapped | - | Unstructured crashes; any status outside the ranges below |
 | `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `REMOVED_COMMAND`, `NO_MODEL_AVAILABLE` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
@@ -170,9 +174,9 @@ Every structured error still carries the machine-readable `status` field, so the
 
 ## Stdin JSON
 
-Flag values override stdin JSON values for the same field. The three input modes and the full schema are in [generate input](docs/generate.md).
+Flag values override stdin JSON values for the same field. The schema is in [generate and vary](docs/generate.md#stdin-json).
 
-**The seven promoted verbs are argv-only.** They route on `argv[0]`, so there is no `"command": "segment"`. An unrecognised `command` value is not rejected - it falls through to `generate`, so `{"command":"segment","prompt":"the bowl"}` silently generates an image of a bowl and bills you for it. Invoke a verb as `motif segment ...`, or reach the same endpoint through `tool-run`.
+**Task verbs are argv-only.** They route on `argv[0]`, so there is no `"command": "segment"`. An unrecognised `command` value is not rejected - it falls through to `generate`, so `{"command":"segment","prompt":"the bowl"}` silently generates an image of a bowl and bills you for it. Invoke a verb as `motif segment ...`.
 
 ## Creative Direction
 
@@ -187,11 +191,11 @@ Each option is one or more full sentences. The final prompt is your prompt, then
 
 ### Looks
 
-In `generate`, a look sets the model and aspect when you gave none. Explicit `-m`/`--model`, `-a`/`--aspect`, a preset flag such as `--og`, or stdin `model`, `aspect` or `preset` always win. Resolution is never changed.
+In `generate`, a look sets the Model and aspect when you gave none. Explicit `-m`/`--model`, `-a`/`--aspect`, a preset flag such as `--og`, or stdin `model`, `aspect` or `preset` always win. A look's Model comes before a pinned Model and the Tier ranking, so `--tier` has no effect with `--look`. Resolution is never changed.
 
 Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` and `object` (`acceptsMood: false` in `--describe`). A mood with one of them fails with `INVALID_OPTION` (exit `2`) on field `mood`, and `details.availableIds` lists the looks that do accept a mood. A mood with no look is valid. `--no-mood` on `generate`, `series gen` and `series run` (or `"mood": null` in stdin `creative`) drops any mood, including a Series' pinned one, so `series gen <slug> "x" --look plate --no-mood` works on a Series pinned to a mood.
 
-The `drawing` look is experimental (`experimental: true` in `--describe`): it works, but its text and defaults may change. Look defaults outrank `defaultModel` and `defaultAspect` in `~/.motif/config.json`; explicit flags and stdin outrank both.
+The `drawing` look is experimental (`experimental: true` in `--describe`): it works, but its text and defaults may change. Look defaults outrank `tasks.generate.model` and `defaultAspect` in `~/.motif/config.json`; explicit flags and stdin outrank both.
 
 | Look | What it's for | Aspect | Model |
 | --- | --- | --- | --- |
@@ -222,7 +226,7 @@ The `drawing` look is experimental (`experimental: true` in `--describe`): it wo
 ### Usage
 
 ```bash
-# CLI flags - the look picks flux2-pro at 3:2
+# CLI flags - the look sets the Model and a 3:2 aspect
 motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
 
 # Explicit flags beat the look's defaults
@@ -236,31 +240,36 @@ Each flag overrides the matching key in the stdin `creative` object. Only the fi
 
 An unknown id fails before any fal request with a structured `INVALID_OPTION` error (exit `2`) whose details include the field and the available ids for that field. `--describe generate` lists every id with its label, sentence, and for looks the `defaultAspect` and `defaultModel`.
 
-`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. Vary keeps the last generation's model and aspect, and runs on the edit-capable model subset (`EDIT_CAPABLE_MODELS`), the generation models whose fal endpoints support image editing. A Series can pin a look and mood when it's created (see [Series](docs/series.md)). Series' free-text `--style <prompt>` and the model-native `--style` on `generate` are separate from looks.
+`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. vary reuses the Model that made its image while Motif still offers it; otherwise it chooses from the generate ranking's Models that can edit. A Series can pin a look and mood when it's created (see [Series](docs/series.md)). A Series' free-text `--style <prompt>` is separate from looks. A Model's own style setting is an override like any other: `-m ideogram --param style=DESIGN`.
 
-## Promoted Verbs
+## Task Verbs
 
-Seven fal capabilities have a verb of their own rather than living behind `motif tool run`. Each takes an optional trailing image path and falls back to the last generation, and each supports `--dry-run`, `-o/--output`, `--format`, `--fields` and `--no-open`. `-o` ending in `/` writes every artefact into that directory, named by registry output key; anything else writes the primary output only.
+Every Task has a verb. Each takes an optional trailing image path and falls back to the last generation, and each supports `--tier`, `-m`, `--param`, `--seed`, `--dry-run`, `-o/--output`, `--format`, `--fields` and `--no-open`. A mode is a flag such as `--text` or `--pose`, one per call. `-o` ending in `/` writes every file the Model returned into that directory; anything else writes the primary file only.
 
 ```bash
-motif segment "the chair" room.png --dry-run --format json   # SAM 3; --rle for compact JSON masks
+motif segment "the chair" room.png --dry-run --format json   # --rle for compact JSON masks, --auto for every region
 motif ask "what colour is the chair?" room.png               # prose answer, writes no file
-motif ask --caption room.png                                 # also --detect <thing>, --point <thing>
-motif erase "the parked car" street.png                      # remove and fill
-motif reframe --og cover.png                                 # convert an existing image to a new ratio
-motif enhance --denoise photo.png                            # Topaz, one mode at a time
-motif layers poster.png -o layers/                           # several files, so -o must be a directory
-motif vectorize logo.png -o logo.svg                         # raster to SVG
+motif ask --caption room.png                                 # also --detect <thing>, --point <thing>, --read, --safe
+motif erase "the parked car" street.png --dry-run            # --tier quality also removes the shadow
+motif cutout product.png --dry-run                           # remove the background
+motif reframe cover.png --og --dry-run                       # convert an existing image to a new ratio
+motif upscale photo.png --scale 2 --dry-run                  # --transparent, --generative, --creative
+motif restore photo.png --noise --dry-run                    # one mode at a time
+motif relight kitchen.png --mood dawn --dry-run              # or a described light, --even, --flat
+motif layers poster.png -o layers/ --dry-run                 # several files, so -o is a directory
+motif vectorize logo.png -o logo.svg --dry-run               # raster to SVG
+motif map room.png --pose --dry-run                          # depth by default
+motif animate "the camera pushes in" still.png --dry-run     # video costs 5-10x an image
 ```
 
-Read each verb's flags and outputs from `motif --describe <verb> --format json`.
+`--rmbg`, `--up`, `--vary`, `--video`, `enhance` and `tool` were removed and exit `2` with `REMOVED_COMMAND`, naming the verb in `details.use`. Read each verb's flags and outputs from `motif --describe <verb> --format json`, and see [tasks](docs/verbs.md) for all of them.
 
 ## Contact Sheets
 
 `motif sheet` lays images out on one PNG, JPEG or WebP: each cell is the image fitted into a 512 px square (aspect kept) on a warm off-white ground, with a caption underneath. Captions come from history, matched by output path: model, look and mood when used, and cost (`cost unknown` when it isn't known). With no history match the caption is the filename. `generate`, `series gen` and `series run` record `look` and `mood` on history entries for this.
 
 ```bash
-motif sheet a.png b.png c.png -o review/sheet.png --no-open --format json
+motif sheet a.png b.png c.png -o sheet.png --no-open --format json
 motif sheet --last 6 --cols 3 --no-open --format json --fields path,count
 ```
 
@@ -269,24 +278,23 @@ Pass files or `--last <n>` (the newest n history images still on disk, oldest fi
 ## Schema Introspection
 
 ```bash
-# Full schema (all commands, models, enums, flags)
-motif --describe
+# Full schema: commands, enums, global flags, errors
+motif --describe --format json
 
-# Single command schema
-motif --describe generate
-motif --describe upscale
+# Task routing: which verb does which job
+motif --describe tasks --format json
 
-# Via stdin
-echo '{"command":"describe"}' | motif
+# One command or Task
+motif --describe generate --format json
+motif --describe upscale --format json
 ```
 
 The schema includes:
 
-- All command input/output types with JSON Schema
-- All model capabilities (aspect, resolution, edit support, pricing)
-- All enum values (aspect ratios, resolutions, model names)
-- Preset definitions
-- Global flag documentation
+- Every command's input and output as JSON Schema, with `whenToUse` and `notFor`
+- Each Task's `tiers`, `modes` and `models` (override ids, best-ranked first) in `--describe tasks`
+- All enum values (aspect ratios, resolutions, presets, looks, moods)
+- Global flag documentation and the error catalogue
 
 ## Response Sanitization
 
@@ -296,10 +304,12 @@ All API response data is sanitized before output to defend against prompt inject
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `FAL_KEY` | Yes | fal.ai API key. Also configurable in `~/.motif/config.json` |
+| `FAL_KEY` | Yes, except for dry runs | fal.ai API key. Also configurable in `~/.motif/config.json` |
+| `OPENAI_API_KEY` | Only for `--transparent` at the quality Tier | The transparency route for `gpt2` runs through OpenAI |
 
 ## Auth
 
 - **Headless**: Set `FAL_KEY` environment variable. No browser redirect needed.
 - **Config file**: Add `"apiKey": "..."` to `~/.motif/config.json`.
 - **Local override**: Create `.motifrc` in CWD with project-specific config.
+- **Pinning a Model**: `"tasks": { "upscale": { "model": "topaz-precision" } }` in config holds a Task's Model steady across releases. Older `defaultModel`, `upscaler` and `backgroundRemover` keys migrate to `tasks.generate`, `tasks.upscale` and `tasks.cutout`.

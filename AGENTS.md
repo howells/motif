@@ -71,7 +71,7 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 ```
 
 - Always `--dry-run` first, always `--no-open` in a pipeline, and always `--fields` to keep output small.
-- Let Motif choose the Model. `--tier fast|balanced|quality` trades cost for quality; `-m <model>` is an override for when a specific Model is needed, and `--param key=value` (Model-only request fields) needs it. Read live ids from `--describe`; don't hardcode Model or taxonomy ids.
+- Let Motif choose the Model. `--tier fast|balanced|quality` trades cost for quality; `-m <model>` is an override for when a specific Model is needed, and `--param key=value` (Model-only request fields) needs it. Every Task's override Model ids, best-ranked first, are in `models` in `motif --describe tasks --format json` (prices in `apps/cli/docs/costs.md`); don't hardcode Model or taxonomy ids.
 - `--rmbg`, `--up`, `--vary`, `--video`, `enhance` and `tool` are gone and exit `2` with `REMOVED_COMMAND` naming the verb.
 - Output paths must stay inside the git root of the current directory (or the current directory outside a repo); anything else fails with `INVALID_OUTPUT_PATH`. Human output carries ANSI and spinners - parse JSON, never the human format.
 - Exit codes are semantic: `2` bad input, `3` auth, `4` not found, `5` upstream fal failure.

@@ -3,9 +3,9 @@
 # Regenerate every example image in docs/tools/examples/ through the real CLI.
 #
 # COST: roughly $1.70 for the full set. About $1.16 of that is priceable before
-# the call - five generations at $0.15, plus the flat-priced tools. The rest is
-# metered or per-megapixel (patina, topaz-restore, the preprocessors) and cannot
-# be known until it runs. The dry-run pass below prints the priceable subtotal;
+# the call - five generations at $0.15, plus the flat-priced Tasks. The rest is
+# metered or per-megapixel (material, restore, the control maps) and cannot
+# be known until it runs. A null cost means unknown, not free. The dry-run pass below prints the priceable subtotal;
 # treat it as a floor, never as the bill.
 #
 # This spends real credits. It refuses to run without --yes-spend-credits, and
@@ -60,7 +60,9 @@ beneath, laid flat on a white plaster surface, overhead light"
 # -- Every step, as a single list ------------------------------------------
 #
 # Each line is a full motif invocation minus the dry-run flag. Sources first,
-# because everything downstream reads them off disk.
+# because everything downstream reads them off disk. The sources name -m banana
+# so they regenerate on the Model the committed images came from, whatever the
+# ranking says by then; the Task steps name the Tier or mode that produced them.
 
 steps() {
   cat <<STEPS
@@ -71,13 +73,13 @@ motif "$P_LINEN" -m banana -a 1:1 -r 2K --no-open -o $OUT/source-linen.jpg
 motif "$P_VESSEL" -m banana -a 1:1 -r 2K --no-open -o $OUT/source-vessel.jpg
 motif segment "the white ceramic bowl" $OUT/source-apothecary.jpg --no-open -o $OUT/segment/
 motif erase "the small amber bottle on the right of the group" $OUT/source-apothecary.jpg --no-open -o $OUT/out-erased.jpg
-motif tool run finegrain-eraser $OUT/source-apothecary.jpg --prompt "the small amber bottle on the right of the group" -o $OUT/out-erased-finegrain.jpg
-motif tool run depth-anything $OUT/source-interior.jpg -o $OUT/out-depth.jpg
-motif tool run lineart $OUT/source-vessel.jpg -o $OUT/out-lineart.jpg
-motif tool run bria-rmbg $OUT/source-vessel.jpg -o $OUT/out-nobg.png
-motif enhance --restore $OUT/source-vessel.jpg --no-open -o $OUT/verb-enhanced.jpg
-motif tool run ideogram-layerize-text $OUT/source-label.jpg -o $OUT/layers/
-motif tool run patina $OUT/source-linen.jpg -o $OUT/pbr/
+motif erase "the small amber bottle on the right of the group" $OUT/source-apothecary.jpg --tier quality --no-open -o $OUT/out-erased-finegrain.jpg
+motif map $OUT/source-interior.jpg --no-open -o $OUT/out-depth.jpg
+motif map $OUT/source-vessel.jpg --lineart --no-open -o $OUT/out-lineart.jpg
+motif cutout $OUT/source-vessel.jpg --tier quality --no-open -o $OUT/out-nobg.png
+motif restore $OUT/source-vessel.jpg --no-open -o $OUT/verb-enhanced.jpg
+motif layers $OUT/source-label.jpg --text --no-open -o $OUT/layers/
+motif material $OUT/source-linen.jpg --no-open -o $OUT/pbr/
 STEPS
 }
 
@@ -103,7 +105,7 @@ while IFS= read -r step; do
   [ -n "$step" ] || continue
   COUNT=$((COUNT + 1))
   json=$(eval "$step --dry-run --format json" 2>/dev/null || true)
-  cost=$(printf '%s' "$json" | jq -r '.estimatedCost // "null"' 2>/dev/null || echo null)
+  cost=$(printf '%s' "$json" | jq -r '.cost // "null"' 2>/dev/null || echo null)
   label=$(printf '%s' "$step" | cut -c1-72)
   if [ "$cost" = "null" ] || [ -z "$cost" ]; then
     METERED=$((METERED + 1))
@@ -133,7 +135,7 @@ echo
 while IFS= read -r step; do
   [ -n "$step" ] || continue
   printf '→ %s\n' "$(printf '%s' "$step" | cut -c1-96)"
-  eval "$step --format json --fields saved,path,files,cost,estimatedCost" || {
+  eval "$step --format json --fields images,path,files,model,cost,costBasis" || {
     echo "  step failed, continuing" >&2
   }
 done < "$TMP"
