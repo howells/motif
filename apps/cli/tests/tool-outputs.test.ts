@@ -69,7 +69,10 @@ describe(downloadAll, () => {
       testDir
     );
 
-    expect(written.map((file) => file.key)).toStrictEqual(["image", "mask_image"]);
+    expect(written.map((file) => file.key)).toStrictEqual([
+      "image",
+      "mask_image",
+    ]);
     expect(written.map((file) => file.path)).toStrictEqual([
       join(testDir, "image.png"),
       join(testDir, "mask_image.png"),

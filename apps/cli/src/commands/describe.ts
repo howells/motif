@@ -34,7 +34,8 @@ import { emit } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
-import { TASK_VERBS, usageLine } from "./verbs/task-verbs";
+import { usageLine } from "./verbs/register-verb";
+import { TASK_VERBS } from "./verbs/task-verbs";
 import {
   COMMAND_TASKS,
   TASK_INDEX,

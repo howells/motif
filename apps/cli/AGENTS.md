@@ -38,7 +38,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 | Extend or recut an image to a new aspect ratio, generating the new edges. | `motif reframe --og [image]` | A new image at a given ratio (generate with a ratio). |
 | Make an image or video larger without losing detail. | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
 | Fix noise, softness, damage, colour or tone without changing the size. | `motif restore [image]` | Making an image larger (upscale). |
-| Change the light in a photo without regenerating it. | `motif relight "light" [image]` | Regenerating the scene in a new light (generate with a mood). |
+| Change the light in a photo without regenerating it. | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |
 | Mask a named thing in an image or video. | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
 | Answer a question about an image, caption it, count or find things in it. | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
 | Split an image into transparent layers. | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |

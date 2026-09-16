@@ -111,8 +111,8 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
   ),
   verbRow(
     "relight",
-    'motif relight "light" [image]',
-    "change the light in a photo",
+    'motif relight [image] "light"',
+    "relight a photo, or --mood <id>",
     ["light", "lighting", "shadows"]
   ),
   verbRow(

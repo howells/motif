@@ -2,7 +2,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { FAL_TOOL_IDS, MODELS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, FAL_TOOL_IDS, MODELS } from "@howells/motif-sdk";
+import type { CreativeField } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { historyPrompt } from "../src/commands/task-run";
@@ -33,6 +34,25 @@ afterEach(() => {
     }
   }
 });
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("expected a JSON object");
+  }
+  return { ...value };
+}
+
+/**
+ * The prompt sentence the SDK appends for one creative option id, less its
+ * first letter, which the sentence join capitalises.
+ */
+function clause(field: CreativeField, id: string): string {
+  const option = CREATIVE_TAXONOMY[field].find((entry) => entry.id === id);
+  if (option === undefined) {
+    throw new Error(`no ${field} option ${id}`);
+  }
+  return option.clause.slice(1);
+}
 
 function parseJson(text: string): Record<string, unknown> {
   const value: unknown = JSON.parse(text.trim());
@@ -292,6 +312,75 @@ describe("Task verbs: sources and output names", () => {
   });
 });
 
+describe("relight", () => {
+  it("lights to a mood, with the image first and no prompt", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "relight",
+      join(home, "in.png"),
+      "--mood",
+      "dawn",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    const payload = parseJson(result.stdout);
+    expect(payload).toMatchObject({
+      source: join(home, "in.png"),
+      task: "relight",
+    });
+    expect(String(asRecord(payload.request).prompt)).toContain(
+      clause("mood", "dawn")
+    );
+  });
+
+  it("takes a described light after the image, with a mood alongside", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "relight",
+      join(home, "in.png"),
+      "low sun from the left",
+      "--mood",
+      "dawn",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    const prompt = String(asRecord(parseJson(result.stdout).request).prompt);
+    expect(prompt).toContain("ow sun from the left");
+    expect(prompt).toContain(clause("mood", "dawn"));
+  });
+
+  it("refuses an unknown mood and a missing light", async () => {
+    const home = tempHome();
+    const unknown = await runMotifIn(home, [
+      "relight",
+      join(home, "in.png"),
+      "--mood",
+      "noon",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(unknown.code).toBe(2);
+    expect(parseJson(unknown.stderr).code).toBe("INVALID_OPTION");
+
+    const bare = await runMotifIn(home, [
+      "relight",
+      join(home, "in.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(bare.code).toBe(2);
+    expect(String(parseJson(bare.stderr).message)).toContain("--mood");
+  });
+});
+
 describe("history prompts", () => {
   it("tags a Task run once, replacing an earlier Task's tag (MOT-48 #3)", () => {
     expect(historyPrompt("layers", "[layers]")).toBe("[layers]");
@@ -433,6 +522,7 @@ describe("no model names in human output", () => {
     ["erase", "the car", SOURCE],
     ["upscale", SOURCE],
     ["segment", "the chair", SOURCE],
+    ["relight", SOURCE, "--mood", "dawn"],
   ])("keeps them out of the human dry run of %j", async (...args) => {
     const home = tempHome();
     const result = await runMotifIn(home, [

@@ -1,23 +1,22 @@
 /**
  * One verb per Task. Each definition says which positionals the verb reads,
  * which mode flags it offers, and which extra flags become TaskInput fields;
- * `registerTaskVerb` turns a definition into a commander command over the
- * `runTask` kernel.
+ * `registerTaskVerb` in `register-verb.ts` turns a definition into a
+ * commander command over the `runTask` kernel.
  */
 
-import { existsSync } from "node:fs";
-
-import { ASPECT_RATIOS, FORMAT_PRESETS, TASKS } from "@howells/motif-sdk";
+import {
+  ASPECT_RATIOS,
+  CREATIVE_TAXONOMY,
+  FORMAT_PRESETS,
+} from "@howells/motif-sdk";
 import type {
   AspectRatio,
   Resolution,
-  TaskId,
   TaskInput,
   TaskOutput,
 } from "@howells/motif-sdk";
-import type { Command } from "commander";
 
-import type { MotifConfig } from "../../utils/config";
 import { handleError } from "../../utils/errors";
 import {
   parseIntegerOption,
@@ -27,80 +26,11 @@ import {
 import { imageSource } from "../../utils/motif-client";
 import type { OutputFormat } from "../../utils/output";
 import { hasText } from "../../utils/text";
-import { runTask } from "../task-run";
 import { parseBoxes, parseMargin, parseSizes } from "./pixel-options";
-import {
-  commonInput,
-  exclusiveFlag,
-  verbEmitOptions,
-  withCommonOptions,
-} from "./shared";
+import { exclusiveFlag } from "./shared";
 import type { VerbOptions } from "./shared";
-
-/** A mode flag: `--text`, or a value flag such as `--detect <thing>`. */
-interface ModeFlag {
-  /** The Task mode id, also the flag name. */
-  mode: string;
-  description: string;
-  /** Placeholder for a value flag, e.g. `thing`. */
-  value?: string;
-  /** Whether a value flag's value is the prompt. */
-  valueIsPrompt?: boolean;
-}
-
-interface VerbDefinition {
-  command: string;
-  task: TaskId;
-  /** Positional placeholders after the verb, as `--help` prints them. */
-  usage: string;
-  /** Whether the first positional is the prompt, for the chosen mode. */
-  promptFirst: (mode: string | undefined, options: VerbOptions) => boolean;
-  sourceKind: "image" | "image-or-video";
-  /**
-   * Whether the Task runs from a prompt alone in this mode, so a missing
-   * source isn't filled from the last generation.
-   */
-  sourceOptional?: (mode: string | undefined) => boolean;
-  modes: readonly ModeFlag[];
-  /** Present participle for the spinner. */
-  verb: string;
-  extension?: string;
-  writesFiles?: (mode?: string) => boolean;
-  quiet?: boolean;
-  /** Extra flags beyond the common set and the modes. */
-  options?: (command: Command) => Command;
-  /** TaskInput fields the extra flags set. */
-  input?: (
-    options: VerbOptions,
-    format: OutputFormat,
-    mode: string | undefined
-  ) => Promise<TaskInput> | TaskInput;
-  data?: (output: TaskOutput) => Record<string, unknown>;
-  render?: (output: TaskOutput) => string | undefined;
-}
-
-const SOURCE_PATH_REGEX =
-  /\.(png|jpe?g|webp|gif|avif|tiff?|mp4|mov|m4v|webm)$/i;
-
-const never = (): boolean => false;
-const always = (): boolean => true;
-
-function stringOption(options: VerbOptions, key: string): string | undefined {
-  const value = options[key];
-  return typeof value === "string" && value !== "" ? value : undefined;
-}
-
-function invalid(message: string, format: OutputFormat): never {
-  handleError(new Error(message), "INVALID_OPTION", format);
-}
-
-function parsed<T>(format: OutputFormat, fn: () => T): T {
-  try {
-    return fn();
-  } catch (error) {
-    handleError(error, "INVALID_OPTION", format);
-  }
-}
+import { always, invalid, never, parsed, stringOption } from "./verb-kit";
+import type { VerbDefinition } from "./verb-kit";
 
 async function maskInput(
   options: VerbOptions,
@@ -181,6 +111,16 @@ function renderAnswer(output: TaskOutput): string | undefined {
   }
   const located = data.objects ?? data.points;
   return JSON.stringify(located ?? data, null, 2);
+}
+
+/** `--mood <id>`, checked against the mood ids. */
+function moodInput(options: VerbOptions, format: OutputFormat): TaskInput {
+  const mood = stringOption(options, "mood");
+  if (mood === undefined) {
+    return {};
+  }
+  const ids = CREATIVE_TAXONOMY.mood.map((option) => option.id);
+  return { mood: parsed(format, () => validateEnumOption(mood, ids, "mood")) };
 }
 
 export const TASK_VERBS: readonly VerbDefinition[] = [
@@ -410,20 +350,26 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
   },
   {
     command: "relight",
-    input: maskInput,
+    input: async (options, format) => ({
+      ...(await maskInput(options, format)),
+      ...moodInput(options, format),
+    }),
     modes: [
       { description: "Restore natural, even lighting", mode: "even" },
       { description: "Strip baked-in light and shadow", mode: "flat" },
     ],
     options: (command) =>
-      command.option(
-        "--mask <path>",
-        "Mask image: white marks what to relight"
-      ),
+      command
+        .option(
+          "--mood <id>",
+          `Light a house mood: ${CREATIVE_TAXONOMY.mood.map((option) => option.id).join(", ")}`
+        )
+        .option("--mask <path>", "Mask image: white marks what to relight"),
     promptFirst: (mode) => mode === undefined,
+    promptFlag: { key: "mood", usage: "--mood <id>" },
     sourceKind: "image",
     task: "relight",
-    usage: "[light] [image]",
+    usage: "[image] [light]",
     verb: "Relighting",
   },
   {
@@ -511,136 +457,3 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     verb: "Vectorizing",
   },
 ];
-
-/** `motif <command> <usage>`, as errors quote it. */
-export function usageLine(definition: VerbDefinition): string {
-  return `motif ${definition.command} ${definition.usage}`;
-}
-
-/** Split positionals into the prompt and the source, per the chosen mode. */
-function positionals(
-  definition: VerbDefinition,
-  args: readonly (string | undefined)[],
-  mode: string | undefined,
-  options: VerbOptions,
-  format: OutputFormat
-): { prompt?: string; source?: string } {
-  const [first, second] = args;
-  const modeFlag = definition.modes.find((flag) => flag.mode === mode);
-  const flagPrompt =
-    modeFlag?.valueIsPrompt === true
-      ? stringOption(options, modeFlag.mode)
-      : undefined;
-  // `motif tile photo.png`: a lone argument naming an existing image is the
-  // source, not the prompt, when the Task can run without a prompt.
-  if (
-    definition.sourceOptional?.(mode) === true &&
-    hasText(first) &&
-    !hasText(second) &&
-    SOURCE_PATH_REGEX.test(first) &&
-    existsSync(first)
-  ) {
-    return { source: first };
-  }
-  if (definition.promptFirst(mode, options)) {
-    if (!hasText(first)) {
-      invalid(
-        `motif ${definition.command} needs a prompt: ${usageLine(definition)}`,
-        format
-      );
-    }
-    return { prompt: first, source: second };
-  }
-  if (hasText(second)) {
-    invalid(
-      `motif ${definition.command}${mode === undefined ? "" : ` --${mode}`} takes only a source path; got ${JSON.stringify(first)} and ${JSON.stringify(second)}. Usage: ${usageLine(definition)}`,
-      format
-    );
-  }
-  return { prompt: flagPrompt, source: first };
-}
-
-export function registerTaskVerb(
-  program: Command,
-  definition: VerbDefinition,
-  config: MotifConfig
-): void {
-  const takesTwo = definition.usage.split(" ").length > 1;
-  let command = program
-    .command(definition.command)
-    .description(TASKS[definition.task].summary)
-    .argument("[first]")
-    .usage(`${definition.usage} [options]`);
-  if (takesTwo) {
-    command = command.argument("[second]");
-  }
-  for (const flag of definition.modes) {
-    command = command.option(
-      flag.value === undefined
-        ? `--${flag.mode}`
-        : `--${flag.mode} <${flag.value}>`,
-      flag.description
-    );
-  }
-  command = definition.options?.(command) ?? command;
-  withCommonOptions(command).action(async (...received: unknown[]) => {
-    const args = received
-      .slice(0, takesTwo ? 2 : 1)
-      .map((value) => (typeof value === "string" ? value : undefined));
-    const options = command.opts<VerbOptions>();
-    const emitOpts = verbEmitOptions(options);
-    const { format } = emitOpts;
-    const common = commonInput(options, format);
-    const mode = exclusiveFlag(
-      options,
-      definition.modes.map((flag) => flag.mode),
-      definition.command,
-      format
-    );
-    const { prompt, source } = positionals(
-      definition,
-      args,
-      mode,
-      options,
-      format
-    );
-    const extra = (await definition.input?.(options, format, mode)) ?? {};
-
-    await runTask(
-      {
-        command: definition.command,
-        ...(definition.data !== undefined && { data: definition.data }),
-        ...(definition.extension !== undefined && {
-          extension: definition.extension,
-        }),
-        input: {
-          ...common,
-          ...extra,
-          ...(mode !== undefined && { mode }),
-          ...(hasText(prompt) && { prompt }),
-        },
-        outputSuffix:
-          mode === undefined
-            ? `-${definition.command}`
-            : `-${definition.command}-${mode}`,
-        ...(definition.quiet === true && { quiet: true }),
-        ...(definition.render !== undefined && { render: definition.render }),
-        sourceKind: definition.sourceKind,
-        ...(definition.sourceOptional?.(mode) === true && {
-          sourceOptional: true,
-        }),
-        task: definition.task,
-        verb: definition.verb,
-        writesFiles: definition.writesFiles?.(mode) ?? true,
-      },
-      {
-        dryRun: options.dryRun === true,
-        noOpen: options.open === false,
-        output: options.output,
-        source,
-      },
-      config,
-      emitOpts
-    );
-  });
-}

@@ -91,7 +91,11 @@ describe("unknown cost in history", () => {
     expect(totalCost.session).toBeCloseTo(0.1, 10);
     expect(totalCost.today).toBeCloseTo(0.1, 10);
     expect(totalCost.allTime).toBeCloseTo(0.1, 10);
-    expect(totalCost.unknown).toStrictEqual({ allTime: 1, session: 1, today: 1 });
+    expect(totalCost.unknown).toStrictEqual({
+      allTime: 1,
+      session: 1,
+      today: 1,
+    });
   });
 
   it("loads a history file written before the unknown counts existed", async () => {

@@ -9,7 +9,8 @@ import { Command } from "commander";
 import { loadConfig } from "../../utils/config";
 import { formatForParseErrors, routeCommanderErrors } from "../../utils/errors";
 import { registerVary } from "../vary";
-import { registerTaskVerb, TASK_VERBS } from "./task-verbs";
+import { registerTaskVerb } from "./register-verb";
+import { TASK_VERBS } from "./task-verbs";
 
 export const VERB_NAMES = [
   ...TASK_VERBS.map((definition) => definition.command),
