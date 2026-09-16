@@ -1,44 +1,31 @@
 # @howells/motif-cli
 
-Agent-first fal.ai CLI with structured output, dry runs, stdin JSON, local history, series, utility tools, and terminal Studio.
+Images and video through fal.ai, by task. Say what you want done and Motif chooses the Model that does it best at the Tier you ask for. Every call can be priced with a dry run before it spends anything.
 
 ## Install
 
 ```bash
 npm install -g @howells/motif-cli
+export FAL_KEY="your-fal-key"
 ```
 
-## Agent Entry Points
-
-The agent guide ships with this package: [`AGENTS.md`](AGENTS.md), with reference pages in [`docs/`](docs/). Start there before driving the CLI.
+## Quick start
 
 ```bash
-motif --help                           # every command, listed by task
-motif --describe tasks --format json   # when to use each command, and what to use instead
-motif --describe --format json         # full schema: models, looks, moods, errors
+motif "a ceramic desk lamp on an oak desk" --dry-run    # choose the Model and price it
+motif "a ceramic desk lamp on an oak desk"              # make it
+motif "a ceramic desk lamp" --tier fast --dry-run        # a cheaper, quicker choice
+motif erase "the cable" lamp.png                         # take something out
+motif upscale lamp-erase.png --scale 2                   # make it larger
 ```
 
-Pick the command that names the task. Each one makes the right fal call, opens what it writes, and puts the saved path at the top level of its JSON.
+`--tier fast|balanced|quality` moves the choice; the default is `balanced`. Run `motif` with no arguments for help, and `motif <verb> --help` for one Task.
+
+## For agents
 
 ```bash
-motif "prompt" --model banana2 --dry-run --format json   # make an image; price it first
-motif "prompt" --look editorial --dry-run --format json  # a house look picks its own model
-motif erase "the car" street.png --dry-run --format json # remove an object and fill the gap
-motif reframe --og photo.png --dry-run --format json     # extend the canvas to a new ratio
-motif segment "shoe" ./image.png --dry-run --format json # cut out or mask a named thing
-motif ask "how many chairs?" room.png --format json      # caption, count or ask about an image
-motif sheet a.png b.png c.png --format json              # captioned contact sheet
-motif series run "theme" --count 6 --dry-run --format json
+motif --describe tasks --format json   # task words mapped to verbs, and what to use instead
+motif --describe --format json         # full schema: Tasks, looks, moods, errors
 ```
 
-Anything a command doesn't cover is in `motif tool list`.
-
-## Package Development
-
-```bash
-pnpm --filter @howells/motif-cli test
-pnpm --filter @howells/motif-cli typecheck
-pnpm --filter @howells/motif-cli build
-```
-
-See `apps/cli/AGENTS.md` for the detailed agent integration guide.
+Add `--format json` to any command for structured output. The guide ships with this package: [AGENTS.md](AGENTS.md), and every verb's modes, flags and examples are in [docs/verbs.md](docs/verbs.md).

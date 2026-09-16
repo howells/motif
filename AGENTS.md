@@ -88,7 +88,7 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 - SDK Task data: `TASKS` (summary, notFor, modes and ranked Models with Tiers per Task), `TASK_IDS`, `TIERS`, and `resolveTask`, the pure function that chooses a Model.
 - `FalClient`, `MODELS`, `FAL_TOOLS` and the other model-keyed exports are no longer exported.
 - SDK image layer: `@howells/motif-sdk/image` (ESM-only subpath). `createMotifImage(config?)` carries provider requests (`generate()`, `edit()`) over google, openai, replicate and fal with per-call cost tracking; it doesn't choose Models.
-- Discovery: `README.md`, `llms.txt`, `apps/cli/docs/`, `docs/security.md`, `docs/surface/`.
+- Discovery: `README.md`, `llms.txt`, `apps/cli/docs/`, `docs/security.md`, and `docs/surface/` (historical, from before Tasks replaced models).
 
 ## Environment
 

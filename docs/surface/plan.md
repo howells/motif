@@ -1,3 +1,5 @@
+> Historical record from before Tasks replaced models ([ADR 0001](../adr/0001-tasks-replace-models.md)). Current commands are in [apps/cli/docs/verbs.md](../../apps/cli/docs/verbs.md).
+
 # Surface Plan: Motif
 
 Date: 2026-09-10 (from `audit-2026-09-10.md`)

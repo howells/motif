@@ -31,7 +31,7 @@ In JSON mode, errors are written to stderr as one object:
 
 `NO_MODEL_AVAILABLE` exits `2`: no Model can do what the request asks. Its `details` say why and what would fix it.
 
-- `blockedBy` is what ruled the Models out: a capability the request needs (`seed`, `mask`, `transparency`, `references`, `video`, `rig` and the rest), `key` for a missing API key, `mode`, or `unknown-model`.
+- `blockedBy` is what ruled the Models out: a capability the request needs (`seed`, `mask`, `transparency`, `references`, `video`, `rig` and the rest), `key` for a missing API key, or `mode`.
 - `unblockedBy` lists the fixes that would work: `model` (name one with `-m`), `key` (set it; `missingKey` names the variable), `option` (drop the option) or `input` (supply the input, such as a mask).
 
 ```json
@@ -45,6 +45,8 @@ In JSON mode, errors are written to stderr as one object:
   }
 }
 ```
+
+`UNKNOWN_MODEL` exits `2`: `-m` names something that isn't a Model for this Task. `details.blockedBy` is `unknown-model`, `unblockedBy` is `["model"]`, and the message lists the Models the Task accepts.
 
 `TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran.
 

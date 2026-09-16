@@ -35,7 +35,7 @@ motif vary hero.png --prompt "the same room at night" --dry-run
 
 `--tier fast|balanced|quality` moves Motif's choice along the generate ranking. The default is `balanced`. `fast` picks cheap, quick Models (under about $0.04 an image); `quality` picks the best-ranked ones, which cost more and are often much slower.
 
-A look carries its own Model, so `--tier` has no effect when `--look` is set. A pinned Model in config (`tasks.generate.model`) or `-m` wins over both.
+A look carries its own Model, so `--tier` has no effect when `--look` is set. The order is `-m`, then the look's Model, then a pinned Model in config (`tasks.generate.model`), then the ranking at the chosen Tier.
 
 ## Override Models
 
