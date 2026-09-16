@@ -190,7 +190,7 @@ describe(grade, () => {
     ).toBeTruthy();
     expect(
       grade(reframe, sh("motif reframe --wide hero.png")).missingFlags
-    ).toStrictEqual(["--og | --landscape"]);
+    ).toStrictEqual(["--og | --landscape | --aspect 16:9"]);
     expect(
       grade(
         caseById("generate-hero-16x9"),

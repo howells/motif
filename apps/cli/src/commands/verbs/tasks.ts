@@ -126,7 +126,11 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     "stylise",
     "stylize",
   ]),
-  verbRow("segment", "mask a named thing", ["cut-out", "mask", "select"]),
+  verbRow("segment", "mask or cut out a named thing", [
+    "cut-out",
+    "mask",
+    "select",
+  ]),
   verbRow("ask", "caption, count, find or ask", [
     "caption",
     "count",

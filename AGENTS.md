@@ -38,13 +38,13 @@ One verb per Task. The last column is the same advice `motif --describe tasks` g
 | Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
 | Variations of an image | `motif vary [image]` | A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run). |
 | Remove something and fill the gap | `motif erase "what" [image]` | The whole background (cutout), or extending the canvas (reframe). |
-| Remove the background | `motif cutout [image-or-video]` | Taking one object out and filling the gap (erase), or masking a named thing (segment). |
+| Remove the background | `motif cutout [image-or-video]` | Cutting one named thing out of a scene, such as the chair in a room (segment), or taking an object out and filling the gap (erase). |
 | Extend to a new aspect ratio | `motif reframe [image] --og` | A new image at a given ratio (generate with a ratio). |
 | Make it larger | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
 | Fix noise, blur, damage or colour | `motif restore [image]` | Making an image larger (upscale). |
 | Relight a photo | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |
 | Redraw in a reference's style | `motif restyle [image] --like <image>` | A house style kept across images (generate with a look). |
-| Mask a named thing | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
+| Mask or cut out a named thing | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
 | Caption, count, find or ask | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
 | Split into transparent layers | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |
 | Trace to a clean SVG | `motif vectorize [image]` | Drawing a new image from a prompt (generate). |

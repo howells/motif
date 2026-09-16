@@ -15,7 +15,7 @@ export const HELP_EXCERPT = `Commands, by task:
   motif restore [image]                   fix noise, blur, damage, colour
   motif relight [image] "light"           relight to a described light or a mood
   motif restyle [image] --like <image>    redraw in a reference's style
-  motif segment "what" [image-or-video]   mask a named thing
+  motif segment "what" [image-or-video]   mask or cut out a named thing
   motif ask "question" [image]            caption, count, find or ask
   motif layers [image]                    split into transparent layers
   motif vectorize [image]                 trace to a clean SVG

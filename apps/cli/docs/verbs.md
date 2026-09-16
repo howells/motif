@@ -44,7 +44,7 @@ motif erase poster.png --text --dry-run
 
 `motif cutout [image-or-video]` - remove the background behind the main subject of an image or video.
 
-Instead: taking one object out and filling the gap (erase), or masking a named thing (segment).
+Instead: cutting one named thing out of a scene, such as the chair in a room (segment), or taking an object out and filling the gap (erase).
 
 Flags: `--output-format jpeg|png|webp`. A video source picks a video Model.
 
@@ -143,7 +143,7 @@ motif restyle photo.jpg --like watercolour.jpg --dry-run
 
 ## segment
 
-`motif segment [what] [image-or-video]` - mask a named thing in an image or video.
+`motif segment [what] [image-or-video]` - mask or cut out a named thing in an image or video.
 
 Instead: the background behind the subject (cutout), or boxes without masks (ask detect).
 

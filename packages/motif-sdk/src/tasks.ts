@@ -175,7 +175,7 @@ export const TASKS = {
       { model: "bria-video-rmbg", tier: "balanced" },
     ],
     notFor:
-      "Taking one object out and filling the gap (erase), or masking a named thing (segment).",
+      "Cutting one named thing out of a scene, such as the chair in a room (segment), or taking an object out and filling the gap (erase).",
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
     summary:
@@ -433,7 +433,7 @@ export const TASKS = {
       "The background behind the subject (cutout), or boxes without masks (ask detect).",
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
-    summary: "Mask a named thing in an image or video.",
+    summary: "Mask or cut out a named thing in an image or video.",
   },
   tile: {
     basis:

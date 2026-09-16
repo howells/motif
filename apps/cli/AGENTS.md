@@ -39,13 +39,13 @@ Pick the command by task. The last column is the same advice `motif --describe t
 | Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
 | Make variations of an image you already have. | `motif vary [image]` | A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run). |
 | Remove an object, person, text or clutter from an image and fill the gap. | `motif erase "what" [image]` | The whole background (cutout), or extending the canvas (reframe). |
-| Remove the background behind the main subject of an image or video. | `motif cutout [image-or-video]` | Taking one object out and filling the gap (erase), or masking a named thing (segment). |
+| Remove the background behind the main subject of an image or video. | `motif cutout [image-or-video]` | Cutting one named thing out of a scene, such as the chair in a room (segment), or taking an object out and filling the gap (erase). |
 | Extend or recut an image to a new aspect ratio, generating the new edges. | `motif reframe [image] --og` | A new image at a given ratio (generate with a ratio). |
 | Make an image or video larger without losing detail. | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
 | Fix noise, softness, damage, colour or tone without changing the size. | `motif restore [image]` | Making an image larger (upscale). |
 | Change the light in a photo without regenerating it. | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |
 | Redraw an image in the style of a reference image. | `motif restyle [image] --like <image>` | A house style kept across images (generate with a look). |
-| Mask a named thing in an image or video. | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
+| Mask or cut out a named thing in an image or video. | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
 | Answer a question about an image, caption it, count or find things in it. | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
 | Split an image into transparent layers. | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |
 | Trace a raster image to a clean SVG. | `motif vectorize [image]` | Drawing a new image from a prompt (generate). |

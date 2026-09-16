@@ -23,7 +23,7 @@ One verb per Task. `motif --describe tasks --format json` maps task words to ver
 - `motif restore [image]` - fix noise, softness, damage, tone or colour.
 - `motif relight [image] "light"` - relight to a described light or `--mood` (`--even`, `--flat`).
 - `motif restyle [image] --like <image>` - redraw in a reference's style.
-- `motif segment "what" [image-or-video]` - mask a named thing (`--auto`, `--rle`).
+- `motif segment "what" [image-or-video]` - mask or cut out a named thing (`--auto`, `--rle`).
 - `motif ask "question" [image]` - caption, count, find or read (`--caption`, `--detect`, `--point`, `--read`, `--safe`).
 - `motif layers [image]` - split into transparent layers (`--text`).
 - `motif vectorize [image]` - trace to a clean SVG.

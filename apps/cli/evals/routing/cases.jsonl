@@ -1,12 +1,12 @@
 {"id":"generate-hero-16x9","request":"Make a 16:9 hero image of a lighthouse at dusk for the blog","command":"generate","flags":[["--aspect 16:9","--og","--landscape"]],"source":"negative: a new image at a ratio is generate, not reframe"}
-{"id":"generate-grid-wallpaper","request":"Draw a seamless blue and white grid pattern I can use as a desktop wallpaper","command":"generate","source":"negative: a grid as subject matter, not a contact sheet"}
+{"id":"generate-grid-wallpaper","request":"Draw a seamless blue and white grid pattern I can use as a desktop wallpaper","command":["generate","tile"],"source":"negative: a grid as subject matter, not a contact sheet; a seamless pattern is also tile's job"}
 {"id":"generate-edit-cabinets","request":"Using kitchen.png as the reference, repaint the cabinets dark green","command":"generate","flags":["--edit kitchen.png"],"source":"negative: changing an image is generate with -e, not erase"}
 {"id":"generate-knife-set","request":"A product shot of a set of kitchen knives on a walnut board","command":"generate","source":"negative: a set as subject matter, not a series"}
 {"id":"erase-car","request":"remove the car from street.png","command":"erase","args":["street.png"],"source":"audit: would an agent that wants to remove something find erase?"}
 {"id":"erase-person-left","request":"get rid of the person on the left in beach.jpg","command":"erase","args":["beach.jpg"],"source":"audit: remove an object or person; 0 erase uses in 18 days"}
 {"id":"erase-counter-clutter","request":"clean up the clutter on the counter in kitchen.png, just take the stuff away","command":"erase","args":["kitchen.png"],"source":"audit: object removal reached through tool run instead of erase"}
-{"id":"reframe-16x9","request":"make hero.png 16:9","command":"reframe","flags":[["--og","--landscape"]],"args":["hero.png"],"source":"audit: extend the canvas or change the ratio"}
-{"id":"reframe-no-crop","request":"turn square.png into a 16:9 banner without cropping the subject","command":"reframe","flags":[["--og","--landscape"]],"args":["square.png"],"source":"plan SURF-18: make this 16:9 without cropping the subject"}
+{"id":"reframe-16x9","request":"make hero.png 16:9","command":"reframe","flags":[["--og","--landscape","--aspect 16:9"]],"args":["hero.png"],"source":"audit: extend the canvas or change the ratio"}
+{"id":"reframe-no-crop","request":"turn square.png into a 16:9 banner without cropping the subject","command":"reframe","flags":[["--og","--landscape","--aspect 16:9"]],"args":["square.png"],"source":"plan SURF-18: make this 16:9 without cropping the subject"}
 {"id":"reframe-extend-sky","request":"extend the sky in peak.jpg so the photo becomes a tall 9:16 story","command":"reframe","flags":["--story"],"args":["peak.jpg"],"source":"audit: reframe's description says reframe, not extend or outpaint"}
 {"id":"layers-poster","request":"split poster.png into layers","command":"layers","args":["poster.png"],"source":"plan SURF-18: split this poster into layers"}
 {"id":"layers-separate","request":"I need the pieces of flyer.png on separate transparent layers so I can move them around","command":"layers","args":["flyer.png"],"source":"audit: layers only discoverable by exact name"}
@@ -45,5 +45,5 @@
 {"id":"relight-mood-dawn","request":"give kitchen.jpg our dawn light without regenerating the photo","command":"relight","flags":["--mood dawn"],"args":["kitchen.jpg"],"source":"MOT-55: relight with a house mood"}
 {"id":"restyle-like-gouache","request":"redraw room.jpg in the style of gouache.jpg","command":"restyle","flags":["--like gouache.jpg"],"args":["room.jpg"],"source":"MOT-56: restyle from one style reference"}
 {"id":"mesh-rig-figure","request":"make a rigged 3D model of the character in figure.png that I can animate","command":"mesh","flags":["--rig"],"args":["figure.png"],"source":"MOT-57: mesh with a skeleton"}
-{"id":"mesh-objects-chair","request":"make a 3D model of just the chair in room.png","command":"mesh","flags":["--objects chair"],"args":["room.png"],"source":"MOT-57: mesh --objects takes one object to reconstruct"}
+{"id":"mesh-objects-chair","request":"make a 3D model of just the chair in room.png","command":"mesh","flags":[["--objects chair","--objects the chair"]],"args":["room.png"],"source":"MOT-57: mesh --objects takes one object to reconstruct"}
 {"id":"try-on-garment","request":"show the person in person.jpg wearing the coat from coat.jpg","command":"try-on","flags":["--garment coat.jpg"],"args":["person.jpg"],"source":"MOT-58: try-on with one garment"}
