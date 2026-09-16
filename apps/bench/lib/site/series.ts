@@ -55,7 +55,6 @@ const LIST_OUTPUT = `{
       "slug": "${SLUG}",
       "look": "editorial",
       "mood": "raking",
-      "model": "banana",
       "outputCount": 6,
       "refCount": 0
     },
@@ -68,7 +67,6 @@ const SHOW_OUTPUT = `{
   "slug": "${SLUG}",
   "look": "editorial",
   "mood": "raking",
-  "model": "banana",
   "defaultAspect": "1:1",
   "defaultResolution": "2K",
   "outputCount": 6,
@@ -120,7 +118,7 @@ export const SERIES_CAPABILITY: Capability = {
       },
     },
     show: {
-      command: `motif series show ${SLUG} --format json`,
+      command: `motif series show ${SLUG} --format json --fields command,slug,look,mood,defaultAspect,defaultResolution,outputCount,outputs`,
       output: SHOW_OUTPUT,
     },
   },

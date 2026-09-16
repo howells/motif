@@ -182,7 +182,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     caption: "The small bottle and the shadow it cast are both gone.",
-    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg --tier quality --no-open -o out-erased-finegrain.jpg`,
+    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg --tier quality --no-open -o erased-with-shadow.jpg`,
     demo: {
       after: {
         alt: "The same shelf with the small bottle and its shadow both gone",
@@ -225,7 +225,7 @@ export const CAPABILITIES: Capability[] = [
     caption:
       "A 360px, heavily compressed copy of the vessel, enlarged to 720px.",
     command:
-      "motif upscale derived-upscale.jpg --tier quality -o enhanced.png --no-open --format json",
+      "motif upscale derived-upscale.jpg --tier quality -o upscaled-quality.png --no-open --format json",
     demo: {
       after: {
         alt: "The vessel at 720px, its flutes and the plinth's veining defined",
@@ -539,7 +539,8 @@ export const CAPABILITIES: Capability[] = [
   // Everything else
   {
     caption: "The newest entry in history, as JSON.",
-    command: "motif --last --format json",
+    command:
+      "motif --last --format json --fields command,aspect,cost,id,look,mood,output,prompt,resolution,timestamp",
     demo: {
       kind: "terminal",
       label: "Output",
@@ -554,7 +555,7 @@ export const CAPABILITIES: Capability[] = [
     caption:
       "The five newest entries, one JSON line each, with only the fields asked for.",
     command:
-      "motif --history --limit 5 --fields id,prompt,model,cost --format ndjson",
+      "motif --history --limit 5 --fields id,prompt,cost --format ndjson",
     demo: {
       kind: "terminal",
       label: "Output",
