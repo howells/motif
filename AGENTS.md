@@ -106,7 +106,7 @@ Never print or commit a real API key, and never copy private Studio code, privat
 
 ## Checks and deploys run locally
 
-There is no GitHub Actions on this repo and nothing runs in CI. Every check, build, release and deploy happens on this machine. Run `pnpm check` before pushing. Deploy the site from the repo root:
+Checks, builds and deploys all happen on this machine; the one GitHub Actions workflow in the repo publishes to npm and nothing else. Run `pnpm check` before pushing. Deploy the site from the repo root:
 
 ```bash
 vercel pull --yes --environment=production && vercel build --prod && vercel deploy --prebuilt --prod
@@ -114,27 +114,23 @@ vercel pull --yes --environment=production && vercel build --prod && vercel depl
 
 ## Releases
 
-Releases are published from this machine. npm needs a logged-in user (`npm whoami`) or a token in the local environment.
+A version tag publishes the package it names. `.github/workflows/release.yml` runs the gate, packs the tarball, installs it into a fresh consumer and publishes to npm over trusted publishing (OIDC), so no npm token or one-time code is needed anywhere. Renaming that file breaks publishing, because npm's trusted publisher configuration names the workflow by filename.
 
-Packaging uses `pnpm pack` and publishing uses `npm publish`, and that split is load-bearing. `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`; only pnpm rewrites that to a real version, and `npm pack` ships the literal string, making the release uninstallable. It sank 1.8.0, now deprecated on the registry. Check the packed `package.json` for a surviving `workspace:` before publishing, because `npm pack --dry-run` does not catch it.
-
-Publish in dependency order, the SDK first, because the CLI resolves a real published SDK version.
+Bump the version in `package.json`, commit, push, then tag. The job refuses to run when the tag and the manifest disagree, and npm refuses a version already on the registry.
 
 ```bash
-# bump the version in each package.json, then from the repo root:
-pnpm build
-pnpm check
-
-pnpm --filter @howells/motif-sdk pack --pack-destination /tmp
-tar -xzOf /tmp/howells-motif-sdk-<version>.tgz package/package.json | grep '"workspace:' && echo STOP
-npm publish /tmp/howells-motif-sdk-<version>.tgz --access public
-
-pnpm --filter @howells/motif-cli pack --pack-destination /tmp
-tar -xzOf /tmp/howells-motif-cli-<version>.tgz package/package.json | grep '"workspace:' && echo STOP
-npm publish /tmp/howells-motif-cli-<version>.tgz --access public
+git tag '@howells/motif-sdk@4.0.0' && git push origin '@howells/motif-sdk@4.0.0'
+git tag '@howells/motif-cli@3.0.0' && git push origin '@howells/motif-cli@3.0.0'
+gh run watch "$(gh run list --limit 1 --json databaseId -q '.[0].databaseId')" --exit-status
 ```
 
-npm refuses a version already on the registry, so re-running after a partial failure is safe. Afterwards check `npm view @howells/motif-cli@<version> dependencies` shows a real SDK version rather than `workspace:*`.
+Tag the SDK first and let it finish, because the CLI resolves a real published SDK version.
+
+`workflow_dispatch` on the same workflow takes a package name and a `dry_run` box, for rehearsing the gate or re-running a publish that failed after the tag was cut.
+
+The workflow already refuses a tarball carrying a `workspace:` or `catalog:` specifier. That check exists because `@howells/motif-cli` depends on `@howells/motif-sdk` as `workspace:*`; only pnpm rewrites it to a real version, `npm pack` ships the literal string, and that sank 1.8.0, now deprecated on the registry. Packing by hand still needs `pnpm pack` rather than `npm pack`.
+
+Afterwards `npm view @howells/motif-cli@<version> dependencies` should show a real SDK version.
 
 ## Agent skills
 
