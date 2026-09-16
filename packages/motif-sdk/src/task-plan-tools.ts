@@ -23,7 +23,7 @@ import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { TASKS } from "./tasks";
 import type { RankedModel, TaskId } from "./tasks";
 import { projectedToolCost } from "./tool-cost";
-import type { OutputDimensions } from "./tool-cost";
+import type { OutputDimensions, SourceFacts } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
 import type { FalToolParameter } from "./tool-parameters.generated";
 import { buildFalToolRequest, FAL_TOOLS } from "./tools";
@@ -91,16 +91,65 @@ function isWholePixelBox({ height, width, x, y }: Box): boolean {
   );
 }
 
-/** Parameters that make a tool return something other than the source's size. */
-const RESIZING_KEYS: ReadonlySet<string> = new Set([
-  "target_resolution",
-  "upscale_factor",
-]);
+/** A body value, else the endpoint's own default for that key. */
+function valueOrFallback(
+  parameters: readonly FalToolParameter[],
+  body: Readonly<Record<string, unknown>>,
+  key: string
+): unknown {
+  return (
+    body[key] ?? parameters.find((parameter) => parameter.key === key)?.fallback
+  );
+}
+
+/**
+ * How many times a tool multiplies the source's width and height, when that is
+ * known before the run. Undefined for a tool sized by a target resolution.
+ */
+function outputScale(
+  model: FalToolId,
+  parameters: readonly FalToolParameter[],
+  body: Readonly<Record<string, unknown>>
+): number | undefined {
+  // Topaz's transparent upscale always returns 4x the source's width and height.
+  if (model === "topaz-transparent") {
+    return 4;
+  }
+  const mode = valueOrFallback(parameters, body, "upscale_mode");
+  if (mode !== undefined && mode !== "factor") {
+    return undefined;
+  }
+  if (!parameters.some((parameter) => parameter.key === "upscale_factor")) {
+    const sizedByTarget = parameters.some(
+      (parameter) => parameter.key === "target_resolution"
+    );
+    return sizedByTarget ? undefined : 1;
+  }
+  const factor = Number(valueOrFallback(parameters, body, "upscale_factor"));
+  // Patina Extract takes 0 for no upscale.
+  return Number.isFinite(factor) && factor >= 1 ? factor : 1;
+}
+
+/** Outputs a run returns: one per `maps` entry for a PBR tool, else `num_images`. */
+function outputCount(
+  model: FalToolId,
+  parameters: readonly FalToolParameter[],
+  body: Readonly<Record<string, unknown>>
+): number {
+  const images = typeof body.num_images === "number" ? body.num_images : 1;
+  const { price }: FalToolConfig = FAL_TOOLS[model];
+  if (price.kind !== "maps") {
+    return images;
+  }
+  const maps = valueOrFallback(parameters, body, "maps");
+  return images * (Array.isArray(maps) ? maps.length : 1);
+}
 
 /**
  * The size of each output a per-megapixel tool will bill, when it is known
- * before the run: the body's `image_size`, or else the source's size for a tool
- * that returns images at their source size. Empty when it can't be known.
+ * before the run: the body's `image_size`, the source's size for a tool that
+ * returns images at their source size, scaled by a known upscale factor, and
+ * grown by any outpainting margin. Empty when it can't be known.
  */
 function projectedOutputs(
   model: FalToolId,
@@ -108,18 +157,23 @@ function projectedOutputs(
   body: Readonly<Record<string, unknown>>
 ): OutputDimensions[] {
   const parameters = FAL_TOOL_PARAMETERS[model] ?? [];
-  if (parameters.some((parameter) => RESIZING_KEYS.has(parameter.key))) {
-    return [];
-  }
-  const count = typeof body.num_images === "number" ? body.num_images : 1;
+  const scale = outputScale(model, parameters, body);
   const size = outputSize(parameters, input, body.image_size);
-  if (size === undefined) {
+  if (scale === undefined || size === undefined) {
     return [];
   }
-  // Topaz's transparent upscale always returns 4x the source's width and height.
-  const scale = model === "topaz-transparent" ? 4 : 1;
-  const output = { height: size.height * scale, width: size.width * scale };
-  return Array.from({ length: count }, () => output);
+  const margin = (key: string): number =>
+    typeof body[key] === "number" ? body[key] : 0;
+  const output = {
+    height:
+      (size.height + margin("expand_top") + margin("expand_bottom")) * scale,
+    width:
+      (size.width + margin("expand_left") + margin("expand_right")) * scale,
+  };
+  return Array.from(
+    { length: outputCount(model, parameters, body) },
+    () => output
+  );
 }
 
 function outputSize(
@@ -134,12 +188,15 @@ function outputSize(
     return imageSize;
   }
   if (imageSize === undefined) {
-    const sizeParameter = parameters.find(
+    const fallback = parameters.find(
       (parameter) => parameter.key === "image_size"
-    );
-    // A tool whose image_size falls back to a preset doesn't return the source's size.
-    return sizeParameter?.fallback === undefined
-      ? sourceSizeOf(input)
+    )?.fallback;
+    // A tool whose image_size falls back to a preset returns the preset's size.
+    if (fallback === undefined) {
+      return sourceSizeOf(input);
+    }
+    return typeof fallback === "string"
+      ? FAL_PRESET_SIZES[fallback]
       : undefined;
   }
   return undefined;
@@ -154,6 +211,15 @@ function isPixelSize(value: unknown): value is CustomImageSize {
     typeof value.width === "number" &&
     typeof value.height === "number"
   );
+}
+
+/** What the plan knows of the source, for prices that read it. */
+function sourceFacts(input: TaskInput): SourceFacts {
+  const image = sourceSizeOf(input);
+  return {
+    ...(image !== undefined && { image }),
+    ...(input.sourceVideo !== undefined && { video: input.sourceVideo }),
+  };
 }
 
 /** The source's pixel size: read from a data URL, else the caller's `sourceSize`. */
@@ -497,7 +563,8 @@ export function toolPlan(
     cost: projectedToolCost(
       tool.price,
       body,
-      projectedOutputs(model, input, body)
+      projectedOutputs(model, input, body),
+      sourceFacts(input)
     ),
     endpoint,
     prompt: typeof body.prompt === "string" ? body.prompt : input.prompt,

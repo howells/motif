@@ -227,6 +227,14 @@ describe("CLI contract", () => {
     expect(asRecord(table.tasks).outpaint).toBe("reframe");
   });
 
+  it("prints the task table in human format rather than nothing", async () => {
+    const result = await runMotif(["--describe", "tasks", "--format", "human"]);
+
+    expect(result.code).toBe(0);
+    const table = asRecord(JSON.parse(result.stdout));
+    expect(asRecord(table.tasks).outpaint).toBe("reframe");
+  });
+
   it("carries task routing on a single described command", async () => {
     const result = await runMotif(["--describe", "erase", "--format", "json"]);
     const erase = parseJsonLine(result.stdout);

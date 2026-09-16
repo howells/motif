@@ -17,12 +17,28 @@
  * absent one.
  */
 
+import { dataUrlImageSize } from "./source-size";
 import type { FalToolPrice } from "./tool-types";
 
 /** Pixel dimensions of one file an endpoint returned. */
 export interface OutputDimensions {
   height?: number;
   width?: number;
+}
+
+/** What a caller knows of a source video before a run, read from its header. */
+export interface SourceVideo {
+  fps?: number;
+  frames?: number;
+  height?: number;
+  seconds: number;
+  width?: number;
+}
+
+/** The source a run reads, as far as it is known before the run. */
+export interface SourceFacts {
+  image?: { height: number; width: number };
+  video?: SourceVideo;
 }
 
 /** A cost, and enough context for a caller to say why it is what it is. */
@@ -69,6 +85,14 @@ function steppedPrice(
   return measured === 0 ? null : usd;
 }
 
+/** How many of something a body key holds: an array's length, a number, else 1. */
+function countOf(value: unknown): number {
+  if (Array.isArray(value)) {
+    return value.length;
+  }
+  return typeof value === "number" ? value : 1;
+}
+
 /** A call price, per image where it says so, plus every extra the body switches on. */
 function callPrice(
   price: Extract<FalToolPrice, { kind: "call" }>,
@@ -79,12 +103,109 @@ function callPrice(
       ? body.num_images
       : 1;
   let usd = price.usd * images;
+  for (const key of price.per ?? []) {
+    usd *= countOf(body[key]);
+  }
+  for (const [key, table] of Object.entries(price.multipliers ?? {})) {
+    usd *= table[String(body[key])] ?? 1;
+  }
   for (const [key, extra] of Object.entries(price.extras ?? {})) {
     if (body[key] === true) {
       usd += extra;
     }
   }
-  return usd;
+  return usd + (price.fee ?? 0);
+}
+
+/** FLUX.2's first output megapixel, then every further megapixel of input and output. */
+function megapixelFirstPrice(
+  price: Extract<FalToolPrice, { kind: "megapixel-first" }>,
+  outputs: readonly OutputDimensions[],
+  source: { height: number; width: number } | undefined
+): number | null {
+  const output = totalMegapixels(outputs);
+  if (output === null || source === undefined) {
+    return null;
+  }
+  const input = Math.ceil((source.width * source.height) / 1_000_000);
+  const extra = Math.max(1, Math.ceil(output)) - 1 + input;
+  return price.first + price.extra * extra;
+}
+
+/** PBR maps, from each map's measured or projected size and the body's upscale factor. */
+function mapsPrice(
+  price: Extract<FalToolPrice, { kind: "maps" }>,
+  outputs: readonly OutputDimensions[],
+  body: Readonly<Record<string, unknown>>
+): number | null {
+  const total = totalMegapixels(outputs);
+  const maps = outputs.filter(
+    (output) => output.width !== undefined && output.height !== undefined
+  ).length;
+  if (total === null) {
+    return null;
+  }
+  const factor =
+    typeof body.upscale_factor === "number" && body.upscale_factor > 1
+      ? body.upscale_factor
+      : 1;
+  const beforeUpscale = total / (factor * factor);
+  const surcharge = price.upscale?.[String(body.upscale_factor)] ?? 0;
+  return (
+    price.base +
+    (price.perMegapixel * beforeUpscale) / maps +
+    (price.perMapMegapixel + surcharge) * beforeUpscale
+  );
+}
+
+/** Topaz video: the tier the output's shorter side falls in, times the source's seconds. */
+function videoSecondPrice(
+  price: Extract<FalToolPrice, { kind: "video-second" }>,
+  body: Readonly<Record<string, unknown>>,
+  video: SourceVideo | undefined
+): number | null {
+  if (video?.width === undefined || video.height === undefined) {
+    return null;
+  }
+  const factor =
+    typeof body.upscale_factor === "number" ? body.upscale_factor : 1;
+  const lines = Math.min(video.width, video.height) * factor;
+  const tier = price.tiers.find(
+    (candidate) => candidate.upTo === undefined || lines <= candidate.upTo
+  );
+  if (tier === undefined) {
+    return null;
+  }
+  const fps = typeof body.target_fps === "number" ? body.target_fps : video.fps;
+  let rate = tier.usd;
+  if (
+    price.doubleAtFps !== undefined &&
+    fps !== undefined &&
+    fps >= price.doubleAtFps
+  ) {
+    rate *= 2;
+  }
+  if (price.halfWithModel !== undefined && body.model === price.halfWithModel) {
+    rate /= 2;
+  }
+  return rate * video.seconds;
+}
+
+/** Frames of a source video: counted from its header, else its seconds at its frame rate. */
+function framesOf(video: SourceVideo | undefined): number | undefined {
+  if (video?.frames !== undefined) {
+    return video.frames;
+  }
+  return video?.fps === undefined
+    ? undefined
+    : Math.round(video.seconds * video.fps);
+}
+
+function resolvedCost(
+  usd: number | null,
+  basis: ResolvedCost["basis"]
+): ResolvedCost {
+  return usd === null ? UNKNOWN : { basis, usd };
 }
 
 /**
@@ -92,26 +213,73 @@ function callPrice(
  *
  * A flat per-call price is the whole answer. A per-megapixel rate projects only
  * from `outputs` whose size is already known, such as a source the tool
- * returns at its own size; guessing a size is how a dry run comes to promise a
- * number the invoice contradicts.
+ * returns at its own size or scales by a known factor; guessing a size is how
+ * a dry run comes to promise a number the invoice contradicts. Per-second and
+ * per-frame rates project from the source video's header, and a token rate
+ * from the estimates its registry entry records.
  */
 export function projectedToolCost(
   price: FalToolPrice,
   body: Readonly<Record<string, unknown>> = {},
-  outputs: readonly OutputDimensions[] = []
+  outputs: readonly OutputDimensions[] = [],
+  source: SourceFacts = {}
 ): ResolvedCost {
-  if (price.kind === "call") {
-    return { basis: "projected", usd: callPrice(price, body) };
-  }
-  if (price.kind === "megapixel") {
-    const megapixels = totalMegapixels(outputs);
-    return megapixels === null
-      ? UNKNOWN
-      : { basis: "projected", usd: price.usd * megapixels };
-  }
-  if (price.kind === "megapixel-step") {
-    const usd = steppedPrice(price, outputs);
-    return usd === null ? UNKNOWN : { basis: "projected", usd };
+  switch (price.kind) {
+    case "call": {
+      return { basis: "projected", usd: callPrice(price, body) };
+    }
+    case "megapixel": {
+      const megapixels = totalMegapixels(outputs);
+      return resolvedCost(
+        megapixels === null ? null : price.usd * megapixels,
+        "projected"
+      );
+    }
+    case "megapixel-step": {
+      return resolvedCost(steppedPrice(price, outputs), "projected");
+    }
+    case "megapixel-first": {
+      return resolvedCost(
+        megapixelFirstPrice(price, outputs, source.image),
+        "projected"
+      );
+    }
+    case "maps": {
+      return resolvedCost(mapsPrice(price, outputs, body), "projected");
+    }
+    case "second": {
+      return resolvedCost(
+        source.video === undefined ? null : price.usd * source.video.seconds,
+        "projected"
+      );
+    }
+    case "video-second": {
+      return resolvedCost(
+        videoSecondPrice(price, body, source.video),
+        "projected"
+      );
+    }
+    case "frames": {
+      const frames = framesOf(source.video);
+      return resolvedCost(
+        frames === undefined
+          ? null
+          : price.usd * Math.max(1, Math.ceil(frames / price.frames)),
+        "projected"
+      );
+    }
+    case "token": {
+      return {
+        basis: "projected",
+        usd:
+          (price.inputPerMillion * price.inputTokens +
+            price.outputPerMillion * price.outputTokens) /
+          1_000_000,
+      };
+    }
+    case "metered": {
+      break;
+    }
   }
   return UNKNOWN;
 }
@@ -120,26 +288,49 @@ export function projectedToolCost(
  * The figure to record after a run, from the rate and the output it produced.
  *
  * A per-megapixel rate becomes exact here, because the files have been written
- * and measured. Per-second rates need a duration nothing in the image path
- * carries, and metered endpoints publish no rate at all, so both stay unknown.
+ * and measured. Per-second, per-frame and per-token rates need a duration, a
+ * frame count or a token count the output doesn't carry, and metered endpoints
+ * publish no rate at all, so all of them stay unknown.
  */
 export function measuredToolCost(
   price: FalToolPrice,
   outputs: readonly OutputDimensions[],
   body: Readonly<Record<string, unknown>> = {}
 ): ResolvedCost {
-  if (price.kind === "call") {
-    return { basis: "measured", usd: callPrice(price, body) };
-  }
-  if (price.kind === "megapixel") {
-    const megapixels = totalMegapixels(outputs);
-    return megapixels === null
-      ? UNKNOWN
-      : { basis: "measured", usd: price.usd * megapixels };
-  }
-  if (price.kind === "megapixel-step") {
-    const usd = steppedPrice(price, outputs);
-    return usd === null ? UNKNOWN : { basis: "measured", usd };
+  switch (price.kind) {
+    case "call": {
+      return { basis: "measured", usd: callPrice(price, body) };
+    }
+    case "megapixel": {
+      const megapixels = totalMegapixels(outputs);
+      return resolvedCost(
+        megapixels === null ? null : price.usd * megapixels,
+        "measured"
+      );
+    }
+    case "megapixel-step": {
+      return resolvedCost(steppedPrice(price, outputs), "measured");
+    }
+    case "megapixel-first": {
+      const source =
+        typeof body.image_url === "string"
+          ? dataUrlImageSize(body.image_url)
+          : undefined;
+      return resolvedCost(
+        megapixelFirstPrice(price, outputs, source),
+        "measured"
+      );
+    }
+    case "maps": {
+      return resolvedCost(mapsPrice(price, outputs, body), "measured");
+    }
+    case "second":
+    case "video-second":
+    case "frames":
+    case "token":
+    case "metered": {
+      break;
+    }
   }
   return UNKNOWN;
 }

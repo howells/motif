@@ -21,6 +21,15 @@ export type FalToolPrice =
        * fal bills on top of the call, such as rigging a mesh.
        */
       extras?: Readonly<Record<string, number>>;
+      /**
+       * Body keys `usd` is multiplied by: an array by its length, a number by
+       * its value, an absent key by 1. Smart Resize bills each target size.
+       */
+      per?: readonly string[];
+      /** USD added once per request, such as a vision analysis fee. */
+      fee?: number;
+      /** Multipliers by a body key's value: `{ resolution: { "4K": 2 } }`. */
+      multipliers?: Readonly<Record<string, Readonly<Record<string, number>>>>;
     }
   | { kind: "megapixel"; usd: number }
   /**
@@ -28,7 +37,49 @@ export type FalToolPrice =
    * Topaz bills $0.08 for any output up to 24MP, not $0.08/24 per megapixel.
    */
   | { kind: "megapixel-step"; megapixels: number; usd: number }
+  /**
+   * FLUX.2 pricing: `first` for the first megapixel of output, then `extra`
+   * for every further megapixel of input and output, each rounded up.
+   */
+  | { kind: "megapixel-first"; extra: number; first: number }
+  /**
+   * PBR material maps: `base` per request, `perMegapixel` per megapixel of
+   * the material, `perMapMegapixel` per megapixel of each map, and an
+   * `upscale` surcharge per pre-upscale megapixel per map, keyed by factor.
+   */
+  | {
+      kind: "maps";
+      base: number;
+      perMapMegapixel: number;
+      perMegapixel: number;
+      upscale?: Readonly<Record<string, number>>;
+    }
+  /** Per second of source video; per compute-second when the input is not a video. */
   | { kind: "second"; usd: number }
+  /**
+   * Per second of output video, tiered by the output's shorter side:
+   * `tiers` in ascending `upTo` lines, the last with no `upTo`. Doubled at
+   * `doubleAtFps` or above, halved when the body's `model` is `halfWithModel`.
+   */
+  | {
+      kind: "video-second";
+      doubleAtFps?: number;
+      halfWithModel?: string;
+      tiers: readonly { upTo?: number; usd: number }[];
+    }
+  /** `usd` for every started `frames` frames of source video. */
+  | { kind: "frames"; frames: number; usd: number }
+  /**
+   * Per million input and output tokens. fal bills the tokens a run used,
+   * so a projection needs `inputTokens` and `outputTokens` estimates.
+   */
+  | {
+      kind: "token";
+      inputPerMillion: number;
+      inputTokens: number;
+      outputPerMillion: number;
+      outputTokens: number;
+    }
   | { kind: "metered" };
 
 export interface FalToolConfig {

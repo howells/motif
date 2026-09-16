@@ -109,7 +109,7 @@ export const ASSET_TOOLS = {
         fromOption: "maps",
       },
     },
-    price: { kind: "metered" },
+    price: { base: 0.01, kind: "maps", perMapMegapixel: 0.01, perMegapixel: 0 },
     pricing:
       "$0.01 base plus $0.01/megapixel per output map, so all 5 maps on a 1MP image cost $0.06; the listed rate is per map",
     queued: true,
@@ -134,9 +134,15 @@ export const ASSET_TOOLS = {
         fromOption: "maps",
       },
     },
-    price: { kind: "metered" },
+    price: {
+      base: 0.1,
+      kind: "maps",
+      perMapMegapixel: 0.01,
+      perMegapixel: 0.02,
+      upscale: { "2": 0.004, "4": 0.016 },
+    },
     pricing:
-      "$0.10 base only; add $0.02/megapixel plus $0.01/megapixel per map, so 1MP with all 5 maps is $0.17",
+      "$0.10 plus $0.02/megapixel plus $0.01/megapixel per map, so 1MP with all 5 maps is $0.17; upscaling adds $0.004 (2x) or $0.016 (4x) per pre-upscale megapixel per map",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/patina/material/extract",
     task: "tiling material extraction",
@@ -150,14 +156,9 @@ export const ASSET_TOOLS = {
     inputKind: "image",
     name: "Qwen Image Layered",
     outputKeys: ["images"],
-    // fal publishes a figure but not what it counts. Encoding it as `call`
-    // would assert a per-request price we cannot support, and this endpoint
-    // returns several outputs — the same shape that made `seedream-layerize`
-    // under-report by a factor of its layer count. `metered` reports null
-    // rather than a number that is right only on one reading.
-    price: { kind: "metered" },
-    pricing:
-      "$0.05 per image; fal does not say whether that counts the input image or each of the generated layers, so no estimate is reported",
+    // fal's page says "$0.05 per image"; Motif sends one input image a call.
+    price: { kind: "call", usd: 0.05 },
+    pricing: "$0.05 per image, one input image a call",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/qwen-image-layered",
     task: "image layer decomposition",

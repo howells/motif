@@ -73,7 +73,7 @@ export const EDITING_TOOLS = {
     inputKind: "image",
     name: "FLUX.2 Pro Outpaint",
     outputKeys: ["images"],
-    price: { kind: "metered" },
+    price: { extra: 0.015, first: 0.03, kind: "megapixel-first" },
     pricing:
       "$0.03 for the first output megapixel, then $0.015 per extra megapixel of input and output, rounded up",
     sourceUrl: "https://fal.ai/models/fal-ai/flux-2-pro/outpaint",
@@ -188,7 +188,13 @@ export const EDITING_TOOLS = {
     inputKind: "image",
     name: "Smart Resize",
     outputKeys: ["images", "results"],
-    price: { kind: "metered" },
+    price: {
+      fee: 0.05,
+      kind: "call",
+      multipliers: { resolution: { "4K": 2 } },
+      per: ["target_sizes", "num_images_per_size"],
+      usd: 0.15,
+    },
     pricing:
       "$0.15 per output image, doubled at 4K, plus a $0.05 vision analysis fee per request",
     queued: true,

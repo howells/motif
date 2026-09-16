@@ -20,7 +20,7 @@ import {
 import type { TaskDefinition, TaskId } from "@howells/motif-sdk";
 
 import { ERROR_CATALOG } from "../utils/error-catalog";
-import { emit } from "../utils/output";
+import { emitDocument } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
@@ -811,7 +811,7 @@ export function runDescribe(
   options: EmitOptions
 ): void {
   if (commandName === "tasks") {
-    emit(tasksSchema(), options);
+    emitDocument(tasksSchema(), options);
   } else if (hasText(commandName)) {
     const schemaFn = COMMAND_SCHEMAS[commandName];
     if (schemaFn === undefined) {
@@ -819,8 +819,8 @@ export function runDescribe(
         `Unknown command: ${commandName}. Available: ${[...Object.keys(COMMAND_SCHEMAS), "tasks"].join(", ")}`
       );
     }
-    emit(describeCommand(commandName, schemaFn), options);
+    emitDocument(describeCommand(commandName, schemaFn), options);
   } else {
-    emit(fullSchema(), options);
+    emitDocument(fullSchema(), options);
   }
 }

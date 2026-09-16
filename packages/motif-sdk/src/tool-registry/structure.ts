@@ -15,7 +15,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "Depth Anything v2 Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl:
       "https://fal.ai/models/fal-ai/image-preprocessors/depth-anything/v2",
@@ -42,7 +43,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "HED Edge Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/hed",
     task: "edge preprocessing",
@@ -58,7 +60,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "Line Art Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/lineart",
     task: "image preprocessing",
@@ -75,7 +78,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "Marigold Depth Estimation",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/imageutils/marigold-depth",
     task: "depth map",
@@ -92,7 +96,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "MiDaS Depth Estimation",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/imageutils/depth",
     task: "depth map",
@@ -105,7 +110,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "MiDaS Preprocessor",
     outputKeys: ["depth_map", "normal_map"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/midas",
     task: "depth and normal preprocessing",
@@ -119,7 +125,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "M-LSD Line Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/mlsd",
     task: "line segment preprocessing",
@@ -132,7 +139,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "PiDiNet Edge Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/pidi",
     task: "edge preprocessing",
@@ -146,7 +154,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "SAM Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/sam",
     task: "segmentation preprocessing",
@@ -167,7 +176,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "SAM 2 Auto Segment",
     outputKeys: ["combined_mask", "individual_masks"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/sam2/auto-segment",
@@ -205,7 +215,7 @@ export const STRUCTURE_TOOLS = {
     inputKind: "video",
     name: "SAM 3.1 Video",
     outputKeys: ["video", "boundingbox_frames_zip"],
-    price: { kind: "metered" },
+    price: { frames: 16, kind: "frames", usd: 0.01 },
     pricing: "$0.01/16 frames of video input",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/sam-3-1/video",
@@ -260,7 +270,7 @@ export const STRUCTURE_TOOLS = {
     inputKind: "video",
     name: "SAM 3 Video",
     outputKeys: ["video", "boundingbox_frames_zip"],
-    price: { kind: "metered" },
+    price: { frames: 16, kind: "frames", usd: 0.005 },
     pricing: "$0.005/16 frames of video input",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/sam-3/video",
@@ -281,7 +291,7 @@ export const STRUCTURE_TOOLS = {
     // fal's video-rle endpoint no longer returns RLE data: its Output schema is
     // now identical to sam3-video's, so this entry differs only by endpoint.
     outputKeys: ["video", "boundingbox_frames_zip"],
-    price: { kind: "metered" },
+    price: { frames: 16, kind: "frames", usd: 0.005 },
     pricing: "$0.005/16 frames of video",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/sam-3/video-rle",
@@ -295,7 +305,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "Scribble Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/scribble",
     task: "scribble preprocessing",
@@ -308,7 +319,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "TEED Edge Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/teed",
     task: "edge preprocessing",
@@ -321,7 +333,8 @@ export const STRUCTURE_TOOLS = {
     inputKind: "image",
     name: "ZoeDepth Preprocessor",
     outputKeys: ["image"],
-    price: { kind: "metered" },
+    // fal lists this endpoint at $0 per compute second: projected and recorded as free.
+    price: { kind: "call", usd: 0 },
     pricing: "$0/compute-second listed by fal",
     sourceUrl: "https://fal.ai/models/fal-ai/image-preprocessors/zoe",
     task: "depth preprocessing",

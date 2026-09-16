@@ -104,17 +104,38 @@ export function emit(
   data: Record<string, unknown>,
   options: EmitOptions
 ): void {
-  let output = options.sanitize === true ? sanitizeObject(data) : data;
-
-  if (hasText(options.fields)) {
-    const fieldList = options.fields.split(",").map((f) => f.trim());
-    output = applyFieldMask(output, fieldList);
-  }
-
   if (options.format === "json" || options.format === "ndjson") {
-    process.stdout.write(`${JSON.stringify(output)}\n`);
+    process.stdout.write(`${JSON.stringify(shaped(data, options))}\n`);
   }
   // Human format is handled by callers — this function is for structured output
+}
+
+/**
+ * Emit a document with no human rendering of its own, such as a schema: human
+ * format prints it as indented JSON rather than printing nothing.
+ */
+export function emitDocument(
+  data: Record<string, unknown>,
+  options: EmitOptions
+): void {
+  if (options.format === "human") {
+    process.stdout.write(`${JSON.stringify(shaped(data, options), null, 2)}\n`);
+    return;
+  }
+  emit(data, options);
+}
+
+/** `data` sanitized and masked to `--fields` as the options ask. */
+function shaped(
+  data: Record<string, unknown>,
+  options: EmitOptions
+): Record<string, unknown> {
+  const output = options.sanitize === true ? sanitizeObject(data) : data;
+  if (!hasText(options.fields)) {
+    return output;
+  }
+  const fieldList = options.fields.split(",").map((f) => f.trim());
+  return applyFieldMask(output, fieldList);
 }
 
 /** Emit multiple items as NDJSON (one JSON object per line) */

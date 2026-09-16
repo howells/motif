@@ -16,7 +16,7 @@ export const ANALYSIS_TOOLS = {
     inputKind: "images",
     name: "GOT-OCR 2.0",
     outputKeys: ["outputs"],
-    price: { kind: "metered" },
+    price: { kind: "call", per: ["input_image_urls"], usd: 0.05 },
     pricing: "$0.05/image",
     queued: true,
     sourceUrl: "https://fal.ai/models/fal-ai/got-ocr/v2",
@@ -30,7 +30,15 @@ export const ANALYSIS_TOOLS = {
     inputKind: "image",
     name: "Moondream 3 Caption",
     outputKeys: ["output"],
-    price: { kind: "metered" },
+    // fal's own example run used 737 input tokens for one image; the output
+    // budget is an estimate for a normal-length caption, not a figure fal publishes.
+    price: {
+      inputPerMillion: 0.4,
+      inputTokens: 737,
+      kind: "token",
+      outputPerMillion: 3.5,
+      outputTokens: 200,
+    },
     pricing: "$0.40/M input tokens, $3.50/M output tokens",
     sourceUrl: "https://fal.ai/models/fal-ai/moondream3-preview/caption",
     task: "image captioning",
@@ -44,7 +52,15 @@ export const ANALYSIS_TOOLS = {
     inputKind: "image",
     name: "Moondream 3 Detect",
     outputKeys: ["objects", "image"],
-    price: { kind: "metered" },
+    // fal's own example run used 737 input tokens for one image; the output
+    // budget is an estimate for a list of boxes, not a figure fal publishes.
+    price: {
+      inputPerMillion: 0.4,
+      inputTokens: 737,
+      kind: "token",
+      outputPerMillion: 3.5,
+      outputTokens: 100,
+    },
     pricing: "$0.40/M input tokens, $3.50/M output tokens",
     sourceUrl: "https://fal.ai/models/fal-ai/moondream3-preview/detect",
     task: "object detection",
@@ -58,7 +74,15 @@ export const ANALYSIS_TOOLS = {
     inputKind: "image",
     name: "Moondream 3 Point",
     outputKeys: ["points", "image"],
-    price: { kind: "metered" },
+    // fal's own example run used 737 input tokens for one image; the output
+    // budget is an estimate for a list of points, not a figure fal publishes.
+    price: {
+      inputPerMillion: 0.4,
+      inputTokens: 737,
+      kind: "token",
+      outputPerMillion: 3.5,
+      outputTokens: 100,
+    },
     pricing: "$0.40/M input tokens, $3.50/M output tokens",
     sourceUrl: "https://fal.ai/models/fal-ai/moondream3-preview/point",
     task: "object pointing",
@@ -71,7 +95,15 @@ export const ANALYSIS_TOOLS = {
     inputKind: "image",
     name: "Moondream 3 Query",
     outputKeys: ["output", "reasoning"],
-    price: { kind: "metered" },
+    // fal's own example run used 737 input tokens for one image; the output
+    // budget is an estimate for an answer with its reasoning, which is on by default, not a figure fal publishes.
+    price: {
+      inputPerMillion: 0.4,
+      inputTokens: 737,
+      kind: "token",
+      outputPerMillion: 3.5,
+      outputTokens: 500,
+    },
     pricing: "$0.40/M input tokens, $3.50/M output tokens",
     sourceUrl: "https://fal.ai/models/fal-ai/moondream3-preview/query",
     task: "visual question answering",
@@ -84,7 +116,7 @@ export const ANALYSIS_TOOLS = {
     inputKind: "images",
     name: "NSFW Checker",
     outputKeys: ["has_nsfw_concepts"],
-    price: { kind: "metered" },
+    price: { kind: "call", per: ["image_urls"], usd: 0.001 },
     pricing: "$0.001/image",
     sourceUrl: "https://fal.ai/models/fal-ai/x-ailab/nsfw",
     task: "vision moderation",

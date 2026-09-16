@@ -8,7 +8,7 @@ What each Model costs, by Task, for when you override the choice with `-m`. Part
 | --- | --- |
 | `projected` | A price worked out before the call from a flat or per-megapixel rate |
 | `measured` | Worked out after the call from what came back (output size, provider metadata) |
-| `unknown` | `cost` is `null`: tokens, compute seconds, layer or map count, or a rate fal doesn't define. Not free |
+| `unknown` | `cost` is `null`: compute seconds, a layer count, or a rate fal doesn't define. Not free |
 
 An agent that sums `cost ?? 0` across a plan will under-budget. Video costs 5 to 10 times an image.
 
@@ -71,14 +71,14 @@ vary offers the Models marked edit.
 
 ## cutout
 
-| Model                | Tier     | Price             |
-| -------------------- | -------- | ----------------- |
-| `bria-rmbg`          | quality  | $0.018            |
-| `birefnet`           | balanced | Metered           |
-| `ben-v2`             | balanced | $0.025/MP         |
-| `rembg`              | fast     | Metered           |
-| `bria-video-rmbg-v3` | video    | $0.05/sec, queued |
-| `bria-video-rmbg`    | video    | $0.14/sec, queued |
+| Model                | Tier     | Price                            |
+| -------------------- | -------- | -------------------------------- |
+| `bria-rmbg`          | quality  | $0.018                           |
+| `birefnet`           | balanced | $0 (fal lists $0/compute-second) |
+| `ben-v2`             | balanced | $0.025/MP                        |
+| `rembg`              | fast     | $0 (fal lists $0/compute-second) |
+| `bria-video-rmbg-v3` | video    | $0.05/sec, queued                |
+| `bria-video-rmbg`    | video    | $0.14/sec, queued                |
 
 ## reframe
 
@@ -86,8 +86,8 @@ vary offers the Models marked edit.
 | --- | --- | --- |
 | `ideogram-reframe` | balanced | $0.06; $0.03 turbo, $0.09 quality through `--param` |
 | `bria-expand` | fast | $0.04 |
-| `flux-outpaint` | `--margin` | Metered: $0.03 for the first output MP, then $0.015 per extra MP |
-| `smart-resize` | `--sizes` | Metered: $0.15 per output image, doubled at 4K, plus $0.05 a request. Queued |
+| `flux-outpaint` | `--margin` | $0.03 for the first output MP, then $0.015 per extra MP of input and output |
+| `smart-resize` | `--sizes` | $0.15 per output image, doubled at 4K, plus $0.05 a request. Queued |
 
 ## upscale
 
@@ -101,9 +101,9 @@ Topaz bills per 24 output megapixels, so a 4x upscale of a 2MP source (32MP out)
 | `seedvr-upscale` | balanced | $0.001/MP. Queued |
 | `crystal` | fast | $0.02 |
 | `topaz-transparent` | `--transparent` | $0.08 per 24 output MP. Queued |
-| `topaz-video` | video | $0.01/sec to 720p, $0.02 to 1080p, $0.08 above. Queued |
-| `topaz-generative` | `--generative` | $0.24 per 24 output MP. Queued |
-| `topaz-creative` | `--creative` | $0.96 per 24 output MP. Queued |
+| `topaz-video` | video | $0.01/sec to 720p output, $0.02 to 1080p, $0.08 above; doubled at 60fps. Queued |
+| `topaz-generative` | `--generative` | $0.08 per started 8 output MP. Queued |
+| `topaz-creative` | `--creative` | $0.08 per started 2 output MP. Queued |
 
 ## restore
 
@@ -139,23 +139,23 @@ Topaz bills per 24 output megapixels, so a 4x upscale of a 2MP source (32MP out)
 | `sam3-image` | balanced | $0.005 |
 | `sam3-1-video` | quality, video | $0.01 per 16 frames. Queued |
 | `sam3-video` | balanced, video | $0.005 per 16 frames. Queued |
-| `sam2-auto` | `--auto` | Metered. Queued |
+| `sam2-auto` | `--auto` | $0 (fal lists $0/compute-second). Queued |
 | `sam3-image-rle`, `sam3-video-rle` | `--rle` | $0.005 a request, or per 16 frames of video |
 
 ## ask
 
 | Model | Mode | Price |
 | --- | --- | --- |
-| `moondream-query`, `moondream-caption`, `moondream-detect`, `moondream-point` | (none), `--caption`, `--detect`, `--point` | Metered: $0.40/M input tokens, $3.50/M output |
-| `got-ocr` | `--read` | Metered, listed at $0.05/image. Queued |
-| `nsfw` | `--safe` | Metered, listed at $0.001/image |
+| `moondream-query`, `moondream-caption`, `moondream-detect`, `moondream-point` | (none), `--caption`, `--detect`, `--point` | $0.40/M input tokens, $3.50/M output; projected from 737 input tokens and an estimated output |
+| `got-ocr` | `--read` | $0.05/image. Queued |
+| `nsfw` | `--safe` | $0.001/image |
 
 ## layers
 
 | Model | Tier or mode | Price |
 | --- | --- | --- |
-| `seedream-layerize` | quality | Metered: $0.03375 per layer below 1536x1536, $0.0675 above. Queued |
-| `qwen-layered` | balanced | Metered, listed at $0.05/image. Queued |
+| `seedream-layerize` | quality | $0.03375 per layer below 1536x1536, $0.0675 above; unknown before the call, since the request doesn't set the layer count. Queued |
+| `qwen-layered` | balanced | $0.05 a call. Queued |
 | `ideogram-layerize-text` | `--text` | $0.09. Queued |
 
 ## vectorize
@@ -167,7 +167,7 @@ Topaz bills per 24 output megapixels, so a 4x upscale of a 2MP source (32MP out)
 
 ## map
 
-Every map Model is metered at fal's listed $0/compute-second, so `cost` is `null`, except `dwpose` (`--pose`) at $0.0006/compute-second.
+Every map Model costs $0, fal's listed $0/compute-second, except `dwpose` (`--pose`): fal bills it at $0.0006 per compute second, and compute time isn't known until the call ends, so its `cost` is `null`.
 
 | Mode          | quality          | balanced             | fast          |
 | ------------- | ---------------- | -------------------- | ------------- |
@@ -185,8 +185,8 @@ Every map Model is metered at fal's listed $0/compute-second, so `cost` is `null
 
 | Model | Task and mode | Price |
 | --- | --- | --- |
-| `patina` | material | Metered: $0.01 base plus $0.01/MP per map, ~$0.06 for five maps at 1MP. Queued |
-| `patina-extract` | material `--extract` | Metered: $0.10 base plus $0.02/MP and $0.01/MP per map. Queued |
+| `patina` | material | $0.01 base plus $0.01/MP per map, ~$0.06 for five maps at 1MP. Queued |
+| `patina-extract` | material `--extract` | $0.10 base plus $0.02/MP and $0.01/MP per map. Queued |
 | `ideogram-tiling` | tile | $0.06/MP; $0.03 turbo, $0.10 quality |
 | `seedvr-seamless` | tile `--upscale` | $0.0025/MP. Queued |
 
@@ -197,5 +197,5 @@ Every map Model is metered at fal's listed $0/compute-second, so `cost` is `null
 | `meshy-v7` | quality, and `--rig` | $1.20 textured; plus $0.20 for rigging. Queued |
 | `hunyuan3d-v3` | quality | $0.375. Queued |
 | `trellis-2` | balanced | $0.30 at 1024p. Queued |
-| `sam3-3d-body` | `--body` | Metered. Queued |
-| `sam3-3d-objects` | `--objects` | Metered, one mesh per object. Queued |
+| `sam3-3d-body` | `--body` | Unknown before the call: fal lists "$0.02 per unit" and doesn't say what a unit is. Queued |
+| `sam3-3d-objects` | `--objects` | Unknown before the call: fal lists "$0.02 per unit" without defining it, and returns one mesh per detected object. Queued |

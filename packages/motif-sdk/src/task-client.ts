@@ -37,7 +37,7 @@ import { planTask } from "./task-plan";
 import type { PlanContext } from "./task-plan";
 import type { TaskId, Tier } from "./tasks";
 import { measuredToolCost } from "./tool-cost";
-import type { OutputDimensions, ResolvedCost } from "./tool-cost";
+import type { OutputDimensions, ResolvedCost, SourceVideo } from "./tool-cost";
 import { FAL_TOOLS, isFalToolId } from "./tools";
 import type {
   AspectRatio,
@@ -75,6 +75,12 @@ export interface TaskInput {
    * takes fractions when `image` is an https URL. Read from a data URL itself.
    */
   sourceSize?: { width: number; height: number };
+  /**
+   * The source video's length, frame count, size and frame rate, read from
+   * its header by the caller. Per-second and per-frame Models price from it;
+   * without it their projected cost is unknown.
+   */
+  sourceVideo?: SourceVideo;
   /** reframe `margin` mode: pixels to add on each edge. */
   margin?: { top: number; right: number; bottom: number; left: number };
   /** Source video: https URL. */
@@ -277,14 +283,18 @@ function falOutput(plan: TaskPlan, result: FalRequestResult): TaskOutput {
     Object.entries(data).filter(([key]) => !fileKeys.has(key))
   );
 
-  const cost =
+  const measured =
     declared === undefined
-      ? plan.cost
+      ? undefined
       : measuredToolCost(
           declared.price,
           outputDimensions(data, keys),
           plan.body
         );
+  // A rate the output can't measure, such as per second or per token, keeps
+  // the plan's projection rather than dropping to unknown.
+  const cost =
+    measured === undefined || measured.usd === null ? plan.cost : measured;
 
   return {
     chosenBy: plan.chosenBy,

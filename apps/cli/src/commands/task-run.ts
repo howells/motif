@@ -55,6 +55,7 @@ import { emit, emitError, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { exitTaskError, exitTaskFailed } from "../utils/task-model";
 import { hasText } from "../utils/text";
+import { readVideoHeader } from "../utils/video-header";
 
 /** Extensions `derivedOutputPath` strips before appending its suffix. */
 const SOURCE_EXT_REGEX = /\.(png|jpg|jpeg|webp|mp4|mov|m4v|webm)$/i;
@@ -241,9 +242,16 @@ async function sourceInput(
     return {};
   }
   try {
-    return video
-      ? { video: await videoSource(client, source.path, dryRun) }
-      : { image: await imageSource(source.path) };
+    if (!video) {
+      return { image: await imageSource(source.path) };
+    }
+    const header = REMOTE_URL_REGEX.test(source.path)
+      ? undefined
+      : await readVideoHeader(source.path);
+    return {
+      ...(header !== undefined && { sourceVideo: header }),
+      video: await videoSource(client, source.path, dryRun),
+    };
   } catch (error) {
     exitSourceError(error, spec, emitOpts);
   }
