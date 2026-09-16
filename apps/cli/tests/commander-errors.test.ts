@@ -97,7 +97,9 @@ describe("commander argument errors", () => {
       title: "Invalid Option",
       type: "urn:motif:error:invalid-option",
     });
-    expect(envelope.message).toBe("missing required argument 'prompt'");
+    expect(envelope.message).toBe(
+      "motif segment needs a prompt: motif segment [what] [image-or-video]"
+    );
     expect(Array.isArray(envelope.suggestions)).toBeTruthy();
     expect(result.stdout).toBe("");
   });
@@ -122,13 +124,13 @@ describe("commander argument errors", () => {
     expect(envelope.message).toBe("unknown option '--nonsense'");
   });
 
-  it("routes the tool program's argument errors too", async () => {
+  it("refuses the removed tool command with its replacement", async () => {
     const result = await runMotif(["tool", "run", "--format", "json"]);
 
     expect(result.code).toBe(2);
     const envelope = parseEnvelope(result);
-    expect(envelope.code).toBe("INVALID_OPTION");
-    expect(envelope.message).toBe("missing required argument 'tool'");
+    expect(envelope.code).toBe("REMOVED_COMMAND");
+    expect(envelope.details).toMatchObject({ removed: "motif tool" });
   });
 
   it("routes the series program's argument errors too", async () => {
@@ -154,7 +156,7 @@ describe("commander argument errors", () => {
 
     expect(result.code).toBe(2);
     expect(result.stderr.trim()).toBe(
-      "Error [INVALID_OPTION]: missing required argument 'prompt'"
+      "Error [INVALID_OPTION]: motif segment needs a prompt: motif segment [what] [image-or-video]"
     );
   });
 });
@@ -165,15 +167,7 @@ describe("help and version are not failures", () => {
 
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("Usage: motif segment");
-    expect(result.stdout).toContain("Segment prompted objects out of an image");
-    expect(result.stderr).toBe("");
-  });
-
-  it("prints tool help and exits 0", async () => {
-    const result = await runMotif(["tool", "run", "--help"]);
-
-    expect(result.code).toBe(0);
-    expect(result.stdout).toContain("Usage: motif tool run");
+    expect(result.stdout).toContain("Mask a named thing in an image or video.");
     expect(result.stderr).toBe("");
   });
 

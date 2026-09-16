@@ -1,23 +1,20 @@
+/**
+ * Direct fal calls for terminal Studio, which still runs its own generate,
+ * upscale and background removal. Commands run Tasks through the SDK client
+ * in `utils/motif-client.ts` instead.
+ */
+
 import { readFile } from "node:fs/promises";
 import { extname } from "node:path";
 
-import {
-  FalClient,
-  FAL_TOOLS,
-  getFalKeyFromEnv,
-  isFalToolId,
-} from "@howells/motif-sdk";
+import { FalClient, getFalKeyFromEnv } from "@howells/motif-sdk";
 import type {
   GenerateOptions,
   MotifError,
   MotifResponse,
   RemoveBackgroundOptions,
   Result,
-  ToolResponse,
-  ToolRunOptions,
   UpscaleOptions,
-  VideoOptions,
-  VideoResponse,
 } from "@howells/motif-sdk";
 
 import { hasText } from "../utils/text";
@@ -109,11 +106,6 @@ export async function generate(
   return unwrap(await getMotif().generate({ ...rest, editImageUrls }));
 }
 
-/** Delete fal's stored request payloads after local download. */
-export async function deletePayloads(requestId: string): Promise<void> {
-  unwrap(await getMotif().deletePayloads(requestId));
-}
-
 /** Upscale an image */
 export async function upscale(options: UpscaleOptions): Promise<MotifResponse> {
   return unwrap(await getMotif().upscale(options));
@@ -124,100 +116,6 @@ export async function removeBackground(
   options: RemoveBackgroundOptions
 ): Promise<MotifResponse> {
   return unwrap(await getMotif().removeBackground(options));
-}
-
-/** Upload any local tool inputs to fal and shape them for the tool's input kind. */
-async function withUploadedInputs(
-  options: ToolRunOptions
-): Promise<ToolRunOptions> {
-  if (!isFalToolId(options.tool)) {
-    throw new Error(`Unknown fal tool: ${options.tool}`);
-  }
-  const tool = FAL_TOOLS[options.tool];
-  const upload = async (value: string) =>
-    value.startsWith("http") || value.startsWith("data:")
-      ? await Promise.resolve(value)
-      : await uploadFile(value);
-
-  const values =
-    options.inputs ?? (hasText(options.input) ? [options.input] : []);
-  const uploaded = await Promise.all(
-    values.map(async (value) => await upload(value))
-  );
-
-  return {
-    ...options,
-    input: tool.inputKind === "images" ? undefined : uploaded[0],
-    inputs: tool.inputKind === "images" ? uploaded : undefined,
-  };
-}
-
-/** Run a registered fal utility/tool endpoint, uploading local inputs first. */
-export async function runTool(options: ToolRunOptions): Promise<ToolResponse> {
-  return unwrap(await getMotif().runTool(await withUploadedInputs(options)));
-}
-
-/**
- * Run a fal tool through the queue, for registry entries marked `queued`.
- *
- * Deliberately separate from `runTool`: neither path falls back to the other,
- * the caller picks one from the tool's registry entry.
- */
-export async function runToolQueued(
-  options: ToolRunOptions,
-  onProgress?: (status: string, queuePosition?: number) => void
-): Promise<ToolResponse> {
-  return unwrap(
-    await getMotif().runToolQueued(
-      await withUploadedInputs(options),
-      onProgress
-    )
-  );
-}
-
-/** Submit a video generation job (returns immediately, poll for result) */
-export async function submitVideo(
-  options: Omit<VideoOptions, "imageUrl"> & { imageUrl: string }
-): Promise<{
-  requestId: string;
-  endpoint: string;
-  estimatedCost: number | null;
-}> {
-  // Upload local file if needed
-  const imageUrl = options.imageUrl.startsWith("http")
-    ? options.imageUrl
-    : await uploadFile(options.imageUrl);
-
-  return unwrap(await getMotif().submitVideo({ ...options, imageUrl }));
-}
-
-/** Poll a video job until completion */
-export async function waitForVideo(
-  endpoint: string,
-  requestId: string,
-  onProgress?: (status: string, position?: number) => void
-): Promise<VideoResponse> {
-  const motif = getMotif();
-  const pollInterval = 3000;
-  const maxAttempts = 120;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const statusResult = unwrap(await motif.getJobStatus(endpoint, requestId));
-
-    if (statusResult.status === "completed") {
-      return unwrap(await motif.getVideoResult(endpoint, requestId));
-    }
-    if (statusResult.status === "failed") {
-      throw new Error(statusResult.error ?? "Video generation failed");
-    }
-
-    onProgress?.(statusResult.status, statusResult.queuePosition);
-    await new Promise<void>((r) => {
-      setTimeout(r, pollInterval);
-    });
-  }
-
-  throw new Error("Video generation timed out");
 }
 
 /**

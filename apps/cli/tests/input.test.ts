@@ -235,7 +235,7 @@ describe(validateEnumOption, () => {
 describe(reservedPromptSuggestion, () => {
   it("suggests the flag form for a bare command word", () => {
     expect(reservedPromptSuggestion("history")).toBe("motif --history");
-    expect(reservedPromptSuggestion("upscale")).toBe("motif --up");
+    expect(reservedPromptSuggestion("rmbg")).toBe("motif cutout [image]");
     expect(reservedPromptSuggestion("version")).toBe("motif --version");
   });
 

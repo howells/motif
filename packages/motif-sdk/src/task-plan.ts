@@ -39,8 +39,8 @@ import {
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { toolPlan } from "./task-plan-tools";
-import { isTaskId } from "./tasks";
-import type { TaskId } from "./tasks";
+import { isTaskId, TASKS } from "./tasks";
+import type { RankedModel, TaskId } from "./tasks";
 import { isFalToolId } from "./tools";
 import type { GenerateOptions, ModelConfig, ProviderRoute } from "./types";
 
@@ -87,6 +87,12 @@ function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
     negativePrompt: input.negativePrompt !== undefined,
     outputFormat: input.outputFormat !== undefined,
     references,
+    // 2K is every generation Model's default size, so it asks for nothing.
+    resolution:
+      (task === "generate" || task === "vary") && input.resolution === "2K"
+        ? undefined
+        : input.resolution,
+    rig: input.rig,
     seed: input.seed !== undefined,
     source,
     tier: input.tier,
@@ -104,7 +110,7 @@ function resolve(
   if (options.dryRun === true || context.falKey !== undefined) {
     keys.push("FAL_KEY");
   }
-  if (context.openAiKey !== undefined) {
+  if (options.dryRun === true || context.openAiKey !== undefined) {
     keys.push("OPENAI_API_KEY");
   }
   const resolution = resolveTask(task, taskRequest(task, input), {
@@ -155,14 +161,9 @@ export function planTask(
       })
     );
   }
-  if (
-    task !== "generate" &&
-    input.image === undefined &&
-    input.video === undefined
-  ) {
-    return err(
-      invalidOption(`${task} needs a source image.`, { field: "image", task })
-    );
+  const refusedInput = taskInputRefusal(task, input);
+  if (refusedInput !== undefined) {
+    return err(refusedInput);
   }
 
   const resolved = resolve(task, input, context, options);
@@ -170,6 +171,10 @@ export function planTask(
     return err(resolved.error);
   }
   const { chosenBy, model, tier } = resolved.value;
+  const noSource = missingSource(task, model, input);
+  if (noSource !== undefined) {
+    return err(noSource);
+  }
 
   let built: Result<PlanBody, MotifError>;
   try {
@@ -188,6 +193,55 @@ export function planTask(
     task,
     tier,
   });
+}
+
+/** Refuse a request with no Source unless the chosen Model works without one. */
+function missingSource(
+  task: TaskId,
+  model: string,
+  input: TaskInput
+): MotifError | undefined {
+  if (
+    task === "generate" ||
+    input.image !== undefined ||
+    input.video !== undefined
+  ) {
+    return undefined;
+  }
+  const entries: readonly RankedModel[] = TASKS[task].models;
+  const entry = entries.find(
+    (candidate) => candidate.model === model && candidate.mode === input.mode
+  );
+  return entry?.sourceOptional === true
+    ? undefined
+    : invalidOption(`${task} needs a source image.`, { field: "image", task });
+}
+
+/** Tasks that take their Source and exactly one Reference. */
+const ONE_REFERENCE_TASKS: ReadonlySet<TaskId> = new Set<TaskId>([
+  "restyle",
+  "try-on",
+]);
+
+/** Refusals a Task makes whatever Model it resolves to. */
+function taskInputRefusal(
+  task: TaskId,
+  input: TaskInput
+): MotifError | undefined {
+  if (ONE_REFERENCE_TASKS.has(task) && input.references?.length !== 1) {
+    return invalidOption(`${task} takes exactly one reference image.`, {
+      field: "references",
+      task,
+    });
+  }
+  const described = (input.prompt ?? "") !== "" || (input.mood ?? "") !== "";
+  if (task === "relight" && input.mode === undefined && !described) {
+    return invalidOption(
+      "relight needs a prompt describing the light, or a mood.",
+      { field: "prompt", task }
+    );
+  }
+  return undefined;
 }
 
 /** A thrown value as a `MotifError` that always carries a code. */

@@ -8,7 +8,8 @@
  * unrouted.
  */
 
-import { CREATIVE_TAXONOMY, LOOKS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, LOOKS, TASKS } from "@howells/motif-sdk";
+import type { TaskId } from "@howells/motif-sdk";
 
 export interface CommandTask {
   /**
@@ -22,7 +23,7 @@ export interface CommandTask {
   readonly summary: string;
   /** One sentence, in the words a caller would type. */
   readonly whenToUse: string;
-  /** What to use instead, naming the sibling command or `motif tool` id. */
+  /** What to use instead, naming the sibling command. */
   readonly notFor: string;
   /** Task words that route here. Unique across the whole table. */
   readonly tasks: readonly string[];
@@ -30,131 +31,148 @@ export interface CommandTask {
   readonly inHelp: boolean;
 }
 
-/** Rows in `--help` order: generation, the verbs, then the wider commands. */
+/**
+ * A Task verb's row: `whenToUse` and `notFor` come from the SDK's Task
+ * registry, so the routing a caller reads is the routing the SDK resolves.
+ */
+function verbRow(
+  task: TaskId,
+  usage: string,
+  summary: string,
+  tasks: readonly string[]
+): CommandTask {
+  return {
+    command: task,
+    usage,
+    summary,
+    whenToUse: TASKS[task].summary,
+    notFor: TASKS[task].notFor,
+    tasks,
+    inHelp: true,
+  };
+}
+
+/** Rows in `--help` order: generation, the Task verbs, then the wider commands. */
 export const COMMAND_TASKS: readonly CommandTask[] = [
   {
     command: "generate",
     usage: 'motif "prompt"',
-    summary: "make an image from a prompt, or edit with -e",
+    summary: "make an image from a prompt",
     whenToUse:
       "Make a new image from a text prompt, or change an image by passing it with -e and describing the result.",
-    notFor:
-      "Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run).",
-    tasks: [
-      "create",
-      "draw",
-      "edit",
-      "generate",
-      "illustrate",
-      "make",
-      "render",
-    ],
+    notFor: TASKS.generate.notFor,
+    tasks: ["create", "draw", "edit", "illustrate", "make", "render"],
     inHelp: true,
   },
-  {
-    command: "erase",
-    usage: 'motif erase "what" [image]',
-    summary: "remove an object and fill the gap",
-    whenToUse:
-      "Remove an object, person or clutter from a photo, named in words, and fill the gap it leaves.",
-    notFor:
-      "An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg).",
-    tasks: [
-      "cleanup",
-      "delete",
-      "erase-object",
-      "inpaint",
-      "remove",
-      "remove-object",
-    ],
-    inHelp: true,
-  },
-  {
-    command: "reframe",
-    usage: "motif reframe --og [image]",
-    summary: "extend the canvas to a new aspect ratio",
-    whenToUse:
-      "Extend or recut an existing image to a new aspect ratio, such as square to 16:9, generating whatever the new edges need.",
-    notFor:
-      "Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset).",
-    tasks: [
-      "crop",
-      "expand",
-      "extend",
-      "outpaint",
-      "ratio",
-      "resize",
-      "uncrop",
-    ],
-    inHelp: true,
-  },
-  {
-    command: "segment",
-    usage: 'motif segment "what" [image]',
-    summary: "cut out or mask a named thing",
-    whenToUse:
-      "Cut out or mask a named thing in an image and get its mask files, boxes and scores back.",
-    notFor:
-      "The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect).",
-    tasks: ["cut-out", "cutout", "isolate", "mask", "select"],
-    inHelp: true,
-  },
-  {
-    command: "ask",
-    usage: 'motif ask "question" [image]',
-    summary: "caption, count, detect or ask about an image",
-    whenToUse:
-      "Ask a question about an image, caption it, count things in it or find where they are, without writing a file.",
-    notFor:
-      "Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment).",
-    tasks: [
-      "caption",
-      "count",
-      "describe-image",
-      "detect",
-      "identify",
-      "ocr",
-      "query",
-    ],
-    inHelp: true,
-  },
-  {
-    command: "enhance",
-    usage: "motif enhance [image]",
-    summary: "upscale, restore, denoise or sharpen",
-    whenToUse:
-      "Upscale, restore, denoise, sharpen or colour-correct an existing image, one Topaz mode at a time.",
-    notFor:
-      "A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video).",
-    tasks: ["deblur", "denoise", "improve", "restore", "sharpen", "upscale"],
-    inHelp: true,
-  },
-  {
-    command: "layers",
-    usage: "motif layers [image]",
-    summary: "split an image into transparent layers",
-    whenToUse:
-      "Split a flat image into stacked transparent PNG layers that can be moved or edited separately.",
-    notFor:
-      "Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment).",
-    tasks: ["decompose", "layer", "separate", "split"],
-    inHelp: true,
-  },
-  {
-    command: "vectorize",
-    usage: "motif vectorize [image]",
-    summary: "trace a raster image to a clean SVG",
-    whenToUse:
-      "Turn a raster logo, icon or illustration into a clean, editable SVG.",
-    notFor:
-      "Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate).",
-    tasks: ["svg", "trace", "vector", "vectorise"],
-    inHelp: true,
-  },
+  verbRow("vary", "motif vary [image]", "variations of an image", [
+    "alternatives",
+    "remix",
+    "variant",
+    "variation",
+    "variations",
+  ]),
+  verbRow(
+    "erase",
+    'motif erase "what" [image]',
+    "remove something, fill the gap",
+    ["cleanup", "delete", "erase-object", "inpaint", "remove", "remove-object"]
+  ),
+  verbRow("cutout", "motif cutout [image-or-video]", "remove the background", [
+    "background",
+    "isolate",
+    "remove-background",
+    "rmbg",
+    "transparent-background",
+  ]),
+  verbRow(
+    "reframe",
+    "motif reframe --og [image]",
+    "extend to a new aspect ratio",
+    ["crop", "expand", "extend", "outpaint", "ratio", "resize", "uncrop"]
+  ),
+  verbRow("upscale", "motif upscale [image-or-video]", "make it larger", [
+    "enlarge",
+    "hi-res",
+    "super-resolution",
+  ]),
+  verbRow(
+    "restore",
+    "motif restore [image]",
+    "fix noise, blur, damage, colour",
+    [
+      "colorize",
+      "colourise",
+      "deblur",
+      "denoise",
+      "improve",
+      "repair",
+      "sharpen",
+    ]
+  ),
+  verbRow(
+    "relight",
+    'motif relight "light" [image]',
+    "change the light in a photo",
+    ["light", "lighting", "shadows"]
+  ),
+  verbRow(
+    "segment",
+    'motif segment "what" [image-or-video]',
+    "mask a named thing",
+    ["cut-out", "mask", "select"]
+  ),
+  verbRow(
+    "ask",
+    'motif ask "question" [image]',
+    "caption, count, find or ask",
+    ["caption", "count", "describe-image", "detect", "identify", "ocr", "query"]
+  ),
+  verbRow("layers", "motif layers [image]", "split into transparent layers", [
+    "decompose",
+    "layer",
+    "separate",
+    "split",
+  ]),
+  verbRow("vectorize", "motif vectorize [image]", "trace to a clean SVG", [
+    "svg",
+    "trace",
+    "vector",
+    "vectorise",
+  ]),
+  verbRow("map", "motif map [image]", "depth, edge, normal or pose map", [
+    "control-map",
+    "depth",
+    "edges",
+    "normals",
+    "pose",
+  ]),
+  verbRow(
+    "material",
+    "motif material [image]",
+    "PBR maps from a surface photo",
+    ["pbr", "roughness", "surface"]
+  ),
+  verbRow(
+    "tile",
+    'motif tile "prompt" [image]',
+    "a seamlessly tiling texture",
+    ["pattern", "seamless", "texture", "tiling"]
+  ),
+  verbRow("mesh", "motif mesh [image]", "a textured 3D mesh", [
+    "3d",
+    "glb",
+    "model-3d",
+  ]),
+  verbRow(
+    "animate",
+    'motif animate "prompt" [image]',
+    "turn an image into a video",
+    ["clip", "motion", "movie", "video"]
+  ),
   {
     command: "sheet",
     usage: "motif sheet <images...>",
-    summary: "lay images out on a captioned contact sheet",
+    summary: "a captioned contact sheet",
     whenToUse:
       "Compare several saved images side by side on one captioned grid, from files or the last few generations.",
     notFor:
@@ -165,18 +183,18 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
   {
     command: "series run",
     usage: 'motif series run "theme"',
-    summary: "make a consistent set of images from a theme",
+    summary: "a consistent set from a theme",
     whenToUse:
       "Make a set of related images that share one style from a single theme, such as six brutalist buildings.",
     notFor:
-      "One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary).",
+      "One image (generate), several takes of the same prompt (generate with -n), or variations of an image (vary).",
     tasks: ["batch", "consistent", "multi", "set", "themed"],
     inHelp: true,
   },
   {
     command: "series",
     usage: "motif series <subcommand>",
-    summary: "keep a reusable style, references and history",
+    summary: "a reusable style and references",
     whenToUse:
       "Keep a named style with reference images, a pinned look and mood, and its own history, so later images match it.",
     notFor:
@@ -185,20 +203,9 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     inHelp: true,
   },
   {
-    command: "tool",
-    usage: "motif tool list",
-    summary: "other fal utilities: depth, 3D, relight, OCR",
-    whenToUse:
-      "Reach a fal utility with no command of its own, such as depth maps, 3D models, relighting, materials, document OCR or moderation.",
-    notFor:
-      "Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level.",
-    tasks: ["3d", "depth", "material", "pbr", "relight", "texture", "utility"],
-    inHelp: true,
-  },
-  {
     command: "studio",
     usage: "motif studio",
-    summary: "open the interactive terminal Studio",
+    summary: "the interactive terminal Studio",
     whenToUse:
       "Browse, generate and review images interactively in a terminal, as a person rather than a script.",
     notFor:
@@ -207,54 +214,10 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     inHelp: true,
   },
   {
-    command: "upscale",
-    usage: "motif --up [image]",
-    summary: "upscale the last image with Clarity",
-    whenToUse:
-      "Enlarge the last generation, or a given image, by 2 to 8 times with Clarity.",
-    notFor:
-      "Restoring, denoising or sharpening, or a faithful Topaz upscale (enhance).",
-    tasks: ["enlarge"],
-    inHelp: false,
-  },
-  {
-    command: "rmbg",
-    usage: "motif --rmbg",
-    summary: "remove the background from the last image",
-    whenToUse:
-      "Cut the subject of the last generation out onto a transparent background.",
-    notFor:
-      "Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent).",
-    tasks: ["background", "remove-background", "transparent-background"],
-    inHelp: false,
-  },
-  {
-    command: "vary",
-    usage: "motif --vary",
-    summary: "make variations of the last image",
-    whenToUse:
-      "Make up to four variations of the last generation, keeping its prompt unless given a new one.",
-    notFor:
-      "A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e).",
-    tasks: ["alternatives", "remix", "variant", "variation", "variations"],
-    inHelp: false,
-  },
-  {
-    command: "video",
-    usage: "motif --video [image]",
-    summary: "animate an image into a short video",
-    whenToUse: "Animate a still image into a 3 to 15 second video clip.",
-    notFor:
-      "Removing a video's background (tool bria-video-rmbg), or upscaling a video (tool topaz-video).",
-    tasks: ["animate", "clip", "motion", "movie"],
-    inHelp: false,
-  },
-  {
     command: "last",
     usage: "motif --last",
     summary: "show the last generation",
-    whenToUse:
-      "Find the path, prompt, model and cost of the most recent generation.",
+    whenToUse: "Find the path, prompt and cost of the most recent generation.",
     notFor: "Older generations (history).",
     tasks: ["latest", "previous", "recent"],
     inHelp: false,
@@ -264,7 +227,7 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     usage: "motif --history",
     summary: "list past generations and spend",
     whenToUse:
-      "List past generations with their paths, prompts, models and costs, and see what has been spent.",
+      "List past generations with their paths, prompts and costs, and see what has been spent.",
     notFor:
       "Only the most recent generation (last), or one series' images (motif series history <slug>).",
     tasks: ["cost", "log", "past", "spend"],
@@ -275,9 +238,8 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     usage: "motif --describe [command]",
     summary: "print the CLI schema as JSON",
     whenToUse:
-      "Look up models, flags, enums, prices and output shapes as JSON before building a command.",
-    notFor:
-      "The arguments of one fal utility (motif tool describe <id>), or the task routing alone (motif --describe tasks).",
+      "Look up commands, flags, enums, prices and output shapes as JSON before building a command.",
+    notFor: "The task routing alone (motif --describe tasks).",
     tasks: ["capabilities", "models", "schema"],
     inHelp: false,
   },
@@ -387,7 +349,8 @@ export function taskCorrection(
   };
 }
 
-const HELP_USAGE_WIDTH = 30;
+/** Room for the longest help usage and a two-space gap. */
+const HELP_USAGE_WIDTH = 40;
 const HELP_LINE_WIDTH = 78;
 
 /**

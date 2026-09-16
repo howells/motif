@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createMotif,
   FAL_TOOLS,
+  measuredToolCost,
   MODELS,
   NO_MODEL_AVAILABLE,
   TASK_IDS,
@@ -79,6 +80,7 @@ function client(fetch: FalFetch = noNetwork.fetch): MotifClient {
 }
 
 const IMAGE = "https://example.com/source.png";
+const REFERENCE = "https://example.com/reference.png";
 
 function dataUrl(mediaType: string, bytes: number[]): string {
   return `data:${mediaType};base64,${Buffer.from(bytes).toString("base64")}`;
@@ -180,7 +182,9 @@ describe("createMotif plan", () => {
       generate: { prompt: "a red chair" },
       reframe: { aspect: "16:9" },
       relight: { prompt: "warm evening light" },
+      restyle: { references: [REFERENCE] },
       tile: { prompt: "terracotta tiles" },
+      "try-on": { references: [REFERENCE] },
     };
     const input: TaskInput = {
       ...(task === "generate" ? {} : { image: IMAGE }),
@@ -196,6 +200,21 @@ describe("createMotif plan", () => {
     expect(plan.endpoint).not.toBe("");
     expect(Object.keys(plan.body).length).toBeGreaterThan(0);
     expect(noNetwork.calls).toHaveLength(0);
+  });
+
+  it("plans a transparent GPT Image 2 dry run without an OpenAI key", () => {
+    const motif = createMotif({
+      falKey: "",
+      fetch: noNetwork.fetch,
+      openAiKey: "",
+    });
+    const result = motif.plan(
+      "generate",
+      { model: "gpt2", prompt: "a red chair", transparent: true },
+      { dryRun: true }
+    );
+
+    expect(result._unsafeUnwrap().provider).toBe("openai");
   });
 
   it("maps a banana generation's ratio and count", () => {
@@ -426,6 +445,128 @@ describe("createMotif plan", () => {
     expect(plan.mode).toBe("colour");
   });
 
+  it("relights to a mood on IC-Light, joined after the prompt", () => {
+    const plan = planned("relight", {
+      image: IMAGE,
+      mood: "lamplit",
+      prompt: "a kitchen table.",
+    });
+
+    expect(plan.model).toBe("iclight-v2");
+    expect(plan.endpoint).toBe("fal-ai/iclight-v2");
+    const prompt =
+      "A kitchen table. Evening, warm practical lamps around 2400K, candles and a lit fire, cosy and warm, never gloomy.";
+    expect(plan.body).toStrictEqual({ image_url: IMAGE, prompt });
+    expect(plan.prompt).toBe(prompt);
+  });
+
+  it("relights to a mood alone, and takes a mask to IC-Light", () => {
+    const mask = "https://example.com/mask.png";
+    const plan = planned("relight", { image: IMAGE, mask, mood: "dawn" });
+
+    expect(plan.model).toBe("iclight-v2");
+    expect(plan.endpoint).toBe("fal-ai/iclight-v2");
+    expect(plan.body).toStrictEqual({
+      image_url: IMAGE,
+      mask_image_url: mask,
+      prompt: "Early morning light through tall glazing, cool and clear.",
+    });
+  });
+
+  it("restyles the source after one reference on TeleStyle", () => {
+    const plan = planned("restyle", { image: IMAGE, references: [REFERENCE] });
+
+    expect(plan.model).toBe("telestyle-v2");
+    expect(plan.endpoint).toBe("fal-ai/telestyle-v2");
+    expect(plan.body).toStrictEqual({
+      content_image_url: IMAGE,
+      style_image_url: REFERENCE,
+    });
+  });
+
+  it("makes a tile from a prompt with no source", () => {
+    const plan = planned("tile", { prompt: "terracotta tiles" });
+
+    expect(plan.model).toBe("ideogram-tiling");
+    expect(plan.body).toStrictEqual({ prompt: "terracotta tiles" });
+  });
+
+  it("ranks past a Model that can't take the resolution asked for", () => {
+    const plan = planned("generate", {
+      prompt: "a red chair",
+      resolution: "1K",
+      tier: "fast",
+    });
+
+    expect(MODELS[plan.model]?.supportsResolution).toBeTruthy();
+    // No Model takes both, so the refusal names resolution, not qwen3's.
+    const error = refused("generate", {
+      negativePrompt: "dogs",
+      prompt: "a red chair",
+      resolution: "1K",
+    });
+    expect(error.code).toBe(NO_MODEL_AVAILABLE);
+  });
+
+  it("brightens a dark photo on Control Light in restore's dark mode", () => {
+    const plan = planned("restore", { image: IMAGE, mode: "dark" });
+
+    expect(plan.model).toBe("control-light");
+    expect(plan.endpoint).toBe("fal-ai/control-light");
+    expect(plan.body).toStrictEqual({ image_url: IMAGE });
+  });
+
+  it("prices a per-image call by num_images, projected and measured", () => {
+    const plan = planned("try-on", {
+      count: 2,
+      image: IMAGE,
+      references: [REFERENCE],
+    });
+
+    expect(plan.body).toMatchObject({ num_images: 2 });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.15 });
+    expect(
+      measuredToolCost(FAL_TOOLS["virtual-try-on"].price, [], plan.body)
+    ).toStrictEqual({ basis: "measured", usd: 0.15 });
+  });
+
+  it("sends nothing for rig: false and plans it on a Model that can't rig", () => {
+    const plan = planned("mesh", { image: IMAGE, rig: false });
+
+    expect(plan.model).toBe("trellis-2");
+    expect(plan.body).toStrictEqual({ image_url: IMAGE });
+  });
+
+  it("dresses the person in the garment on Google's try-on", () => {
+    const plan = planned("try-on", { image: IMAGE, references: [REFERENCE] });
+
+    expect(plan.model).toBe("virtual-try-on");
+    expect(plan.endpoint).toBe("google/virtual-try-on");
+    expect(plan.queued).toBeTruthy();
+    expect(plan.body).toStrictEqual({
+      person_image_url: IMAGE,
+      product_image_url: REFERENCE,
+    });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.075 });
+  });
+
+  it("makes a quality mesh on Meshy v7", () => {
+    const plan = planned("mesh", { image: IMAGE, tier: "quality" });
+
+    expect(plan.model).toBe("meshy-v7");
+    expect(plan.endpoint).toBe("meshy/v7/image-to-3d");
+    expect(plan.body).toStrictEqual({ image_url: IMAGE });
+    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 1.2 });
+  });
+
+  it("rigs a mesh on Meshy v7 at any tier and prices the rig", () => {
+    const plan = planned("mesh", { image: IMAGE, rig: true });
+
+    expect(plan.model).toBe("meshy-v7");
+    expect(plan.body).toStrictEqual({ enable_rigging: true, image_url: IMAGE });
+    expect(plan.cost.usd).toBeCloseTo(1.4);
+  });
+
   it("queues animate and sends the image as start_image_url", () => {
     const plan = planned("animate", { image: IMAGE, prompt: "slow pan" });
 
@@ -562,18 +703,17 @@ describe("createMotif refusals", () => {
     });
   });
 
-  it("maps a generation option the Model refuses to its field", () => {
+  it("refuses a resolution on a named Model that can't take one", () => {
     const error = refused("generate", {
       model: "flux2-pro",
       prompt: "a chair",
       resolution: "4K",
     });
 
-    expect(error.code).toBe("INVALID_OPTION");
-    expect(error.details).toStrictEqual({
-      field: "resolution",
-      model: "flux2-pro",
-      task: "generate",
+    expect(error.code).toBe(NO_MODEL_AVAILABLE);
+    expect(error.details).toMatchObject({
+      blockedBy: "resolution",
+      unblockedBy: ["option"],
     });
   });
 
@@ -647,6 +787,41 @@ describe("createMotif refusals", () => {
       model: "topaz-restore",
       task: "restore",
     });
+  });
+
+  it.each([
+    ["restyle", []],
+    ["restyle", [REFERENCE, REFERENCE]],
+    ["try-on", []],
+    ["try-on", [REFERENCE, REFERENCE]],
+  ] as const)("refuses %s with references %j", (task, references) => {
+    const error = refused(task, { image: IMAGE, references });
+
+    expect(error.code).toBe("INVALID_OPTION");
+    expect(error.details).toStrictEqual({ field: "references", task });
+  });
+
+  it("refuses a relight with no prompt and no mood", () => {
+    const error = refused("relight", { image: IMAGE });
+
+    expect(error.code).toBe("INVALID_OPTION");
+    expect(error.details).toStrictEqual({ field: "prompt", task: "relight" });
+  });
+
+  it("refuses a mood on a Task other than relight", () => {
+    const error = refused("erase", {
+      image: IMAGE,
+      mood: "dawn",
+      prompt: "the car",
+    });
+
+    expect(error.details).toMatchObject({ field: "mood", task: "erase" });
+  });
+
+  it("refuses a tile upscale without an image", () => {
+    const error = refused("tile", { mode: "upscale" });
+
+    expect(error.details).toStrictEqual({ field: "image", task: "tile" });
   });
 
   it("refuses an erase without an image", () => {

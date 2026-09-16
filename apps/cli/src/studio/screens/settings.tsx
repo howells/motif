@@ -1,20 +1,11 @@
-import {
-  ASPECT_RATIOS,
-  GENERATION_MODELS,
-  MODELS,
-  RESOLUTIONS,
-} from "@howells/motif-sdk";
+import { ASPECT_RATIOS, RESOLUTIONS } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { useState } from "react";
 
 import type { MotifConfig } from "../../utils/config";
-import { firstText } from "../../utils/text";
 
-/** The generate option that removes the pin, so the Task ranking chooses. */
-const RANKING = "ranking";
-
-type SettingKey = Exclude<keyof MotifConfig, "tasks"> | "generateModel";
+type SettingKey = Exclude<keyof MotifConfig, "tasks">;
 
 interface SettingItem {
   key: SettingKey;
@@ -24,12 +15,6 @@ interface SettingItem {
 }
 
 const SETTINGS: SettingItem[] = [
-  {
-    key: "generateModel",
-    label: "Generate model",
-    options: [RANKING, ...GENERATION_MODELS],
-    type: "select",
-  },
   {
     key: "defaultAspect",
     label: "Default Aspect",
@@ -47,9 +32,6 @@ const SETTINGS: SettingItem[] = [
 ];
 
 function readSetting(config: MotifConfig, key: SettingKey): unknown {
-  if (key === "generateModel") {
-    return config.tasks?.generate?.model ?? RANKING;
-  }
   return config[key];
 }
 
@@ -58,17 +40,7 @@ function writeSetting(
   key: SettingKey,
   value: unknown
 ): MotifConfig {
-  if (key !== "generateModel") {
-    return { ...config, [key]: value };
-  }
-  const { generate: _pin, ...otherPins } = config.tasks ?? {};
-  // The tasks key stays present, even when empty, so saving replaces the
-  // stored pins rather than keeping a removed one.
-  const tasks =
-    typeof value === "string" && value !== RANKING
-      ? { ...otherPins, generate: { model: value } }
-      : otherPins;
-  return { ...config, tasks };
+  return { ...config, [key]: value };
 }
 
 interface SettingsScreenProps {
@@ -159,12 +131,6 @@ export function SettingsScreen({
     }
     if (setting.key === "apiKey") {
       return `${value.slice(0, 8)}...${value.slice(-4)}`;
-    }
-    if (setting.key === "generateModel") {
-      if (value === RANKING) {
-        return "Best available (ranking)";
-      }
-      return firstText(MODELS[value]?.name) ?? value;
     }
     return value;
   };

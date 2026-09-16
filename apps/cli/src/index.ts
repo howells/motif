@@ -3,13 +3,14 @@ import React from "react";
 
 import { setApiKey } from "./api/fal";
 import { runCli } from "./cli";
+import { refuseRemovedArgs } from "./commands/removed";
 import { runSeries } from "./commands/series";
 import { runSheet } from "./commands/sheet";
-import { runTools } from "./commands/tools";
 import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
 import { getApiKey, loadConfig, loadHistory, saveConfig } from "./utils/config";
 import type { MotifConfig } from "./utils/config";
+import { formatForParseErrors } from "./utils/errors";
 
 async function main() {
   // Load config and set API key
@@ -35,14 +36,7 @@ async function main() {
     return;
   }
 
-  // Route to fal utility tools subcommand
-  if (args[0] === "tool" || args[0] === "tools") {
-    await runTools(args.slice(1));
-    return;
-  }
-
-  // Route to a promoted verb (segment, ask, erase, reframe, enhance, layers,
-  // vectorize) — each a named front door onto one fal capability.
+  // Route to a Task verb: one command per Task, run through the SDK client.
   if (isVerbName(args[0])) {
     await runVerbs(args);
     return;
@@ -54,7 +48,12 @@ async function main() {
     return;
   }
 
-  await runCli(["node", "motif", ...args], config);
+  // Removed commands and flags name their replacement instead of parsing.
+  refuseRemovedArgs(args, formatForParseErrors(args));
+
+  // `motif generate "prompt"` is `motif "prompt"`.
+  const cliArgs = args[0] === "generate" ? args.slice(1) : args;
+  await runCli(["node", "motif", ...cliArgs], config);
 }
 
 async function launchStudio() {

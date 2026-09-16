@@ -231,7 +231,7 @@ describe("recordOutput / buildSeriesPrompt", () => {
       name: "Styled",
       stylePrompt: "noir",
     });
-    expect(series.buildSeriesPrompt(styled, "a cat")).toBe("noir. a cat");
+    expect(series.buildSeriesPrompt(styled, "a cat")).toBe("noir. A cat");
 
     const plain = await series.createSeries({ name: "Plain" });
     expect(series.buildSeriesPrompt(plain, "a cat")).toBe("a cat");

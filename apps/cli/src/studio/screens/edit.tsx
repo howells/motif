@@ -1,82 +1,49 @@
 import { existsSync } from "node:fs";
 import { basename, resolve } from "node:path";
 
-import { estimateCost, MODELS } from "@howells/motif-sdk";
-import type { AspectRatio, Resolution } from "@howells/motif-sdk";
+import { DEFAULT_TIER } from "@howells/motif-sdk";
+import type {
+  AspectRatio,
+  Resolution,
+  TaskInput,
+  Tier,
+} from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { generate, removeBackground, upscale } from "../../api/fal";
 import { addGeneration, generateId, loadHistory } from "../../utils/config";
 import type { Generation, MotifConfig } from "../../utils/config";
-import {
-  downloadImage,
-  generateFilename,
-  getFileSize,
-  getImageDimensions,
-  imageToDataUrl,
-  openImage,
-} from "../../utils/image";
-import {
-  legacyBackgroundRemover,
-  legacyUpscaler,
-  studioGenerateModel,
-} from "../../utils/task-model";
+import { getFileSize, getImageDimensions, openImage } from "../../utils/image";
+import { imageSource, motifClient } from "../../utils/motif-client";
 import { hasText } from "../../utils/text";
 import { Spinner } from "../components/spinner";
+import { TierOptions } from "../components/tier-options";
+import {
+  OPERATIONS,
+  outputPathFor,
+  promptLabelFor,
+  STATUS_FOR_MODE,
+  TASK_FOR_MODE,
+} from "../edit-modes";
+import type { Mode } from "../edit-modes";
+import {
+  planCost,
+  runTask,
+  saveFirstFile,
+  TIER_OPTIONS,
+  tierMatters,
+} from "../task";
 
-const IMAGE_EXT_REGEX = /\.(png|jpg|jpeg|webp)$/i;
-
-function getModelForMode(
-  mode: Mode,
-  config: MotifConfig,
-  sourceModel: string
-): string {
-  if (mode === "upscale") {
-    return legacyUpscaler(config);
-  }
-  if (mode === "rmbg") {
-    return legacyBackgroundRemover(config);
-  }
-  return sourceModel;
-}
-
-function getEditModel(config: MotifConfig, sourceModel: string): string {
-  if (MODELS[sourceModel]?.supportsEdit === true) {
-    return sourceModel;
-  }
-  const pinned = studioGenerateModel(config);
-  if (MODELS[pinned]?.supportsEdit === true) {
-    return pinned;
-  }
-  return "banana2";
-}
-
-type Mode = "edit" | "variations" | "upscale" | "rmbg";
 type Step =
   | "select"
   | "operation"
   | "prompt"
   | "scale"
+  | "tier"
   | "confirm"
   | "processing"
   | "done";
-
-const OPERATIONS: { key: Mode; label: string; description: string }[] = [
-  { description: "Modify with a new prompt", key: "edit", label: "Edit" },
-  {
-    description: "Generate similar images",
-    key: "variations",
-    label: "Variations",
-  },
-  { description: "Enhance resolution", key: "upscale", label: "Upscale" },
-  {
-    description: "Transparent PNG output",
-    key: "rmbg",
-    label: "Remove Background",
-  },
-];
 
 interface EditScreenProps {
   config: MotifConfig;
@@ -103,6 +70,11 @@ export function EditScreen({
   const [useCustomPath, setUseCustomPath] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [scale, setScale] = useState(2);
+  const [tier, setTier] = useState<Tier>(DEFAULT_TIER);
+  const [tierIndex, setTierIndex] = useState(0);
+  const [image, setImage] = useState<string | null>(null);
+  const client = useMemo(() => motifClient(config), [config]);
+  const showTier = tierMatters(config, "upscale", { source: "image" });
   const [status, setStatus] = useState("");
   const [result, setResult] = useState<{
     path: string;
@@ -114,20 +86,20 @@ export function EditScreen({
   const getSourceImage = (): {
     output: string;
     prompt: string;
-    model: string;
+    fromHistory: boolean;
     aspect: AspectRatio;
     resolution: Resolution;
   } | null => {
     if (useCustomPath && hasText(customPath)) {
       return {
         aspect: config.defaultAspect,
-        model: studioGenerateModel(config),
+        fromHistory: false,
         output: customPath.trim(),
         prompt: basename(customPath),
         resolution: config.defaultResolution,
       };
     }
-    return selectedGen;
+    return selectedGen === null ? null : { ...selectedGen, fromHistory: true };
   };
 
   useEffect(() => {
@@ -150,8 +122,9 @@ export function EditScreen({
   }, [skipToOperation]);
 
   const proceedFromSelect = () => {
+    let path: string;
     if (useCustomPath) {
-      const path = customPath.trim();
+      path = customPath.trim();
       if (!path) {
         return;
       }
@@ -159,9 +132,19 @@ export function EditScreen({
         onError(new Error(`File not found: ${path}`));
         return;
       }
-    } else if (!selectedGen) {
+    } else if (selectedGen) {
+      path = selectedGen.output;
+    } else {
       return;
     }
+    setImage(null);
+    // Fire-and-forget: the image loads in the background so the cost can be
+    // worked out; a file that cannot be read goes through onError.
+    void imageSource(path)
+      .then(setImage)
+      .catch((error: unknown) => {
+        onError(error instanceof Error ? error : new Error(String(error)));
+      });
     setStep("operation");
     setOperationIndex(0);
   };
@@ -282,12 +265,32 @@ export function EditScreen({
     } else if (key.downArrow === true && scale > 1) {
       setScale(scale - 1);
     } else if (key.return === true) {
+      setTierIndex(TIER_OPTIONS.findIndex((option) => option.tier === tier));
+      setStep(showTier ? "tier" : "confirm");
+    }
+  };
+
+  const handleTierInput = (key: {
+    upArrow?: boolean;
+    downArrow?: boolean;
+    return?: boolean;
+  }) => {
+    if (key.upArrow === true && tierIndex > 0) {
+      setTierIndex(tierIndex - 1);
+    } else if (key.downArrow === true && tierIndex < TIER_OPTIONS.length - 1) {
+      setTierIndex(tierIndex + 1);
+    } else if (key.return === true) {
+      setTier(TIER_OPTIONS[tierIndex]?.tier ?? DEFAULT_TIER);
       setStep("confirm");
     }
   };
 
   const handleConfirmInput = (input: string, key: { return?: boolean }) => {
-    if (key.return === true || input === "y") {
+    if (
+      (key.return === true || input === "y") &&
+      planned !== null &&
+      "cost" in planned
+    ) {
       // Fire-and-forget: useInput handlers cannot be async; runProcess drives its
       // own status/error UI and calls onError on failure.
       void runProcess();
@@ -308,6 +311,8 @@ export function EditScreen({
       handleOperationInput(key);
     } else if (step === "scale") {
       handleScaleInput(key);
+    } else if (step === "tier") {
+      handleTierInput(key);
     } else if (step === "confirm") {
       handleConfirmInput(input, key);
     } else if (step === "done" && key.return) {
@@ -322,98 +327,60 @@ export function EditScreen({
     }
   };
 
+  const taskInput = (
+    source: NonNullable<ReturnType<typeof getSourceImage>>,
+    image: string,
+    mode: Mode
+  ): TaskInput => {
+    if (mode === "edit") {
+      return { prompt, references: [image] };
+    }
+    if (mode === "variations") {
+      return source.fromHistory ? { image, prompt: source.prompt } : { image };
+    }
+    if (mode === "upscale") {
+      return { image, scale, ...(showTier && { tier }) };
+    }
+    return { image };
+  };
+
   const runProcess = async () => {
     const source = getSourceImage();
-    if (source === null || mode === null) {
+    if (source === null || mode === null || image === null) {
       return;
     }
 
     setStep("processing");
 
     try {
-      let outputPath: string;
-      let cost: number | null = 0;
-      let promptLabel = "";
-
-      if (mode === "edit") {
-        const editModel = getEditModel(config, source.model);
-        setStatus("Preparing image...");
-        const imageData = await imageToDataUrl(source.output);
-
-        setStatus("Generating edit...");
-        const result = await generate({
-          editImages: [imageData],
-          model: editModel,
-          prompt,
-        });
-
-        outputPath = generateFilename("motif-edit");
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
-        outputPath = await downloadImage(result.images[0]!.url, outputPath);
-        cost = estimateCost(editModel);
-        promptLabel = prompt;
-      } else if (mode === "variations") {
-        setStatus("Generating variations...");
-        const result = await generate({
-          aspect: source.aspect,
-          model: source.model,
-          numImages: 1,
-          prompt: source.prompt,
-          resolution: source.resolution,
-        });
-
-        outputPath = generateFilename("motif-edit");
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
-        outputPath = await downloadImage(result.images[0]!.url, outputPath);
-        cost = estimateCost(source.model, source.resolution);
-        promptLabel = source.prompt;
-      } else if (mode === "upscale") {
-        setStatus("Uploading image...");
-        const imageData = await imageToDataUrl(source.output);
-
-        setStatus("Upscaling...");
-        const result = await upscale({
-          imageUrl: imageData,
-          model: legacyUpscaler(config),
-          scaleFactor: scale,
-        });
-
-        outputPath = source.output.replace(IMAGE_EXT_REGEX, `-up${scale}x.png`);
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
-        outputPath = await downloadImage(result.images[0]!.url, outputPath);
-        cost = 0.02;
-        promptLabel = `[upscale ${scale}x] ${source.prompt}`;
-      } else {
-        // rmbg
-        setStatus("Uploading image...");
-        const imageData = await imageToDataUrl(source.output);
-
-        setStatus("Removing background...");
-        const result = await removeBackground({
-          imageUrl: imageData,
-          model: legacyBackgroundRemover(config),
-        });
-
-        outputPath = source.output.replace(IMAGE_EXT_REGEX, "-nobg.png");
-        // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
-        outputPath = await downloadImage(result.images[0]!.url, outputPath);
-        cost = 0.02;
-        promptLabel = `[rmbg] ${source.prompt}`;
-      }
+      setStatus(STATUS_FOR_MODE[mode]);
+      const output = await runTask(
+        client,
+        TASK_FOR_MODE[mode],
+        taskInput(source, image, mode)
+      );
 
       setStatus("Saving...");
+      const outputPath = await saveFirstFile(
+        output,
+        outputPathFor(source.output, mode, scale)
+      );
 
       const dims = await getImageDimensions(outputPath);
       const size = getFileSize(outputPath);
 
       await addGeneration({
         aspect: source.aspect,
-        cost,
+        cost: output.cost.usd,
         editedFrom: source.output,
         id: generateId(),
-        model: getModelForMode(mode, config, source.model),
+        model: output.model,
         output: resolve(outputPath),
-        prompt: promptLabel,
+        prompt: promptLabelFor(mode, {
+          edit: prompt,
+          scale,
+          source: source.prompt,
+        }),
         resolution: source.resolution,
         timestamp: new Date().toISOString(),
       });
@@ -438,6 +405,10 @@ export function EditScreen({
   };
 
   const source = step === "select" ? null : getSourceImage();
+  const planned: { cost: string } | { error: string } | null =
+    source === null || mode === null || image === null
+      ? null
+      : planCost(client, TASK_FOR_MODE[mode], taskInput(source, image, mode));
 
   return (
     <Box flexDirection="column">
@@ -561,32 +532,33 @@ export function EditScreen({
         </Box>
       )}
 
+      {step === "tier" && (
+        <Box flexDirection="column">
+          <Text>Speed or quality:</Text>
+          <Box flexDirection="column" marginLeft={1} marginTop={1}>
+            <TierOptions selectedIndex={tierIndex} />
+          </Box>
+        </Box>
+      )}
+
       {/* Confirmation */}
       {step === "confirm" && source && mode && (
         <Box flexDirection="column">
           <Text bold>Ready to process:</Text>
           <Box flexDirection="column" marginLeft={2} marginTop={1}>
             {mode === "edit" && (
-              <>
-                <Text>
-                  Edit:{" "}
-                  <Text color="cyan">
-                    {prompt.slice(0, 40)}
-                    {prompt.length > 40 ? "..." : ""}
-                  </Text>
+              <Text>
+                Edit:{" "}
+                <Text color="cyan">
+                  {prompt.slice(0, 40)}
+                  {prompt.length > 40 ? "..." : ""}
                 </Text>
-                <Text>
-                  Model:{" "}
-                  <Text color="green">
-                    {MODELS[getEditModel(config, source.model)]?.name}
-                  </Text>
-                </Text>
-              </>
+              </Text>
             )}
             {mode === "variations" && (
               <Text>
-                Prompt:{" "}
-                <Text color="cyan">{source.prompt.slice(0, 40)}...</Text>
+                {source.fromHistory ? "Prompt: " : "Variation of "}
+                <Text color="cyan">{source.prompt.slice(0, 40)}</Text>
               </Text>
             )}
             {mode === "upscale" && (
@@ -594,21 +566,22 @@ export function EditScreen({
                 <Text>
                   Scale: <Text color="cyan">{scale}x</Text>
                 </Text>
-                <Text>
-                  Model:{" "}
-                  <Text color="green">
-                    {MODELS[legacyUpscaler(config)]?.name}
+                {showTier && (
+                  <Text>
+                    Tier: <Text color="green">{tier}</Text>
                   </Text>
-                </Text>
+                )}
               </>
             )}
-            {mode === "rmbg" && (
+            {mode === "rmbg" && <Text>Remove the background</Text>}
+            {planned === null && <Text dimColor>Working out the cost...</Text>}
+            {planned !== null && "cost" in planned && (
               <Text>
-                Model:{" "}
-                <Text color="green">
-                  {MODELS[legacyBackgroundRemover(config)]?.name}
-                </Text>
+                Est. cost: <Text color="yellow">{planned.cost}</Text>
               </Text>
+            )}
+            {planned !== null && "error" in planned && (
+              <Text color="red">Cannot run this: {planned.error}</Text>
             )}
           </Box>
           <Box marginTop={1}>

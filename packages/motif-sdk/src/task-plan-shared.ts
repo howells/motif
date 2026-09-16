@@ -33,6 +33,7 @@ export const CARRIED_FIELDS = [
   "scale",
   "sizes",
   "duration",
+  "rig",
   "look",
   "mood",
 ] as const satisfies readonly (keyof TaskInput)[];

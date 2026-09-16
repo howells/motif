@@ -51,11 +51,15 @@ export interface TaskRequest {
   readonly mask?: boolean;
   /** An aspect ratio is asked for, e.g. `"3:2"`. */
   readonly aspect?: string;
+  /** A resolution tier is asked for, e.g. `"1K"`. */
+  readonly resolution?: string;
   /** Number of outputs wanted. */
   readonly count?: number;
   readonly seed?: boolean;
   readonly negativePrompt?: boolean;
   readonly outputFormat?: boolean;
+  /** A rigged mesh wanted. */
+  readonly rig?: boolean;
   /** The kind of Source passed in. Absent for a text-only request. */
   readonly source?: "image" | "video";
   /** A named variant of the Task, e.g. `"text"` for erase. */
@@ -136,6 +140,9 @@ function generationProfile(config: ModelConfig): ModelProfile {
   if ((config.sizeMode ?? "aspect_ratio") !== "none") {
     capabilities.add("aspect");
   }
+  if (config.supportsResolution) {
+    capabilities.add("resolution");
+  }
   if (config.supportsNumImages) {
     capabilities.add("count");
   }
@@ -169,6 +176,8 @@ const TOOL_PARAMETER_CAPABILITIES: readonly (readonly [
   ["count", ["num_images"]],
   ["negativePrompt", ["negative_prompt"]],
   ["outputFormat", ["output_format"]],
+  ["resolution", ["canvas_size", "image_size"]],
+  ["rig", ["enable_rigging"]],
   ["seed", ["seed"]],
 ];
 
@@ -176,19 +185,24 @@ function toolProfile(tool: FalToolId): ModelProfile {
   const keys = new Set(
     falToolParameters(tool).map((parameter) => parameter.key)
   );
+  const config = FAL_TOOLS[tool];
   const capabilities = new Set<Capability>([
-    FAL_TOOLS[tool].inputKind === "video" ? "video" : "image",
+    config.inputKind === "video" ? "video" : "image",
   ]);
   for (const [capability, parameters] of TOOL_PARAMETER_CAPABILITIES) {
     if (parameters.some((parameter) => keys.has(parameter))) {
       capabilities.add(capability);
     }
   }
+  const takesReference = "referenceField" in config;
+  if (takesReference) {
+    capabilities.add("references");
+  }
   return {
     capabilities,
     keyedCapabilities: new Map(),
     keys: [FAL_KEY],
-    maxReferences: 0,
+    maxReferences: takesReference ? 1 : 0,
   };
 }
 
@@ -233,6 +247,9 @@ function requirements(request: TaskRequest): Capability[] {
   if (request.aspect !== undefined) {
     needed.push("aspect");
   }
+  if (request.resolution !== undefined) {
+    needed.push("resolution");
+  }
   if ((request.count ?? 1) > 1) {
     needed.push("count");
   }
@@ -244,6 +261,9 @@ function requirements(request: TaskRequest): Capability[] {
   }
   if (request.outputFormat === true) {
     needed.push("outputFormat");
+  }
+  if (request.rig === true) {
+    needed.push("rig");
   }
   return needed;
 }

@@ -1,10 +1,9 @@
-import { MODELS } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import { useState } from "react";
 
 import type { History } from "../../utils/config";
-import { firstText } from "../../utils/text";
 import type { Screen } from "../app";
+import { costLabel } from "../task";
 
 function getMenuItemColor(
   isDisabled: boolean,
@@ -28,12 +27,12 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   {
-    description: "Create new image from prompt",
+    description: "Make an image from a prompt",
     key: "generate",
     label: "Generate",
   },
   {
-    description: "Modify, upscale, or remove background",
+    description: "Change, upscale or remove the background",
     key: "edit",
     label: "Edit",
   },
@@ -43,7 +42,7 @@ const MENU_ITEMS: MenuItem[] = [
     label: "Gallery",
   },
   {
-    description: "Model, aspect, defaults",
+    description: "Aspect, resolution, API key",
     key: "settings",
     label: "Settings",
   },
@@ -57,7 +56,7 @@ interface HomeScreenProps {
 export function HomeScreen({ history, onNavigate }: HomeScreenProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const hasLast = history.generations.length > 0;
-  const last = history.generations[0];
+  const last = history.generations.at(-1);
 
   useInput((_input, key) => {
     if (key.upArrow) {
@@ -111,8 +110,8 @@ export function HomeScreen({ history, onNavigate }: HomeScreenProps) {
           </Box>
           <Box>
             <Text dimColor>
-              {firstText(MODELS[last.model]?.name) ?? last.model} ·{" "}
-              {last.aspect}
+              {new Date(last.timestamp).toLocaleDateString()} ·{" "}
+              {costLabel(last.cost)}
             </Text>
           </Box>
         </Box>

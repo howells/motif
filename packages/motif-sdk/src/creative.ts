@@ -418,7 +418,7 @@ export function enrichPrompt(
       selected,
     },
     prompt: clauses.length
-      ? joinSentences([basePrompt, ...clauses])
+      ? joinSentences([basePrompt, ...clauses].filter((part) => part !== ""))
       : basePrompt,
   };
 }

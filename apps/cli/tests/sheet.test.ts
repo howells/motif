@@ -102,13 +102,13 @@ describe(captionFor, () => {
         mood: "dawn",
       }),
     ]);
-    expect(caption).toBe("gpt2 · editorial · dawn · $0.211");
+    expect(caption).toBe("editorial · dawn · $0.211");
   });
 
   it("says cost unknown rather than guessing", () => {
     const path = join(fixtures, "unknown.png");
     expect(captionFor(path, [generation(path, { cost: null })])).toBe(
-      "banana · cost unknown"
+      "cost unknown"
     );
   });
 

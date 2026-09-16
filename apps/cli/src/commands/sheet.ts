@@ -3,7 +3,7 @@
  *
  * `motif sheet a.png b.png` or `motif sheet --last 6`. Each cell is the image
  * fitted into a 512 px square on a warm off-white ground, captioned from
- * history (model, look, mood, cost) or with the filename when history has no
+ * history (look, mood, cost) or with the filename when history has no
  * record of it. The output path follows the same rules as generation.
  */
 
@@ -58,7 +58,7 @@ interface SheetOptions {
 }
 
 /**
- * Caption for one image: model, look, mood and cost from the newest history
+ * Caption for one image: look, mood and cost from the newest history
  * entry whose output is this file, or the filename when there is none.
  */
 export function captionFor(
@@ -73,7 +73,6 @@ export function captionFor(
     return basename(path);
   }
   return [
-    match.model,
     match.look,
     match.mood,
     match.cost === null ? "cost unknown" : formatCost(match.cost),

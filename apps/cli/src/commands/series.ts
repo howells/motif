@@ -9,33 +9,37 @@
  * motif series history "my-series"
  */
 
-import { basename, resolve } from "node:path";
+import { writeFile } from "node:fs/promises";
+import { basename, join, parse, resolve } from "node:path";
 
 import {
   ASPECT_RATIOS,
   enrichPrompt,
-  estimateCost,
   formatCost,
-  GENERATION_MODELS,
   getLook,
   MODELS,
   RESOLUTIONS,
   sanitizePrompt,
+  TIERS,
   validateCreativeDirection,
 } from "@howells/motif-sdk";
-import type { CreativeDirection } from "@howells/motif-sdk";
+import type {
+  AspectRatio,
+  CreativeDirection,
+  MotifClient,
+  Resolution,
+  TaskFile,
+  TaskInput,
+  TaskOutput,
+  TaskPlan,
+  Tier,
+} from "@howells/motif-sdk";
 import chalk from "chalk";
 import { Command } from "commander";
 import ora from "ora";
 
-import { generate } from "../api/fal";
-import {
-  addGenerations,
-  generateId,
-  getApiKey,
-  loadConfig,
-} from "../utils/config";
-import type { Generation, MotifConfig } from "../utils/config";
+import { addGenerations, generateId, loadConfig } from "../utils/config";
+import type { Generation } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
 import type { CreativeInput } from "../utils/creative";
 import {
@@ -57,6 +61,7 @@ import {
   validateOutputPath,
   validateResourceId,
 } from "../utils/input";
+import { imageSource, motifClient } from "../utils/motif-client";
 import {
   emit,
   emitError,
@@ -79,7 +84,7 @@ import {
   slugify,
 } from "../utils/series";
 import type { SeriesConfig } from "../utils/series";
-import { exitNoModelAvailable, resolveTaskModel } from "../utils/task-model";
+import { exitTaskError } from "../utils/task-model";
 import { hasText } from "../utils/text";
 
 // -- Helpers --
@@ -137,23 +142,81 @@ function seriesCreativeDirection(
   );
 }
 
+/** The fields every Series payload carries about the Task and its Model. */
+function taskFields(plan: TaskOutput | TaskPlan): Record<string, unknown> {
+  return {
+    task: plan.task,
+    model: plan.model,
+    tier: plan.tier,
+    chosenBy: plan.chosenBy,
+  };
+}
+
+/** Local reference images as the SDK takes them. */
+async function referenceSources(paths: readonly string[]): Promise<string[]> {
+  return await Promise.all(paths.map(async (path) => await imageSource(path)));
+}
+
 /**
- * The generate Model for a Series call that named none: the Look's, a pin, or
- * the ranking. Exits with NO_MODEL_AVAILABLE when nothing qualifies.
+ * The generate input a Series call sends. The Look and Mood go to the SDK,
+ * which appends their clauses to the prompt and lets a Look choose its Model.
+ * The aspect is sent only when chosen, so it never narrows the ranking alone.
  */
-function seriesModel(
-  request: { look?: string; references: number },
-  appConfig: MotifConfig,
-  dryRun: boolean,
-  emitOpts: EmitOptions
-): string {
-  const resolution = resolveTaskModel("generate", request, appConfig, {
-    dryRun,
-  });
-  if (resolution.ok) {
-    return resolution.model;
+function seriesInput(options: {
+  aspect: AspectRatio;
+  aspectChosen: boolean;
+  count: number;
+  creative?: CreativeDirection;
+  model?: string;
+  prompt: string;
+  references: readonly string[];
+  resolution: Resolution;
+  resolutionChosen?: boolean;
+  tier?: Tier;
+}): TaskInput {
+  return {
+    prompt: options.prompt,
+    ...(options.aspectChosen && { aspect: options.aspect }),
+    ...((options.resolutionChosen === true || options.resolution !== "2K") && {
+      resolution: options.resolution,
+    }),
+    ...(options.tier !== undefined && { tier: options.tier }),
+    ...(options.count > 1 && { count: options.count }),
+    ...(options.references.length > 0 && { references: options.references }),
+    ...(hasText(options.model) && { model: options.model }),
+    ...(hasText(options.creative?.look) && { look: options.creative.look }),
+    ...(hasText(options.creative?.mood) && { mood: options.creative.mood }),
+  };
+}
+
+const DATA_URL_REGEX = /^data:[^;,]+;base64,(.*)$/s;
+
+/** Write one returned file: a download, or the bytes of a data URL as PNG. */
+async function saveFile(file: TaskFile, path: string): Promise<string> {
+  const match = DATA_URL_REGEX.exec(file.url);
+  if (match?.[1] === undefined) {
+    return await downloadImage(file.url, path);
   }
-  exitNoModelAvailable(resolution, emitOpts.format);
+  const { dir, name } = parse(path);
+  const pngPath = join(dir, `${name}.png`);
+  await writeFile(pngPath, Buffer.from(match[1], "base64"));
+  return pngPath;
+}
+
+/** Run a Series generation, exiting with the mapped error when it fails. */
+async function runSeriesTask(
+  client: MotifClient,
+  input: TaskInput,
+  emitOpts: EmitOptions
+): Promise<TaskOutput> {
+  const ran = await client.run("generate", input);
+  if (ran.isErr()) {
+    exitTaskError(ran.error, emitOpts.format, {
+      model: input.model,
+      task: "generate",
+    });
+  }
+  return ran.value;
 }
 
 function validateSeriesOption<T>(emitOpts: EmitOptions, fn: () => T): T {
@@ -171,6 +234,17 @@ function splitRefTags(refs: string | undefined): string[] | undefined {
     .filter(Boolean);
 }
 
+/**
+ * The theme as it reads mid-sentence: its first letter lower-cased unless the
+ * second character is a capital, so "A ceramics studio" becomes "a ceramics
+ * studio" and "BBC archive" stays as it is.
+ */
+export function midSentenceTheme(theme: string): string {
+  const [first = "", second = ""] = theme;
+  const acronym = second !== second.toLowerCase();
+  return acronym ? theme : `${first.toLowerCase()}${theme.slice(1)}`;
+}
+
 export function buildSeriesRunStylePrompt(
   theme: string,
   style?: string
@@ -180,7 +254,7 @@ export function buildSeriesRunStylePrompt(
     return base;
   }
   return [
-    `Cohesive visual series about ${theme}`,
+    `Cohesive visual series about ${midSentenceTheme(theme)}`,
     "consistent tone, style, color palette, lighting, lens language, framing discipline, material treatment, and post-processing across every image",
   ].join(": ");
 }
@@ -189,7 +263,7 @@ export function buildSeriesRunScenes(theme: string, count: number): string[] {
   return Array.from({ length: count }, (_, index) => {
     const focus = SERIES_RUN_SCENE_FOCI[index % SERIES_RUN_SCENE_FOCI.length];
     return [
-      `Image ${index + 1} of ${count} in a cohesive visual series about ${theme}`,
+      `Image ${index + 1} of ${count} in a cohesive visual series about ${midSentenceTheme(theme)}`,
       focus,
       "shared visual language, palette, lighting, lens, composition rhythm, and post-processing across the full set",
       "no text, no watermark",
@@ -484,8 +558,8 @@ async function cmdGenerate(
       : undefined;
     const requestPrompt = creativeResult?.prompt ?? sanitized;
 
-    // Build the full prompt with style prefix
-    const fullPrompt = buildSeriesPrompt(config, requestPrompt);
+    // The style prefix and the scene; the SDK appends the Look and Mood.
+    const basePrompt = buildSeriesPrompt(config, sanitized);
 
     // Resolve which reference images to include
     const refTags = opts.refs?.split(",").map((t) => t.trim());
@@ -494,14 +568,6 @@ async function cmdGenerate(
     if (hasText(opts.model)) {
       validateResourceId(opts.model, "model");
     }
-    const modelId =
-      opts.model ??
-      seriesModel(
-        { look: creative?.look, references: refPaths.length },
-        appConfig,
-        opts.dryRun === true,
-        emitOpts
-      );
     const aspect = hasText(opts.aspect)
       ? validateSeriesOption(emitOpts, () =>
           validateEnumOption(opts.aspect ?? "", ASPECT_RATIOS, "aspect")
@@ -516,36 +582,28 @@ async function cmdGenerate(
       parseIntegerOption(opts.num ?? "1", "num images", { max: 4, min: 1 })
     );
 
-    const modelConfig = MODELS[modelId];
-    if (!modelConfig) {
-      emitError(
-        {
-          code: "UNKNOWN_MODEL",
-          details: { available: GENERATION_MODELS },
-          message: `Unknown model: ${modelId}`,
-        },
-        emitOpts.format
-      );
-      exitForErrorCode("UNKNOWN_MODEL");
+    const dryRun = opts.dryRun === true;
+    const client = motifClient(appConfig);
+    const input = seriesInput({
+      aspect,
+      aspectChosen: hasText(opts.aspect) || aspect !== "1:1",
+      count: numImages,
+      creative,
+      model: opts.model,
+      prompt: basePrompt,
+      references: await referenceSources(refPaths),
+      resolution,
+    });
+    const planned = client.plan("generate", input, { dryRun });
+    if (planned.isErr()) {
+      exitTaskError(planned.error, emitOpts.format, { task: "generate" });
     }
-
-    // Check ref count against model limits
-    const maxRefs = modelConfig.maxReferenceImages ?? 0;
-    if (refPaths.length > maxRefs) {
-      emitError(
-        {
-          code: "TOO_MANY_REFERENCES",
-          message: `${modelConfig.name} supports ${maxRefs} references, series has ${refPaths.length}. Use --refs to select specific tags.`,
-        },
-        emitOpts.format
-      );
-      exitForErrorCode("TOO_MANY_REFERENCES");
-    }
-
-    const cost = estimateCost(modelId, resolution, numImages);
+    const plan = planned.value;
+    const fullPrompt = plan.prompt ?? basePrompt;
+    const cost = plan.cost.usd;
 
     // -- Dry run --
-    if (opts.dryRun === true) {
+    if (dryRun) {
       const dryResult = {
         dryRun: true,
         command: "series-generate",
@@ -554,8 +612,7 @@ async function cmdGenerate(
         scenePrompt: sanitized,
         enrichedScenePrompt: requestPrompt,
         stylePrompt: config.stylePrompt,
-        model: modelId,
-        modelName: modelConfig.name,
+        ...taskFields(plan),
         aspect,
         resolution,
         numImages,
@@ -569,19 +626,15 @@ async function cmdGenerate(
       };
       emit(dryResult, emitOpts);
       if (!isStructured(emitOpts.format)) {
-        console.log(chalk.bold(`\n🔍 Dry run — series: ${config.name}\n`));
+        console.log(chalk.bold(`\nDry run: series ${config.name}\n`));
         console.log(`  Style:   ${chalk.dim(config.stylePrompt || "(none)")}`);
         console.log(`  Scene:   ${chalk.dim(sanitized.slice(0, 80))}`);
         console.log(`  Full:    ${chalk.dim(fullPrompt.slice(0, 100))}...`);
-        console.log(`  Model:   ${chalk.green(modelConfig.name)}`);
         console.log(`  Refs:    ${refPaths.length} images`);
         console.log(`  Cost:    ${chalk.yellow(formatCost(cost))}`);
       }
       return;
     }
-
-    // Validate API key only after dry-run exits.
-    getApiKey(appConfig);
 
     // -- Generate --
     const outputDir = seriesOutputsDir(slug);
@@ -595,9 +648,7 @@ async function cmdGenerate(
 
     if (!isStructured(emitOpts.format)) {
       console.log(chalk.bold(`\nSeries: ${config.name}`));
-      console.log(
-        `Model: ${chalk.green(modelConfig.name)} | Refs: ${refPaths.length}`
-      );
+      console.log(`Refs: ${refPaths.length}`);
       console.log(`Prompt: ${chalk.dim(fullPrompt.slice(0, 100))}...`);
       console.log(`Cost: ${chalk.yellow(formatCost(cost))}`);
     }
@@ -606,28 +657,25 @@ async function cmdGenerate(
       ? null
       : ora("Generating...").start();
 
-    const result = await generate({
-      aspect,
-      editImages: refPaths.length > 0 ? refPaths : undefined,
-      model: modelId,
-      numImages,
-      prompt: fullPrompt,
-      resolution,
-    });
+    const result = await runSeriesTask(client, input, emitOpts);
 
     spinner?.succeed("Generated!");
 
-    // Build paths and download all images in parallel
-    const paths = result.images.map((_, i) =>
+    // Build paths and save all images in parallel
+    const paths = result.files.map((_, i) =>
       numImages > 1 ? indexedOutputPath(outputPath, i) : outputPath
     );
     const actualPaths = await Promise.all(
-      result.images.map(
-        async (image, i) =>
+      result.files.map(
+        async (file, i) =>
           // biome-ignore lint/style/noNonNullAssertion: index guaranteed within map bounds
-          await downloadImage(image.url, paths[i]!)
+          await saveFile(file, paths[i]!)
       )
     );
+    const costPerImage =
+      result.cost.usd === null || result.files.length === 0
+        ? null
+        : result.cost.usd / result.files.length;
 
     // Collect metadata and build history records
     const savedImages: {
@@ -639,9 +687,7 @@ async function cmdGenerate(
     const generations: Generation[] = [];
     const now = new Date().toISOString();
 
-    for (let i = 0; i < result.images.length; i++) {
-      // biome-ignore lint/style/noNonNullAssertion: index guaranteed within loop bounds
-      const path = actualPaths[i]!;
+    for (const path of actualPaths) {
       const dims = await getImageDimensions(path);
       const size = getFileSize(path);
 
@@ -663,13 +709,13 @@ async function cmdGenerate(
 
       generations.push({
         aspect,
-        cost: estimateCost(modelId, resolution, 1),
+        cost: costPerImage,
         id: generateId(),
         ...(hasText(creative?.look) && { look: creative.look }),
-        model: modelId,
+        model: result.model,
         ...(hasText(creative?.mood) && { mood: creative.mood }),
         output: resolve(path),
-        prompt: fullPrompt,
+        prompt: result.prompt ?? fullPrompt,
         resolution,
         timestamp: now,
       });
@@ -681,10 +727,10 @@ async function cmdGenerate(
     // Record in series history
     await recordOutput(slug, {
       aspect,
-      cost,
+      cost: result.cost.usd,
       filename: basename(actualPaths[0] ?? outputFilename),
-      model: modelId,
-      prompt: fullPrompt,
+      model: result.model,
+      prompt: result.prompt ?? fullPrompt,
       refsUsed: refTags ?? config.refs.map((r) => r.tag),
       resolution,
       timestamp: new Date().toISOString(),
@@ -695,15 +741,14 @@ async function cmdGenerate(
         {
           command: "series-generate",
           series: slug,
-          prompt: fullPrompt,
+          prompt: result.prompt ?? fullPrompt,
           scenePrompt: sanitized,
           enrichedScenePrompt: requestPrompt,
-          model: modelId,
-          modelName: modelConfig.name,
+          ...taskFields(result),
           aspect,
           resolution,
           images: savedImages,
-          cost,
+          cost: result.cost.usd,
           ...(creativeResult && {
             creative: creativeResult.creative,
           }),
@@ -736,6 +781,7 @@ async function cmdRun(
     resolution?: string;
     series?: string;
     style?: string;
+    tier?: string;
   },
   emitOpts: EmitOptions
 ): Promise<void> {
@@ -773,6 +819,11 @@ async function cmdRun(
           validateEnumOption(opts.resolution ?? "", RESOLUTIONS, "resolution")
         )
       : (existingSeries?.defaultResolution ?? "2K");
+    const tier = hasText(opts.tier)
+      ? validateSeriesOption(emitOpts, () =>
+          validateEnumOption(opts.tier ?? "", TIERS, "tier")
+        )
+      : undefined;
     const stylePrompt =
       opts.style ??
       existingSeries?.stylePrompt ??
@@ -785,38 +836,8 @@ async function cmdRun(
       existingSeries
     );
     const appConfig = await loadConfig();
-    const modelId =
-      opts.model ??
-      seriesModel(
-        { look: creative?.look, references: refPaths.length },
-        appConfig,
-        opts.dryRun === true,
-        emitOpts
-      );
-    const modelConfig = MODELS[modelId];
-    if (!modelConfig) {
-      emitError(
-        {
-          code: "UNKNOWN_MODEL",
-          details: { available: GENERATION_MODELS },
-          message: `Unknown model: ${modelId}`,
-        },
-        emitOpts.format
-      );
-      exitForErrorCode("UNKNOWN_MODEL");
-    }
-    const maxRefs = modelConfig.maxReferenceImages ?? 0;
-
-    if (refPaths.length > maxRefs) {
-      emitError(
-        {
-          code: "TOO_MANY_REFERENCES",
-          message: `${modelConfig.name} supports ${maxRefs} references, series run selected ${refPaths.length}. Use --refs to select fewer tags.`,
-        },
-        emitOpts.format
-      );
-      exitForErrorCode("TOO_MANY_REFERENCES");
-    }
+    const dryRun = opts.dryRun === true;
+    const client = motifClient(appConfig);
 
     const baseScenePrompts = buildSeriesRunScenes(sanitizedTheme, count);
     const enrichedScenes = baseScenePrompts.map((baseScenePrompt) =>
@@ -830,22 +851,50 @@ async function cmdRun(
       (baseScenePrompt, index) =>
         enrichedScenes[index]?.prompt ?? baseScenePrompt
     );
+    // The style and the scene; the SDK appends the Look and Mood.
+    const basePrompts = baseScenePrompts.map((scenePrompt) =>
+      stylePrompt ? `${stylePrompt}. ${scenePrompt}` : scenePrompt
+    );
     const fullPrompts = scenePrompts.map((scenePrompt) =>
       stylePrompt ? `${stylePrompt}. ${scenePrompt}` : scenePrompt
     );
-    const estimatedCost = estimateCost(modelId, resolution, count);
-    const canUseAnchorReference =
-      modelConfig.supportsEdit && refPaths.length < maxRefs;
+    const references = await referenceSources(refPaths);
+    const sceneInput = (index: number, model?: string, extra: string[] = []) =>
+      seriesInput({
+        aspect,
+        aspectChosen: hasText(opts.aspect) || aspect !== "1:1",
+        count: 1,
+        creative,
+        model,
+        prompt: basePrompts[index] ?? sanitizedTheme,
+        references: [...references, ...extra],
+        resolution,
+        resolutionChosen: hasText(opts.resolution),
+        tier,
+      });
 
-    if (opts.dryRun === true) {
+    // Every scene runs on the first scene's Model, so the set stays one style.
+    const planned = client.plan("generate", sceneInput(0, opts.model), {
+      dryRun,
+    });
+    if (planned.isErr()) {
+      exitTaskError(planned.error, emitOpts.format, { task: "generate" });
+    }
+    const plan = planned.value;
+    const modelConfig = MODELS[plan.model];
+    const maxRefs = modelConfig?.maxReferenceImages ?? 0;
+    const canUseAnchorReference =
+      modelConfig?.supportsEdit === true && refPaths.length < maxRefs;
+    const estimatedCost = plan.cost.usd === null ? null : plan.cost.usd * count;
+
+    if (dryRun) {
       emit(
         {
           command: "series-run",
           count,
           dryRun: true,
           estimatedCost,
-          model: modelId,
-          modelName: modelConfig.name,
+          ...taskFields(plan),
           aspect,
           resolution,
           series: existingSeries?.slug ?? null,
@@ -872,16 +921,13 @@ async function cmdRun(
         emitOpts
       );
       if (!isStructured(emitOpts.format)) {
-        console.log(chalk.bold(`\n🔍 Dry run — series run\n`));
+        console.log(chalk.bold("\nDry run: series run\n"));
         console.log(`  Theme:  ${chalk.dim(sanitizedTheme)}`);
         console.log(`  Count:  ${count}`);
-        console.log(`  Model:  ${chalk.green(modelConfig.name)}`);
         console.log(`  Cost:   ${chalk.yellow(formatCost(estimatedCost))}`);
       }
       return;
     }
-
-    getApiKey(appConfig);
 
     // A new Series pins the look and mood this run used.
     const config = await loadOrCreateRunSeries({
@@ -907,33 +953,33 @@ async function cmdRun(
     const generations: Generation[] = [];
     const now = new Date().toISOString();
     let anchorPath: string | undefined;
+    let totalCost: number | null = 0;
+    let lastResult: TaskOutput | undefined;
 
     for (let i = 0; i < count; i++) {
       const outputNum = String(config.outputs.length + i + 1).padStart(3, "0");
       const filename = `${outputNum}-${slugify(sanitizedTheme.slice(0, 40))}-${String(i + 1).padStart(2, "0")}.png`;
       const outputPath = `${outputDir}/${filename}`;
-      const editImages =
+      const anchor =
         hasText(anchorPath) && canUseAnchorReference
-          ? [...refPaths, anchorPath]
-          : refPaths.length > 0
-            ? refPaths
-            : undefined;
-      const result = await generate({
-        aspect,
-        editImages,
-        model: modelId,
-        numImages: 1,
-        prompt: fullPrompts[i] ?? sanitizedTheme,
-        resolution,
-      });
-      const image = result.images[0];
-      if (!image) {
+          ? [await imageSource(anchorPath)]
+          : [];
+      const result = await runSeriesTask(
+        client,
+        sceneInput(i, plan.model, anchor),
+        emitOpts
+      );
+      lastResult = result;
+      const [file] = result.files;
+      if (!file) {
         throw new Error("Series run returned no images");
       }
-      const actualOutputPath = await downloadImage(image.url, outputPath);
-      // downloadImage always returns a non-empty path, so ??= matches the
-      // previous `if (!anchorPath)` truthiness here.
+      const actualOutputPath = await saveFile(file, outputPath);
       anchorPath ??= actualOutputPath;
+      totalCost =
+        totalCost === null || result.cost.usd === null
+          ? null
+          : totalCost + result.cost.usd;
       const dims = await getImageDimensions(actualOutputPath);
       const size = getFileSize(actualOutputPath);
       savedImages.push({
@@ -945,25 +991,25 @@ async function cmdRun(
       });
       generations.push({
         aspect,
-        cost: estimateCost(modelId, resolution, 1),
+        cost: result.cost.usd,
         id: generateId(),
         ...(hasText(creative?.look) && { look: creative.look }),
-        model: modelId,
+        model: result.model,
         ...(hasText(creative?.mood) && { mood: creative.mood }),
         output: resolve(actualOutputPath),
-        prompt: fullPrompts[i] ?? sanitizedTheme,
+        prompt: result.prompt ?? fullPrompts[i] ?? sanitizedTheme,
         resolution,
         timestamp: now,
       });
       await recordOutput(config.slug, {
         aspect,
-        cost: estimateCost(modelId, resolution, 1),
+        cost: result.cost.usd,
         filename: basename(actualOutputPath),
-        model: modelId,
-        prompt: fullPrompts[i] ?? sanitizedTheme,
+        model: result.model,
+        prompt: result.prompt ?? fullPrompts[i] ?? sanitizedTheme,
         refsUsed: [
           ...(refTags ?? config.refs.map((ref) => ref.tag)),
-          ...(anchorPath && i > 0 ? ["series-anchor"] : []),
+          ...(anchor.length > 0 ? ["series-anchor"] : []),
         ],
         resolution,
         timestamp: new Date().toISOString(),
@@ -978,12 +1024,11 @@ async function cmdRun(
         {
           aspect,
           command: "series-run",
-          cost: estimatedCost,
+          cost: totalCost,
           count,
           dryRun: false,
           images: savedImages,
-          model: modelId,
-          modelName: modelConfig.name,
+          ...taskFields(lastResult ?? plan),
           resolution,
           series: config.slug,
           stylePrompt,
@@ -1073,7 +1118,7 @@ async function cmdHistory(
         `    ${chalk.cyan(out.prompt.slice(0, 70))}${out.prompt.length > 70 ? "..." : ""}`
       );
       console.log(
-        `    ${chalk.dim(`${formatCost(out.cost)} | ${out.model} | refs: ${out.refsUsed.join(",")}`)}`
+        `    ${chalk.dim(`${formatCost(out.cost)} | refs: ${out.refsUsed.join(",")}`)}`
       );
     }
   } catch (error) {
@@ -1264,6 +1309,7 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("-a, --aspect <ratio>", "Aspect ratio")
     .option("-r, --resolution <res>", "Resolution")
     .option("-m, --model <model>", "Model")
+    .option("--tier <tier>", `Trade cost against quality: ${TIERS.join(", ")}`)
     .option("--look <id>", "House look id, e.g. editorial")
     .option("--mood <id>", "Light mood id, e.g. overcast")
     .option("--no-mood", "Drop any mood, including the series' pinned one")

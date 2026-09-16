@@ -72,6 +72,20 @@ export const BACKGROUND_TOOLS = {
     sourceUrl: "https://fal.ai/models/bria/video/background-removal",
     task: "video background removal",
   },
+  "control-light": {
+    category: "restoration",
+    description:
+      "Brighten a dark or underexposed photo, recovering detail while keeping its identity, geometry and colour.",
+    endpoint: "fal-ai/control-light",
+    inputField: "image_url",
+    inputKind: "image",
+    name: "Control Light",
+    outputKeys: ["images"],
+    price: { kind: "megapixel", usd: 0.03 },
+    pricing: "$0.03/megapixel",
+    sourceUrl: "https://fal.ai/models/fal-ai/control-light",
+    task: "low-light enhancement",
+  },
   ddcolor: {
     category: "restoration",
     description: "Colourise black-and-white photographs.",

@@ -141,71 +141,6 @@ export interface WrittenFile {
   width?: number;
 }
 
-/**
- * Extract a downloadable URL from an object-shaped value.
- *
- * Checks `url` directly, then one level into the object's own values. Some
- * endpoints wrap the file a level deeper alongside its metadata — Seedream's
- * layerize returns `layers: [{ image: { url }, z_index, name, bounding_box }]`,
- * and a direct-only lookup silently downloaded nothing for the half of the
- * response that carries the actual layers. One level, not arbitrary recursion:
- * deeper searching starts finding thumbnails and previews that were never the
- * artefact being asked for.
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function urlOf(value: unknown): string | undefined {
-  return isRecord(value) && typeof value.url === "string"
-    ? value.url
-    : undefined;
-}
-
-function extractUrl(value: unknown): string | undefined {
-  // Arrays are flattened by the caller. Walking into one here would return its
-  // first element's URL and drop the rest.
-  if (!isRecord(value)) {
-    return undefined;
-  }
-  return urlOf(value) ?? Object.values(value).map(urlOf).find(Boolean);
-}
-
-function isDownloadableUrl(value: unknown): value is string {
-  return typeof value === "string" && value.startsWith("https://");
-}
-
-/** Every URL reachable from one result value: a string, an object, or an array of either. */
-function urlsFrom(value: unknown): string[] {
-  if (isDownloadableUrl(value)) {
-    return [value];
-  }
-  const direct = extractUrl(value);
-  if (direct !== undefined) {
-    return [direct];
-  }
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value.flatMap((item: unknown) => {
-    if (isDownloadableUrl(item)) {
-      return [item];
-    }
-    const itemUrl = extractUrl(item);
-    return itemUrl === undefined ? [] : [itemUrl];
-  });
-}
-
-/** Collect every downloadable URL under `keys`, in key order, arrays flattened. */
-export function collectUrls(
-  result: Record<string, unknown>,
-  keys: string[]
-): UrlArtifact[] {
-  return keys.flatMap((key) =>
-    urlsFrom(result[key]).map((url) => ({ key, url }))
-  );
-}
-
 /** Extension carried by a URL path, ignoring query and fragment. */
 function urlExtension(url: string): string {
   const extension = extname(url.split(URL_TAIL_REGEX)[0] ?? "");
@@ -224,9 +159,8 @@ function artifactFilename(
 
 /**
  * Semantic names for the positions of an array-valued output key, resolved
- * from the SDK registry's `outputLabels`. Each name is used verbatim as a
- * filename stem, so a name derived from anything untrusted must already be
- * slugified by the resolver — see `commands/output-labels.ts`.
+ * from the SDK's `TaskFile.label`. Each name is used verbatim as a filename
+ * stem; the SDK slugifies any name built from untrusted text.
  */
 export type OutputLabels = Record<string, readonly string[]>;
 

@@ -52,6 +52,24 @@ function totalMegapixels(outputs: readonly OutputDimensions[]): number | null {
   return measured === 0 ? null : pixels / 1_000_000;
 }
 
+/** A call price, per image where it says so, plus every extra the body switches on. */
+function callPrice(
+  price: Extract<FalToolPrice, { kind: "call" }>,
+  body: Readonly<Record<string, unknown>>
+): number {
+  const images =
+    price.perImage === true && typeof body.num_images === "number"
+      ? body.num_images
+      : 1;
+  let usd = price.usd * images;
+  for (const [key, extra] of Object.entries(price.extras ?? {})) {
+    if (body[key] === true) {
+      usd += extra;
+    }
+  }
+  return usd;
+}
+
 /**
  * The figure to show before a run, from the rate alone.
  *
@@ -59,9 +77,12 @@ function totalMegapixels(outputs: readonly OutputDimensions[]): number | null {
  * output that does not exist yet, and guessing its size is how a dry run comes
  * to promise a number the invoice contradicts.
  */
-export function projectedToolCost(price: FalToolPrice): ResolvedCost {
+export function projectedToolCost(
+  price: FalToolPrice,
+  body: Readonly<Record<string, unknown>> = {}
+): ResolvedCost {
   return price.kind === "call"
-    ? { basis: "projected", usd: price.usd }
+    ? { basis: "projected", usd: callPrice(price, body) }
     : UNKNOWN;
 }
 
@@ -74,10 +95,11 @@ export function projectedToolCost(price: FalToolPrice): ResolvedCost {
  */
 export function measuredToolCost(
   price: FalToolPrice,
-  outputs: readonly OutputDimensions[]
+  outputs: readonly OutputDimensions[],
+  body: Readonly<Record<string, unknown>> = {}
 ): ResolvedCost {
   if (price.kind === "call") {
-    return { basis: "measured", usd: price.usd };
+    return { basis: "measured", usd: callPrice(price, body) };
   }
   if (price.kind === "megapixel") {
     const megapixels = totalMegapixels(outputs);

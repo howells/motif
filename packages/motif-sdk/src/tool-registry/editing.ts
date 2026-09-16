@@ -1,5 +1,5 @@
 // Tools that alter part of a frame while keeping the rest: erasing and filling,
-// reframing onto a new canvas, and relighting.
+// reframing onto a new canvas, relighting, restyling and dressing a person.
 //
 // Part of the FAL_TOOLS registry; `../tools` assembles the groups and is the
 // module every consumer imports.
@@ -44,7 +44,7 @@ export const EDITING_TOOLS = {
     inputKind: "image",
     name: "Bria GenFill",
     outputKeys: ["images"],
-    price: { kind: "call", usd: 0.04 },
+    price: { kind: "call", perImage: true, usd: 0.04 },
     pricing: "$0.04/generation",
     sourceUrl: "https://fal.ai/models/fal-ai/bria/genfill",
     task: "masked generative fill",
@@ -101,7 +101,7 @@ export const EDITING_TOOLS = {
     inputKind: "image",
     name: "Ideogram v3 Reframe",
     outputKeys: ["images"],
-    price: { kind: "call", usd: 0.06 },
+    price: { kind: "call", perImage: true, usd: 0.06 },
     pricing:
       "$0.06/image at the default BALANCED speed; $0.03 turbo, $0.09 quality",
     sourceUrl: "https://fal.ai/models/fal-ai/ideogram/v3/reframe",
@@ -195,6 +195,21 @@ export const EDITING_TOOLS = {
     sourceUrl: "https://fal.ai/models/fal-ai/smart-resize",
     task: "multi-size recomposition",
   },
+  "telestyle-v2": {
+    category: "restyle",
+    description:
+      "Redraw a content image in the style of a second, style image.",
+    endpoint: "fal-ai/telestyle-v2",
+    inputField: "content_image_url",
+    inputKind: "image",
+    name: "TeleStyle v2",
+    outputKeys: ["images"],
+    price: { kind: "megapixel", usd: 0.035 },
+    pricing: "$0.035/megapixel",
+    referenceField: "style_image_url",
+    sourceUrl: "https://fal.ai/models/fal-ai/telestyle-v2",
+    task: "style transfer from a reference image",
+  },
   "text-removal": {
     category: "erase",
     defaultOptions: {
@@ -211,5 +226,21 @@ export const EDITING_TOOLS = {
     pricing: "$0.04/image",
     sourceUrl: "https://fal.ai/models/fal-ai/image-editing/text-removal",
     task: "text removal",
+  },
+  "virtual-try-on": {
+    category: "try-on",
+    description:
+      "Dress the person in one image in the garment shown in another.",
+    endpoint: "google/virtual-try-on",
+    inputField: "person_image_url",
+    inputKind: "image",
+    name: "Google Virtual Try-On",
+    outputKeys: ["images"],
+    price: { kind: "call", perImage: true, usd: 0.075 },
+    pricing: "$0.075/image",
+    queued: true,
+    referenceField: "product_image_url",
+    sourceUrl: "https://fal.ai/models/google/virtual-try-on",
+    task: "virtual garment try-on",
   },
 } as const satisfies Record<string, FalToolConfig>;

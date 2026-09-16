@@ -14,9 +14,9 @@
 {"id":"segment-sofa-mask","request":"give me a mask of the sofa in lounge.jpg","command":"segment","args":["lounge.jpg"],"source":"audit: segment unused since shipping"}
 {"id":"ask-count-chairs","request":"how many chairs are in dining.png?","command":"ask","args":["dining.png"],"source":"audit: ask unused since shipping"}
 {"id":"ask-detect-dog","request":"where exactly is the dog in park.jpg? I need its bounding box","command":"ask","flags":["--detect"],"args":["park.jpg"],"source":"audit: ask unused since shipping"}
-{"id":"enhance-restore-scan","request":"restore scan.jpg, it's an old faded family photo","command":"enhance","args":["scan.jpg"],"source":"audit: enhance unused since shipping"}
-{"id":"enhance-denoise","request":"photo.png is really grainy, clean up the noise","command":"enhance","flags":["--denoise"],"args":["photo.png"],"source":"audit: enhance unused; 'clean up' is also an erase task word"}
-{"id":"enhance-upscale-print","request":"upscale product.jpg so it's big enough to print","command":["enhance","upscale"],"args":["product.jpg"],"source":"audit: enhance and --up both upscale a given file"}
+{"id":"restore-scan","request":"restore scan.jpg, it's an old faded family photo","command":"restore","args":["scan.jpg"],"source":"audit: enhance unused since shipping; MOT-53 split it into restore and upscale"}
+{"id":"restore-denoise","request":"photo.png is really grainy, clean up the noise","command":"restore","flags":["--noise"],"args":["photo.png"],"source":"audit: enhance unused; 'clean up' is also an erase task word; MOT-53 restore --noise"}
+{"id":"upscale-print","request":"upscale product.jpg so it's big enough to print","command":"upscale","args":["product.jpg"],"source":"audit: enhance and --up both upscaled a given file; MOT-53 one verb, upscale"}
 {"id":"vectorize-logo","request":"turn logo.png into an SVG","command":"vectorize","args":["logo.png"],"source":"audit: vectorize unused since shipping"}
 {"id":"vectorize-icon","request":"I need an editable vector version of the icon in icon.png","command":"vectorize","args":["icon.png"],"source":"audit: vectorize unused since shipping"}
 {"id":"sheet-side-by-side","request":"put a.png, b.png, c.png and d.png side by side so I can compare them","command":"sheet","args":["a.png","b.png","c.png","d.png"],"source":"audit: ~418 image grids hand-built with ImageMagick"}
@@ -28,13 +28,17 @@
 {"id":"look-editorial","request":"our usual editorial look: a reading chair by a window","command":"generate","flags":["--look editorial"],"source":"audit: --look is one hop away from 'our usual editorial look'"}
 {"id":"look-lived-in-lamplit","request":"lived-in interior, evening light: a family kitchen","command":"generate","flags":["--look lived-in","--mood lamplit"],"source":"audit: house look and mood from the user's own words"}
 {"id":"look-still-life","request":"three terrazzo tile samples in our house still-life style","command":"generate","flags":["--look still-life"],"source":"audit: house look from the user's own words"}
-{"id":"tool-depth-map","request":"make a depth map of room.png","command":"tool","source":"audit: utilities with no command of their own go through tool"}
+{"id":"map-depth","request":"make a depth map of room.png","command":"map","source":"audit: utilities with no command went through tool; MOT-53 map","args":["room.png"]}
 {"id":"studio-browse","request":"open the interactive terminal app so I can browse and review my images by hand","command":"studio","source":"coverage: studio"}
-{"id":"upscale-last-2x","request":"quickly enlarge the image you just made, 2x","command":"upscale","flags":["--scale 2"],"source":"coverage: --up on the last generation"}
-{"id":"rmbg-last","request":"remove the background from the last image","command":"rmbg","source":"negative for erase: the whole background is --rmbg"}
-{"id":"vary-last","request":"give me a few variations of that last one","command":"vary","source":"coverage: --vary"}
-{"id":"video-animate","request":"animate hero.png into a short clip","command":"video","args":["hero.png"],"source":"coverage: --video"}
+{"id":"upscale-last-2x","request":"quickly enlarge the image you just made, 2x","command":"upscale","flags":["--scale 2"],"source":"coverage: upscale on the last generation, formerly --up"}
+{"id":"cutout-last","request":"remove the background from the last image","command":"cutout","source":"negative for erase: the whole background is cutout, formerly --rmbg"}
+{"id":"vary-last","request":"give me a few variations of that last one","command":"vary","source":"coverage: vary, formerly --vary"}
+{"id":"animate-hero","request":"animate hero.png into a short clip","command":"animate","args":["hero.png"],"source":"coverage: animate, formerly --video"}
 {"id":"last-path","request":"where did the image you just generated get saved?","command":"last","source":"coverage: --last"}
 {"id":"history-spend","request":"how much have I spent on image generation lately?","command":"history","source":"coverage: --history"}
 {"id":"describe-4k-models","request":"which models can do 4K?","command":"describe","source":"plan SURF-18: which models can do 4K?"}
 {"id":"errors-exit-5","request":"a motif command just exited with code 5, what does that mean and is it worth retrying?","command":"errors","source":"coverage: --describe errors"}
+{"id":"relight-golden-hour","request":"change the light in patio.jpg to warm golden hour without regenerating it","command":"relight","args":["patio.jpg"],"source":"coverage: relight, MOT-53"}
+{"id":"material-pbr","request":"turn oak.jpg, a photo of a wood floor, into PBR texture maps for Blender","command":"material","args":["oak.jpg"],"source":"coverage: material, MOT-53"}
+{"id":"tile-brick","request":"make a seamless repeating brick wall texture","command":"tile","source":"coverage: tile, MOT-53"}
+{"id":"mesh-chair","request":"make a 3D model of the chair in chair.png","command":"mesh","args":["chair.png"],"source":"coverage: mesh, MOT-53"}

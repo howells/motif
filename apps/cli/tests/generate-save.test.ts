@@ -14,13 +14,22 @@ import type { MotifConfig } from "../src/utils/config";
  * actually wrote. Every consumer after the download must use that actual
  * path — most importantly the post-save viewer open, which previously
  * received the stale requested path, threw "Image not found", and turned a
- * successful (billed) generation into GENERATION_FAILED exit 5.
+ * successful (billed) generation into a failure exit 5.
  */
 
-vi.mock(import("../src/api/fal"), () => ({
-  deletePayloads: vi.fn(),
-  generate: vi.fn(),
-}));
+/** Answer every fal request with one generated image at `url`. */
+function stubFal(url: string): void {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(
+      async () =>
+        new Response(JSON.stringify({ images: [{ url }] }), {
+          headers: { "content-type": "application/json" },
+          status: 200,
+        })
+    )
+  );
+}
 
 vi.mock(import("../src/utils/image"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/image")>();
@@ -50,10 +59,11 @@ afterEach(() => {
   process.env.HOME = originalHome;
   process.env.USERPROFILE = originalUserProfile;
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 const config: MotifConfig = {
-  // Placeholder: fal is mocked, but generateImage checks a key is configured.
+  // Placeholder: fetch is stubbed, but the client needs a key to run.
   apiKey: "test-key",
   defaultAspect: "1:1",
   defaultResolution: "2K",
@@ -63,17 +73,13 @@ const config: MotifConfig = {
 
 describe("generateImage save flow", () => {
   it("opens and reports the actual saved path when the download corrects the extension", async () => {
-    const fal = await import("../src/api/fal");
     const image = await import("../src/utils/image");
     const { generateImage } = await import("../src/commands/generate");
 
     const requestedPath = resolve("generated.png");
     const actualPath = resolve("generated.jpg");
 
-    vi.mocked(fal.generate).mockResolvedValue({
-      images: [{ url: "https://example.com/out" }],
-      requestId: "req-1",
-    });
+    stubFal("https://example.com/out");
     vi.mocked(image.downloadImage).mockResolvedValue(actualPath);
     vi.mocked(image.getImageDimensions).mockResolvedValue({
       height: 16,
@@ -126,17 +132,13 @@ describe("generateImage save flow", () => {
    * nothing fails until someone downstream has an image they cannot reach.
    */
   it("reports the provider-hosted URL alongside the local path", async () => {
-    const fal = await import("../src/api/fal");
     const image = await import("../src/utils/image");
     const { generateImage } = await import("../src/commands/generate");
 
     const remoteUrl = "https://v3.fal.media/files/b/abc123/out.png";
     const actualPath = resolve("hosted.png");
 
-    vi.mocked(fal.generate).mockResolvedValue({
-      images: [{ url: remoteUrl }],
-      requestId: "req-2",
-    });
+    stubFal(remoteUrl);
     vi.mocked(image.downloadImage).mockResolvedValue(actualPath);
     vi.mocked(image.getImageDimensions).mockResolvedValue({
       height: 16,

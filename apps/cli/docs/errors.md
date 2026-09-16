@@ -47,9 +47,8 @@ In JSON mode, errors are written to stderr as:
 
 Every code the CLI can emit is listed; the live catalog is available from `motif --describe --format json`.
 
-- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_MODEL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `TOO_MANY_REFERENCES`, `NO_MODEL_AVAILABLE`, `NO_PREVIOUS`, `GENERATION_FAILED`, `TRANSPARENCY_MISSING`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `DESCRIBE_FAILED`.
-- Tools: `UNKNOWN_TOOL`, `INVALID_TOOL_ID`, `TOOL_FAILED`.
-- Verbs: `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED`.
+- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `REMOVED_COMMAND`, `NO_MODEL_AVAILABLE`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`.
+- Tasks: `TASK_FAILED`, from any Task verb, with `details.task` and `details.model`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
 `NO_MODEL_AVAILABLE` exits `2` and means no Model can do what the request asks. Its `details` carry `blockedBy`, `unblockedBy` and `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input.

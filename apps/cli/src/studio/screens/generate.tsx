@@ -1,42 +1,49 @@
 import { resolve } from "node:path";
 
-import {
-  ASPECT_RATIOS,
-  estimateCost,
-  formatCost,
-  GENERATION_MODELS,
-  MODELS,
-  RESOLUTIONS,
+import { ASPECT_RATIOS, DEFAULT_TIER, RESOLUTIONS } from "@howells/motif-sdk";
+import type {
+  AspectRatio,
+  Resolution,
+  TaskInput,
+  Tier,
 } from "@howells/motif-sdk";
-import type { AspectRatio, ModelConfig, Resolution } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { generate } from "../../api/fal";
 import { addGeneration, generateId } from "../../utils/config";
 import type { MotifConfig } from "../../utils/config";
 import {
-  downloadImage,
   generateFilename,
   getFileSize,
   getImageDimensions,
   openImage,
 } from "../../utils/image";
-import { studioGenerateModel } from "../../utils/task-model";
+import { motifClient } from "../../utils/motif-client";
 import { Spinner } from "../components/spinner";
+import { TierOptions } from "../components/tier-options";
+import {
+  acceptsResolution,
+  planCost,
+  runTask,
+  saveFirstFile,
+  TIER_OPTIONS,
+  tierMatters,
+} from "../task";
 
 type Step =
   | "prompt"
   | "preset"
-  | "model"
+  | "tier"
   | "aspect"
   | "resolution"
   | "confirm"
   | "generating"
   | "done";
 
-type ConfirmField = "model" | "aspect" | "resolution";
+type ConfirmField = "tier" | "aspect" | "resolution";
+
+const TIERS: readonly Tier[] = TIER_OPTIONS.map(({ tier }) => tier);
 
 interface Preset {
   aspect: AspectRatio;
@@ -88,16 +95,16 @@ type PostAction =
 
 const POST_ACTIONS: { key: PostAction; label: string; description: string }[] =
   [
-    { description: "Modify with a new prompt", key: "edit", label: "Edit" },
+    { description: "Change it with a new prompt", key: "edit", label: "Edit" },
     {
-      description: "Generate similar images",
+      description: "Make similar images",
       key: "variations",
       label: "Variations",
     },
-    { description: "Enhance resolution", key: "upscale", label: "Upscale" },
+    { description: "Make it larger", key: "upscale", label: "Upscale" },
     { description: "Transparent PNG", key: "rmbg", label: "Remove Background" },
     {
-      description: "Same prompt, pick model",
+      description: "Same prompt, new settings",
       key: "regenerate",
       label: "Regenerate",
     },
@@ -105,47 +112,8 @@ const POST_ACTIONS: { key: PostAction; label: string; description: string }[] =
     { description: "Back to home", key: "home", label: "Done" },
   ];
 
-function modelRankSummary(config: ModelConfig | undefined): string {
-  const textRank = config?.benchmark?.artificialAnalysis?.textToImage?.rank;
-  const editRank = config?.benchmark?.artificialAnalysis?.editing?.rank;
-  const ranks = [
-    textRank !== undefined && textRank !== 0 ? `T2I #${textRank}` : null,
-    editRank !== undefined && editRank !== 0 ? `Edit #${editRank}` : null,
-  ].filter(Boolean);
-  return ranks.length ? ranks.join(" · ") : "";
-}
-
-function modelTierSummary(config: ModelConfig | undefined): string {
-  const tiers = config?.benchmark?.tiers;
-  if (!tiers) {
-    return "";
-  }
-  const values = [
-    tiers.quality,
-    tiers.speed === "unknown" ? null : tiers.speed,
-    tiers.price,
-  ].filter(Boolean);
-  return values.join(" · ");
-}
-
-function modelUseCase(config: ModelConfig | undefined): string {
-  return config?.benchmark?.useCase ?? "General image generation";
-}
-
-function modelListSummary(config: ModelConfig | undefined): string {
-  if (!config) {
-    return "";
-  }
-  return [modelRankSummary(config), config.pricing].filter(Boolean).join(" · ");
-}
-
-function selectedModelSummary(config: ModelConfig | undefined): string {
-  if (!config) {
-    return "";
-  }
-  return [modelListSummary(config), modelTierSummary(config)]
-    .filter(Boolean)
-    .join(" · ");
+function tierNote(tier: Tier): string {
+  return TIER_OPTIONS.find((option) => option.tier === tier)?.note ?? "";
 }
 
 interface GenerateScreenProps {
@@ -161,9 +129,10 @@ export function GenerateScreen({
   onComplete,
   onError,
 }: GenerateScreenProps) {
+  const client = useMemo(() => motifClient(config), [config]);
   const [step, setStep] = useState<Step>("prompt");
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(() => studioGenerateModel(config));
+  const [tier, setTier] = useState<Tier>(DEFAULT_TIER);
   const [aspect, setAspect] = useState<AspectRatio>(config.defaultAspect);
   const [resolution, setResolution] = useState<Resolution>(
     config.defaultResolution
@@ -178,8 +147,20 @@ export function GenerateScreen({
     size: string;
   } | null>(null);
 
-  const modelConfig = MODELS[model];
-  const cost = estimateCost(model, resolution);
+  const showTier = tierMatters(config, "generate", { aspect });
+  const showResolution = acceptsResolution(client, "generate", {
+    aspect,
+    prompt,
+    resolution,
+    tier,
+  });
+  const input: TaskInput = {
+    aspect,
+    prompt,
+    tier,
+    ...(showResolution && { resolution }),
+  };
+  const planned = planCost(client, "generate", input);
 
   const handleListNavigation = <T extends string>(
     items: readonly T[],
@@ -197,6 +178,22 @@ export function GenerateScreen({
     }
   };
 
+  const goToConfirm = () => {
+    setSelectedIndex(0);
+    setConfirmIndex(0);
+    setConfirmField(null);
+    setStep("confirm");
+  };
+
+  const manualSteps = (): Step[] => [
+    "prompt",
+    "preset",
+    ...(showTier ? (["tier"] as const) : []),
+    "aspect",
+    ...(showResolution ? (["resolution"] as const) : []),
+    "confirm",
+  ];
+
   const handleEscapeKey = () => {
     if (step === "generating") {
       return;
@@ -210,23 +207,11 @@ export function GenerateScreen({
       onBack();
     } else if (step === "done") {
       onComplete();
-    } else if (step === "preset") {
-      setStep("prompt");
-    } else if (step === "model") {
-      setStep("preset");
-      setSelectedIndex(0);
     } else if (step === "confirm") {
       setStep("preset");
       setSelectedIndex(0);
     } else {
-      const steps: Step[] = [
-        "prompt",
-        "preset",
-        "model",
-        "aspect",
-        "resolution",
-        "confirm",
-      ];
+      const steps = manualSteps();
       const currentIdx = steps.indexOf(step);
       if (currentIdx > 0) {
         // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
@@ -253,28 +238,23 @@ export function GenerateScreen({
       if (preset.resolution) {
         setResolution(preset.resolution);
       }
-      setSelectedIndex(0);
-      setConfirmIndex(0);
-      setConfirmField(null);
-      setStep("confirm");
+      goToConfirm();
     } else if (key.tab === true) {
       setSelectedIndex(0);
-      setStep("model");
+      setStep(showTier ? "tier" : "aspect");
     }
   };
 
-  const handleModelInput = (key: {
+  const handleTierInput = (key: {
     upArrow?: boolean;
     downArrow?: boolean;
     return?: boolean;
   }) => {
     handleListNavigation(
-      GENERATION_MODELS,
-      (m) => {
-        setModel(m);
-        setConfirmIndex(0);
-        setConfirmField(null);
-        setStep(MODELS[m]?.supportsAspect === true ? "aspect" : "confirm");
+      TIERS,
+      (t) => {
+        setTier(t);
+        setStep("aspect");
       },
       key
     );
@@ -305,13 +285,21 @@ export function GenerateScreen({
       }
     } else if (key.return === true) {
       // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
-      setAspect(ASPECT_RATIOS[selectedIndex]!);
-      setSelectedIndex(0);
-      setConfirmIndex(0);
-      setConfirmField(null);
-      setStep(
-        modelConfig?.supportsResolution === true ? "resolution" : "confirm"
-      );
+      const chosen = ASPECT_RATIOS[selectedIndex]!;
+      setAspect(chosen);
+      if (
+        acceptsResolution(client, "generate", {
+          aspect: chosen,
+          prompt,
+          resolution,
+          tier,
+        })
+      ) {
+        setSelectedIndex(0);
+        setStep("resolution");
+      } else {
+        goToConfirm();
+      }
     }
   };
 
@@ -324,9 +312,7 @@ export function GenerateScreen({
       RESOLUTIONS,
       (r) => {
         setResolution(r);
-        setConfirmIndex(0);
-        setConfirmField(null);
-        setStep("confirm");
+        goToConfirm();
       },
       key
     );
@@ -338,16 +324,18 @@ export function GenerateScreen({
     downArrow?: boolean;
     return?: boolean;
   }) => {
-    if (key.escape === true) {
+    const close = () => {
       setConfirmField(null);
       setSelectedIndex(0);
-    } else if (confirmField === "model") {
+    };
+    if (key.escape === true) {
+      close();
+    } else if (confirmField === "tier") {
       handleListNavigation(
-        GENERATION_MODELS,
-        (m) => {
-          setModel(m);
-          setConfirmField(null);
-          setSelectedIndex(0);
+        TIERS,
+        (t) => {
+          setTier(t);
+          close();
         },
         key
       );
@@ -356,8 +344,7 @@ export function GenerateScreen({
         ASPECT_RATIOS,
         (a) => {
           setAspect(a);
-          setConfirmField(null);
-          setSelectedIndex(0);
+          close();
         },
         key
       );
@@ -366,24 +353,24 @@ export function GenerateScreen({
         RESOLUTIONS,
         (r) => {
           setResolution(r);
-          setConfirmField(null);
-          setSelectedIndex(0);
+          close();
         },
         key
       );
     }
   };
 
-  const getConfirmFields = (): ConfirmField[] =>
-    MODELS[model]?.supportsResolution === true
-      ? ["model", "aspect", "resolution"]
-      : ["model", "aspect"];
+  const confirmFields: ConfirmField[] = [
+    ...(showTier ? (["tier"] as const) : []),
+    "aspect",
+    ...(showResolution ? (["resolution"] as const) : []),
+  ];
 
   const getFieldSelectedIndex = (field: ConfirmField): number => {
     const indexMap: Record<ConfirmField, number> = {
       aspect: ASPECT_RATIOS.indexOf(aspect),
-      model: (GENERATION_MODELS as readonly string[]).indexOf(model),
       resolution: RESOLUTIONS.indexOf(resolution),
+      tier: TIERS.indexOf(tier),
     };
     return indexMap[field];
   };
@@ -397,18 +384,17 @@ export function GenerateScreen({
       return;
     }
 
-    const fields = getConfirmFields();
-
     if (key.upArrow === true) {
-      setConfirmIndex((i) => (i > 0 ? i - 1 : fields.length - 1));
+      setConfirmIndex((i) => (i > 0 ? i - 1 : confirmFields.length - 1));
     } else if (key.downArrow === true) {
-      setConfirmIndex((i) => (i < fields.length - 1 ? i + 1 : 0));
+      setConfirmIndex((i) => (i < confirmFields.length - 1 ? i + 1 : 0));
     } else if (key.return === true) {
-      // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
-      const field = fields[confirmIndex]!;
-      setConfirmField(field);
-      setSelectedIndex(getFieldSelectedIndex(field));
-    } else if (input === "y") {
+      const field = confirmFields[confirmIndex];
+      if (field !== undefined) {
+        setConfirmField(field);
+        setSelectedIndex(getFieldSelectedIndex(field));
+      }
+    } else if (input === "y" && "cost" in planned) {
       // Fire-and-forget: ink input handlers are synchronous, and
       // runGeneration reports failures through its own try/catch + onError.
       void runGeneration();
@@ -437,7 +423,7 @@ export function GenerateScreen({
           break;
         }
         case "regenerate": {
-          setStep("model");
+          setStep("preset");
           setSelectedIndex(0);
           break;
         }
@@ -467,8 +453,8 @@ export function GenerateScreen({
 
     if (step === "preset") {
       handlePresetInput(key);
-    } else if (step === "model") {
-      handleModelInput(key);
+    } else if (step === "tier") {
+      handleTierInput(key);
     } else if (step === "aspect") {
       handleAspectInput(key);
     } else if (step === "resolution") {
@@ -485,28 +471,19 @@ export function GenerateScreen({
     setStatus("Generating...");
 
     try {
-      const result = await generate({
-        aspect,
-        model,
-        numImages: 1,
-        prompt,
-        resolution,
-      });
+      const output = await runTask(client, "generate", input);
 
       setStatus("Downloading...");
-      let outputPath = generateFilename();
-      // biome-ignore lint/style/noNonNullAssertion: images[0] guaranteed by API response
-      outputPath = await downloadImage(result.images[0]!.url, outputPath);
+      const outputPath = await saveFirstFile(output, generateFilename());
 
       const dims = await getImageDimensions(outputPath);
       const size = getFileSize(outputPath);
 
-      // Record generation
       await addGeneration({
         aspect,
-        cost,
+        cost: output.cost.usd,
         id: generateId(),
-        model,
+        model: output.model,
         output: resolve(outputPath),
         prompt,
         resolution,
@@ -541,96 +518,47 @@ export function GenerateScreen({
     }
   };
 
-  const renderConfirmModelField = () => {
-    if (confirmField === "model") {
-      return (
-        <Box flexDirection="column">
-          {GENERATION_MODELS.map((m, i) => {
-            // biome-ignore lint/style/noNonNullAssertion: model ids come from the registry list
-            const config = MODELS[m]!;
-            return (
-              <Box key={m}>
-                <Text
-                  bold={i === selectedIndex}
-                  color={i === selectedIndex ? "magenta" : undefined}
-                >
-                  {i === selectedIndex ? "◆ " : "  "}
-                  {config.name}
-                </Text>
-                <Text dimColor> {modelListSummary(config)}</Text>
-              </Box>
-            );
-          })}
+  const renderOptions = (options: readonly string[]) => (
+    <Box flexDirection="column">
+      {options.map((option, i) => (
+        <Box key={option}>
+          <Text
+            bold={i === selectedIndex}
+            color={i === selectedIndex ? "magenta" : undefined}
+          >
+            {i === selectedIndex ? "◆ " : "  "}
+            {option}
+          </Text>
         </Box>
-      );
-    }
-    const isActive = confirmIndex === 0 && !confirmField;
-    return (
-      <Text>
-        {isActive ? "◆ " : "  "}
-        Model:{" "}
-        <Text color={isActive ? "magenta" : "green"}>
-          {MODELS[model]?.name}
-        </Text>
-        <Text dimColor> · {selectedModelSummary(MODELS[model])}</Text>
-      </Text>
-    );
-  };
+      ))}
+    </Box>
+  );
 
-  const renderConfirmAspectField = () => {
-    if (confirmField === "aspect") {
-      return (
-        <Box flexDirection="column">
-          {ASPECT_RATIOS.map((a, i) => (
-            <Box key={a}>
-              <Text
-                bold={i === selectedIndex}
-                color={i === selectedIndex ? "magenta" : undefined}
-              >
-                {i === selectedIndex ? "◆ " : "  "}
-                {a}
-              </Text>
-            </Box>
-          ))}
-        </Box>
-      );
+  const renderConfirmField = (field: ConfirmField) => {
+    if (confirmField === field) {
+      if (field === "tier") {
+        return <TierOptions selectedIndex={selectedIndex} />;
+      }
+      return renderOptions(field === "aspect" ? ASPECT_RATIOS : RESOLUTIONS);
     }
-    const isActive = confirmIndex === 1 && !confirmField;
+    const isActive =
+      confirmFields[confirmIndex] === field && confirmField === null;
+    const labels: Record<ConfirmField, string> = {
+      aspect: "Aspect",
+      resolution: "Resolution",
+      tier: "Tier",
+    };
+    const values: Record<ConfirmField, string> = {
+      aspect,
+      resolution,
+      tier,
+    };
     return (
       <Text>
         {isActive ? "◆ " : "  "}
-        Aspect: <Text color={isActive ? "magenta" : undefined}>{aspect}</Text>
-      </Text>
-    );
-  };
-
-  const renderConfirmResolutionField = () => {
-    if (modelConfig?.supportsResolution !== true) {
-      return null;
-    }
-    if (confirmField === "resolution") {
-      return (
-        <Box flexDirection="column">
-          {RESOLUTIONS.map((r, i) => (
-            <Box key={r}>
-              <Text
-                bold={i === selectedIndex}
-                color={i === selectedIndex ? "magenta" : undefined}
-              >
-                {i === selectedIndex ? "◆ " : "  "}
-                {r}
-              </Text>
-            </Box>
-          ))}
-        </Box>
-      );
-    }
-    const isActive = confirmIndex === 2 && !confirmField;
-    return (
-      <Text>
-        {isActive ? "◆ " : "  "}
-        Resolution:{" "}
-        <Text color={isActive ? "magenta" : undefined}>{resolution}</Text>
+        {labels[field]}:{" "}
+        <Text color={isActive ? "magenta" : "green"}>{values[field]}</Text>
+        {field === "tier" && <Text dimColor> · {tierNote(tier)}</Text>}
       </Text>
     );
   };
@@ -641,24 +569,24 @@ export function GenerateScreen({
       {confirmField && <Text dimColor>esc cancel</Text>}
       <Box flexDirection="column" marginLeft={2} marginTop={1}>
         <Text>
-          Prompt:{" "}
+          {"  "}Prompt:{" "}
           <Text color="cyan">
             {prompt.slice(0, 50)}
             {prompt.length > 50 ? "..." : ""}
           </Text>
         </Text>
-        {renderConfirmModelField()}
-        {renderConfirmAspectField()}
-        {renderConfirmResolutionField()}
-        <Text>
-          {"  "}Est. cost: <Text color="yellow">{formatCost(cost)}</Text>
-        </Text>
-        <Text dimColor>
-          {"  "}
-          {selectedModelSummary(modelConfig)}
-          {selectedModelSummary(modelConfig) ? " · " : ""}
-          {modelUseCase(modelConfig)}
-        </Text>
+        {confirmFields.map((field) => (
+          <Box key={field}>{renderConfirmField(field)}</Box>
+        ))}
+        {"cost" in planned ? (
+          <Text>
+            {"  "}Est. cost: <Text color="yellow">{planned.cost}</Text>
+          </Text>
+        ) : (
+          <Text color="red">
+            {"  "}Cannot generate: {planned.error}
+          </Text>
+        )}
       </Box>
       {!confirmField && (
         <Box flexDirection="column" marginTop={1}>
@@ -773,40 +701,11 @@ export function GenerateScreen({
         </Box>
       )}
 
-      {step === "model" && (
+      {step === "tier" && (
         <Box flexDirection="column">
-          <Text bold>Select model:</Text>
-          <Text dimColor>↑↓ choose model; highlighted row shows notes</Text>
-          <Box flexDirection="column" marginTop={1}>
-            {GENERATION_MODELS.map((m, i) => {
-              // biome-ignore lint/style/noNonNullAssertion: model ids come from the registry list
-              const config = MODELS[m]!;
-              const isSelected = i === selectedIndex;
-              return (
-                <Box flexDirection="column" key={m} marginLeft={1}>
-                  <Text
-                    bold={isSelected}
-                    color={isSelected ? "magenta" : undefined}
-                  >
-                    {isSelected ? "◆ " : "  "}
-                    {m.padEnd(13)}
-                    {config.name}
-                  </Text>
-                  <Text dimColor={!isSelected}>
-                    {" "}
-                    {modelListSummary(config)}
-                  </Text>
-                  {isSelected && (
-                    <Text dimColor>
-                      {"  "}
-                      {selectedModelSummary(config)}
-                      {selectedModelSummary(config) ? " · " : ""}
-                      {modelUseCase(config)}
-                    </Text>
-                  )}
-                </Box>
-              );
-            })}
+          <Text bold>Speed or quality:</Text>
+          <Box flexDirection="column" marginLeft={1} marginTop={1}>
+            <TierOptions selectedIndex={selectedIndex} />
           </Box>
         </Box>
       )}
@@ -817,17 +716,7 @@ export function GenerateScreen({
         <Box flexDirection="column">
           <Text bold>Select resolution:</Text>
           <Box flexDirection="column" marginTop={1}>
-            {RESOLUTIONS.map((r, i) => (
-              <Box key={r}>
-                <Text
-                  bold={i === selectedIndex}
-                  color={i === selectedIndex ? "magenta" : undefined}
-                >
-                  {i === selectedIndex ? "◆ " : "  "}
-                  {r}
-                </Text>
-              </Box>
-            ))}
+            {renderOptions(RESOLUTIONS)}
           </Box>
         </Box>
       )}

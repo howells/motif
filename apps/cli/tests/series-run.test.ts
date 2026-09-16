@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -10,13 +10,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * The deterministic helpers (`loadOrCreateRunSeries`, `buildSeriesRunScenes`,
  * `buildSeriesRunStylePrompt`) are exercised directly against a temp HOME.
  * The full `series run` generate loop is driven through the only exported
- * entry point (`runSeries`) with `../src/api/fal` and the image/download
- * side effects mocked, so no fal request is ever made.
+ * entry point (`runSeries`) with fetch stubbed and the image/download side
+ * effects mocked, so no fal request is ever made.
  */
-
-vi.mock(import("../src/api/fal"), () => ({
-  generate: vi.fn(),
-}));
 
 vi.mock(import("../src/utils/image"), async (importActual) => {
   const actual = await importActual<typeof import("../src/utils/image")>();
@@ -61,7 +57,13 @@ afterEach(() => {
   process.env.USERPROFILE = originalUserProfile;
   process.env.FAL_KEY = originalFalKey;
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
+
+const PNG_1X1 = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
 
 describe("buildSeriesRunStylePrompt", () => {
   it("prefers an explicit style over the generated fallback", async () => {
@@ -78,6 +80,15 @@ describe("buildSeriesRunStylePrompt", () => {
     const prompt = buildSeriesRunStylePrompt("towers");
     expect(prompt).toContain("Cohesive visual series about towers");
     expect(prompt).toContain("consistent tone");
+  });
+});
+
+describe("midSentenceTheme", () => {
+  it("lower-cases a theme's first letter mid-sentence, but not an acronym", async () => {
+    const { midSentenceTheme } = await import("../src/commands/series");
+    expect(midSentenceTheme("A ceramics studio")).toBe("a ceramics studio");
+    expect(midSentenceTheme("Brutalist Towers")).toBe("brutalist Towers");
+    expect(midSentenceTheme("NASA missions")).toBe("NASA missions");
   });
 });
 
@@ -178,17 +189,34 @@ describe("loadOrCreateRunSeries", () => {
 
 describe("runSeries full generate flow (mocked fal)", () => {
   it("generates each image, reuses the first as an anchor reference, and records outputs", async () => {
-    const fal = await import("../src/api/fal");
     const image = await import("../src/utils/image");
     const { runSeries } = await import("../src/commands/series");
     const { loadSeries } = await import("../src/utils/series");
 
     let counter = 0;
-    vi.mocked(fal.generate).mockImplementation(async () => ({
-      images: [{ url: `https://cdn.example/generated-${counter++}.png` }],
-    }));
+    const requests: Record<string, unknown>[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        const body: unknown = JSON.parse(
+          typeof init?.body === "string" ? init.body : "{}"
+        );
+        if (typeof body === "object" && body !== null) {
+          requests.push({ ...body });
+        }
+        return new Response(
+          JSON.stringify({
+            images: [{ url: `https://cdn.example/generated-${counter++}.png` }],
+          }),
+          { headers: { "content-type": "application/json" }, status: 200 }
+        );
+      })
+    );
     vi.mocked(image.downloadImage).mockImplementation(
-      async (_url, outputPath) => outputPath
+      async (_url, outputPath) => {
+        writeFileSync(outputPath, PNG_1X1);
+        return outputPath;
+      }
     );
     vi.mocked(image.getImageDimensions).mockResolvedValue({
       height: 1024,
@@ -213,14 +241,14 @@ describe("runSeries full generate flow (mocked fal)", () => {
       "banana",
     ]);
 
-    const generateMock = vi.mocked(fal.generate);
-    expect(generateMock).toHaveBeenCalledTimes(2);
+    expect(requests).toHaveLength(2);
 
     // First image has no anchor yet; the second reuses the first as a reference.
-    expect(generateMock.mock.calls[0]?.[0].editImages).toBeUndefined();
-    const secondEdit = generateMock.mock.calls[1]?.[0].editImages;
-    expect(secondEdit).toHaveLength(1);
-    expect(secondEdit?.[0]).toMatch(/-01\.png$/);
+    expect(requests[0]?.image_urls).toBeUndefined();
+    expect(requests[1]?.image_urls).toHaveLength(1);
+    expect(String(requests[0]?.prompt)).toContain(
+      "cohesive visual series about brutalist Towers"
+    );
 
     const payload: unknown = JSON.parse(writes.join("").trim());
     if (!isRecord(payload)) {

@@ -66,6 +66,32 @@ export const ASSET_TOOLS = {
     sourceUrl: "https://fal.ai/models/fal-ai/image2svg",
     task: "raster to vector tracing",
   },
+  "meshy-v7": {
+    category: "3d",
+    description:
+      "Make a textured 3D mesh from one image, optionally rigged for animation.",
+    endpoint: "meshy/v7/image-to-3d",
+    inputField: "image_url",
+    inputKind: "image",
+    name: "Meshy v7 Image to 3D",
+    outputKeys: [
+      "model_glb",
+      "model_urls",
+      "thumbnail",
+      "rigged_character_glb",
+      "rigged_character_fbx",
+    ],
+    price: {
+      extras: { enable_animation: 0.12, enable_rigging: 0.2, ultra_mode: 0.2 },
+      kind: "call",
+      usd: 1.2,
+    },
+    pricing:
+      "$1.20/generation at the default textured model; $0.80 untextured, $1.40 ultra, plus $0.20 for rigging and $0.12 for animation",
+    queued: true,
+    sourceUrl: "https://fal.ai/models/meshy/v7/image-to-3d",
+    task: "single-image 3D reconstruction",
+  },
   patina: {
     category: "material",
     description:

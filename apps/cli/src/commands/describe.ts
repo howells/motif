@@ -12,19 +12,17 @@ import {
   ASPECT_RATIOS,
   CREATIVE_TAXONOMY,
   EDIT_CAPABLE_MODELS,
-  FAL_TOOL_IDS,
-  FAL_TOOLS,
   describeModelOutput,
   losslessAvailability,
   modelOutput,
-  FAL_TOOLS_CHECKED_AT,
-  falToolParameters,
   GENERATION_MODELS,
   IMAGE_EDITING_TOP_20,
   IMAGE_TEXT_TO_IMAGE_TOP_20,
   LOOKS,
   MODELS,
   RESOLUTIONS,
+  TASKS,
+  TIERS,
   UTILITY_MODELS,
   VIDEO_IMAGE_TO_VIDEO_TOP_15,
   VIDEO_MODELS,
@@ -36,7 +34,7 @@ import { emit } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
-import { VERB_TOOLS, toolVerb } from "./verbs/shared";
+import { TASK_VERBS, usageLine } from "./verbs/task-verbs";
 import {
   COMMAND_TASKS,
   TASK_INDEX,
@@ -92,6 +90,46 @@ function creativeSchemaProperties(): Record<string, object> {
   };
 }
 
+/** Input fields every Task command takes. */
+const TASK_INPUT_PROPERTIES = {
+  params: {
+    description:
+      "Model-only request fields, sent as given. Needs model. CLI: repeat --param key=value; values parse as JSON when they can",
+    type: "object",
+  },
+  seed: {
+    description: "Reproducible seed, where the Model takes one",
+    type: "integer",
+  },
+  tier: {
+    default: "balanced",
+    description: "Trade cost against quality when choosing the Model",
+    enum: TIERS,
+    type: "string",
+  },
+};
+
+/** Output fields every Task command emits. */
+const TASK_OUTPUT_PROPERTIES = {
+  chosenBy: {
+    description: "What chose the Model: ranking, model, look or pin",
+    type: "string",
+  },
+  cost: {
+    description: "USD, or null when the rate is metered or unknown",
+    type: ["number", "null"],
+  },
+  costBasis: { enum: ["measured", "projected", "unknown"], type: "string" },
+  model: { description: "The Model that ran", type: "string" },
+  request: {
+    description:
+      "Dry run only: the request body, data URLs replaced by their size",
+    type: "object",
+  },
+  task: { type: "string" },
+  tier: { enum: TIERS, type: "string" },
+};
+
 /** JSON Schema for the generate command's input */
 function generateSchema() {
   return {
@@ -105,28 +143,11 @@ function generateSchema() {
           enum: ASPECT_RATIOS,
           type: "string",
         },
-        background: {
-          description: "Background mode for GPT Image models",
-          enum: ["auto", "transparent", "opaque"],
-          type: "string",
-        },
         editImages: {
           description:
             "Local file paths for reference/edit images. Uploaded automatically.",
           items: { type: "string" },
           type: "array",
-        },
-        enableGoogleSearch: {
-          description: "Enable fal enable_google_search where supported",
-          type: "boolean",
-        },
-        enableSafetyChecker: {
-          description: "Enable or disable fal safety checker where supported",
-          type: "boolean",
-        },
-        enableWebSearch: {
-          description: "Enable web search where supported",
-          type: "boolean",
         },
         ephemeral: {
           default: false,
@@ -134,59 +155,13 @@ function generateSchema() {
             "Save output locally, send X-Fal-Store-IO: 0, skip Motif history, then delete fal request IO payloads when fal returns a request id",
           type: "boolean",
         },
-        imagePromptStrength: {
-          description:
-            "Reference image strength for models that expose image_prompt_strength",
-          maximum: 1,
-          minimum: 0,
-          type: "number",
-        },
-        imageSize: {
-          description:
-            "Direct fal image_size override. WIDTHxHEIGHT is accepted by CLI and normalized to { width, height } where supported.",
-          oneOf: [
-            {
-              enum: [
-                "auto",
-                "square_hd",
-                "square",
-                "portrait_4_3",
-                "portrait_16_9",
-                "landscape_4_3",
-                "landscape_16_9",
-                "1024x1024",
-                "1536x1024",
-                "1024x1536",
-              ],
-              type: "string",
-            },
-            {
-              properties: {
-                height: { minimum: 1, type: "integer" },
-                width: { minimum: 1, type: "integer" },
-              },
-              required: ["width", "height"],
-              type: "object",
-            },
-          ],
-        },
-        inputFidelity: {
-          description:
-            'How closely to follow reference images. "low" = loose inspiration (GPT only)',
-          enum: ["low", "high"],
-          type: "string",
-        },
-        limitGenerations: {
-          description: "Limit model-internal generation rounds where supported",
-          type: "boolean",
-        },
         maskImageUrl: {
           description: "Mask image URL for supported edit/inpainting models",
           type: "string",
         },
         model: {
-          default: "banana",
-          description: "Generation model to use",
+          description:
+            "Run this Model instead of the ranked choice. The SDK resolves every request, this one included",
           enum: GENERATION_MODELS,
           enumDescriptions: Object.fromEntries(
             GENERATION_MODELS.map((m) => [
@@ -201,22 +176,15 @@ function generateSchema() {
                 supportsAspect: MODELS[m]?.supportsAspect,
                 supportsBackground: MODELS[m]?.supportsBackground,
                 supportsEdit: MODELS[m]?.supportsEdit,
-                supportsGoogleSearch: MODELS[m]?.supportsGoogleSearch,
-                supportsImagePromptStrength:
-                  MODELS[m]?.supportsImagePromptStrength,
-                supportsLimitGenerations: MODELS[m]?.supportsLimitGenerations,
                 supportsMaskImage: MODELS[m]?.supportsMaskImage,
-                supportsQuality: MODELS[m]?.supportsQuality,
                 supportsResolution: MODELS[m]?.supportsResolution,
-                supportsSafetyChecker: MODELS[m]?.supportsSafetyChecker,
-                supportsSyncMode: MODELS[m]?.supportsSyncMode,
-                supportsThinkingLevel: MODELS[m]?.supportsThinkingLevel,
                 transparencyRoute: MODELS[m]?.transparencyRoute,
               },
             ])
           ),
           type: "string",
         },
+        ...TASK_INPUT_PROPERTIES,
         noOpen: {
           default: false,
           description: "Don't open image in viewer after generation",
@@ -238,31 +206,16 @@ function generateSchema() {
           description: "Text description of the image to generate",
           type: "string",
         },
-        quality: {
-          description: "Image quality for GPT/OpenAI image models",
-          enum: ["auto", "low", "medium", "high", "xhigh", "max"],
-          type: "string",
-        },
         resolution: {
           default: "2K",
           description: "Output resolution (not all models support this)",
           enum: RESOLUTIONS,
           type: "string",
         },
-        syncMode: {
-          description:
-            "Ask fal to return media as data URI and omit it from request history where supported",
-          type: "boolean",
-        },
-        thinkingLevel: {
-          description: "Nano Banana 2 thinking level",
-          enum: ["minimal", "high"],
-          type: "string",
-        },
         transparent: {
           default: false,
           description:
-            "Transparent background PNG. gpt renders it on fal; gpt2 routes through OpenAI (gpt-image-2) and needs OPENAI_API_KEY. The saved PNG is checked for transparent pixels (TRANSPARENCY_MISSING otherwise).",
+            "Transparent background PNG. Some Models route through OpenAI and need OPENAI_API_KEY. The saved PNG is checked for transparent pixels (TRANSPARENCY_MISSING otherwise).",
           type: "boolean",
         },
         ...creativeSchemaProperties(),
@@ -274,7 +227,6 @@ function generateSchema() {
     output: {
       properties: {
         aspect: { type: "string" },
-        cost: { description: "Estimated cost in USD", type: "number" },
         historyRecorded: {
           description: "False for ephemeral generations",
           type: "boolean",
@@ -295,7 +247,7 @@ function generateSchema() {
           },
           type: "array",
         },
-        model: { type: "string" },
+        ...TASK_OUTPUT_PROPERTIES,
         payloadsDeleted: {
           description:
             "Whether Motif deleted fal request IO payloads after local download",
@@ -336,117 +288,6 @@ function generateSchema() {
       },
       wide: { aspect: "21:9", description: "Cinematic wide" },
     },
-    supports_dry_run: true,
-  };
-}
-
-function upscaleSchema() {
-  return {
-    command: "upscale",
-    description: "Upscale an image to higher resolution",
-    input: {
-      properties: {
-        imagePath: {
-          description:
-            "Path to image to upscale. Falls back to last generated image.",
-          type: "string",
-        },
-        model: {
-          default: "clarity",
-          description: "Upscaler model",
-          enum: ["clarity", "crystal"],
-          type: "string",
-        },
-        noOpen: {
-          default: false,
-          type: "boolean",
-        },
-        output: {
-          description:
-            "Output filename (within the git root, or CWD outside a repo). Default: writes alongside source image.",
-          type: "string",
-        },
-        scale: {
-          default: 2,
-          description: "Upscale factor",
-          enum: [2, 4, 6, 8],
-          type: "integer",
-        },
-      },
-      required: [],
-      type: "object",
-    },
-    mutating: true,
-    output: {
-      properties: {
-        cost: { type: "number" },
-        height: { type: "integer" },
-        path: { type: "string" },
-        size: { type: "string" },
-        width: { type: "integer" },
-      },
-      type: "object",
-    },
-    supports_dry_run: true,
-  };
-}
-
-function removeBackgroundSchema() {
-  return {
-    command: "rmbg",
-    description: "Remove background from the last generated image",
-    input: {
-      properties: {
-        model: {
-          default: "rmbg",
-          description: "Background removal model",
-          enum: ["rmbg", "bria"],
-          type: "string",
-        },
-        noOpen: { default: false, type: "boolean" },
-        output: { description: "Output filename", type: "string" },
-      },
-      type: "object",
-    },
-    mutating: true,
-    output: {
-      properties: {
-        cost: { type: "number" },
-        height: { type: "integer" },
-        path: { type: "string" },
-        size: { type: "string" },
-        width: { type: "integer" },
-      },
-      type: "object",
-    },
-    supports_dry_run: true,
-  };
-}
-
-function varySchema() {
-  return {
-    command: "vary",
-    description: "Generate variations of the last generated image",
-    input: {
-      properties: {
-        aspect: { enum: ASPECT_RATIOS, type: "string" },
-        model: { enum: EDIT_CAPABLE_MODELS, type: "string" },
-        numImages: {
-          default: 4,
-          maximum: 4,
-          minimum: 1,
-          type: "integer",
-        },
-        prompt: {
-          description: "Custom prompt (defaults to last generation's prompt)",
-          type: "string",
-        },
-        resolution: { enum: RESOLUTIONS, type: "string" },
-      },
-      type: "object",
-    },
-    mutating: true,
-    output: { $ref: "#/commands/generate/output" },
     supports_dry_run: true,
   };
 }
@@ -514,151 +355,43 @@ function historySchema() {
   };
 }
 
-function videoSchema() {
+function varySchema() {
   return {
-    command: "video",
-    cost_reference: {
-      audio_off: "$0.112/sec (5s = $0.56)",
-      audio_on: "$0.168/sec (5s = $0.84)",
-      note: "Video is significantly more expensive than images. Always use --dry-run first.",
-    },
-    description: "Generate video from an image using Kling v3 Pro",
+    command: "vary",
+    description: TASKS.vary.summary,
     input: {
       properties: {
-        duration: {
-          default: 5,
-          description: "Video duration in seconds",
-          maximum: 15,
-          minimum: 3,
-          type: "integer",
-        },
-        generateAudio: {
-          default: true,
-          description: "Generate audio track (costs ~50% more when enabled)",
-          type: "boolean",
-        },
+        ...TASK_INPUT_PROPERTIES,
         imagePath: {
-          description:
-            "Path to source image. Falls back to last generated image.",
+          description: "Image to vary. Falls back to the last generation.",
           type: "string",
         },
-        noOpen: {
-          default: false,
-          type: "boolean",
-        },
-        output: {
-          description: "Output filename (.mp4)",
-          type: "string",
-        },
+        look: creativeSchemaProperties().look,
+        model: { enum: EDIT_CAPABLE_MODELS, type: "string" },
+        mood: creativeSchemaProperties().mood,
+        numImages: { default: 1, maximum: 4, minimum: 1, type: "integer" },
         prompt: {
-          default: "cinematic motion, smooth camera movement",
-          description: "Text description of the motion/scene",
+          description:
+            "What the variations should be (default: the source generation's prompt)",
           type: "string",
         },
       },
-      required: ["imagePath"],
       type: "object",
     },
     mutating: true,
     output: {
       properties: {
-        cost: { type: "number" },
-        duration: { type: "integer" },
-        generateAudio: { type: "boolean" },
-        model: { type: "string" },
-        path: { type: "string" },
-        prompt: { type: "string" },
-        size: { type: "string" },
-        source: { type: "string" },
+        varyModel: {
+          description:
+            "reused: the source generation's Model, still ranked for vary; resolved: chosen afresh",
+          enum: ["reused", "resolved"],
+          type: "string",
+        },
       },
       type: "object",
     },
     supports_dry_run: true,
-  };
-}
-
-/**
- * Pointer rather than payload: the arguments themselves are deliberately not
- * embedded here. `parameterCount` says how many an endpoint takes; the list
- * itself is one call away, and inlining 71 of them would undo the trim that
- * kept this schema fetchable.
- */
-const TOOL_PARAMETERS_NOTE =
-  "Every argument a tool accepts is at `motif tool describe <id>`, and anything in that list can be passed with `motif tool run <id> --json '{...}'`. There, `fallback` is fal's own default and `motifDefault` is Motif's override.";
-
-/**
- * One line per registered tool, matching what `motif tool list` returns.
- *
- * The registry has grown past 70 entries, and the full per-tool config —
- * default options, output keys, source URL — was being embedded in every
- * schema fetch. That detail lives one call away in `motif tool describe <id>`,
- * so the schema carries only what a caller needs to pick a tool.
- */
-function toolRegistrySummary(): Record<string, unknown> {
-  return Object.fromEntries(
-    FAL_TOOL_IDS.map((id) => [
-      id,
-      {
-        category: FAL_TOOLS[id].category,
-        endpoint: FAL_TOOLS[id].endpoint,
-        inputKind: FAL_TOOLS[id].inputKind,
-        name: FAL_TOOLS[id].name,
-        parameterCount: falToolParameters(id).length,
-        pricing: FAL_TOOLS[id].pricing,
-        task: FAL_TOOLS[id].task,
-        ...(toolVerb(id) === undefined ? {} : { verb: toolVerb(id) }),
-      },
-    ])
-  );
-}
-
-function toolSchema() {
-  return {
-    checkedAt: FAL_TOOLS_CHECKED_AT,
-    command: "tool",
-    description:
-      "List, describe, and run fal.ai utility tools such as SAM segmentation, Topaz upscale, Bria background removal, and moderation.",
-    input: {
-      properties: {
-        input: {
-          description:
-            "Image/video URL or local file path. Local files are uploaded automatically.",
-          type: "string",
-        },
-        inputs: {
-          description: "Multiple image inputs for batch tools such as nsfw.",
-          items: { type: "string" },
-          type: "array",
-        },
-        options: {
-          description:
-            "Provider-specific options passed with --json or repeatable --option key=value.",
-          type: "object",
-        },
-        output: {
-          description:
-            "Download the primary URL-like output to this file when available.",
-          type: "string",
-        },
-        prompt: {
-          description:
-            "Prompt for SAM segmentation or 3D reconstruction tools.",
-          type: "string",
-        },
-        tool: {
-          description: "Registered fal utility tool ID",
-          enum: FAL_TOOL_IDS,
-          type: "string",
-        },
-      },
-      required: ["tool", "input"],
-      type: "object",
-    },
-    mutating: true,
-    parametersNote: TOOL_PARAMETERS_NOTE,
-    subcommands: ["list", "describe", "run"],
-    supports_dry_run: true,
-    tools: toolRegistrySummary(),
+    usage: 'motif vary [image] --prompt "..." -n 2',
   };
 }
 
@@ -666,7 +399,7 @@ function sheetSchema() {
   return {
     command: "sheet",
     description:
-      "Lay images out on one contact sheet: each cell fitted into a 512 px square on a warm off-white ground, captioned from history (model, look, mood, cost) or with the filename",
+      "Lay images out on one contact sheet: each cell fitted into a 512 px square on a warm off-white ground, captioned from history (look, mood, cost) or with the filename",
     input: {
       properties: {
         cols: {
@@ -728,28 +461,7 @@ function describeSchema() {
       properties: {
         command: {
           description: "Specific command to describe (omit for all)",
-          enum: [
-            "generate",
-            "upscale",
-            "rmbg",
-            "vary",
-            "video",
-            "last",
-            "history",
-            "series",
-            "sheet",
-            "tool",
-            "segment",
-            "ask",
-            "erase",
-            "reframe",
-            "enhance",
-            "layers",
-            "vectorize",
-            "describe",
-            "errors",
-            "tasks",
-          ],
+          enum: [...Object.keys(COMMAND_SCHEMAS), "tasks"],
           type: "string",
         },
       },
@@ -805,9 +517,8 @@ function seriesSchema() {
           type: "boolean",
         },
         model: {
-          default: "banana",
           description:
-            "Generation model. banana is recommended for series because it supports up to 14 references.",
+            "Run this Model instead of the ranked choice for every image in the series.",
           enum: GENERATION_MODELS,
           type: "string",
         },
@@ -897,223 +608,77 @@ function seriesSchema() {
 }
 
 /**
- * The promoted verbs — the fal capabilities named directly rather than reached
- * through `motif tool run`.
- *
- * Described from one shape because they share one shape: an optional trailing
- * image that falls back to the last generation, `-o` taking a file or a
- * trailing-slash directory, and a dry run that prices the call first.
+ * The Task verbs, described from their own definitions: an optional source
+ * that falls back to the last generation, the Task's modes as flags, `-o`
+ * taking a file or a trailing-slash directory, and a dry run that prices the
+ * call first.
  */
-const VERB_COMMON_INPUT = {
-  dryRun: { default: false, type: "boolean" },
-  imagePath: {
-    description:
-      "Source image path. Falls back to the last generation when omitted.",
-    type: "string",
-  },
-  noOpen: { default: false, type: "boolean" },
-  output: {
-    description:
-      "Output file (within the git root, or CWD outside a repo), or a directory ending in / to receive every artefact.",
-    type: "string",
-  },
-};
-
-interface VerbSchemaSpec {
-  command: string;
-  description: string;
-  examples: string[];
-  flags?: Record<string, object>;
-  outputFields?: Record<string, object>;
-  tools: string[];
-  writesFiles?: boolean;
-}
-
-function verbSchema(spec: VerbSchemaSpec): Record<string, unknown> {
+function taskVerbSchema(
+  definition: (typeof TASK_VERBS)[number]
+): Record<string, unknown> {
+  const task = TASKS[definition.task];
+  const modes: readonly { id: string; summary: string }[] =
+    "modes" in task ? task.modes : [];
+  const writesFiles = definition.writesFiles?.() ?? true;
   return {
-    command: spec.command,
-    description: spec.description,
-    examples: spec.examples,
+    command: definition.command,
+    description: task.summary,
+    usage: usageLine(definition),
     input: {
-      properties: { ...VERB_COMMON_INPUT, ...spec.flags },
-      required: [],
+      properties: {
+        ...TASK_INPUT_PROPERTIES,
+        dryRun: { default: false, type: "boolean" },
+        imagePath: {
+          description:
+            definition.sourceKind === "image-or-video"
+              ? "Source image or video path. Falls back to the last generation when omitted."
+              : "Source image path. Falls back to the last generation when omitted.",
+          type: "string",
+        },
+        ...(modes.length > 0 && {
+          mode: {
+            description: `One mode at a time, passed as a flag such as --${modes[0]?.id ?? "mode"}`,
+            enum: modes.map((mode) => mode.id),
+            enumDescriptions: Object.fromEntries(
+              modes.map((mode) => [mode.id, mode.summary])
+            ),
+            type: "string",
+          },
+        }),
+        noOpen: { default: false, type: "boolean" },
+        output: {
+          description:
+            "Output file (within the git root, or CWD outside a repo), or a directory ending in / to receive every file.",
+          type: "string",
+        },
+      },
       type: "object",
     },
-    // A verb that writes no file records no history either, so it changes
-    // nothing on disk.
-    mutating: spec.writesFiles !== false,
+    mutating: writesFiles,
     output: {
       properties: {
-        cost: {
-          description:
-            "Flat USD estimate, or null when the endpoint is metered or billed per unit",
-          type: ["number", "null"],
-        },
-        ...(spec.writesFiles === false
-          ? {}
-          : {
-              files: { items: { type: "object" }, type: "array" },
-              height: { type: "integer" },
-              path: { type: "string" },
-              size: { type: "string" },
-              width: { type: "integer" },
-            }),
-        ...spec.outputFields,
+        ...TASK_OUTPUT_PROPERTIES,
+        ...(writesFiles && {
+          files: { items: { type: "object" }, type: "array" },
+          height: { type: "integer" },
+          path: { type: "string" },
+          size: { type: "string" },
+          width: { type: "integer" },
+        }),
       },
       type: "object",
     },
     supports_dry_run: true,
-    tools: spec.tools,
   };
 }
 
-const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> = {
-  ask: () =>
-    verbSchema({
-      command: "ask",
-      description:
-        "Ask a question about an image and get prose back. Writes no file and records no history.",
-      examples: [
-        'motif ask "what colour is the chair?" room.png',
-        "motif ask --caption room.png",
-        'motif ask --detect "chair" room.png --format json',
-      ],
-      flags: {
-        caption: {
-          description:
-            "Caption the image instead of answering a question. The first positional becomes the image path.",
-          type: "boolean",
-        },
-        detect: {
-          description:
-            "Detect this thing and emit its bounding boxes as `objects`.",
-          type: "string",
-        },
-        point: {
-          description:
-            "Point at every instance of this thing and emit `points`.",
-          type: "string",
-        },
-        question: {
-          description:
-            "The question to answer. Required unless a mode flag is given.",
-          type: "string",
-        },
-      },
-      outputFields: {
-        answer: { description: "The model's prose answer", type: "string" },
-        objects: { items: { type: "object" }, type: "array" },
-        points: { items: { type: "object" }, type: "array" },
-        reasoning: { type: "string" },
-      },
-      tools: [...VERB_TOOLS.ask],
-      writesFiles: false,
-    }),
-  enhance: () =>
-    verbSchema({
-      command: "enhance",
-      description:
-        "Topaz enhancement, one mode at a time. Two modes is an INVALID_OPTION error, not a precedence rule.",
-      examples: [
-        "motif enhance photo.png --dry-run --format json",
-        "motif enhance --denoise photo.png -o clean.png",
-      ],
-      flags: {
-        mode: {
-          default: "upscale",
-          description: "Enhancement mode; pass exactly one as a flag",
-          enum: [
-            "upscale",
-            "generative",
-            "creative",
-            "transparent",
-            "restore",
-            "denoise",
-            "sharpen",
-            "adjust",
-          ],
-          type: "string",
-        },
-      },
-      tools: [...VERB_TOOLS.enhance],
-    }),
-  erase: () =>
-    verbSchema({
-      command: "erase",
-      description: "Remove a prompted object from an image and fill the gap.",
-      examples: ['motif erase "the parked car" street.png --dry-run'],
-      flags: {
-        prompt: {
-          description: "What to remove",
-          type: "string",
-        },
-      },
-      tools: [...VERB_TOOLS.erase],
-    }),
-  layers: () =>
-    verbSchema({
-      command: "layers",
-      description:
-        "Split an image into stacked RGBA layers. Writes several files, so -o must be a directory ending in /.",
-      examples: ["motif layers poster.png -o layers/ --dry-run"],
-      tools: [...VERB_TOOLS.layers],
-    }),
-  reframe: () =>
-    verbSchema({
-      command: "reframe",
-      description:
-        "Reframe an existing image to a new ratio, generating the fill. Needs exactly one target preset.",
-      examples: ["motif reframe --og cover.png --dry-run --format json"],
-      flags: {
-        preset: {
-          description: "Target ratio, passed as a flag such as --og",
-          enum: [
-            "cover",
-            "landscape",
-            "og",
-            "portrait",
-            "square",
-            "story",
-            "wide",
-          ],
-          type: "string",
-        },
-      },
-      tools: [...VERB_TOOLS.reframe],
-    }),
-  segment: () =>
-    verbSchema({
-      command: "segment",
-      description:
-        "Segment prompted objects out of an image. -o writes the primary output, -o masks/ writes all of them.",
-      examples: [
-        'motif segment "the chair" room.png --dry-run --format json',
-        'motif segment "the chair" room.png -o masks/',
-      ],
-      flags: {
-        prompt: { description: "What to segment", type: "string" },
-        rle: {
-          description:
-            "Return run-length encoded masks as compact JSON rather than mask images",
-          type: "boolean",
-        },
-      },
-      outputFields: {
-        boxes: { items: { type: "array" }, type: "array" },
-        rle: { description: "Present with --rle", type: "array" },
-        scores: { items: { type: "number" }, type: "array" },
-      },
-      tools: [...VERB_TOOLS.segment],
-    }),
-  vectorize: () =>
-    verbSchema({
-      command: "vectorize",
-      description:
-        "Convert a raster image into a clean SVG. -o must name a .svg file or a directory ending in /.",
-      examples: ["motif vectorize logo.png -o logo.svg --dry-run"],
-      tools: [...VERB_TOOLS.vectorize],
-    }),
-};
+const VERB_SCHEMAS: Record<string, () => Record<string, unknown>> =
+  Object.fromEntries(
+    TASK_VERBS.map((definition) => [
+      definition.command,
+      () => taskVerbSchema(definition),
+    ])
+  );
 
 const COMMAND_SCHEMAS: Record<string, () => Record<string, unknown>> = {
   ...VERB_SCHEMAS,
@@ -1137,13 +702,9 @@ const COMMAND_SCHEMAS: Record<string, () => Record<string, unknown>> = {
   generate: generateSchema,
   history: historySchema,
   last: lastSchema,
-  rmbg: removeBackgroundSchema,
   series: seriesSchema,
   sheet: sheetSchema,
-  tool: toolSchema,
-  upscale: upscaleSchema,
   vary: varySchema,
-  video: videoSchema,
 };
 
 /**
@@ -1193,7 +754,6 @@ function fullSchema() {
     description: "fal.ai image generation CLI",
     enums: {
       aspect_ratios: ASPECT_RATIOS,
-      fal_tools: FAL_TOOL_IDS,
       generation_models: GENERATION_MODELS,
       resolutions: RESOLUTIONS,
       utility_models: UTILITY_MODELS,
@@ -1263,11 +823,6 @@ function fullSchema() {
     name: "motif",
     security_posture:
       "The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (or the current directory outside a repo). Use --dry-run before mutating commands.",
-    tools: {
-      checkedAt: FAL_TOOLS_CHECKED_AT,
-      parametersNote: TOOL_PARAMETERS_NOTE,
-      registry: toolRegistrySummary(),
-    },
     version: PACKAGE_VERSION,
   };
 }

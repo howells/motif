@@ -15,7 +15,6 @@ const ERROR_SUGGESTIONS = {
   ],
   prompt: ["Provide a non-empty prompt as an argument or stdin JSON field"],
   series: ["Run 'motif series list --format json' to inspect available series"],
-  tools: ["Run 'motif tool list --format json' to inspect available fal tools"],
 } as const;
 
 function titleFromCode(code: string): string {
@@ -56,7 +55,6 @@ export const ERROR_CATALOG = {
       "The fal account is out of credit. Top up at https://fal.ai/dashboard/billing, then run the command again",
     ],
   }),
-  ASK_FAILED: metadata("ASK_FAILED", 502, { isRetriable: true }),
   DESCRIBE_FAILED: metadata("DESCRIBE_FAILED", 500, {
     isRetriable: true,
     suggestions: [...ERROR_SUGGESTIONS.describe],
@@ -64,51 +62,48 @@ export const ERROR_CATALOG = {
   EMPTY_PROMPT: metadata("EMPTY_PROMPT", 400, {
     suggestions: [...ERROR_SUGGESTIONS.prompt],
   }),
-  ENHANCE_FAILED: metadata("ENHANCE_FAILED", 502, { isRetriable: true }),
-  ERASE_FAILED: metadata("ERASE_FAILED", 502, { isRetriable: true }),
-  GENERATION_FAILED: metadata("GENERATION_FAILED", 502, {
-    isRetriable: true,
-    suggestions: [
-      "Check that FAL_KEY is valid",
-      "Try a different model with --model <model>",
-    ],
-  }),
   INVALID_EDIT_PATH: metadata("INVALID_EDIT_PATH", 400),
   INVALID_IMAGE_PATH: metadata("INVALID_IMAGE_PATH", 400),
-  INVALID_MODEL_ID: metadata("INVALID_MODEL_ID", 400, {
-    suggestions: [...ERROR_SUGGESTIONS.models],
-  }),
   INVALID_OPTION: metadata("INVALID_OPTION", 400, {
     suggestions: [...ERROR_SUGGESTIONS.describe],
   }),
-  INVALID_OUTPUT_PATH: metadata("INVALID_OUTPUT_PATH", 400),
+  INVALID_OUTPUT_PATH: metadata("INVALID_OUTPUT_PATH", 400, {
+    suggestions: [
+      "Write inside the git root of the current directory, or inside the current directory outside a repository",
+      "Use a relative path such as -o out/image.png, without .. segments",
+    ],
+  }),
   INVALID_STDIN: metadata("INVALID_STDIN", 400, {
     suggestions: [
       "Provide valid JSON matching the motif stdin schema; run 'motif --describe --format json' for the schema",
     ],
   }),
-  INVALID_TOOL_ID: metadata("INVALID_TOOL_ID", 400, {
-    suggestions: [...ERROR_SUGGESTIONS.tools],
-  }),
-  LAYERS_FAILED: metadata("LAYERS_FAILED", 502, { isRetriable: true }),
   MISSING_API_KEY: metadata("MISSING_API_KEY", 401, {
     suggestions: [...ERROR_SUGGESTIONS.apiKey],
   }),
   NO_MODEL_AVAILABLE: metadata("NO_MODEL_AVAILABLE", 400, {
     suggestions: [
-      "Name a Model with --model, set the missing key, or drop the option that no Model can honour",
+      "Name a Model with --model, change --tier, set the missing key, or drop the option that no Model can honour",
     ],
   }),
-  NO_PREVIOUS: metadata("NO_PREVIOUS", 404),
-  REFRAME_FAILED: metadata("REFRAME_FAILED", 502, { isRetriable: true }),
+  NO_PREVIOUS: metadata("NO_PREVIOUS", 404, {
+    suggestions: [
+      "Pass the image as an argument, e.g. motif upscale photo.png",
+      'Or generate an image first: motif "a prompt"',
+    ],
+  }),
+  REMOVED_COMMAND: metadata("REMOVED_COMMAND", 400, {
+    suggestions: [
+      "details.use names the replacement; run that instead",
+      "Run 'motif --describe tasks --format json' to see the command for each job",
+    ],
+  }),
   RESERVED_PROMPT: metadata("RESERVED_PROMPT", 400, {
     suggestions: [
       "Use the flag form of the command (e.g. 'motif --history')",
       'To really generate an image from a one-word prompt that matches a command word, pass it via stdin JSON: echo \'{"prompt":"history"}\' | motif',
     ],
   }),
-  RMBG_FAILED: metadata("RMBG_FAILED", 502, { isRetriable: true }),
-  SEGMENT_FAILED: metadata("SEGMENT_FAILED", 502, { isRetriable: true }),
   SERIES_CREATE_FAILED: metadata("SERIES_CREATE_FAILED", 500, {
     suggestions: [...ERROR_SUGGESTIONS.series],
   }),
@@ -128,31 +123,23 @@ export const ERROR_CATALOG = {
   SERIES_REF_REMOVE_FAILED: metadata("SERIES_REF_REMOVE_FAILED", 500, {
     suggestions: [...ERROR_SUGGESTIONS.series],
   }),
-  TOOL_FAILED: metadata("TOOL_FAILED", 502, {
+  TASK_FAILED: metadata("TASK_FAILED", 502, {
     isRetriable: true,
-    suggestions: [...ERROR_SUGGESTIONS.tools],
-  }),
-  TOO_MANY_REFERENCES: metadata("TOO_MANY_REFERENCES", 400, {
     suggestions: [
-      "Reduce the number of reference images; run 'motif --describe generate --format json' to inspect model limits",
+      "Retry the same command; details.task and details.model name what failed",
+      "Or choose another Model with --tier or -m",
     ],
   }),
   TRANSPARENCY_MISSING: metadata("TRANSPARENCY_MISSING", 502, {
     isRetriable: true,
     suggestions: [
       "The file is left on disk; details.paths lists it. Retry the same command",
-      "Or use -m gpt, which renders transparent PNGs on fal",
+      "Or choose another Model with -m",
     ],
   }),
   UNKNOWN_MODEL: metadata("UNKNOWN_MODEL", 400, {
     suggestions: [...ERROR_SUGGESTIONS.models],
   }),
-  UNKNOWN_TOOL: metadata("UNKNOWN_TOOL", 400, {
-    suggestions: [...ERROR_SUGGESTIONS.tools],
-  }),
-  UPSCALE_FAILED: metadata("UPSCALE_FAILED", 502, { isRetriable: true }),
-  VECTORIZE_FAILED: metadata("VECTORIZE_FAILED", 502, { isRetriable: true }),
-  VIDEO_FAILED: metadata("VIDEO_FAILED", 502, { isRetriable: true }),
 } as const satisfies Record<string, ErrorMetadata>;
 
 export type KnownErrorCode = keyof typeof ERROR_CATALOG;

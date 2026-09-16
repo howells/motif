@@ -79,7 +79,8 @@ describe(commandOf, () => {
     expect(route('motif erase "the car" x.png')).toBe("erase");
     expect(route('motif series run "cabins" --count 8')).toBe("series run");
     expect(route('motif series create "Luna"')).toBe("series");
-    expect(route("motif --up --scale 2")).toBe("upscale");
+    expect(route("motif upscale --scale 2")).toBe("upscale");
+    expect(route("motif cutout photo.png")).toBe("cutout");
     expect(route("motif --describe errors")).toBe("errors");
     expect(route("motif --describe --format json | jq .models")).toBe(
       "describe"
@@ -135,7 +136,7 @@ describe(grade, () => {
     expect(result.pass).toBeTruthy();
   });
 
-  it("fails a generation edit or tool run where erase was wanted", () => {
+  it("fails a generation edit or cutout where erase was wanted", () => {
     const edit = grade(
       caseById("erase-car"),
       sh('motif "remove the car" -e street.png -m gpt')
@@ -144,12 +145,9 @@ describe(grade, () => {
     expect(edit.commandOk).toBeFalsy();
     expect(edit.pass).toBeFalsy();
 
-    const tool = grade(
-      caseById("erase-car"),
-      sh("motif tool run object-removal --input image=street.png")
-    );
-    expect(tool.command).toBe("tool");
-    expect(tool.pass).toBeFalsy();
+    const cutout = grade(caseById("erase-car"), sh("motif cutout street.png"));
+    expect(cutout.command).toBe("cutout");
+    expect(cutout.pass).toBeFalsy();
   });
 
   it("fails an answer with no motif command", () => {
@@ -222,12 +220,11 @@ describe(grade, () => {
   });
 
   it("accepts either command when a case lists two", () => {
-    const testCase = caseById("enhance-upscale-print");
-    expect(grade(testCase, sh("motif --up product.jpg")).pass).toBeTruthy();
-    expect(grade(testCase, sh("motif enhance product.jpg")).pass).toBeTruthy();
-    expect(
-      grade(testCase, sh('motif "bigger" -e product.jpg')).pass
-    ).toBeFalsy();
+    const testCase = caseById("segment-chair");
+    const listed = { ...testCase, command: ["segment", "cutout"] };
+    expect(grade(listed, sh("motif segment chair room.png")).pass).toBeTruthy();
+    expect(grade(listed, sh("motif cutout room.png")).pass).toBeTruthy();
+    expect(grade(listed, sh('motif "a chair" -e room.png')).pass).toBeFalsy();
   });
 });
 

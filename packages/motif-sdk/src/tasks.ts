@@ -39,6 +39,8 @@ export type Capability =
   | "negativePrompt"
   | "outputFormat"
   | "references"
+  | "resolution"
+  | "rig"
   | "seed"
   | "transparency"
   | "video";
@@ -52,6 +54,8 @@ export interface RankedModel {
   readonly mode?: string;
   /** Capabilities this Model has for this Task beyond its registry profile. */
   readonly supports?: readonly Capability[];
+  /** The Model works without a Source, such as a tile made from a prompt. */
+  readonly sourceOptional?: true;
   /** Inputs the request must supply for this Model to be chosen, e.g. a mask. */
   readonly requires?: readonly Capability[];
 }
@@ -109,11 +113,7 @@ const GENERATION_MODELS_RANKED: readonly RankedModel[] = [
   { model: "flux", tier: "fast" },
 ];
 
-/**
- * Every Task with a Model. New Tasks (restyle, try-on) and new Models for
- * existing Tasks (relight, mesh) are added by their own issues. A Task is
- * absent here until it has at least one Model.
- */
+/** Every Task with a Model. A Task is absent here until it has at least one Model. */
 export const TASKS = {
   animate: {
     basis: "Hand-ranked. One Model: Kling v3 Pro image-to-video.",
@@ -300,7 +300,7 @@ export const TASKS = {
   },
   mesh: {
     basis:
-      "Hand-ranked from fal price and published quality: Hunyuan3D v3 for quality, TRELLIS 2 balanced. SAM 3D reconstructs several prompted objects, or a human body.",
+      "Hand-ranked from fal price and published quality: Meshy v7 leads quality and is the only Model that rigs a mesh; Hunyuan3D v3 is the quality second at under a third of the price; TRELLIS 2 balanced. SAM 3D reconstructs several prompted objects, or a human body.",
     modes: [
       { id: "body", summary: "Reconstruct a human body mesh with keypoints." },
       {
@@ -309,6 +309,7 @@ export const TASKS = {
       },
     ],
     models: [
+      { model: "meshy-v7", tier: "quality" },
       { model: "hunyuan3d-v3", tier: "quality" },
       { model: "trellis-2", tier: "balanced" },
       { mode: "body", model: "sam3-3d-body", tier: "balanced" },
@@ -343,7 +344,7 @@ export const TASKS = {
   },
   relight: {
     basis:
-      "Hand-ranked. IC-Light relights to a described light; the two lighting Models even out or strip baked-in light.",
+      "Hand-ranked. IC-Light relights to a described light or a mood, with or without a mask; the two lighting Models even out or strip baked-in light.",
     modes: [
       { id: "even", summary: "Restore natural, even lighting." },
       {
@@ -363,9 +364,10 @@ export const TASKS = {
   },
   restore: {
     basis:
-      "Hand-ranked. Each mode names what is wrong and has the Model that fixes it; the plain job is Topaz's general restoration.",
+      "Hand-ranked. Each mode names what is wrong and has the Model that fixes it; the plain job is Topaz's general restoration. Control Light, a FLUX.2 klein fine-tune at $0.03/MP, brightens dark photos.",
     modes: [
       { id: "colour", summary: "Colourise a black-and-white photograph." },
+      { id: "dark", summary: "Brighten a dark or underexposed photo." },
       { id: "noise", summary: "Remove noise." },
       { id: "scratches", summary: "Repair scratches, tears and damage." },
       { id: "softness", summary: "Sharpen a soft or blurred image." },
@@ -374,6 +376,7 @@ export const TASKS = {
     models: [
       { model: "topaz-restore", tier: "balanced" },
       { mode: "colour", model: "ddcolor", tier: "balanced" },
+      { mode: "dark", model: "control-light", tier: "balanced" },
       { mode: "noise", model: "topaz-denoise", tier: "balanced" },
       { mode: "scratches", model: "topaz-restore", tier: "balanced" },
       { mode: "softness", model: "topaz-sharpen", tier: "balanced" },
@@ -384,6 +387,14 @@ export const TASKS = {
     rankedFrom: "hand",
     summary:
       "Fix noise, softness, damage, colour or tone without changing the size.",
+  },
+  restyle: {
+    basis: "Hand-ranked. One Model: TeleStyle v2.",
+    models: [{ model: "telestyle-v2", tier: "balanced" }],
+    notFor: "A house style kept across images (generate with a look).",
+    rankedAt: HAND_RANKED_AT,
+    rankedFrom: "hand",
+    summary: "Redraw an image in the style of a reference image.",
   },
   segment: {
     basis:
@@ -420,13 +431,21 @@ export const TASKS = {
       },
     ],
     models: [
-      { model: "ideogram-tiling", tier: "balanced" },
+      { model: "ideogram-tiling", sourceOptional: true, tier: "balanced" },
       { mode: "upscale", model: "seedvr-seamless", tier: "balanced" },
     ],
     notFor: "PBR maps of a surface (material).",
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
     summary: "Make a seamlessly tiling texture.",
+  },
+  "try-on": {
+    basis: "Hand-ranked. One Model: Google's virtual try-on.",
+    models: [{ model: "virtual-try-on", tier: "balanced" }],
+    notFor: "Changing clothes by description (generate with a reference).",
+    rankedAt: HAND_RANKED_AT,
+    rankedFrom: "hand",
+    summary: "Dress a person in a garment from another image.",
   },
   upscale: {
     basis:

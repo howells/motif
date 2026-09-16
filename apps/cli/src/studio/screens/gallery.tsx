@@ -1,10 +1,9 @@
-import { MODELS } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import { useState } from "react";
 
 import type { History } from "../../utils/config";
 import { openImage } from "../../utils/image";
-import { firstText } from "../../utils/text";
+import { costLabel } from "../task";
 
 interface GalleryScreenProps {
   history: History;
@@ -73,7 +72,7 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
       <Box flexDirection="column">
         <Text bold>Gallery</Text>
         <Box marginTop={1}>
-          <Text dimColor>No generations yet. Create your first image!</Text>
+          <Text dimColor>No images yet. Make one from Generate.</Text>
         </Box>
       </Box>
     );
@@ -106,9 +105,7 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
               </Text>
             </Box>
             <Box width={18}>
-              <Text dimColor>
-                {firstText(MODELS[gen.model]?.name?.slice(0, 15)) ?? gen.model}
-              </Text>
+              <Text dimColor>{costLabel(gen.cost)}</Text>
             </Box>
             <Text dimColor>{timeStr}</Text>
           </Box>

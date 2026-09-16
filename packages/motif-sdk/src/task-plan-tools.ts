@@ -8,6 +8,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { exactImageSize } from "./aspects";
+import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
 import { dataUrlImageSize } from "./source-size";
 import type { TaskInput } from "./task-client";
@@ -25,7 +26,7 @@ import { projectedToolCost } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
 import type { FalToolParameter } from "./tool-parameters.generated";
 import { buildFalToolRequest, FAL_TOOLS } from "./tools";
-import type { FalToolId } from "./tools";
+import type { FalToolConfig, FalToolId } from "./tools";
 import type { AspectRatio, CustomImageSize } from "./types";
 
 type Box = NonNullable<TaskInput["boxes"]>[number];
@@ -209,6 +210,14 @@ function aspectOptions(
   return ok(options);
 }
 
+/** A Mood names a light, so relight joins its clause after the prompt. */
+function moodPrompt(input: TaskInput): string {
+  return enrichPrompt({
+    creative: { mood: input.mood },
+    prompt: input.prompt ?? "",
+  }).prompt;
+}
+
 /** The fal body keys for each TaskInput field a tool can take. */
 function toolOptions(
   task: TaskId,
@@ -231,6 +240,8 @@ function toolOptions(
     ["count", "num_images", input.count],
     ["outputFormat", "output_format", input.outputFormat],
     ["scale", "upscale_factor", input.scale],
+    // Only a rig asked for is carried; rig: false is every Model's default.
+    ["rig", "enable_rigging", input.rig === true ? true : undefined],
     [
       "sizes",
       "target_sizes",
@@ -238,13 +249,25 @@ function toolOptions(
     ],
   ];
   for (const [field, key, value] of direct) {
-    if (!isPresent(input, field)) {
+    if (value === undefined || !isPresent(input, field)) {
       continue;
     }
     if (!parameters.has(key)) {
       return err(cannotCarry(field, model, task));
     }
     options[key] = value;
+  }
+
+  if (isPresent(input, "mood")) {
+    if (task !== "relight" || !parameters.has("prompt")) {
+      return err(cannotCarry("mood", model, task));
+    }
+    options.prompt = moodPrompt(input);
+  }
+
+  const { referenceField }: FalToolConfig = FAL_TOOLS[model];
+  if (referenceField !== undefined && isPresent(input, "references")) {
+    options[referenceField] = input.references?.[0];
   }
 
   if (input.aspect !== undefined) {
@@ -306,14 +329,19 @@ function toolOptions(
     "count",
     "margin",
     "mask",
+    "mood",
     "negativePrompt",
     "outputFormat",
     "prompt",
     "resolution",
+    "rig",
     "scale",
     "seed",
     "sizes",
   ]);
+  if (referenceField !== undefined) {
+    handled.add("references");
+  }
   if (model === "topaz-transparent") {
     handled.add("transparent");
   }
@@ -349,7 +377,8 @@ export function toolPlan(
 ): Result<PlanBody, MotifError> {
   const tool = FAL_TOOLS[model];
   const media = tool.inputKind === "video" ? input.video : input.image;
-  if (media === undefined) {
+  const sourceless = input.image === undefined && input.video === undefined;
+  if (media === undefined && !sourceless) {
     // The source passed is the other kind: an image to a video Model, or back.
     const passed = tool.inputKind === "video" ? "image" : "video";
     return err(cannotCarry(passed, model, task));
@@ -367,20 +396,28 @@ export function toolPlan(
   if (merged.isErr()) {
     return err(merged.error);
   }
-  const { body, endpoint } = buildFalToolRequest({
-    input: media,
-    options: merged.value,
-    tool: model,
-  });
+  const { defaultOptions }: FalToolConfig = tool;
+  // planTask has already refused a missing Source the Model needs.
+  const { body, endpoint } =
+    media === undefined
+      ? {
+          body: { ...defaultOptions, ...merged.value },
+          endpoint: tool.endpoint,
+        }
+      : buildFalToolRequest({
+          input: media,
+          options: merged.value,
+          tool: model,
+        });
   const missing = missingRequired(task, model, body);
   if (missing !== undefined) {
     return err(missing);
   }
   return ok({
     body,
-    cost: projectedToolCost(tool.price),
+    cost: projectedToolCost(tool.price, body),
     endpoint,
-    prompt: input.prompt,
+    prompt: typeof body.prompt === "string" ? body.prompt : input.prompt,
     provider: "fal",
     queued: "queued" in tool,
   });

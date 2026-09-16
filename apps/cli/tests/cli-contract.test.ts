@@ -35,17 +35,25 @@ const tempHomes: string[] = [];
 
 /** Every argv-routed command, as `--help` must name it. */
 const HELP_COMMANDS = [
+  "vary",
   "erase",
+  "cutout",
   "reframe",
+  "upscale",
+  "restore",
+  "relight",
   "segment",
   "ask",
-  "enhance",
   "layers",
   "vectorize",
+  "map",
+  "material",
+  "tile",
+  "mesh",
+  "animate",
   "sheet",
   "series",
   "series run",
-  "tool",
   "studio",
 ];
 
@@ -161,7 +169,7 @@ describe("CLI contract", () => {
     expect(schema).toHaveProperty("commands");
     expect(schema).toHaveProperty("models");
     expect(schema).toHaveProperty("leaderboards");
-    expect(schema).toHaveProperty("tools");
+    expect(schema).not.toHaveProperty("tools");
     expect(schema).toHaveProperty("errors");
   });
 
@@ -228,7 +236,7 @@ describe("CLI contract", () => {
       "description",
       "whenToUse",
     ]);
-    expect(erase.notFor).toContain("finegrain-eraser");
+    expect(erase.notFor).toContain("cutout");
   });
 
   it("advertises the edit-capable model enum for the vary command", async () => {
@@ -437,7 +445,7 @@ describe("CLI contract", () => {
       scenePrompt: "hero watch on steel table",
     });
     expect(payload.prompt).toBe(
-      `editorial product language. Hero watch on steel table. ${clause("look", "lived-in")}. ${cap(clause("mood", "window"))}.`
+      `Editorial product language. Hero watch on steel table. ${clause("look", "lived-in")}. ${cap(clause("mood", "window"))}.`
     );
   });
 
@@ -515,7 +523,7 @@ describe("CLI contract", () => {
       stylePrompt: "warm family kitchens",
     });
     expect(payload.prompt).toBe(
-      `warm family kitchens. A green kitchen. ${clause("look", "lived-in")}. ${cap(clause("mood", "overcast"))}.`
+      `Warm family kitchens. A green kitchen. ${clause("look", "lived-in")}. ${cap(clause("mood", "overcast"))}.`
     );
 
     const overridden = await runMotif(
@@ -703,7 +711,7 @@ describe("CLI contract", () => {
       prompt: "a cat on a windowsill",
       valid: true,
     });
-    expect(dryRun).toHaveProperty("estimatedCost");
+    expect(dryRun).toHaveProperty("cost");
   });
 
   it("emits creative metadata and a sentence-joined prompt during dry-run generation", async () => {
@@ -739,7 +747,7 @@ describe("CLI contract", () => {
       prompt: expectedPrompt,
       valid: true,
     });
-    expect(asRecord(dryRun.body).prompt).toBe(expectedPrompt);
+    expect(asRecord(dryRun.request).prompt).toBe(expectedPrompt);
   });
 
   it("applies the look's default model and aspect when none is given", async () => {
@@ -1047,67 +1055,6 @@ describe("CLI contract", () => {
     });
   });
 
-  it("marks every tool a verb wraps with that verb", async () => {
-    const schema = parseJsonLine(
-      (await runMotif(["--describe", "--format", "json"])).stdout
-    );
-    const tools = asRecord(
-      parseJsonLine(
-        (await runMotif(["tool", "list", "--format", "json"])).stdout
-      ).tools
-    );
-
-    const wrapped = Object.entries(asRecord(schema.commands)).flatMap(
-      ([command, entry]) => {
-        const ids = asRecord(entry).tools;
-        return Array.isArray(ids)
-          ? ids.map((id): [string, string] => [String(id), command])
-          : [];
-      }
-    );
-    expect(wrapped.length).toBeGreaterThan(0);
-    for (const [id, command] of wrapped) {
-      expect(asRecord(tools[id]).verb, id).toBe(command);
-    }
-    expect(asRecord(tools["object-removal"]).verb).toBe("erase");
-    expect(
-      Object.values(tools).filter((tool) => asRecord(tool).verb !== undefined)
-    ).toHaveLength(wrapped.length);
-  });
-
-  it("names the verb when describing or running a wrapped tool", async () => {
-    const described = parseJsonLine(
-      (
-        await runMotif([
-          "tool",
-          "describe",
-          "object-removal",
-          "--format",
-          "json",
-        ])
-      ).stdout
-    );
-    expect(described.verb).toBe("erase");
-
-    const run = parseJsonLine(
-      (
-        await runMotif([
-          "tool",
-          "run",
-          "object-removal",
-          "https://example.com/street.png",
-          "--prompt",
-          "the car",
-          "--dry-run",
-          "--format",
-          "json",
-        ])
-      ).stdout
-    );
-    expect(run.verb).toBe("erase");
-    expect(String(run.hint)).toContain("motif erase");
-  });
-
   it("takes one --edit path per flag, repeated, with the prompt after", async () => {
     const dir = tempHome();
     const first = join(dir, "first.png");
@@ -1148,7 +1095,7 @@ describe("CLI contract", () => {
     expect(error).toMatchObject({ code: "INVALID_EDIT_PATH", error: true });
   });
 
-  it("names the models that support a refused option", async () => {
+  it("refuses a resolution the named model cannot do", async () => {
     const result = await runMotif([
       "a lighthouse",
       "-m",
@@ -1162,15 +1109,11 @@ describe("CLI contract", () => {
 
     expect(result.code).toBe(2);
     const error = parseJsonLine(result.stderr);
-    expect(error.code).toBe("INVALID_OPTION");
-    expect(String(error.message)).toMatch(
-      /^Seedream 4\.5 does not support resolution\. Models that do: /
-    );
-    const details = asRecord(error.details);
-    expect(details.option).toBe("resolution");
-    expect(details.model).toBe("Seedream 4.5");
-    expect(asArray(details.modelsSupporting)).toContain("banana");
-    expect(asArray(details.supportedOptions).length).toBeGreaterThan(0);
+    expect(error.code).toBe("NO_MODEL_AVAILABLE");
+    expect(error.details).toMatchObject({
+      blockedBy: "resolution",
+      task: "generate",
+    });
   });
 
   it("routes gpt2 transparency through OpenAI in the dry run", async () => {
@@ -1186,15 +1129,14 @@ describe("CLI contract", () => {
 
     expect(result.code).toBe(0);
     const dryRun = parseJsonLine(result.stdout);
+    // OpenAI publishes no per-image price, so the plan's cost is unknown.
     expect(dryRun).toMatchObject({
-      endpoint: "openai:gpt-image-2",
-      estimatedCost: null,
+      cost: null,
+      costBasis: "unknown",
+      model: "gpt2",
       provider: "openai",
-      providerModel: "gpt-image-2",
-      requiredEnv: "OPENAI_API_KEY",
-      route: "openai",
     });
-    expect(asRecord(dryRun.body)).toMatchObject({
+    expect(asRecord(dryRun.request)).toMatchObject({
       background: "transparent",
       n: 1,
       outputFormat: "png",
@@ -1213,8 +1155,8 @@ describe("CLI contract", () => {
 
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
-      endpoint: "openai/gpt-image-2",
-      route: "fal",
+      model: "gpt2",
+      provider: "fal",
     });
   });
 
@@ -1223,7 +1165,7 @@ describe("CLI contract", () => {
       ["a sticker of a fox", "-m", "gpt2", "--transparent", "--format", "json"],
       "",
       tempHome(),
-      { OPENAI_API_KEY: "" }
+      { FAL_KEY: "not-a-real-key", OPENAI_API_KEY: "" }
     );
 
     expect(result.code).toBe(3);
@@ -1231,7 +1173,7 @@ describe("CLI contract", () => {
     const error = parseJsonLine(result.stderr);
     expect(error).toMatchObject({
       code: "MISSING_API_KEY",
-      details: { envVar: "OPENAI_API_KEY", route: "openai" },
+      details: { envVar: "OPENAI_API_KEY" },
     });
     expect(String(error.message)).toContain("OPENAI_API_KEY");
   });
@@ -1289,11 +1231,10 @@ describe("CLI contract", () => {
       "gpt",
       "--aspect",
       "16:9",
-      "--background",
-      "transparent",
-      "--quality",
-      "medium",
-      "--sync-mode",
+      "--param",
+      "background=transparent",
+      "--param",
+      "quality=medium",
     ]);
 
     expect(result.code).toBe(0);
@@ -1303,15 +1244,13 @@ describe("CLI contract", () => {
     expect(dryRun).toMatchObject({
       command: "generate",
       dryRun: true,
-      endpoint: "fal-ai/gpt-image-1.5",
       model: "gpt",
       valid: true,
     });
-    expect(dryRun.body).toMatchObject({
+    expect(dryRun.request).toMatchObject({
       background: "transparent",
       image_size: "1536x1024",
       quality: "medium",
-      sync_mode: true,
     });
   });
 
@@ -1327,10 +1266,12 @@ describe("CLI contract", () => {
       "auto",
       "--resolution",
       "0.5K",
-      "--google-search",
-      "--limit-generations",
-      "--thinking",
-      "minimal",
+      "--param",
+      "enable_google_search=true",
+      "--param",
+      "limit_generations=true",
+      "--param",
+      "thinking_level=minimal",
     ]);
 
     expect(result.code).toBe(0);
@@ -1340,11 +1281,10 @@ describe("CLI contract", () => {
     expect(dryRun).toMatchObject({
       command: "generate",
       dryRun: true,
-      endpoint: "fal-ai/nano-banana-2",
       model: "banana2",
       valid: true,
     });
-    expect(dryRun.body).toMatchObject({
+    expect(dryRun.request).toMatchObject({
       aspect_ratio: "auto",
       enable_google_search: true,
       limit_generations: true,
@@ -1353,7 +1293,7 @@ describe("CLI contract", () => {
     });
   });
 
-  it("rejects model-incompatible options during dry-run", async () => {
+  it("refuses --quality and names --tier instead", async () => {
     const result = await runMotif([
       "simple product render",
       "--dry-run",
@@ -1370,12 +1310,10 @@ describe("CLI contract", () => {
 
     const error = parseJsonLine(result.stderr);
     expect(error).toMatchObject({
-      code: "INVALID_OPTION",
+      code: "REMOVED_COMMAND",
+      details: { removed: "--quality", use: "--tier" },
       status: 400,
     });
-    expect(String(error.message)).toContain(
-      "FLUX Schnell does not support quality"
-    );
   });
 
   it("allows stdin JSON dry-run without FAL_KEY", async () => {
@@ -1422,128 +1360,5 @@ describe("CLI contract", () => {
       status: 400,
       type: "urn:motif:error:unknown-model",
     });
-  });
-
-  it("lists fal utility tools as structured JSON", async () => {
-    const result = await runMotif(["tool", "list", "--format", "json"]);
-
-    expect(result.code).toBe(0);
-    expect(result.stderr).toBe("");
-
-    const payload = parseJsonLine(result.stdout);
-    const tools = asRecord(payload.tools);
-    expect(tools["sam3-image"]).toMatchObject({
-      endpoint: "fal-ai/sam-3/image",
-      inputKind: "image",
-    });
-    expect(tools["depth-anything"]).toMatchObject({
-      endpoint: "fal-ai/image-preprocessors/depth-anything/v2",
-      inputKind: "image",
-    });
-  });
-
-  it("describes a specific fal utility tool", async () => {
-    const result = await runMotif([
-      "tool",
-      "describe",
-      "sam3-image",
-      "--format",
-      "json",
-    ]);
-
-    expect(result.code).toBe(0);
-    const payload = parseJsonLine(result.stdout);
-    expect(payload).toMatchObject({
-      command: "tool.describe",
-      endpoint: "fal-ai/sam-3/image",
-      id: "sam3-image",
-      pricing: "$0.005/request",
-    });
-  });
-
-  it("dry-runs fal utility tools without FAL_KEY", async () => {
-    const result = await runMotif([
-      "tool",
-      "sam3-image",
-      "https://example.com/input.png",
-      "--prompt",
-      "person",
-      "--max-masks",
-      "4",
-      "--dry-run",
-      "--format",
-      "json",
-    ]);
-
-    expect(result.code).toBe(0);
-    expect(result.stderr).toBe("");
-
-    const payload = parseJsonLine(result.stdout);
-    expect(payload).toMatchObject({
-      command: "tool.run",
-      dryRun: true,
-      endpoint: "fal-ai/sam-3/image",
-      tool: "sam3-image",
-      valid: true,
-    });
-    expect(payload.body).toMatchObject({
-      image_url: "https://example.com/input.png",
-      max_masks: 4,
-      prompt: "person",
-    });
-  });
-
-  it("accepts fal utility tools through stdin JSON", async () => {
-    const result = await runMotif(
-      ["--format", "json"],
-      JSON.stringify({
-        command: "tool",
-        dryRun: true,
-        input: "https://example.com/input.png",
-        options: { max_masks: 2 },
-        prompt: "person",
-        tool: "sam3-image",
-      })
-    );
-
-    expect(result.code).toBe(0);
-    expect(result.stderr).toBe("");
-
-    const payload = parseJsonLine(result.stdout);
-    expect(payload).toMatchObject({
-      command: "tool.run",
-      dryRun: true,
-      endpoint: "fal-ai/sam-3/image",
-      tool: "sam3-image",
-      valid: true,
-    });
-    expect(payload.body).toMatchObject({
-      image_url: "https://example.com/input.png",
-      max_masks: 2,
-      prompt: "person",
-    });
-  });
-
-  it("rejects invalid fal utility numeric options before calling fal", async () => {
-    const result = await runMotif([
-      "tool",
-      "marigold-depth",
-      "https://example.com/input.png",
-      "--ensemble-size",
-      "1",
-      "--dry-run",
-      "--format",
-      "json",
-    ]);
-
-    expect(result.code).toBe(2);
-    expect(result.stdout).toBe("");
-
-    const error = parseJsonLine(result.stderr);
-    expect(error).toMatchObject({
-      code: "INVALID_OPTION",
-      status: 400,
-    });
-    expect(String(error.message)).toContain("ensemble size must be >= 2");
   });
 });

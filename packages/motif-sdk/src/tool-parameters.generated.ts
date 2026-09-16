@@ -66,6 +66,15 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
     { key: "output_container_and_codec", type: "enum(mp4_h265|mp4_h264|webm_vp9|mov_h265|mov_proresks|mkv_h265|mkv_h264|mkv_vp9|gif)", fallback: "webm_vp9" },
     { key: "preserve_audio", type: "boolean", fallback: true },
   ],
+  "control-light": [
+    { key: "enable_safety_checker", type: "boolean", fallback: true },
+    { key: "guidance_scale", type: "number", fallback: 1 },
+    { key: "lighting_level", type: "number", fallback: 0.75 },
+    { key: "num_inference_steps", type: "integer", fallback: 4 },
+    { key: "output_format", type: "enum(jpeg|png|webp)", fallback: "png" },
+    { key: "prompt", type: "string", fallback: "Enhance this low-light image by lifting exposure and recovering visible details while preserving identity, geometry, atmosphere, natural colors, and avoiding halos, noise, over-sharpening, or overexposure." },
+    { key: "seed", type: "integer" },
+  ],
   "ddcolor": [
     { key: "seed", type: "integer" },
   ],
@@ -192,6 +201,25 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
     { key: "ensemble_size", type: "integer", fallback: 10 },
     { key: "num_inference_steps", type: "integer", fallback: 10 },
     { key: "processing_res", type: "integer", fallback: 0 },
+  ],
+  "meshy-v7": [
+    { key: "animation_action_id", type: "integer", fallback: 92 },
+    { key: "enable_animation", type: "boolean", fallback: false },
+    { key: "enable_pbr", type: "boolean", fallback: false },
+    { key: "enable_rigging", type: "boolean", fallback: false },
+    { key: "enable_safety_checker", type: "boolean", fallback: true },
+    { key: "is_a_t_pose", type: "boolean", fallback: false },
+    { key: "model_type", type: "enum(standard|lowpoly|smart-topology)", fallback: "standard" },
+    { key: "pose_mode", type: "enum(a-pose|t-pose|)", fallback: "" },
+    { key: "rigging_height_meters", type: "number", fallback: 1.7 },
+    { key: "should_remesh", type: "boolean", fallback: true },
+    { key: "should_texture", type: "boolean", fallback: true },
+    { key: "symmetry_mode", type: "enum(off|auto|on)", fallback: "auto" },
+    { key: "target_polycount", type: "integer", fallback: 30_000 },
+    { key: "texture_image_url", type: "string" },
+    { key: "texture_prompt", type: "string" },
+    { key: "topology", type: "enum(quad|triangle)", fallback: "triangle" },
+    { key: "ultra_mode", type: "boolean", fallback: false },
   ],
   "midas-depth": [
     { key: "a", type: "number", fallback: 6.283185307179586 },
@@ -429,6 +457,22 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
   "teed": [
 
   ],
+  "telestyle-v2": [
+    { key: "acceleration", type: "enum(none|regular)", fallback: "none" },
+    { key: "enable_safety_checker", type: "boolean", fallback: true },
+    { key: "guidance_scale", type: "number", fallback: 1 },
+    { key: "image_size", type: "object|enum(square_hd|square|portrait_4_3|portrait_16_9|landscape_4_3|landscape_16_9)" },
+    { key: "lightning_lora_scale", type: "number", fallback: 1 },
+    { key: "lora_scale", type: "number", fallback: 1 },
+    { key: "negative_prompt", type: "string", fallback: "" },
+    { key: "num_images", type: "integer", fallback: 1 },
+    { key: "num_inference_steps", type: "integer", fallback: 4 },
+    { key: "output_format", type: "enum(jpeg|png)", fallback: "png" },
+    { key: "seed", type: "integer" },
+    { key: "use_content_description", type: "boolean", fallback: true },
+    { key: "use_lightning_lora", type: "boolean", fallback: true },
+    { key: "use_style_description", type: "boolean", fallback: true },
+  ],
   "text-removal": [
     { key: "aspect_ratio", type: "enum(21:9|16:9|4:3|3:2|1:1|2:3|3:4|9:16|9:21)" },
     { key: "guidance_scale", type: "number", fallback: 3.5 },
@@ -499,7 +543,7 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
     { key: "face_enhancement_creativity", type: "number", fallback: 0 },
     { key: "face_enhancement_strength", type: "number", fallback: 0.8 },
     { key: "fix_compression", type: "number" },
-    { key: "model", type: "enum(Standard V2|High Fidelity V3|High Fidelity V2|Low Resolution V2|CGI|Text Refine)", fallback: "Standard V2" },
+    { key: "model", type: "enum(Standard V2|High Fidelity V3|High Fidelity V2|Low Resolution V2|CGI|Text Refine|Faces)", fallback: "Standard V2" },
     { key: "output_format", type: "enum(jpeg|png)", fallback: "jpeg" },
     { key: "sharpen", type: "number" },
     { key: "strength", type: "number" },
@@ -507,7 +551,7 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
     { key: "upscale_factor", type: "number", fallback: 2 },
   ],
   "topaz-restore": [
-    { key: "model", type: "enum(Recover 3|Dust-Scratch V2)", fallback: "Recover 3" },
+    { key: "model", type: "enum(Recover 3|Dust-Scratch V2|Faces)", fallback: "Recover 3" },
     { key: "output_format", type: "enum(jpeg|png)", fallback: "jpeg" },
   ],
   "topaz-sharpen": [
@@ -516,7 +560,6 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
   ],
   "topaz-transparent": [
     { key: "output_format", type: "string", fallback: "png" },
-    { key: "upscale_factor", type: "number", fallback: 2 },
   ],
   "topaz-video": [
     { key: "compression", type: "number" },
@@ -559,6 +602,9 @@ export const FAL_TOOL_PARAMETERS: Record<string, readonly FalToolParameter[]> = 
     { key: "uv_unwrap_global_iterations", type: "integer", fallback: 1 },
     { key: "uv_unwrap_refine_iterations", type: "integer", fallback: 0 },
     { key: "uv_unwrap_smooth_strength", type: "number", fallback: 1 },
+  ],
+  "virtual-try-on": [
+    { key: "num_images", type: "integer", fallback: 1 },
   ],
   "zoe-depth": [
 

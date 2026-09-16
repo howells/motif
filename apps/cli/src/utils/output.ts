@@ -85,6 +85,20 @@ export interface EmitOptions {
   sanitize?: boolean;
 }
 
+/** `data` narrowed to a comma-separated field list, or whole when there is none. */
+export function maskFields(
+  data: Record<string, unknown>,
+  fields: string | undefined
+): Record<string, unknown> {
+  if (!hasText(fields)) {
+    return data;
+  }
+  return applyFieldMask(
+    data,
+    fields.split(",").map((f) => f.trim())
+  );
+}
+
 /** Emit a single structured result */
 export function emit(
   data: Record<string, unknown>,

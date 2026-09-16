@@ -327,7 +327,10 @@ export async function recordOutput(
   await saveSeries(config);
 }
 
-/** Build the full prompt by prepending the series style prompt */
+/**
+ * Build the full prompt by prepending the series style prompt. The scene
+ * starts a new sentence after the style, so it takes a capital.
+ */
 export function buildSeriesPrompt(
   config: SeriesConfig,
   scenePrompt: string
@@ -335,7 +338,7 @@ export function buildSeriesPrompt(
   if (!config.stylePrompt) {
     return scenePrompt;
   }
-  return `${config.stylePrompt}. ${scenePrompt}`;
+  return `${config.stylePrompt}. ${scenePrompt.charAt(0).toUpperCase()}${scenePrompt.slice(1)}`;
 }
 
 export { SERIES_DIR, seriesOutputsDir, seriesRefsDir };

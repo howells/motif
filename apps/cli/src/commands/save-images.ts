@@ -1,8 +1,8 @@
 /**
  * Save generated images to disk and record them in history.
  *
- * Shared by the fal and direct-provider generate routes. fal returns URLs to
- * download; a direct provider returns bytes. Either way the saved paths are
+ * Shared by generate and vary. fal returns URLs to download; the OpenAI
+ * transparency route returns bytes. Either way the saved paths are
  * the ones actually written, which can differ from the requested path when
  * the extension is corrected.
  */
@@ -11,10 +11,9 @@ import { writeFile } from "node:fs/promises";
 import { join, parse, resolve } from "node:path";
 
 import { estimateCost, sumCosts } from "@howells/motif-sdk";
-import type { AspectRatio, Resolution } from "@howells/motif-sdk";
+import type { AspectRatio, MotifClient, Resolution } from "@howells/motif-sdk";
 import chalk from "chalk";
 
-import { deletePayloads } from "../api/fal";
 import { hasTransparentPixels, TransparencyMissingError } from "../utils/alpha";
 import {
   addGenerations,
@@ -222,6 +221,7 @@ export async function saveGeneratedImages(
 
 /** Delete fal's stored payloads once an ephemeral run has saved locally. */
 export async function deleteEphemeralPayloads(
+  client: MotifClient,
   requestId: string | undefined,
   format: OutputFormat
 ): Promise<{ payloadDeleteError?: string; payloadsDeleted: boolean }> {
@@ -231,21 +231,19 @@ export async function deleteEphemeralPayloads(
       payloadsDeleted: false,
     };
   }
-  try {
-    await deletePayloads(requestId);
+  const deleted = await client.deletePayloads(requestId);
+  if (deleted.isOk()) {
     return { payloadsDeleted: true };
-  } catch (error) {
-    const payloadDeleteError =
-      error instanceof Error ? error.message : String(error);
-    if (!isStructured(format)) {
-      console.warn(
-        chalk.yellow(
-          `Warning: saved locally, but fal payload deletion failed: ${payloadDeleteError}`
-        )
-      );
-    }
-    return { payloadDeleteError, payloadsDeleted: false };
   }
+  const payloadDeleteError = deleted.error.message;
+  if (!isStructured(format)) {
+    console.warn(
+      chalk.yellow(
+        `Warning: saved locally, but fal payload deletion failed: ${payloadDeleteError}`
+      )
+    );
+  }
+  return { payloadDeleteError, payloadsDeleted: false };
 }
 
 /** Exit with TRANSPARENCY_MISSING when a save failed the transparency check. */

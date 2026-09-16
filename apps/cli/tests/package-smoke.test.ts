@@ -133,10 +133,10 @@ describe("package smoke", () => {
         "gpt",
         "--aspect",
         "16:9",
-        "--background",
-        "transparent",
-        "--quality",
-        "medium",
+        "--param",
+        "background=transparent",
+        "--param",
+        "quality=medium",
         "--dry-run",
         "--format",
         "json",
@@ -148,11 +148,8 @@ describe("package smoke", () => {
     if (!isRecord(payload)) {
       throw new Error("expected a JSON object");
     }
-    expect(payload).toMatchObject({
-      endpoint: "fal-ai/gpt-image-1.5",
-      valid: true,
-    });
-    expect(payload.body).toMatchObject({
+    expect(payload).toMatchObject({ model: "gpt", valid: true });
+    expect(payload.request).toMatchObject({
       background: "transparent",
       image_size: "1536x1024",
       quality: "medium",

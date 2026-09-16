@@ -82,7 +82,7 @@ export interface TaskInput {
   prompt?: string;
   /** Mask image: https URL or data URL. */
   mask?: string;
-  /** Reference images: https URLs or data URLs. */
+  /** Reference images: https URLs or data URLs. restyle and try-on take exactly one. */
   references?: readonly string[];
   aspect?: AspectRatio;
   resolution?: Resolution;
@@ -97,6 +97,8 @@ export interface TaskInput {
   sizes?: readonly CustomImageSize[];
   /** animate: seconds. */
   duration?: number;
+  /** mesh: rig the mesh for animation. */
+  rig?: boolean;
   look?: string;
   mood?: string;
   tier?: Tier;
@@ -178,8 +180,10 @@ export interface MotifClient {
   reframe: TaskFunction;
   relight: TaskFunction;
   restore: TaskFunction;
+  restyle: TaskFunction;
   segment: TaskFunction;
   tile: TaskFunction;
+  "try-on": TaskFunction;
   upscale: TaskFunction;
   vary: TaskFunction;
   vectorize: TaskFunction;
@@ -265,7 +269,11 @@ function falOutput(plan: TaskPlan, result: FalRequestResult): TaskOutput {
   const cost =
     declared === undefined
       ? plan.cost
-      : measuredToolCost(declared.price, outputDimensions(data, keys));
+      : measuredToolCost(
+          declared.price,
+          outputDimensions(data, keys),
+          plan.body
+        );
 
   return {
     chosenBy: plan.chosenBy,
@@ -498,8 +506,10 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     reframe: async (input) => await run("reframe", input),
     relight: async (input) => await run("relight", input),
     restore: async (input) => await run("restore", input),
+    restyle: async (input) => await run("restyle", input),
     segment: async (input) => await run("segment", input),
     tile: async (input) => await run("tile", input),
+    "try-on": async (input) => await run("try-on", input),
     upscale: async (input) => await run("upscale", input),
     vary: async (input) => await run("vary", input),
     vectorize: async (input) => await run("vectorize", input),

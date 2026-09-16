@@ -30,30 +30,32 @@ Pick the command by task. The last column is the same advice `motif --describe t
 
 | Task | Command | Instead, when |
 | --- | --- | --- |
-| Make an image from a prompt, or edit with -e | `motif "prompt"` | Taking one object out (erase), changing an existing image's ratio (reframe), or a consistent set of images (series run). |
+| Make a new image from a text prompt, or change an image by passing it with -e and describing the result. | `motif "prompt"` | Variations of an image you already have (vary), or a consistent set of images (series run). |
 | Give an image a house look and light | `motif "prompt" --look <id> [--mood <id>]` | Keeping one style, with references, across many images (series create --look). |
-| Remove an object and fill the gap | `motif erase "what" [image]` | An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg). |
-| Extend the canvas to a new aspect ratio | `motif reframe --og [image]` | Outpainting by a set margin (tool bria-expand or flux-outpaint), several sizes at once (tool smart-resize), or a new image at a given ratio (generate with -a or a preset). |
-| Cut out or mask a named thing | `motif segment "what" [image]` | The background behind the main subject (--rmbg), every region without a prompt (tool sam2-auto), video (tool sam3-video), or boxes without masks (ask --detect). |
-| Caption, count, detect or ask about an image | `motif ask "question" [image]` | Transcribing a page of text (tool got-ocr), content moderation (tool nsfw), or pixel masks (segment). |
-| Upscale, restore, denoise or sharpen | `motif enhance [image]` | A quick Clarity upscale of the last generation (--up), colourising a black-and-white photo (tool ddcolor), or video (tool topaz-video). |
-| Split an image into transparent layers | `motif layers [image]` | Named, z-ordered object layers (tool seedream-layerize), separating text from artwork (tool ideogram-layerize-text), or one masked object (segment). |
-| Trace a raster image to a clean SVG | `motif vectorize [image]` | Pixel-faithful tracing with many paths (tool image2svg), or drawing a new image from a prompt (generate). |
-| Lay images out on a captioned contact sheet | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
-| Make a consistent set of images from a theme | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of the last image (--vary). |
-| Keep a reusable style, references and history | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
-| Other fal utilities: depth, 3D, relight, OCR | `motif tool list` | Anything a command covers. erase, reframe, segment, ask, enhance, layers and vectorize make the same calls and put the saved path at the top level. |
-| Open the interactive terminal Studio | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
-| Upscale the last image with Clarity | `motif --up [image]` | Restoring, denoising or sharpening, or a faithful Topaz upscale (enhance). |
-| Remove the background from the last image | `motif --rmbg` | Taking one object out (erase), masking a named thing (segment), or generating with transparency from the start (generate with --transparent). |
-| Make variations of the last image | `motif --vary` | A planned set of different scenes in one style (series run), or a specific change to an image (generate with -e). |
-| Animate an image into a short video | `motif --video [image]` | Removing a video's background (tool bria-video-rmbg), or upscaling a video (tool topaz-video). |
+| Make variations of an image you already have. | `motif vary [image]` | A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run). |
+| Remove an object, person, text or clutter from an image and fill the gap. | `motif erase "what" [image]` | The whole background (cutout), or extending the canvas (reframe). |
+| Remove the background behind the main subject of an image or video. | `motif cutout [image-or-video]` | Taking one object out and filling the gap (erase), or masking a named thing (segment). |
+| Extend or recut an image to a new aspect ratio, generating the new edges. | `motif reframe --og [image]` | A new image at a given ratio (generate with a ratio). |
+| Make an image or video larger without losing detail. | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
+| Fix noise, softness, damage, colour or tone without changing the size. | `motif restore [image]` | Making an image larger (upscale). |
+| Change the light in a photo without regenerating it. | `motif relight "light" [image]` | Regenerating the scene in a new light (generate with a mood). |
+| Mask a named thing in an image or video. | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
+| Answer a question about an image, caption it, count or find things in it. | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
+| Split an image into transparent layers. | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |
+| Trace a raster image to a clean SVG. | `motif vectorize [image]` | Drawing a new image from a prompt (generate). |
+| Make a control map of an image: depth, edges, lines, normals or pose. | `motif map [image]` | Masks of a named thing (segment), or PBR material maps (material). |
+| Turn a surface photograph into PBR maps: colour, normal, roughness, metalness, height. | `motif material [image]` | A seamless texture without PBR maps (tile), or depth and normals of a scene (map). |
+| Make a seamlessly tiling texture. | `motif tile "prompt" [image]` | PBR maps of a surface (material). |
+| Make a textured 3D mesh from one image. | `motif mesh [image]` | A flat image of an object (generate), or depth of a scene (map). |
+| Turn a still image into a short video clip. | `motif animate "prompt" [image]` | A still image (generate), or variations of one (vary). |
+| Compare several saved images side by side on one captioned grid, from files or the last few generations. | `motif sheet <images...>` | Making the images (generate or series run), or combining images into one new picture (generate with several -e). |
+| Make a set of related images that share one style from a single theme, such as six brutalist buildings. | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of an image (vary). |
+| Keep a named style with reference images, a pinned look and mood, and its own history, so later images match it. | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
+| Browse, generate and review images interactively in a terminal, as a person rather than a script. | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
 | Show the last generation | `motif --last` | Older generations (history). |
 | List past generations and spend | `motif --history` | Only the most recent generation (last), or one series' images (motif series history <slug>). |
-| Print the CLI schema as JSON | `motif --describe [command]` | The arguments of one fal utility (motif tool describe <id>), or the task routing alone (motif --describe tasks). |
+| Print the CLI schema as JSON | `motif --describe [command]` | The task routing alone (motif --describe tasks). |
 | List error codes and how to recover | `motif --describe errors` | The error from a failed call, which already carries its code, details and suggestions on stderr. |
-
-`motif tool list` and `motif tool describe` mark each tool a command wraps with `verb`, and `motif tool run` on one adds a `hint` naming that command.
 
 ## Agent Invariants
 
@@ -153,12 +155,14 @@ Structured failures exit with a semantic process code derived from the error's R
 | --- | --- | --- | --- |
 | `0` | Success | — | — |
 | `1` | Unknown / unmapped | — | Unstructured crashes; any status outside the ranges below |
-| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `UNKNOWN_TOOL`, `INVALID_MODEL_ID`, `INVALID_TOOL_ID`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `TOO_MANY_REFERENCES`, `NO_MODEL_AVAILABLE` |
+| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `REMOVED_COMMAND`, `NO_MODEL_AVAILABLE` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
-| `5` | Upstream (fal) failure | `5xx` | `GENERATION_FAILED`, `UPSCALE_FAILED`, `RMBG_FAILED`, `VIDEO_FAILED`, `TOOL_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `SEGMENT_FAILED`, `ASK_FAILED`, `ERASE_FAILED`, `REFRAME_FAILED`, `ENHANCE_FAILED`, `LAYERS_FAILED`, `VECTORIZE_FAILED`, `TRANSPARENCY_MISSING` |
+| `5` | Upstream (fal) failure | `5xx` | `TASK_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `TRANSPARENCY_MISSING` |
 
 `NO_MODEL_AVAILABLE` (exit `2`) means no Model can do what the request asks. Its `details` carry `blockedBy` (the capability, `key` or input that stopped it), `unblockedBy` and, when a key would help, `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input. A missing `FAL_KEY` is still reported as `MISSING_API_KEY`.
+
+`REMOVED_COMMAND` (exit `2`) means the flag or command was removed; `details.removed` names it and `details.use` names what replaced it. `TASK_FAILED` (exit `5`) is an upstream failure in a Task verb, with `details.task` and `details.model`.
 
 Every structured error still carries the machine-readable `status` field, so the exit code and the JSON envelope always agree. Unstructured crashes (unexpected exceptions the CLI did not classify) still exit `1`.
 

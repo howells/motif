@@ -41,6 +41,10 @@ motif reframe --story "$ERASED" -o story.png --no-open --fields path
 motif --history --limit 20 --fields model,cost
 ```
 
+## Output format from -o
+
+An `-o` path ending in `.png`, `.jpg`, `.jpeg` or `.webp` asks the Model for that format when it supports one, so the saved file's bytes match its extension.
+
 ## Pagination
 
 History supports offset-based pagination:

@@ -11,7 +11,17 @@ export type FalToolInputKind = "image" | "images" | "video";
  * an agent unable to budget across a registry spanning $0.001 to $0.48.
  */
 export type FalToolPrice =
-  | { kind: "call"; usd: number }
+  | {
+      kind: "call";
+      usd: number;
+      /** `usd` is per output image, multiplied by the body's `num_images`. */
+      perImage?: true;
+      /**
+       * USD added when the request body sets a boolean key true, for options
+       * fal bills on top of the call, such as rigging a mesh.
+       */
+      extras?: Readonly<Record<string, number>>;
+    }
   | { kind: "megapixel"; usd: number }
   | { kind: "second"; usd: number }
   | { kind: "metered" };
@@ -30,17 +40,21 @@ export interface FalToolConfig {
     | "reframe"
     | "relight"
     | "restoration"
+    | "restyle"
     | "segmentation"
+    | "try-on"
     | "upscale"
     | "vector";
   defaultOptions?: Record<string, unknown>;
   description: string;
   endpoint: string;
   inputField:
+    | "content_image_url"
     | "image_url"
     | "image_urls"
     | "input_image_url"
     | "input_image_urls"
+    | "person_image_url"
     | "video_url";
   inputKind: FalToolInputKind;
   name: string;
@@ -80,6 +94,11 @@ export interface FalToolConfig {
   >;
   price: FalToolPrice;
   pricing: string;
+  /**
+   * Body key for the one Reference the tool takes beside its Source: the style
+   * a restyle copies, the garment in a try-on. Absent on tools that take none.
+   */
+  referenceField?: "product_image_url" | "style_image_url";
   /**
    * Endpoint routinely exceeds the 120s sync timeout; callers should use the
    * queue path.

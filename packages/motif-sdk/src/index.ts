@@ -54,6 +54,7 @@ export {
   validateCreativeDirection,
 } from "./creative";
 export { ACCOUNT_LOCKED, isFalAccountLocked } from "./errors";
+export { INVALID_OPTION } from "./task-plan-shared";
 export {
   type ModelOption,
   modelsSupporting,

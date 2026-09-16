@@ -8,7 +8,7 @@ import chalk from "chalk";
 
 import { loadHistory } from "../utils/config";
 import { formatTotal } from "../utils/cost";
-import { emit, emitStream, isStructured } from "../utils/output";
+import { emit, emitStream, isStructured, maskFields } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 
 export interface HistoryOptions {
@@ -39,16 +39,19 @@ export async function runHistory(
   }
 
   if (isStructured(emitOpts.format)) {
+    // The field mask applies to each generation, not to the page around them.
     emit(
       {
         costs: history.totalCost,
-        generations: page,
+        generations: page.map((generation) =>
+          maskFields({ ...generation }, emitOpts.fields)
+        ),
         hasMore: offset + limit < total,
         limit,
         offset,
         total,
       },
-      emitOpts
+      { ...emitOpts, fields: undefined }
     );
     return;
   }
@@ -71,7 +74,7 @@ export async function runHistory(
       `  ${chalk.dim(gen.id.slice(0, 8))} ${chalk.cyan(gen.prompt.slice(0, 50))}${gen.prompt.length > 50 ? "..." : ""}`
     );
     console.log(
-      `    ${chalk.green(gen.model)} | ${gen.aspect} | ${formatCost(gen.cost)} | ${chalk.dim(date)}`
+      `    ${gen.aspect} | ${formatCost(gen.cost)} | ${chalk.dim(date)}`
     );
     console.log(`    ${chalk.dim(gen.output)}`);
     console.log();

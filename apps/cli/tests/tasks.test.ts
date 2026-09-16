@@ -10,11 +10,14 @@ import {
 /** The task words a did-you-mean must route, and where they must go. */
 const REQUIRED_TASK_WORDS = {
   ask: ["caption", "describe-image", "detect", "count", "ocr"],
-  enhance: ["upscale", "restore", "denoise", "sharpen"],
+  cutout: ["background", "remove-background"],
+  map: ["depth", "normals"],
+  restore: ["denoise", "sharpen", "deblur"],
+  upscale: ["enlarge"],
   erase: ["remove", "delete", "inpaint", "erase-object"],
   layers: ["split", "separate", "layer"],
   reframe: ["extend", "expand", "outpaint", "crop", "resize", "ratio"],
-  segment: ["mask", "cutout", "select"],
+  segment: ["mask", "select"],
   "series run": ["set", "batch", "consistent"],
   sheet: ["grid", "montage", "contact-sheet", "collage"],
   vectorize: ["svg", "trace"],
@@ -41,6 +44,18 @@ describe("task table", () => {
     }
   });
 
+  it("gives every Task verb a row", async () => {
+    const { TASK_IDS } = await import("@howells/motif-sdk");
+    // restyle and try-on joined the SDK after MOT-53's verb list was set.
+    const unrouted = new Set(["restyle", "try-on"]);
+    for (const task of TASK_IDS.filter((id) => !unrouted.has(id))) {
+      expect(
+        COMMAND_TASKS.map((row) => row.command),
+        task
+      ).toContain(task);
+    }
+  });
+
   it("never shadows a word the CLI already routes as a command", () => {
     const routed = new Set(COMMAND_TASKS.map((row) => row.usage.split(" ")[1]));
     for (const word of Object.keys(TASK_INDEX)) {
@@ -63,9 +78,7 @@ describe("task table", () => {
       'motif series run "brutalist towers"'
     );
     // A usage without placeholders takes none of the caller's arguments.
-    expect(invocation(["depth", "room.jpg", "depth.png"])).toBe(
-      "motif tool list"
-    );
+    expect(invocation(["latest", "room.jpg"])).toBe("motif --last");
     expect(taskCorrection(["a cat", "x.png"])).toBeNull();
   });
 

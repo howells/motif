@@ -78,10 +78,10 @@ async function dryRunBody(
   expect(result.code, result.stderr).toBe(0);
   expect(result.stderr).toBe("");
   const payload: unknown = JSON.parse(result.stdout.trim());
-  if (!isRecord(payload) || !isRecord(payload.body)) {
-    throw new Error("expected a dry-run body object");
+  if (!isRecord(payload) || !isRecord(payload.request)) {
+    throw new Error("expected a dry-run request object");
   }
-  return payload.body;
+  return payload.request;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -111,39 +111,63 @@ describe("advanced generation flags reach the request body", () => {
     expect(body.negative_prompt).toBe("blurry, low-res");
   });
 
-  it("--style lands as body.style (recraft)", async () => {
-    const body = await dryRunBody("recraft", ["--style", "realistic_image"]);
-    expect(body.style).toBe("realistic_image");
-  });
-
   it("--output-format lands as body.output_format (qwen)", async () => {
     const body = await dryRunBody("qwen", ["--output-format", "png"]);
     expect(body.output_format).toBe("png");
   });
 
-  it("--safety lands as body.safety_tolerance (flux)", async () => {
-    const body = await dryRunBody("flux", ["--safety", "4"]);
-    expect(body.safety_tolerance).toBe("4");
-  });
-
-  it("--guidance-scale and --steps land on flux-fast", async () => {
-    const body = await dryRunBody("flux-fast", [
-      "--guidance-scale",
-      "7",
-      "--steps",
-      "8",
+  it("--param lands as the named body field with -m (recraft)", async () => {
+    const body = await dryRunBody("recraft", [
+      "--param",
+      "style=realistic_image",
+      "--param",
+      "enable_safety_checker=false",
     ]);
-    expect(body.guidance_scale).toBe(7);
-    expect(body.num_inference_steps).toBe(8);
+    expect(body.style).toBe("realistic_image");
+    expect(body.enable_safety_checker).toBeFalsy();
   });
 
-  it("--raw lands as body.raw (flux)", async () => {
-    const body = await dryRunBody("flux", ["--raw"]);
-    expect(body.raw).toBeTruthy();
+  it("-o with an image extension asks for that format where the Model takes one (qwen)", async () => {
+    const body = await dryRunBody("qwen", ["-o", "out.png"]);
+    expect(body.output_format).toBe("png");
+  });
+});
+
+describe("removed generation flags", () => {
+  it.each([
+    ["--style", "realistic_image", "--param style=<value> with -m"],
+    ["--safety", "4", "--param safety_tolerance=<value> with -m"],
+    ["--raw", undefined, "--param raw=<value> with -m"],
+    ["--quality", "high", "--tier"],
+  ])("%s exits 2 with REMOVED_COMMAND naming %s", async (flag, value, use) => {
+    const result = await runMotif([
+      "a test prompt",
+      "--dry-run",
+      "--format",
+      "json",
+      flag,
+      ...(value === undefined ? [] : [value]),
+    ]);
+    expect(result.code).toBe(2);
+    const error: unknown = JSON.parse(result.stderr.trim());
+    expect(error).toMatchObject({
+      code: "REMOVED_COMMAND",
+      details: { removed: flag, use },
+    });
   });
 
-  it("--rendering-speed lands as body.rendering_speed (ideogram)", async () => {
-    const body = await dryRunBody("ideogram", ["--rendering-speed", "TURBO"]);
-    expect(body.rendering_speed).toBe("TURBO");
+  it("refuses --param without -m before any call", async () => {
+    const result = await runMotif([
+      "a test prompt",
+      "--dry-run",
+      "--format",
+      "json",
+      "--param",
+      "raw=true",
+    ]);
+    expect(result.code).toBe(2);
+    expect(JSON.parse(result.stderr.trim())).toMatchObject({
+      code: "INVALID_OPTION",
+    });
   });
 });

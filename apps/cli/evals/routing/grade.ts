@@ -155,24 +155,28 @@ function normaliseWords(words: readonly string[]): string[] {
 
 /** Commands routed on the first argument. */
 const SUBCOMMANDS = new Set([
+  "animate",
   "ask",
-  "enhance",
+  "cutout",
   "erase",
   "layers",
+  "map",
+  "material",
+  "mesh",
   "reframe",
+  "relight",
+  "restore",
   "segment",
   "sheet",
   "studio",
-  "tool",
+  "tile",
+  "upscale",
+  "vary",
   "vectorize",
 ]);
 
 /** Commands routed by a flag on the bare `motif` command. */
 const FLAG_COMMANDS: readonly (readonly [string, string])[] = [
-  ["--vary", "vary"],
-  ["--up", "upscale"],
-  ["--rmbg", "rmbg"],
-  ["--video", "video"],
   ["--last", "last"],
   ["--history", "history"],
 ];

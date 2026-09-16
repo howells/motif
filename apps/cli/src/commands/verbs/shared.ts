@@ -1,131 +1,63 @@
 /**
- * Shared plumbing for the promoted verbs.
- *
- * Every verb in this directory is a descriptor over `runImageOperation`, never
- * a pipeline of its own: source resolution, dry-run, download, history, emit
- * and viewer-opening all live in the kernel. What is genuinely shared is the
- * small surface around it — the flag bag commander fills in, the translation
- * from that bag into the kernel's input, the registry price lookup, and the
- * one-mode-at-a-time guard two verbs need.
+ * Plumbing every Task verb shares: the flags each one carries, the flag bag
+ * commander fills in, and turning the common flags into TaskInput fields.
  */
 
-import type {
-  FalToolConfig,
-  FalToolId,
-  ToolResponse,
-} from "@howells/motif-sdk";
+import { TIERS } from "@howells/motif-sdk";
+import type { TaskInput, Tier } from "@howells/motif-sdk";
+import type { Command } from "commander";
 
-import { runTool, runToolQueued } from "../../api/fal";
-import { getApiKey } from "../../utils/config";
-import type { MotifConfig } from "../../utils/config";
 import { handleError } from "../../utils/errors";
+import { parseIntegerOption, validateEnumOption } from "../../utils/input";
 import { resolveFormat } from "../../utils/output";
 import type { EmitOptions, OutputFormat } from "../../utils/output";
-import type { ImageOperationInput, OperationProgress } from "../operation";
+import { hasText } from "../../utils/text";
 
 /**
- * Every flag the seven verbs accept, in one bag.
- *
- * Flattened rather than split per verb because commander hands each action a
- * single options object, and each verb registers only the flags it declares —
- * so `--rle` can never reach `enhance` even though both read this type.
+ * Every flag a verb can carry, in one bag. Commander hands each action one
+ * options object and each verb registers only its own flags, so a flag can
+ * never reach a verb that did not declare it.
  */
-export interface VerbOptions {
-  /** Shared: validate and price without an API call. */
+export type VerbOptions = Record<string, unknown> & {
   dryRun?: boolean;
-  /** Shared: comma-separated output field mask. */
   fields?: string;
-  /** Shared: json, human, or ndjson. */
   format?: string;
-  /** Shared: commander's `--no-open` negation — false when the caller passed it. */
+  model?: string;
+  /** Commander's `--no-open` negation: false when the caller passed it. */
   open?: boolean;
-  /** Shared: output file, or a directory when it ends in `/`. */
   output?: string;
+  param?: string[];
+  seed?: string;
+  tier?: string;
+};
 
-  /** ask: caption the image instead of answering a question. */
-  caption?: boolean;
-  /** ask: detect this thing and return bounding boxes. */
-  detect?: string;
-  /** ask: point at every instance of this thing. */
-  point?: string;
-
-  /** segment: return run-length encoded masks rather than mask images. */
-  rle?: boolean;
-
-  /** reframe target ratios, one at a time. */
-  cover?: boolean;
-  landscape?: boolean;
-  og?: boolean;
-  portrait?: boolean;
-  square?: boolean;
-  story?: boolean;
-  wide?: boolean;
-
-  /** enhance modes, one at a time. */
-  adjust?: boolean;
-  creative?: boolean;
-  denoise?: boolean;
-  generative?: boolean;
-  restore?: boolean;
-  sharpen?: boolean;
-  transparent?: boolean;
-  upscale?: boolean;
+/** Commander collector: each `--param key=value` adds one. */
+function collectParam(value: string, previous?: string[]): string[] {
+  return [...(previous ?? []), value];
 }
 
-/**
- * The registry tools each verb calls. `--describe` lists them on the verb, and
- * `motif tool` derives each wrapped tool's `verb` from them.
- */
-export const VERB_TOOLS = {
-  ask: [
-    "moondream-query",
-    "moondream-caption",
-    "moondream-detect",
-    "moondream-point",
-  ],
-  enhance: [
-    "topaz-precision",
-    "topaz-generative",
-    "topaz-creative",
-    "topaz-transparent",
-    "topaz-restore",
-    "topaz-denoise",
-    "topaz-sharpen",
-    "topaz-adjust",
-  ],
-  erase: ["object-removal"],
-  layers: ["qwen-layered"],
-  reframe: ["ideogram-reframe"],
-  segment: ["sam3-image", "sam3-image-rle"],
-  vectorize: ["recraft-vectorize"],
-} as const satisfies Record<string, readonly FalToolId[]>;
-
-function buildToolVerbs(): ReadonlyMap<string, string> {
-  const verbs = new Map<string, string>();
-  for (const [verb, tools] of Object.entries(VERB_TOOLS)) {
-    for (const tool of tools) {
-      const claimed = verbs.get(tool);
-      if (claimed !== undefined) {
-        throw new Error(
-          `Tool ${tool} is wrapped by both ${claimed} and ${verb}`
-        );
-      }
-      verbs.set(tool, verb);
-    }
-  }
-  return verbs;
-}
-
-const TOOL_VERBS = buildToolVerbs();
-
-/** The verb that wraps a registry tool, e.g. `object-removal` to `erase`. */
-export function toolVerb(toolId: string): string | undefined {
-  return TOOL_VERBS.get(toolId);
-}
-
-/** What the verb adds over calling its tool through `motif tool run`. */
-export function verbHint(verb: string): string {
-  return `motif ${verb} makes this same call. It takes the image as a plain argument or falls back to the last generation, opens what it writes, and puts the result at the top level of its JSON.`;
+/** Flags every verb carries, so an agent learns one shape and reuses it. */
+export function withCommonOptions(command: Command): Command {
+  return command
+    .option("--tier <tier>", `Trade cost against quality: ${TIERS.join(", ")}`)
+    .option("-m, --model <id>", "Run this Model instead of the ranked choice")
+    .option(
+      "--param <key=value>",
+      "A Model-only request field; repeat for more. Needs -m",
+      collectParam
+    )
+    .option("--seed <n>", "Reproducible seed, where the Model takes one")
+    .option("--dry-run", "Validate and price the call without running it")
+    .option(
+      "-o, --output <file-or-dir>",
+      "Write here; a trailing / writes every output file"
+    )
+    .option(
+      "--format <format>",
+      "Output format: json, human, ndjson (default: auto-detect from TTY)"
+    )
+    .option("--fields <fields>", "Comma-separated fields to include in output")
+    .option("--no-open", "Don't open the result in a viewer");
 }
 
 export function verbEmitOptions(options: VerbOptions): EmitOptions {
@@ -136,44 +68,92 @@ export function verbEmitOptions(options: VerbOptions): EmitOptions {
   };
 }
 
-/** Translate the flag bag into the kernel's input. */
-export function verbInput(
-  image: string | undefined,
+/** A `--param` value: JSON when it parses, else the string as typed. */
+function paramValue(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return raw;
+  }
+}
+
+/**
+ * `--param key=value` pairs as an object. Refused without `-m` before any
+ * call: a Model-only field means nothing until the Model is named.
+ */
+export function parseParams(
+  pairs: readonly string[] | undefined,
+  model: string | undefined,
+  format: OutputFormat
+): Record<string, unknown> | undefined {
+  if (pairs === undefined || pairs.length === 0) {
+    return undefined;
+  }
+  if (!hasText(model)) {
+    handleError(
+      new Error(
+        "--param sets a Model-only field, so it needs -m <id> naming the Model"
+      ),
+      "INVALID_OPTION",
+      format
+    );
+  }
+  const params: Record<string, unknown> = {};
+  for (const pair of pairs) {
+    const separator = pair.indexOf("=");
+    if (separator <= 0) {
+      handleError(
+        new Error(`--param takes key=value: ${JSON.stringify(pair)}`),
+        "INVALID_OPTION",
+        format
+      );
+    }
+    params[pair.slice(0, separator)] = paramValue(pair.slice(separator + 1));
+  }
+  return params;
+}
+
+/** The TaskInput fields the common flags set. */
+export function commonInput(
   options: VerbOptions,
-  config: MotifConfig
-): ImageOperationInput {
+  format: OutputFormat
+): TaskInput {
+  const params = parseParams(options.param, options.model, format);
+  let tier: Tier | undefined;
+  let seed: number | undefined;
+  try {
+    tier = hasText(options.tier)
+      ? validateEnumOption(options.tier, TIERS, "tier")
+      : undefined;
+    seed = hasText(options.seed)
+      ? parseIntegerOption(options.seed, "seed")
+      : undefined;
+  } catch (error) {
+    handleError(error, "INVALID_OPTION", format);
+  }
   return {
-    dryRun: options.dryRun,
-    noOpen: options.open === false,
-    openAfterWrite: config.openAfterGenerate,
-    output: options.output,
-    source: image,
+    ...(hasText(options.model) && { model: options.model }),
+    ...(params !== undefined && { params }),
+    ...(seed !== undefined && { seed }),
+    ...(tier !== undefined && { tier }),
   };
 }
 
 /**
- * Flat USD estimate for a registry price, or null when the endpoint is billed
- * per megapixel, per second, or metered. Those are unknowable before the call
- * and are deliberately not guessed — the kernel renders null as "metered".
+ * The single mode flag the caller set, or undefined for none. Two is an error
+ * rather than a silent precedence rule: an agent passing `--noise --tone` has
+ * a wrong model of the command, and picking one for it hides that.
  */
-export function callPrice(price: FalToolConfig["price"]): number | null {
-  return price.kind === "call" ? price.usd : null;
-}
-
-/**
- * The single mode flag the caller set, or undefined for none.
- *
- * Two modes is a structured error rather than a silent precedence rule: an
- * agent that passes `--sharpen --denoise` has a wrong model of the command,
- * and picking one for it hides that.
- */
-export function exclusiveFlag<T extends keyof VerbOptions>(
+export function exclusiveFlag<T extends string>(
   options: VerbOptions,
   flags: readonly T[],
   verb: string,
   format: OutputFormat
 ): T | undefined {
-  const chosen = flags.filter((flag) => options[flag] === true);
+  const chosen = flags.filter((flag) => {
+    const value = options[flag];
+    return value === true || (typeof value === "string" && value !== "");
+  });
   if (chosen.length > 1) {
     handleError(
       new Error(
@@ -186,66 +166,4 @@ export function exclusiveFlag<T extends keyof VerbOptions>(
     );
   }
   return chosen[0];
-}
-
-/** Gate a verb that is about to spend money on a resolvable fal key. */
-export function requireApiKey(
-  options: VerbOptions,
-  config: MotifConfig,
-  format: OutputFormat
-): void {
-  if (options.dryRun === true) {
-    return;
-  }
-  try {
-    getApiKey(config);
-  } catch (error) {
-    handleError(error, "MISSING_API_KEY", format);
-  }
-}
-
-/**
- * The registry facts routing needs: `endpoint` only so that a whole entry is
- * what gets passed, rather than a lone optional flag a caller could forget.
- */
-interface RoutableTool {
-  readonly endpoint: string;
-  readonly queued?: true;
-}
-
-/**
- * Run a registry tool down whichever path its own entry declares.
- *
- * `queued: true` marks endpoints that routinely outrun the 120-second sync
- * timeout. Calling one of those synchronously does not merely fail slowly:
- * `FalClient.request` treats the abort from its own timer as a retriable
- * network error, so with retries a single verb invocation can POST — and be
- * billed for — the same paid endpoint several times before it gives up.
- *
- * Routing on the flag here rather than per verb is what stops that returning:
- * a verb names a tool, and the registry decides how it is called.
- */
-export async function runRegistryTool(
-  toolId: string,
-  tool: RoutableTool,
-  sourceDataUrl: string,
-  report: OperationProgress,
-  options?: Record<string, unknown>
-): Promise<ToolResponse> {
-  const runOptions = {
-    input: sourceDataUrl,
-    tool: toolId,
-    ...(options === undefined ? {} : { options }),
-  };
-  if (tool.queued === true) {
-    return await runToolQueued(runOptions, report);
-  }
-  return await runTool(runOptions);
-}
-
-/** Registry output keys as a mutable list, which `collectUrls` takes. */
-export function artifactKeys(tool: {
-  outputKeys: readonly string[];
-}): string[] {
-  return [...tool.outputKeys];
 }

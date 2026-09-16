@@ -9,9 +9,9 @@
 import {
   ASPECT_RATIOS,
   formatCost,
-  GENERATION_MODELS,
   RESOLUTIONS,
   sanitizePrompt,
+  TIERS,
 } from "@howells/motif-sdk";
 import chalk from "chalk";
 import { Command } from "commander";
@@ -20,15 +20,13 @@ import { runDescribe } from "./commands/describe";
 import { generateImage } from "./commands/generate";
 import { runHistory } from "./commands/history";
 import {
-  generateVariations,
-  removeBackgroundLast,
-  upscaleLast,
-} from "./commands/postprocess";
-import { runToolPayload } from "./commands/tools";
+  exitRemoved,
+  REMOVED_STDIN_COMMANDS,
+  refuseRemovedStdinFields,
+} from "./commands/removed";
 import { helpTaskList, taskCorrection } from "./commands/verbs/tasks";
-import { generateVideo } from "./commands/video";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
-import { getApiKey, getLastGeneration, loadConfig } from "./utils/config";
+import { getLastGeneration, loadConfig } from "./utils/config";
 import {
   exitForErrorCode,
   formatForParseErrors,
@@ -41,8 +39,8 @@ import type { EmitOptions, OutputFormat } from "./utils/output";
 import { firstText, hasText } from "./utils/text";
 import { PACKAGE_VERSION } from "./version";
 
-/** Commander collector: each `-e <file>` adds one reference image. */
-function collectEditPath(value: string, previous?: string[]): string[] {
+/** Commander collector: each `-e <file>` or `--param` adds one value. */
+function collectRepeatable(value: string, previous?: string[]): string[] {
   return [...(previous ?? []), value];
 }
 
@@ -68,7 +66,6 @@ async function showLastGeneration(emitOpts: EmitOptions): Promise<void> {
   console.log(
     `  Prompt: ${chalk.cyan(last.prompt.slice(0, 60))}${last.prompt.length > 60 ? "..." : ""}`
   );
-  console.log(`  Model:  ${chalk.green(last.model)}`);
   console.log(`  Aspect: ${last.aspect} | Resolution: ${last.resolution}`);
   console.log(`  Output: ${chalk.dim(last.output)}`);
   console.log(`  Cost:   ${chalk.yellow(formatCost(last.cost))}`);
@@ -113,9 +110,7 @@ export async function runCli(
     .name("motif")
     // The command list rides in the description so it prints straight after
     // Usage, ahead of the long options list.
-    .description(
-      `fal.ai image generation CLI - agent-first design\n\n${helpTaskList()}`
-    )
+    .description(`Motif: images and video through fal\n\n${helpTaskList()}`)
     .version(PACKAGE_VERSION)
     .argument("[prompt]", "Image generation prompt")
     // Agent-first global flags
@@ -132,17 +127,19 @@ export async function runCli(
       "--ephemeral",
       "Save output locally, then delete fal request IO payloads when possible"
     )
-    // Model & generation
+    // Model choice
+    .option("--tier <tier>", `Trade cost against quality: ${TIERS.join(", ")}`)
+    .option("-m, --model <id>", "Run this Model instead of the ranked choice")
     .option(
-      "-m, --model <model>",
-      `Model to use (${GENERATION_MODELS.join(", ")})`
+      "--param <key=value>",
+      "A Model-only request field; repeat for more. Needs -m",
+      collectRepeatable
     )
     .option(
       "-e, --edit <file>",
       "Reference image for editing; repeat for more (-e a.png -e b.png)",
-      collectEditPath
+      collectRepeatable
     )
-    .option("--loose", "Use reference as loose inspiration (GPT only)")
     .option(
       "-a, --aspect <ratio>",
       `Aspect ratio (${ASPECT_RATIOS.join(", ")})`
@@ -166,107 +163,17 @@ export async function runCli(
     .option("--wide", "Cinematic wide: 21:9")
     .option("--ultra", "Ultra-wide banner: 21:9, 2K")
     // Output options
-    .option("--transparent", "Transparent background (PNG, GPT model only)")
-    .option(
-      "--background <mode>",
-      "GPT background mode: auto, transparent, opaque"
-    )
-    .option(
-      "--quality <quality>",
-      "Image quality: auto, low, medium, high, xhigh, max (model-dependent)"
-    )
-    .option(
-      "--image-size <size>",
-      "Direct fal image_size override, e.g. auto, square_hd, 1536x1024"
-    )
-    .option("--sync-mode", "Ask fal to return media as data URI")
-    .option("--mask <url>", "Mask image URL for supported edit models")
+    .option("--transparent", "Transparent background PNG")
+    .option("--mask <path>", "Mask image for an edit with -e")
     .option("--last", "Show last generation info")
-    .option("--vary", "Generate variations of last image")
-    .option("--up", "Upscale image (provide path, or uses last)")
-    .option("--rmbg", "Remove background from last image")
-    .option("--scale <factor>", "Upscale factor (for --up)")
     .option("--no-open", "Don't open image after generation")
-    // Video
-    .option("--video", "Generate video from image (provide path)")
-    .option("--video-duration <seconds>", "Video duration 3-15 (default 5)")
-    .option("--video-no-audio", "Disable audio generation (cheaper)")
-    // Advanced generation
     .option("--seed <n>", "Reproducible generation seed")
-    .option(
-      "--negative <text>",
-      "Negative prompt — what NOT to include (ideogram)"
-    )
-    .option(
-      "--style <style>",
-      "Style preset: recraft 70+ styles (realistic_image, digital_illustration/pixel_art, etc.) or ideogram AUTO|GENERAL|REALISTIC|DESIGN"
-    )
+    .option("--negative <text>", "Negative prompt: what not to include")
     .option("--output-format <format>", "Output format: jpeg, png, webp")
-    .option(
-      "--safety <level>",
-      "Safety tolerance 1–6 (1=strictest) — selected Gemini/FLUX models"
-    )
-    .option(
-      "--web-search",
-      "Enable web search for generative context (banana2, banana, gemini3)"
-    )
-    .option(
-      "--google-search",
-      "Enable fal enable_google_search alias where supported"
-    )
-    .option(
-      "--limit-generations",
-      "Limit model-internal generation rounds where supported"
-    )
-    .option(
-      "--disable-limit-generations",
-      "Disable model-internal generation limiting where supported"
-    )
-    .option(
-      "--thinking <level>",
-      "Thinking level where supported: minimal, high"
-    )
-    .option("--safety-checker", "Enable fal safety checker where supported")
-    .option(
-      "--disable-safety-checker",
-      "Disable fal safety checker where supported"
-    )
-    .option(
-      "--image-prompt-strength <n>",
-      "Reference image strength where supported, 0–1"
-    )
-    .option(
-      "--guidance-scale <n>",
-      "CFG guidance scale (controllable FLUX models, 1–20)"
-    )
-    .option(
-      "--steps <n>",
-      "Inference step count (controllable FLUX models, 1–12)"
-    )
-    .option("--raw", "Generate less processed, more natural output (flux only)")
-    .option(
-      "--enhance-prompt",
-      "Auto-enhance the prompt before generation (flux only)"
-    )
-    .option(
-      "--rendering-speed <speed>",
-      "Speed/quality trade-off: TURBO, BALANCED, QUALITY (ideogram)"
-    )
-    .option("--expand-prompt", "Enable MagicPrompt prompt expansion (ideogram)")
-    .option(
-      "--no-expand-prompt",
-      "Disable MagicPrompt prompt expansion (ideogram)"
-    )
     // Creative direction
     .option("--look <id>", "House look id, e.g. editorial")
     .option("--mood <id>", "Light mood id, e.g. overcast")
     .option("--no-mood", "Drop any mood, including one from stdin JSON")
-    // Video advanced
-    .option("--video-negative <text>", "Negative prompt for video generation")
-    .option(
-      "--video-cfg-scale <n>",
-      "CFG guidance scale for video (0–1, kling)"
-    )
     // Introspection & history
     .option("--describe [command]", "Show CLI schema as JSON (for agents)")
     .option("--history", "Show generation history")
@@ -299,11 +206,7 @@ export async function runCli(
     prompt !== undefined ||
     options.describe !== undefined ||
     options.history === true ||
-    options.last === true ||
-    options.vary === true ||
-    options.up === true ||
-    options.rmbg === true ||
-    options.video === true;
+    options.last === true;
 
   // Resolve output format (TTY detection + explicit flag)
   const format = resolveFormat(options.format);
@@ -365,41 +268,20 @@ export async function runCli(
     return;
   }
 
-  // -- Fal utility tools --
-  const isToolCommand =
-    stdinCommand === "tool" ||
-    stdinCommand === "tool-run" ||
-    stdinCommand === "tool-list" ||
-    stdinCommand === "tool-describe";
-  if (stdinData && isToolCommand) {
-    if (
-      hasText(stdinData.tool) &&
-      stdinCommand !== "tool-list" &&
-      stdinCommand !== "tool-describe" &&
-      options.dryRun !== true
-    ) {
-      try {
-        getApiKey(config);
-      } catch (error) {
-        handleError(error, "MISSING_API_KEY", format);
-      }
-    }
-    await runToolPayload(
-      {
-        command: stdinCommand,
-        dryRun: options.dryRun,
-        input: stdinData.input,
-        inputs: stdinData.inputs,
-        options: stdinData.options,
-        output: stdinData.output,
-        outputFormat: stdinData.outputFormat,
-        prompt: stdinData.prompt,
-        scale: stdinData.scale?.toString(),
-        tool: stdinData.tool,
-      },
-      emitOpts
+  // -- Removed stdin commands --
+  const removedUse =
+    stdinCommand === undefined
+      ? undefined
+      : REMOVED_STDIN_COMMANDS[stdinCommand];
+  if (stdinCommand !== undefined && removedUse !== undefined) {
+    exitRemoved(
+      `stdin command ${JSON.stringify(stdinCommand)}`,
+      removedUse,
+      format
     );
-    return;
+  }
+  if (stdinData) {
+    refuseRemovedStdinFields(stdinData, format);
   }
 
   // Refuse a bare positional prompt that is exactly a motif command word
@@ -421,52 +303,6 @@ export async function runCli(
       );
       exitForErrorCode("RESERVED_PROMPT");
     }
-  }
-
-  // Validate the fal key for the post-processing and video paths. Generation
-  // checks its own key once the route is known: a transparent gpt2 run goes
-  // through OpenAI and needs OPENAI_API_KEY instead.
-  const wouldCallFal =
-    options.vary === true ||
-    options.up === true ||
-    options.rmbg === true ||
-    options.video === true ||
-    stdinCommand === "vary" ||
-    stdinCommand === "upscale" ||
-    stdinCommand === "rmbg" ||
-    stdinCommand === "video";
-  const requiresApiKey = wouldCallFal && options.dryRun !== true;
-
-  if (requiresApiKey) {
-    try {
-      getApiKey(config);
-    } catch (error) {
-      handleError(error, "MISSING_API_KEY", format);
-    }
-  }
-
-  // -- Video --
-  if (options.video === true || stdinCommand === "video") {
-    await generateVideo(prompt, options, stdinData, config, emitOpts);
-    return;
-  }
-
-  // -- Vary --
-  if (options.vary === true || stdinCommand === "vary") {
-    await generateVariations(prompt, options, stdinData, config, emitOpts);
-    return;
-  }
-
-  // -- Upscale --
-  if (options.up === true || stdinCommand === "upscale") {
-    await upscaleLast(prompt, options, stdinData, config, emitOpts);
-    return;
-  }
-
-  // -- Remove background --
-  if (options.rmbg === true || stdinCommand === "rmbg") {
-    await removeBackgroundLast(options, stdinData, config, emitOpts);
-    return;
   }
 
   // -- Generate --

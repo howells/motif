@@ -40,7 +40,13 @@ function parseJson(text: string): Record<string, unknown> {
   return Object.fromEntries(Object.entries(parsed));
 }
 
+const PNG_1X1 = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
 function seedLastGeneration(home: string, model: string): void {
+  writeFileSync(join(home, "one.png"), PNG_1X1);
   writeFileSync(
     join(motifDir(home), "history.json"),
     JSON.stringify({
@@ -325,7 +331,7 @@ describe("vary Model choice (spawned CLI)", () => {
     seedLastGeneration(home, "flux-fast");
 
     const result = await runMotifIn(home, [
-      "--vary",
+      "vary",
       "--dry-run",
       "--format",
       "json",
@@ -343,7 +349,7 @@ describe("vary Model choice (spawned CLI)", () => {
     seedLastGeneration(home, "flux-fast");
 
     const result = await runMotifIn(home, [
-      "--vary",
+      "vary",
       "--look",
       "lived-in",
       "--num",
@@ -365,7 +371,7 @@ describe("vary Model choice (spawned CLI)", () => {
     seedLastGeneration(home, "banana");
 
     const result = await runMotifIn(home, [
-      "--vary",
+      "vary",
       "--dry-run",
       "--format",
       "json",
@@ -375,6 +381,7 @@ describe("vary Model choice (spawned CLI)", () => {
     expect(result.code).toBe(0);
     expect(parseJson(result.stdout)).toMatchObject({
       model: "banana",
+      numImages: 1,
       varyModel: "reused",
     });
   });

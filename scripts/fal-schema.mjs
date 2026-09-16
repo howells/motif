@@ -141,11 +141,11 @@ async function describe(endpointId, withPrice) {
     inputs,
     // The registry's `inputField` must be one of these, and its `outputKeys`
     // must all appear in `outputs`. Keep this in step with the `inputField`
-    // union in packages/motif-sdk/src/tool-types.ts: a field missing here reads
+    // and `referenceField` unions in packages/motif-sdk/src/tool-types.ts: a field missing here reads
     // as "no media input" and gets an endpoint wrongly dropped.
     mediaFields: inputs
       .filter(({ key }) =>
-        /^(image_url|image_urls|input_image_url|input_image_urls|video_url|mask_url)$/.test(
+        /^(content_image_url|image_url|image_urls|input_image_url|input_image_urls|mask_url|person_image_url|product_image_url|style_image_url|video_url)$/.test(
           key
         )
       )
