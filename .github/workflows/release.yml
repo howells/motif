@@ -139,12 +139,25 @@ jobs:
           fi
           echo "$name@$version is not published yet (registry returned $status)."
 
+      # The gate is scoped to the package being published and its workspace
+      # dependencies. A sibling app or example failing its own checks is not a
+      # reason to withhold a library, and some of them cannot run on a runner at
+      # all: faceplacer's web app reads DATABASE_URL at build time.
+      #
+      # Building first is deliberate. Typecheck and type-aware lint both read
+      # the declaration output of the workspace dependencies, so running them
+      # against an unbuilt tree reports hundreds of errors that do not exist -
+      # routerbase reported 335.
       - name: Verify and pack
         run: |
           set -euo pipefail
-          pnpm check
+          scope='${{ steps.version.outputs.name }}'
+          pnpm --filter "${scope}..." run --if-present build
+          pnpm --filter "${scope}..." run --if-present typecheck
+          pnpm --filter "${scope}..." run --if-present lint
+          pnpm --filter "${scope}..." run --if-present test
           mkdir -p "$GITHUB_WORKSPACE/release-artifacts"
-          pnpm --filter "${{ steps.version.outputs.name }}" pack \
+          pnpm --filter "$scope" pack \
             --pack-destination "$GITHUB_WORKSPACE/release-artifacts"
       # Installing the tarball into a fresh consumer outside the working
       # directory is what catches an uninstallable package, and a green build
