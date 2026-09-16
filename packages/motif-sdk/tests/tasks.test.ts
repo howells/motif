@@ -5,10 +5,18 @@
 import { describe, expect, it } from "vitest";
 
 import { MODELS } from "../src/models";
+import type {
+  RankedModel,
+  TaskDefinition,
+  TaskId,
+  TaskMode,
+} from "../src/tasks";
 import { TASK_IDS, TASKS } from "../src/tasks";
 import { isFalToolId } from "../src/tools";
 
-const entries = TASK_IDS.map((task) => [task, TASKS[task]] as const);
+const entries: readonly (readonly [TaskId, TaskDefinition])[] = TASK_IDS.map(
+  (task) => [task, TASKS[task]] as const
+);
 
 describe(TASKS, () => {
   it("matches TASK_IDS", () => {
@@ -24,14 +32,62 @@ describe(TASKS, () => {
     }
   });
 
-  it.each(entries)("%s ranks each Model once", (_task, definition) => {
-    const ids = definition.models.map(({ model }) => model);
+  it.each(entries)("%s ranks each Model once per mode", (_task, definition) => {
+    const ids = definition.models.map(
+      ({ model, mode }) => `${model}|${mode ?? ""}`
+    );
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   it.each(entries)("%s has at least one Model", (_task, definition) => {
     expect(definition.models.length).toBeGreaterThan(0);
   });
+
+  it.each(entries)(
+    "%s lists every entry's mode in its modes",
+    (_task, definition) => {
+      const modes: readonly TaskMode[] = definition.modes ?? [];
+      const modeIds = new Set(modes.map((mode: TaskMode): string => mode.id));
+      for (const entry of definition.models) {
+        if (entry.mode !== undefined) {
+          expect(
+            modeIds.has(entry.mode),
+            `${entry.model} names mode ${entry.mode}, missing from modes`
+          ).toBeTruthy();
+        }
+      }
+    }
+  );
+
+  it.each(entries)(
+    "%s has a ranked entry for every listed mode",
+    (_task, definition) => {
+      const models: readonly RankedModel[] = definition.models;
+      const modes: readonly TaskMode[] = definition.modes ?? [];
+      for (const mode of modes) {
+        expect(
+          models.some((entry: RankedModel): boolean => entry.mode === mode.id),
+          `mode ${mode.id} has no ranked entry`
+        ).toBeTruthy();
+      }
+    }
+  );
+
+  it.each(entries)(
+    "%s requires only capabilities an entry also supports",
+    (_task, definition) => {
+      for (const entry of definition.models) {
+        const supports: readonly string[] = entry.supports ?? [];
+        const requires: readonly string[] = entry.requires ?? [];
+        for (const capability of requires) {
+          expect(
+            supports.includes(capability),
+            `${entry.model} requires ${capability} but does not list it in supports`
+          ).toBeTruthy();
+        }
+      }
+    }
+  );
 
   it.each(entries)("%s is hand-ranked on an ISO date", (_task, definition) => {
     expect(definition.rankedFrom).toBe("hand");

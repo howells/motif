@@ -20,23 +20,19 @@
 
 import { getLook } from "./creative";
 import { MODELS } from "./models";
-import type { RankedFrom, TaskId, Tier } from "./tasks";
+import type {
+  Capability,
+  RankedFrom,
+  RankedModel,
+  TaskDefinition,
+  TaskId,
+  Tier,
+} from "./tasks";
 import { DEFAULT_TIER, TASKS } from "./tasks";
 import { FAL_TOOLS, isFalToolId } from "./tools";
 import type { ModelConfig } from "./types";
 
-/** Something a request needs that not every Model can honour. */
-export type Capability =
-  | "aspect"
-  | "count"
-  | "image"
-  | "mask"
-  | "negativePrompt"
-  | "outputFormat"
-  | "references"
-  | "seed"
-  | "transparency"
-  | "video";
+export type { Capability } from "./tasks";
 
 /** What the request needs. Only the fields that narrow the choice. */
 export interface TaskRequest {
@@ -60,6 +56,8 @@ export interface TaskRequest {
   readonly outputFormat?: boolean;
   /** The kind of Source passed in. Absent for a text-only request. */
   readonly source?: "image" | "video";
+  /** A named variant of the Task, e.g. `"text"` for erase. */
+  readonly mode?: string;
 }
 
 export interface TaskEnvironment {
@@ -72,9 +70,13 @@ export interface TaskEnvironment {
 /** Which rule fixed the Model. */
 export type ChosenBy = "look" | "model" | "pin" | "ranking";
 
-export type Blocker = Capability | "key" | "unknown-model";
+export type Blocker = Capability | "key" | "mode" | "unknown-model";
 
-export type Unblocker = "key" | "model" | "option";
+/**
+ * What unblocks a refused request: name another Model, set a key, drop an
+ * option the request asked for, or supply an input a Model needs (a mask).
+ */
+export type Unblocker = "input" | "key" | "model" | "option";
 
 export const NO_MODEL_AVAILABLE = "NO_MODEL_AVAILABLE";
 
@@ -163,6 +165,16 @@ function toolProfile(inputKind: "image" | "images" | "video"): ModelProfile {
   };
 }
 
+function withEntry(profile: ModelProfile, entry: RankedModel): ModelProfile {
+  if (entry.supports === undefined) {
+    return profile;
+  }
+  return {
+    ...profile,
+    capabilities: new Set([...profile.capabilities, ...entry.supports]),
+  };
+}
+
 /** The profile for a Model id, or undefined when no registry knows it. */
 export function modelProfile(model: string): ModelProfile | undefined {
   const config = MODELS[model];
@@ -215,17 +227,25 @@ type Check =
       readonly ok: false;
       readonly blockedBy: Capability | "key";
       readonly missingKey?: string;
+      /** The Model needs this input and the request did not supply it. */
+      readonly missingInput?: true;
     };
 
 function check(
   profile: ModelProfile,
   needed: readonly Capability[],
   request: TaskRequest,
-  keys: readonly string[]
+  keys: readonly string[],
+  requires: readonly Capability[] = []
 ): Check {
   for (const key of profile.keys) {
     if (!keys.includes(key)) {
       return { blockedBy: "key", missingKey: key, ok: false };
+    }
+  }
+  for (const capability of requires) {
+    if (!needed.includes(capability)) {
+      return { blockedBy: capability, missingInput: true, ok: false };
     }
   }
   for (const capability of needed) {
@@ -257,7 +277,14 @@ const TIER_ORDER: Readonly<Record<Tier, readonly Tier[]>> = {
   quality: ["quality", "balanced", "fast"],
 };
 
-function describeBlock(blockedBy: Blocker, missingKey?: string): string {
+function describeBlock(
+  blockedBy: Blocker,
+  missingKey?: string,
+  missingInput?: true
+): string {
+  if (missingInput === true) {
+    return `needs a ${blockedBy} input`;
+  }
   if (blockedBy === "key") {
     return `needs ${missingKey ?? "a provider key"}`;
   }
@@ -315,46 +342,118 @@ export function resolveTask(
   request: TaskRequest,
   environment: TaskEnvironment
 ): TaskResolution {
+  const definition: TaskDefinition = TASKS[task];
+  const modes = (definition.modes ?? []).map((mode) => mode.id);
+  if (request.mode !== undefined && !modes.includes(request.mode)) {
+    return unresolved(
+      task,
+      "mode",
+      ["option"],
+      `${task} has no mode ${request.mode}. Modes: ${modes.length > 0 ? modes.join(", ") : "none"}.`
+    );
+  }
   const needed = requirements(request);
-  const fixed = fixedModel(task, request, environment);
-  if (fixed !== undefined) {
-    return resolveFixed(task, fixed, request, needed, environment.keys);
+  for (const fixed of fixedModels(task, request, environment)) {
+    const result = resolveFixed(task, fixed, request, needed, environment.keys);
+    if (result !== undefined) {
+      return result;
+    }
   }
   return resolveRanked(task, request, needed, environment.keys);
 }
 
+interface FixedModel {
+  readonly chosenBy: ChosenBy;
+  readonly model: string;
+}
+
+/**
+ * Resolve a Model fixed by `--model`, a Look or a pin. Returns undefined so the
+ * next rule applies when a pin serves this Task only under another mode (a pin
+ * for plain erase should not run when the caller asks to erase text), or when
+ * a Look's Model is not offered for this Task (a look on vary whose Model
+ * cannot edit). An explicit Model, or a pin the Task doesn't know, fails.
+ */
 function resolveFixed(
   task: TaskId,
-  fixed: { readonly chosenBy: ChosenBy; readonly model: string },
+  fixed: FixedModel,
   request: TaskRequest,
   needed: readonly Capability[],
   keys: readonly string[]
-): TaskResolution {
+): TaskResolution | undefined {
   const { chosenBy, model } = fixed;
   const tier = request.tier ?? DEFAULT_TIER;
-  const ranked = TASKS[task].models.map((entry) => entry.model);
-  const profile = ranked.includes(model) ? modelProfile(model) : undefined;
-  if (profile === undefined) {
-    return unresolved(
-      task,
-      "unknown-model",
-      ["model"],
-      `${model} ${describeBlock("unknown-model")}. ${task} accepts: ${ranked.join(", ")}.`
-    );
+  const entries: readonly RankedModel[] = TASKS[task].models;
+  const entry = entries.find(
+    (candidate) => candidate.model === model && candidate.mode === request.mode
+  );
+  const profile = modelProfile(model);
+  if (entry === undefined || profile === undefined) {
+    const servesTask = entries.some((candidate) => candidate.model === model);
+    if (chosenBy === "look" || (chosenBy === "pin" && servesTask)) {
+      return undefined;
+    }
+    return unknownForMode(task, model, request.mode, entries);
   }
-  const result = check(profile, needed, request, keys);
+  const result = check(
+    withEntry(profile, entry),
+    needed,
+    request,
+    keys,
+    entry.requires
+  );
   if (result.ok) {
     return resolved(task, model, tier, chosenBy);
   }
   const unblockers: Unblocker[] = chosenBy === "model" ? [] : ["model"];
-  unblockers.push(result.blockedBy === "key" ? "key" : "option");
+  unblockers.push(unblockerFor(result));
   return unresolved(
     task,
     result.blockedBy,
     unblockers,
-    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, result.missingKey)}.`,
+    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, result.missingKey, result.missingInput)}.`,
     result.missingKey
   );
+}
+
+function unknownForMode(
+  task: TaskId,
+  model: string,
+  mode: string | undefined,
+  entries: readonly RankedModel[]
+): TaskUnresolved {
+  const otherModes = entries
+    .filter((candidate) => candidate.model === model)
+    .map((candidate) => candidate.mode ?? "no mode");
+  const inMode = [
+    ...new Set(
+      entries
+        .filter((candidate) => candidate.mode === mode)
+        .map((candidate) => candidate.model)
+    ),
+  ];
+  const where = mode === undefined ? task : `${task} ${mode}`;
+  if (otherModes.length > 0) {
+    return unresolved(
+      task,
+      "unknown-model",
+      ["model", "option"],
+      `${model} is not a Model for ${where}; it serves ${task} with ${otherModes.join(", ")}. ${where} accepts: ${inMode.join(", ")}.`
+    );
+  }
+  return unresolved(
+    task,
+    "unknown-model",
+    ["model"],
+    `${model} is not a Model for ${where}. ${where} accepts: ${inMode.join(", ")}.`
+  );
+}
+
+function unblockerFor(result: Extract<Check, { ok: false }>): Unblocker {
+  if (result.blockedBy === "key") {
+    return "key";
+  }
+  return result.missingInput === true ? "input" : "option";
 }
 
 function resolveRanked(
@@ -367,20 +466,32 @@ function resolveRanked(
   const qualifying = new Map<Tier, string>();
   let firstBlock: Extract<Check, { ok: false }> | undefined;
   let keyBlock: string | undefined;
-  for (const { model, tier: modelTier } of TASKS[task].models) {
+  const definition: TaskDefinition = TASKS[task];
+  for (const entry of definition.models) {
+    if (entry.mode !== request.mode) {
+      continue;
+    }
+    const { model, tier: modelTier } = entry;
     const profile = modelProfile(model);
     if (profile === undefined) {
       throw new Error(`Task ${task} ranks unknown Model ${model}`);
     }
-    const result = check(profile, needed, request, keys);
+    const result = check(
+      withEntry(profile, entry),
+      needed,
+      request,
+      keys,
+      entry.requires
+    );
     if (result.ok) {
       if (!qualifying.has(modelTier)) {
         qualifying.set(modelTier, model);
       }
     } else if (result.blockedBy === "key") {
       keyBlock ??= result.missingKey;
-    } else {
-      firstBlock ??= result;
+    } else if (firstBlock === undefined || firstBlock.missingInput === true) {
+      firstBlock =
+        result.missingInput === true ? (firstBlock ?? result) : result;
     }
   }
 
@@ -391,6 +502,15 @@ function resolveRanked(
     }
   }
 
+  return rankedRefusal(task, request.mode, firstBlock, keyBlock);
+}
+
+function rankedRefusal(
+  task: TaskId,
+  mode: string | undefined,
+  firstBlock: Extract<Check, { ok: false }> | undefined,
+  keyBlock: string | undefined
+): TaskUnresolved {
   if (firstBlock === undefined) {
     const key = keyBlock ?? FAL_KEY;
     return unresolved(
@@ -401,36 +521,49 @@ function resolveRanked(
       key
     );
   }
-  const unblockers: Unblocker[] = ["option"];
+  const unblockers: Unblocker[] = [unblockerFor(firstBlock)];
   if (keyBlock !== undefined) {
     unblockers.push("key");
   }
+  const where = mode === undefined ? task : `${task} ${mode}`;
+  const reason =
+    firstBlock.missingInput === true
+      ? `without a ${firstBlock.blockedBy} input`
+      : `can do ${firstBlock.blockedBy}`;
   return unresolved(
     task,
     firstBlock.blockedBy,
     unblockers,
-    `No Model for ${task} can do ${firstBlock.blockedBy}${keyBlock === undefined ? "" : ` without ${keyBlock}`}.`,
+    `No Model for ${where} ${reason}${keyBlock === undefined ? "" : ` without ${keyBlock}`}.`,
     keyBlock
   );
 }
 
-function fixedModel(
+/** Tasks whose Models are generation Models, the only ones a Look can fix. */
+const LOOK_TASKS: ReadonlySet<TaskId> = new Set<TaskId>(["generate", "vary"]);
+
+/** Models fixed ahead of the ranking, in precedence order. */
+function fixedModels(
   task: TaskId,
   request: TaskRequest,
   environment: TaskEnvironment
-): { readonly chosenBy: ChosenBy; readonly model: string } | undefined {
+): FixedModel[] {
+  const fixed: FixedModel[] = [];
   if (request.model !== undefined && request.model !== "") {
-    return { chosenBy: "model", model: request.model };
+    fixed.push({ chosenBy: "model", model: request.model });
   }
-  const look = request.look === undefined ? undefined : getLook(request.look);
+  const look =
+    request.look === undefined || !LOOK_TASKS.has(task)
+      ? undefined
+      : getLook(request.look);
   if (look !== undefined) {
-    return { chosenBy: "look", model: look.model };
+    fixed.push({ chosenBy: "look", model: look.model });
   }
   const pin = environment.pins?.[task];
   if (pin !== undefined && pin !== "") {
-    return { chosenBy: "pin", model: pin };
+    fixed.push({ chosenBy: "pin", model: pin });
   }
-  return undefined;
+  return fixed;
 }
 
 /**

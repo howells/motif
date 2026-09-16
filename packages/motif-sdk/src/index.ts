@@ -135,6 +135,7 @@ export {
   TASKS,
   type TaskDefinition,
   type TaskId,
+  type TaskMode,
   type Tier,
   TIERS,
 } from "./tasks";
