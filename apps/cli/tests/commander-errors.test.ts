@@ -167,7 +167,9 @@ describe("help and version are not failures", () => {
 
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("Usage: motif segment");
-    expect(result.stdout).toContain("Mask a named thing in an image or video.");
+    expect(result.stdout).toContain(
+      "Mask or cut out a named thing in an image or video."
+    );
     expect(result.stderr).toBe("");
   });
 
