@@ -66,6 +66,24 @@ function exitMissingKey(key: string, format: OutputFormat): never {
   exitForErrorCode("MISSING_API_KEY");
 }
 
+/** Task flags a Model can refuse, keyed by the SDK capability they ask for. */
+const FLAG_BLOCKERS: Readonly<Record<string, string>> = { rig: "--rig" };
+
+/**
+ * The refusal in the flag's words, without the Model's name: the SDK says
+ * "trellis-2 (model) cannot do rig.", the CLI says which flag to drop.
+ */
+function refusalMessage(resolution: RefusedResolution): string {
+  const flag = FLAG_BLOCKERS[resolution.blockedBy];
+  if (flag === undefined) {
+    return resolution.message;
+  }
+  const task = resolution.task ?? "this Task";
+  return resolution.message.startsWith("No Model")
+    ? `No Model for this ${task} mode can do ${flag}: drop the mode flag or ${flag}.`
+    : `The Model named with -m can't do ${flag}: drop -m to use one that can, or drop ${flag}.`;
+}
+
 /**
  * Report a refused resolution and exit. A missing key is the same
  * MISSING_API_KEY (exit 3) every other command reports; a Model that is not
@@ -91,7 +109,7 @@ export function exitNoModelAvailable(
         task: resolution.task,
         unblockedBy: resolution.unblockedBy,
       },
-      message: resolution.message,
+      message: refusalMessage(resolution),
     },
     format
   );

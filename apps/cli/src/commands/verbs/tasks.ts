@@ -164,11 +164,12 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     "a seamlessly tiling texture",
     ["pattern", "seamless", "texture", "tiling"]
   ),
-  verbRow("mesh", "motif mesh [image]", "a textured 3D mesh", [
-    "3d",
-    "glb",
-    "model-3d",
-  ]),
+  verbRow(
+    "mesh",
+    "motif mesh [image] [--rig]",
+    "a textured 3D mesh, rigged with --rig",
+    ["3d", "glb", "model-3d", "rig"]
+  ),
   verbRow(
     "animate",
     'motif animate "prompt" [image]',

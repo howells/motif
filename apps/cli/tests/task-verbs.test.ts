@@ -106,6 +106,8 @@ const DRY_RUNS: { args: string[]; mode?: string }[] = [
   { args: ["material", "--extract", "the rug", SOURCE], mode: "extract" },
   { args: ["mesh", SOURCE] },
   { args: ["mesh", "--objects", SOURCE], mode: "objects" },
+  { args: ["mesh", "--body", SOURCE], mode: "body" },
+  { args: ["mesh", SOURCE, "--rig"] },
   { args: ["reframe", "--og", SOURCE] },
   { args: ["reframe", "--margin", "64", SOURCE], mode: "margin" },
   { args: ["relight", "warm dusk light", SOURCE] },
@@ -420,6 +422,68 @@ describe("restyle", () => {
     expect(result.code).toBe(2);
     expect(String(parseJson(result.stderr).message)).toContain("--like");
   });
+});
+
+describe("mesh", () => {
+  it("asks for a rig, whatever the tier", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "mesh",
+      join(home, "in.png"),
+      "--rig",
+      "--tier",
+      "fast",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    expect(asRecord(parseJson(result.stdout).request)).toMatchObject({
+      enable_rigging: true,
+    });
+  });
+
+  it("writes to a -o path ending in .glb", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "mesh",
+      join(home, "in.png"),
+      "-o",
+      "chair.glb",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    expect(String(parseJson(result.stdout).output)).toMatch(/\/chair\.glb$/);
+  });
+
+  it.each([
+    [["-m", "trellis-2"], "-m"],
+    [["--body"], "mode"],
+  ])(
+    "refuses --rig with %j, naming the flag and no Model",
+    async (extra, named) => {
+      const home = tempHome();
+      const result = await runMotifIn(home, [
+        "mesh",
+        join(home, "in.png"),
+        "--rig",
+        ...extra,
+        "--dry-run",
+        "--format",
+        "human",
+      ]);
+
+      expect(result.code).toBe(2);
+      expect(result.stderr).toContain("NO_MODEL_AVAILABLE");
+      expect(result.stderr).toContain("--rig");
+      expect(result.stderr).toContain(named);
+      expectNoModelNames(result.stderr, `mesh --rig ${extra.join(" ")}`);
+    }
+  );
 });
 
 describe("history prompts", () => {

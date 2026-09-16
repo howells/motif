@@ -311,10 +311,13 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
   {
     command: "mesh",
     extension: ".glb",
+    input: (options) => (options.rig === true ? { rig: true } : {}),
     modes: [
       { description: "Reconstruct a human body", mode: "body" },
       { description: "Reconstruct several prompted objects", mode: "objects" },
     ],
+    options: (command) =>
+      command.option("--rig", "Rig the mesh with a skeleton for animation"),
     promptFirst: never,
     sourceKind: "image",
     task: "mesh",
