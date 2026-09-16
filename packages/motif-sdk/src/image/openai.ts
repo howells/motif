@@ -10,6 +10,8 @@ import { createOpenAI } from "@ai-sdk/openai";
 import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
+import type { FalFetch } from "../types";
+import { toProviderFetch } from "./fetch";
 import type { ImageProviderAdapter } from "./provider";
 
 /** Env var read for the OpenAI API key when `apiKey` is not supplied in config. */
@@ -39,7 +41,11 @@ const OPENAI_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
  * `OPENAI_API_KEY` env var. Throws `MotifError` when neither is present
  * (callers translate this into a `Result.err`).
  */
-export function resolveModel(modelId: string, apiKey?: string): ImageModel {
+export function resolveModel(
+  modelId: string,
+  apiKey?: string,
+  fetch?: FalFetch
+): ImageModel {
   const key = apiKey ?? process.env[OPENAI_API_KEY_ENV];
   if (key === undefined || key === "") {
     throw new MotifError(
@@ -47,7 +53,9 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
       0
     );
   }
-  return createOpenAI({ apiKey: key }).image(modelId);
+  return createOpenAI({ apiKey: key, ...toProviderFetch(fetch) }).image(
+    modelId
+  );
 }
 
 /** The OpenAI provider adapter registered in the provider registry. */

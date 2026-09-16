@@ -25,6 +25,8 @@ import type { ImageModel } from "ai";
 
 import { MODELS } from "../models";
 import { MotifError } from "../server";
+import type { FalFetch } from "../types";
+import { toProviderFetch } from "./fetch";
 import type { ImageProviderAdapter } from "./provider";
 
 /**
@@ -90,7 +92,11 @@ const FAL_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
  * var. Throws `MotifError` when neither is present (callers translate this into
  * a `Result.err`).
  */
-export function resolveModel(modelId: string, apiKey?: string): ImageModel {
+export function resolveModel(
+  modelId: string,
+  apiKey?: string,
+  fetch?: FalFetch
+): ImageModel {
   const key = apiKey ?? process.env[FAL_API_KEY_ENV];
   if (key === undefined || key === "") {
     throw new MotifError(
@@ -98,7 +104,7 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
       0
     );
   }
-  return createFal({ apiKey: key }).image(modelId);
+  return createFal({ apiKey: key, ...toProviderFetch(fetch) }).image(modelId);
 }
 
 /** The fal provider adapter registered in the provider registry. */

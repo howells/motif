@@ -1,12 +1,23 @@
-import { aspectToFalImageSize, aspectToGptSize } from "./aspects";
+import {
+  aspectToFalImageSize,
+  aspectToGptSize,
+  boundedImageSize,
+  FAL_PRESET_ASPECTS,
+  FAL_PRESET_LONG_EDGE,
+  ImageSizeBoundsError,
+  RESOLUTION_LONG_EDGE,
+} from "./aspects";
 import { UnsupportedOptionError } from "./capabilities";
 import type { ModelOption } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import { MODELS } from "./models";
 import type {
+  AspectRatio,
+  CustomImageSize,
   GenerateOptions,
   ImageSize,
   ModelConfig,
+  Resolution,
   SizeMode,
 } from "./types";
 
@@ -59,6 +70,32 @@ function normalizeImageSize(
   throw new Error(
     `fal image_size must be one of ${FAL_IMAGE_SIZE_PRESETS.join(", ")} or WIDTHxHEIGHT`
   );
+}
+
+/**
+ * `image_size` for an aspect: fal's named preset where one holds the ratio
+ * exactly, else exact dimensions where the endpoint takes them, else the
+ * nearest preset. A Model without a resolution setting is sized to the preset
+ * long edge, so an exact size costs what a preset would. Out of the Model's
+ * limits it throws rather than rounding to another ratio.
+ */
+function falImageSizeFor(
+  config: ModelConfig,
+  aspect: AspectRatio,
+  resolution: Resolution
+): CustomImageSize | string {
+  const bounds = config.customImageSize;
+  if (bounds === undefined || FAL_PRESET_ASPECTS.includes(aspect)) {
+    return aspectToFalImageSize(aspect);
+  }
+  const longEdge = config.supportsResolution
+    ? RESOLUTION_LONG_EDGE[resolution]
+    : FAL_PRESET_LONG_EDGE;
+  const size = boundedImageSize(aspect, longEdge, bounds);
+  if (size === undefined) {
+    throw new ImageSizeBoundsError(config.name, aspect, bounds);
+  }
+  return size ?? aspectToFalImageSize(aspect);
 }
 
 function unsupported(config: ModelConfig, option: ModelOption): never {
@@ -330,7 +367,8 @@ export function buildGenerateBody(options: GenerateOptions): {
     }
 
     case "image_size_enum": {
-      body.image_size = normalizedImageSize ?? aspectToFalImageSize(aspect);
+      body.image_size =
+        normalizedImageSize ?? falImageSizeFor(config, aspect, resolution);
       break;
     }
 

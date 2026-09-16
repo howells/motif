@@ -4,6 +4,7 @@ import {
   buildFalToolRequest,
   buildGenerateBody,
   estimateCost,
+  ImageSizeBoundsError,
 } from "../src/index";
 
 describe(buildGenerateBody, () => {
@@ -443,7 +444,7 @@ describe(buildGenerateBody, () => {
     expect(body).not.toHaveProperty("num_images");
   });
 
-  it("normalizes Ideogram V4 rendering speed and size", () => {
+  it("sends an exact size for a ratio no fal preset holds (MOT-46)", () => {
     const { endpoint, body } = buildGenerateBody({
       aspect: "2:3",
       model: "ideogram4",
@@ -455,12 +456,48 @@ describe(buildGenerateBody, () => {
 
     expect(endpoint).toBe("ideogram/v4");
     expect(body).toMatchObject({
-      image_size: "portrait_4_3",
+      image_size: { height: 1008, width: 672 },
       num_images: 2,
       prompt: "bold typographic poster",
       rendering_speed: "QUALITY",
       seed: 5,
     });
+  });
+
+  it("sends FLUX.2 Pro 3:2 as exact dimensions in that ratio", () => {
+    const { body } = buildGenerateBody({
+      aspect: "3:2",
+      model: "flux2-pro",
+      prompt: "a harbour at dawn",
+    });
+
+    expect(body.image_size).toStrictEqual({ height: 672, width: 1008 });
+  });
+
+  it("scales an exact size up to a Model's minimum pixel count", () => {
+    const { body } = buildGenerateBody({
+      aspect: "3:2",
+      model: "seedream45",
+      prompt: "a harbour at dawn",
+    });
+
+    expect(body.image_size).toStrictEqual({ height: 1568, width: 2352 });
+  });
+
+  it("refuses a ratio outside a Model's limits rather than rounding it", () => {
+    expect(() =>
+      buildGenerateBody({ aspect: "4:1", model: "gpt2", prompt: "a banner" })
+    ).toThrow(ImageSizeBoundsError);
+  });
+
+  it("keeps the named preset where one holds the ratio exactly", () => {
+    const { body } = buildGenerateBody({
+      aspect: "16:9",
+      model: "flux2-pro",
+      prompt: "a harbour at dawn",
+    });
+
+    expect(body.image_size).toBe("landscape_16_9");
   });
 });
 

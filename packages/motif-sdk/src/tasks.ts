@@ -352,7 +352,7 @@ export const TASKS = {
       },
     ],
     models: [
-      { model: "iclight-v2", tier: "balanced" },
+      { model: "iclight-v2", supports: ["mask"], tier: "balanced" },
       { mode: "even", model: "lighting-restoration", tier: "balanced" },
       { mode: "flat", model: "remove-lighting", tier: "balanced" },
     ],

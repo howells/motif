@@ -10,13 +10,15 @@
 
 import type { generateImage, ImageModel } from "ai";
 
+import type { FalFetch } from "../types";
 import type { ImageProviderId } from "./types";
 
 /** A model resolver: builds an AI SDK `ImageModel` for a (provider, model, key). */
 export type ResolveImageModel = (
   provider: ImageProviderId,
   modelId: string,
-  apiKey?: string
+  apiKey?: string,
+  fetch?: FalFetch
 ) => ImageModel;
 
 /** Internal dependency-injection seam (default: real `generateImage` + adapters). */

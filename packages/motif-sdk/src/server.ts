@@ -25,6 +25,7 @@ import { GENERATION_MODELS, MODELS, UTILITY_MODELS } from "./models";
 import {
   checkToolStatus as execCheckToolStatus,
   getToolResult as execGetToolResult,
+  registerRequestExecutor,
   runTool as execRunTool,
   runToolQueued as execRunToolQueued,
   submitTool as execSubmitTool,
@@ -33,6 +34,7 @@ import type { FalRequestExecutor } from "./server-tools";
 import { FAL_TOOLS } from "./tools";
 import type {
   FalClientConfig,
+  FalFetch,
   GenerateOptions,
   JobStatus,
   MotifResponse,
@@ -51,6 +53,8 @@ const FAL_BASE_URL = "https://fal.run";
 const FAL_QUEUE_URL = "https://queue.fal.run";
 const FAL_API_URL = "https://api.fal.ai";
 const FAL_REST_URL = "https://rest.alpha.fal.ai";
+
+const globalFetch: FalFetch = async (url, init) => await fetch(url, init);
 
 /**
  * FalClient — the fal-native client.
@@ -80,21 +84,19 @@ export class FalClient {
   private readonly apiKey: string;
   private readonly timeout: number;
   private readonly retries: number;
+  private readonly fetch: FalFetch;
 
   constructor(config: FalClientConfig | string) {
-    if (typeof config === "string") {
-      this.apiKey = config;
-      this.timeout = 120_000;
-      this.retries = 3;
-    } else {
-      this.apiKey = config.apiKey;
-      this.timeout = config.timeout ?? 120_000;
-      this.retries = config.retries ?? 3;
-    }
+    const options = typeof config === "string" ? { apiKey: config } : config;
+    this.apiKey = options.apiKey;
+    this.timeout = options.timeout ?? 120_000;
+    this.retries = options.retries ?? 3;
+    this.fetch = options.fetch ?? globalFetch;
 
     if (!this.apiKey) {
       throw new MotifError("API key is required", 0);
     }
+    registerRequestExecutor(this, this.toolExecutor);
   }
 
   /** ─── Synchronous Generation ──────────────────────────────── */
@@ -509,7 +511,7 @@ export class FalClient {
       const body = Buffer.from(
         file instanceof Uint8Array ? file : new Uint8Array(file)
       );
-      putResponse = await fetch(uploadUrl, {
+      putResponse = await this.fetch(uploadUrl, {
         body,
         headers: { "Content-Type": options.contentType },
         method: "PUT",
@@ -671,7 +673,7 @@ export class FalClient {
       }, this.timeout);
 
       try {
-        const response = await fetch(url, {
+        const response = await this.fetch(url, {
           ...options,
           headers: {
             Authorization: `Key ${this.apiKey}`,

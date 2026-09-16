@@ -12,6 +12,8 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
+import type { FalFetch } from "../types";
+import { toProviderFetch } from "./fetch";
 import type { ImageProviderAdapter } from "./provider";
 
 /** Env var read for the Google API key when `apiKey` is not supplied in config. */
@@ -45,7 +47,11 @@ export const GOOGLE_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
  * `GOOGLE_GENERATIVE_AI_API_KEY` env var. Throws `MotifError` when neither is
  * present (callers translate this into a `Result.err`).
  */
-export function resolveModel(modelId: string, apiKey?: string): ImageModel {
+export function resolveModel(
+  modelId: string,
+  apiKey?: string,
+  fetch?: FalFetch
+): ImageModel {
   const key = apiKey ?? process.env[GOOGLE_API_KEY_ENV];
   if (key === undefined || key === "") {
     throw new MotifError(
@@ -53,7 +59,10 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
       0
     );
   }
-  return createGoogleGenerativeAI({ apiKey: key }).image(modelId);
+  return createGoogleGenerativeAI({
+    apiKey: key,
+    ...toProviderFetch(fetch),
+  }).image(modelId);
 }
 
 /** The Google (Gemini) provider adapter registered in the provider registry. */

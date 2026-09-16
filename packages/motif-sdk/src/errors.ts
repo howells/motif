@@ -13,18 +13,22 @@ export class MotifError extends Error {
   /** fal's request-correlation id (from the `x-fal-request-id` header or the
    * error body). Ties a failure back to fal's dashboard/support. */
   readonly requestId?: string;
+  /** Structured context for the failure, e.g. the refused field. */
+  readonly details?: Record<string, unknown>;
 
   constructor(
     message: string,
     status: number,
     code?: string,
-    requestId?: string
+    requestId?: string,
+    details?: Record<string, unknown>
   ) {
     super(message);
     this.name = "MotifError";
     this.status = status;
     this.code = code;
     this.requestId = requestId;
+    this.details = details;
   }
 }
 

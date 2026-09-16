@@ -29,7 +29,9 @@ import type {
   Tier,
 } from "./tasks";
 import { DEFAULT_TIER, TASKS } from "./tasks";
+import { falToolParameters } from "./tool-parameters.generated";
 import { FAL_TOOLS, isFalToolId } from "./tools";
+import type { FalToolId } from "./tools";
 import type { ModelConfig } from "./types";
 
 export type { Capability } from "./tasks";
@@ -154,11 +156,36 @@ function generationProfile(config: ModelConfig): ModelProfile {
   };
 }
 
-function toolProfile(inputKind: "image" | "images" | "video"): ModelProfile {
+/**
+ * Capabilities a fal tool takes, read from its generated parameter list: the
+ * same list the task client maps request fields onto, so resolution and the
+ * request body cannot disagree.
+ */
+const TOOL_PARAMETER_CAPABILITIES: readonly (readonly [
+  Capability,
+  readonly string[],
+])[] = [
+  ["aspect", ["aspect_ratio", "image_size"]],
+  ["count", ["num_images"]],
+  ["negativePrompt", ["negative_prompt"]],
+  ["outputFormat", ["output_format"]],
+  ["seed", ["seed"]],
+];
+
+function toolProfile(tool: FalToolId): ModelProfile {
+  const keys = new Set(
+    falToolParameters(tool).map((parameter) => parameter.key)
+  );
+  const capabilities = new Set<Capability>([
+    FAL_TOOLS[tool].inputKind === "video" ? "video" : "image",
+  ]);
+  for (const [capability, parameters] of TOOL_PARAMETER_CAPABILITIES) {
+    if (parameters.some((parameter) => keys.has(parameter))) {
+      capabilities.add(capability);
+    }
+  }
   return {
-    capabilities: new Set<Capability>([
-      inputKind === "video" ? "video" : "image",
-    ]),
+    capabilities,
     keyedCapabilities: new Map(),
     keys: [FAL_KEY],
     maxReferences: 0,
@@ -182,7 +209,7 @@ export function modelProfile(model: string): ModelProfile | undefined {
     return generationProfile(config);
   }
   if (isFalToolId(model)) {
-    return toolProfile(FAL_TOOLS[model].inputKind);
+    return toolProfile(model);
   }
   return undefined;
 }

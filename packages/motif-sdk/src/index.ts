@@ -30,6 +30,7 @@ export {
   aspectToFalImageSize,
   aspectToGptSize,
   FORMAT_PRESETS,
+  ImageSizeBoundsError,
   RESOLUTIONS,
 } from "./aspects";
 export { estimateCost, estimateVideoCost } from "./cost";
@@ -154,6 +155,18 @@ export {
   tierChangesChoice,
   type Unblocker,
 } from "./resolve";
+export {
+  createMotif,
+  type FalFetch,
+  type MotifClient,
+  type MotifClientConfig,
+  type PlanOptions,
+  type TaskFile,
+  type TaskFunction,
+  type TaskInput,
+  type TaskOutput,
+  type TaskPlan,
+} from "./task-client";
 
 // ─── Types ───────────────────────────────────────────────────────
 export type {
@@ -167,6 +180,7 @@ export type {
   ImageOutputFormat,
   ImageQuality,
   ImageSize,
+  ImageSizeBounds,
   JobStatus,
   ModelConfig,
   ProviderRoute,

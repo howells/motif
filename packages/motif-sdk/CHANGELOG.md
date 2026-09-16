@@ -16,6 +16,18 @@ Part of "tasks replace models" (ADR 0001, MOT-63). The rest of that change lands
 - Add `resolveTask(task, request, environment)`, a pure function that chooses the Model: an explicit Model, then a Look's Model, then a Model pinned per Task, then the highest-ranked Model that can do what the request asks for at the Tier. A Model whose provider key is missing is skipped; naming one explicitly fails. The result carries `model`, `tier`, `rankedFrom` and `chosenBy`.
 - Add the `NO_MODEL_AVAILABLE` result for when no Model qualifies, with `blockedBy` (the capability, `key`, `mode` or `unknown-model`), `unblockedBy` (`model`, `key`, `option`, or `input` when a Model needs an input the request lacks) and `missingKey`. A Look fixes the Model only for generate and vary. A pin that serves the Task under another mode, or a Look whose Model the Task doesn't offer, gives way to the ranking; a pin the Task doesn't know fails.
 - Add `tierChangesChoice`, `modelProfile`, `TASK_IDS`, `isTaskId`, `TIERS`, `DEFAULT_TIER` and the `TaskId`, `Tier`, `RankedFrom`, `RankedModel`, `TaskDefinition`, `TaskRequest`, `TaskEnvironment`, `TaskResolution`, `Capability`, `Blocker`, `Unblocker` and `ChosenBy` types.
+- Add `createMotif(config)`, the Task client: one function per Task (`generate`, `erase`, `upscale` and the other 14) plus `run(task, input)`. Each resolves the Model through `resolveTask`, builds the request that Model takes, runs it on fal and returns `files` (with the output key and any registry label), the non-file `data`, `cost`, `model`, `tier`, `chosenBy` and `requestId`. `plan(task, input, { dryRun })` returns the endpoint, body and projected cost without any I/O, and without a key on a dry run. `upload` and `deletePayloads` wrap fal storage.
+- `TaskInput` takes `boxes`, always whole pixels of the source (converted to fractions for a Model that takes them, using the size read from a data URL or `sourceSize`), and `margin` (reframe `margin` mode). `params` can't replace a field the request set or any source, mask or reference URL, and a request missing a parameter fal requires is refused.
+- `MotifImageConfig` accepts `fetch` and `maxRetries`, passed to every provider.
+- The Task client refuses rather than drops: a field the chosen Model can't carry, `params` without `model`, or a missing source image fails with `INVALID_OPTION` and `details.field`; a request no Model can serve fails with `NO_MODEL_AVAILABLE` and the resolution's `blockedBy`, `unblockedBy` and `missingKey` in `details`; running without a fal key fails with `MISSING_API_KEY`.
+- A transparent request on GPT Image 2 runs through OpenAI via the image layer, as the CLI already did.
+- `MotifError` gains an optional `details` record.
+- `FalClientConfig` accepts `fetch`, which replaces global fetch for every request, including upload PUTs. Retries and timeouts still apply.
+- Add the `MotifClient`, `MotifClientConfig`, `TaskInput`, `TaskPlan`, `TaskOutput`, `TaskFile`, `TaskFunction`, `PlanOptions` and `FalFetch` types.
+
+### Patch Changes
+
+- Generation Models that take `image_size` now get exact `{ width, height }` for a ratio no fal preset holds, instead of the nearest preset (MOT-46). 3:2 on FLUX.2 Pro was sent as 4:3. The size keeps the presets' 1024px long edge, scaled up only where a Model sets a minimum, and a megapixel-priced Model's projected cost is taken from the exact or preset pixels. The Task client prices the body as sent, `params` included. Each of the 19 Models carries its limits from fal's OpenAPI schema as `customImageSize` (`ImageSizeBounds`); a ratio with no size inside them throws `ImageSizeBoundsError` (`INVALID_OPTION`) rather than rounding.
 
 ## 3.0.0
 

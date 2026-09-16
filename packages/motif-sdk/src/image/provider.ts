@@ -10,6 +10,7 @@
 import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
+import type { FalFetch } from "../types";
 import { falAdapter } from "./fal";
 import { googleAdapter } from "./google";
 import { openaiAdapter } from "./openai";
@@ -31,7 +32,11 @@ export interface ImageProviderAdapter {
    * (callers translate this into a `Result.err`). Building a model performs no
    * network I/O.
    */
-  readonly resolveModel: (modelId: string, apiKey?: string) => ImageModel;
+  readonly resolveModel: (
+    modelId: string,
+    apiKey?: string,
+    fetch?: FalFetch
+  ) => ImageModel;
   /**
    * Static per-model USD/**image** table (best-effort; cited per adapter). This
    * is multiplied by the returned image count to form the call total.

@@ -14,6 +14,13 @@ export const MODELS: Record<string, ModelConfig> = {
   // ─── Generation Models ────────────────────────────────────────
 
   flare: {
+    customImageSize: {
+      maxEdge: 3840,
+      maxPixels: 8_294_400,
+      maxRatio: 3,
+      minPixels: 655_360,
+      multipleOf: 16,
+    },
     editEndpoint: "openai/gpt-image-2.5/flare/edit",
     endpoint: "openai/gpt-image-2.5/flare/text-to-image",
     maxReferenceImages: 16,
@@ -37,6 +44,13 @@ export const MODELS: Record<string, ModelConfig> = {
     useQueue: true,
   },
   sunburst: {
+    customImageSize: {
+      maxEdge: 3840,
+      maxPixels: 8_294_400,
+      maxRatio: 3,
+      minPixels: 655_360,
+      multipleOf: 16,
+    },
     editEndpoint: "openai/gpt-image-2.5/sunburst/edit",
     endpoint: "openai/gpt-image-2.5/sunburst/text-to-image",
     maxReferenceImages: 16,
@@ -74,6 +88,13 @@ export const MODELS: Record<string, ModelConfig> = {
       },
       tiers: { price: "ultra", quality: "frontier", speed: "very_slow" },
       useCase: "Highest-ranked text-to-image quality and transparent PNGs",
+    },
+    customImageSize: {
+      maxEdge: 3840,
+      maxPixels: 8_294_400,
+      maxRatio: 3,
+      minPixels: 655_360,
+      multipleOf: 16,
     },
     editEndpoint: "openai/gpt-image-2/image-to-image",
     endpoint: "openai/gpt-image-2",
@@ -323,6 +344,7 @@ export const MODELS: Record<string, ModelConfig> = {
       tiers: { price: "budget", quality: "best", speed: "balanced" },
       useCase: "High-ranked budget generation and large multi-reference edits",
     },
+    customImageSize: { maxPixels: 16_777_216, minPixels: 921_600 },
     editEndpoint: "fal-ai/bytedance/seedream/v4/edit",
     endpoint: "fal-ai/bytedance/seedream/v4/text-to-image",
     falPricing: {
@@ -363,6 +385,7 @@ export const MODELS: Record<string, ModelConfig> = {
       tiers: { price: "standard", quality: "better", speed: "balanced" },
       useCase: "Cheap current Seedream model with good animation/art scores",
     },
+    customImageSize: { maxPixels: 16_777_216, minPixels: 3_686_400 },
     editEndpoint: "fal-ai/bytedance/seedream/v4.5/edit",
     endpoint: "fal-ai/bytedance/seedream/v4.5/text-to-image",
     falPricing: {
@@ -395,6 +418,11 @@ export const MODELS: Record<string, ModelConfig> = {
         sourceUrls: AA_IMAGE_SOURCES,
         textToImage: { elo: 1279, rank: 10 },
       },
+    },
+    customImageSize: {
+      maxPixels: 4_194_304,
+      maxRatio: 16,
+      minPixels: 1_048_576,
     },
     name: "Seedream 5.0 Pro",
     endpoint: "bytedance/seedream/v5/pro/text-to-image",
@@ -429,6 +457,7 @@ export const MODELS: Record<string, ModelConfig> = {
         sourceUrls: AA_IMAGE_SOURCES,
       },
     },
+    customImageSize: { maxPixels: 16_777_216, minPixels: 3_686_400 },
     name: "Seedream 5.0 Lite",
     endpoint: "fal-ai/bytedance/seedream/v5/lite/text-to-image",
     editEndpoint: "fal-ai/bytedance/seedream/v5/lite/edit",
@@ -469,6 +498,12 @@ export const MODELS: Record<string, ModelConfig> = {
       },
       tiers: { price: "premium", quality: "best", speed: "slow" },
       useCase: "Best FLUX quality and high-end editing",
+    },
+    customImageSize: {
+      maxEdge: 2560,
+      maxPixels: 4_194_304,
+      minEdge: 256,
+      multipleOf: 16,
     },
     editEndpoint: "fal-ai/flux-2-max/edit",
     endpoint: "fal-ai/flux-2-max",
@@ -513,6 +548,12 @@ export const MODELS: Record<string, ModelConfig> = {
       tiers: { price: "budget", quality: "best", speed: "balanced" },
       useCase: "Production FLUX quality at a low per-megapixel price",
     },
+    customImageSize: {
+      maxEdge: 2560,
+      maxPixels: 4_194_304,
+      minEdge: 256,
+      multipleOf: 16,
+    },
     editEndpoint: "fal-ai/flux-2-pro/edit",
     endpoint: "fal-ai/flux-2-pro",
     falPricing: {
@@ -554,6 +595,12 @@ export const MODELS: Record<string, ModelConfig> = {
       },
       tiers: { price: "standard", quality: "best", speed: "balanced" },
       useCase: "FLUX quality with guidance and step controls",
+    },
+    customImageSize: {
+      maxEdge: 2560,
+      maxPixels: 4_194_304,
+      minEdge: 256,
+      multipleOf: 16,
     },
     editEndpoint: "fal-ai/flux-2-flex/edit",
     endpoint: "fal-ai/flux-2-flex",
@@ -599,6 +646,7 @@ export const MODELS: Record<string, ModelConfig> = {
       tiers: { price: "variable", quality: "better", speed: "fast" },
       useCase: "Open FLUX.2 quality with low average cost",
     },
+    customImageSize: { maxEdge: 2048, minEdge: 512 },
     editEndpoint: "fal-ai/flux-2/edit",
     endpoint: "fal-ai/flux-2",
     falPricing: {
@@ -629,6 +677,7 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
   "flux2-turbo": {
+    customImageSize: { maxEdge: 2048, minEdge: 512 },
     endpoint: "fal-ai/flux-2/turbo",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_JUL_2026,
@@ -684,6 +733,7 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
   "flux-fast": {
+    customImageSize: {},
     endpoint: "fal-ai/flux/schnell",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_AT,
@@ -710,6 +760,7 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
   recraft: {
+    customImageSize: {},
     endpoint: "fal-ai/recraft-v3",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_AT,
@@ -782,6 +833,7 @@ export const MODELS: Record<string, ModelConfig> = {
         textToImage: { elo: 1215, rank: 25 },
       },
     },
+    customImageSize: {},
     endpoint: "fal-ai/recraft/v4/text-to-image",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_JUL_2026,
@@ -805,6 +857,7 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
   ideogram: {
+    customImageSize: {},
     endpoint: "fal-ai/ideogram/v3",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_AT,
@@ -839,6 +892,7 @@ export const MODELS: Record<string, ModelConfig> = {
         textToImage: { elo: 1220, rank: 19 },
       },
     },
+    customImageSize: { maxEdge: 3840, minEdge: 512, multipleOf: 16 },
     name: "Ideogram V4",
     endpoint: "ideogram/v4",
     type: "generation",
@@ -922,6 +976,7 @@ export const MODELS: Record<string, ModelConfig> = {
       tiers: { price: "budget", quality: "better", speed: "slow" },
       useCase: "Low-cost open-weight text and design generation",
     },
+    customImageSize: {},
     endpoint: "fal-ai/qwen-image",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_AT,
@@ -956,6 +1011,7 @@ export const MODELS: Record<string, ModelConfig> = {
       tiers: { price: "budget", quality: "better", speed: "unknown" },
       useCase: "Strong quality per dollar - 11th on text-to-image at $30/1k",
     },
+    customImageSize: { maxPixels: 4_194_304, minPixels: 262_144 },
     endpoint: "fal-ai/qwen-image-3/text-to-image",
     falPricing: {
       checkedAt: "2026-08-05",

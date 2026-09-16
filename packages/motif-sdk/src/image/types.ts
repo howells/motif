@@ -10,6 +10,7 @@
 import type { Result } from "neverthrow";
 
 import type { MotifError } from "../server";
+import type { FalFetch } from "../types";
 
 /**
  * Image provider id. All four Phase 1b adapters are implemented
@@ -58,6 +59,13 @@ export interface MotifImageConfig {
   replicate?: {
     apiToken?: string;
   };
+  /**
+   * Replaces global fetch for every provider request. Remote image URLs passed
+   * to `edit` are still downloaded by the AI SDK with global fetch.
+   */
+  fetch?: FalFetch;
+  /** Retries per call for retryable provider failures. AI SDK default: 2. */
+  maxRetries?: number;
   /** fal provider overrides. `apiKey` falls back to `FAL_KEY`. */
   fal?: {
     apiKey?: string;

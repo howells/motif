@@ -13,6 +13,8 @@ import { createReplicate } from "@ai-sdk/replicate";
 import type { ImageModel } from "ai";
 
 import { MotifError } from "../server";
+import type { FalFetch } from "../types";
+import { toProviderFetch } from "./fetch";
 import type { ImageProviderAdapter } from "./provider";
 
 /** Env var read for the Replicate API token when `apiToken` is not in config. */
@@ -35,7 +37,11 @@ const REPLICATE_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
  * token), else the `REPLICATE_API_TOKEN` env var. Throws `MotifError` when
  * neither is present (callers translate this into a `Result.err`).
  */
-export function resolveModel(modelId: string, apiKey?: string): ImageModel {
+export function resolveModel(
+  modelId: string,
+  apiKey?: string,
+  fetch?: FalFetch
+): ImageModel {
   const token = apiKey ?? process.env[REPLICATE_API_KEY_ENV];
   if (token === undefined || token === "") {
     throw new MotifError(
@@ -44,7 +50,9 @@ export function resolveModel(modelId: string, apiKey?: string): ImageModel {
     );
   }
   // Replicate's SDK option is `apiToken`, not `apiKey`.
-  return createReplicate({ apiToken: token }).image(modelId);
+  return createReplicate({ apiToken: token, ...toProviderFetch(fetch) }).image(
+    modelId
+  );
 }
 
 /** The Replicate provider adapter registered in the provider registry. */

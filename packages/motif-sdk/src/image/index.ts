@@ -23,6 +23,7 @@ import type { Result } from "neverthrow";
 
 import { falHttpError, isFalAccountLocked } from "../errors";
 import { MotifError } from "../server";
+import type { FalFetch } from "../types";
 import { costForImages } from "./cost";
 import type { MotifImageDeps } from "./deps";
 import { getProviderAdapter } from "./provider";
@@ -109,7 +110,12 @@ export function createMotifImage(
     const provider = resolveProvider(opts.provider);
     try {
       const modelId = opts.model;
-      const model = resolveModelFn(provider, modelId, apiKeyFor(provider));
+      const model = resolveModelFn(
+        provider,
+        modelId,
+        apiKeyFor(provider),
+        config.fetch
+      );
       const result = await generateImageFn({
         model,
         prompt: opts.prompt,
@@ -119,6 +125,9 @@ export function createMotifImage(
           ? {}
           : { aspectRatio: opts.aspectRatio }),
         ...(opts.seed === undefined ? {} : { seed: opts.seed }),
+        ...(config.maxRetries === undefined
+          ? {}
+          : { maxRetries: config.maxRetries }),
         ...(opts.signal === undefined ? {} : { abortSignal: opts.signal }),
         ...(opts.headers === undefined ? {} : { headers: opts.headers }),
         ...(opts.providerOptions === undefined
@@ -137,7 +146,12 @@ export function createMotifImage(
     const provider = resolveProvider(opts.provider);
     try {
       const modelId = opts.model;
-      const model = resolveModelFn(provider, modelId, apiKeyFor(provider));
+      const model = resolveModelFn(
+        provider,
+        modelId,
+        apiKeyFor(provider),
+        config.fetch
+      );
       const result = await generateImageFn({
         model,
         prompt: {
@@ -147,6 +161,9 @@ export function createMotifImage(
         },
         ...(opts.n === undefined ? {} : { n: opts.n }),
         ...(opts.seed === undefined ? {} : { seed: opts.seed }),
+        ...(config.maxRetries === undefined
+          ? {}
+          : { maxRetries: config.maxRetries }),
         ...(opts.signal === undefined ? {} : { abortSignal: opts.signal }),
         ...(opts.headers === undefined ? {} : { headers: opts.headers }),
         ...(opts.providerOptions === undefined
@@ -310,9 +327,10 @@ async function runBestOfN(
 function defaultResolveModel(
   provider: ImageProviderId,
   modelId: string,
-  apiKey?: string
+  apiKey?: string,
+  fetch?: FalFetch
 ): ImageModel {
-  return getProviderAdapter(provider).resolveModel(modelId, apiKey);
+  return getProviderAdapter(provider).resolveModel(modelId, apiKey, fetch);
 }
 
 /** Map the AI SDK result → normalized MotifImageResult (with cost + requestId). */

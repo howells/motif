@@ -39,6 +39,17 @@ export interface CustomImageSize {
   height: number;
   width: number;
 }
+/** Limits an endpoint puts on an exact `{ width, height }` image size. */
+export interface ImageSizeBounds {
+  /** Largest width or height over smallest, e.g. 3 for 3:1. */
+  maxRatio?: number;
+  maxEdge?: number;
+  maxPixels?: number;
+  minEdge?: number;
+  minPixels?: number;
+  /** Both edges must be multiples of this. Motif uses 16 when absent. */
+  multipleOf?: number;
+}
 export type ImageSize = GptImageSize | FalImageSizePreset | CustomImageSize;
 
 /** How the model accepts image dimensions */
@@ -106,6 +117,12 @@ export interface ProviderRoute {
 
 export interface ModelConfig {
   benchmark?: ModelBenchmark;
+  /**
+   * The fal endpoint's `image_size` also takes an exact `{ width, height }`,
+   * within these limits read from fal's OpenAPI schema. Absent means only the
+   * named presets are sent. Only meaningful with `sizeMode: "image_size_enum"`.
+   */
+  customImageSize?: ImageSizeBounds;
   editEndpoint?: string;
   editImagesField?: "image_urls" | "image_url";
   endpoint: string;
@@ -333,8 +350,13 @@ export interface QueuedToolJob {
 
 /** ─── Configuration ──────────────────────────────────────────── */
 
+/** The network seam: a `fetch`-shaped function. */
+export type FalFetch = (url: string, init: RequestInit) => Promise<Response>;
+
 export interface FalClientConfig {
   apiKey: string;
+  /** Replaces global fetch for every request. Retries and timeouts still apply. */
+  fetch?: FalFetch;
   /** Max retry attempts for 429/5xx errors (default 3, set 0 to disable) */
   retries?: number;
   /** Request timeout in ms (default 120_000) */
