@@ -140,17 +140,30 @@ function stringField(
 }
 
 /**
- * A fal endpoint id: `<owner>/<app>[/<path>]`, as in `fal-ai/flux-2-pro` or
- * `openai/gpt-image-2/edit`. Not preceded by a URL, path or word character,
- * and never a MIME type.
+ * The owners fal hosts Motif's Models under. An endpoint id is one of these
+ * followed by a path, as in `fal-ai/flux-2-pro` or `openai/gpt-image-2/edit`;
+ * the registry test fails when a Model lives under an owner missing here.
  */
-const ENDPOINT_PATTERN =
-  /(?<![\w./:-])(?!(?:application|audio|font|image|message|model|multipart|text|video)\/)[a-z][a-z0-9-]*(?:\/[\w.-]*[\w-])+/g;
+const ENDPOINT_OWNERS = [
+  "alibaba",
+  "bria",
+  "bytedance",
+  "clarityai",
+  "fal-ai",
+  "google",
+  "ideogram",
+  "meshy",
+  "microsoft",
+  "openai",
+  "topaz",
+  "xai",
+];
 
-/** Every endpoint id has a hyphen, a digit or a sub-path, which `and/or` lacks. */
-function looksLikeEndpoint(candidate: string): boolean {
-  return /[-\d]/.test(candidate) || candidate.split("/").length > 2;
-}
+/** An endpoint id not inside a URL or a longer path. */
+const ENDPOINT_PATTERN = new RegExp(
+  `(?<![\\w./:-])(?:${ENDPOINT_OWNERS.join("|")})(?:/[\\w.-]*[\\w-])+`,
+  "g"
+);
 
 /**
  * An upstream message with each fal endpoint replaced by the Task name, so a
@@ -158,9 +171,7 @@ function looksLikeEndpoint(candidate: string): boolean {
  * Model behind it.
  */
 export function withoutEndpoints(message: string, task: string): string {
-  return message.replaceAll(ENDPOINT_PATTERN, (candidate) =>
-    looksLikeEndpoint(candidate) ? task : candidate
-  );
+  return message.replaceAll(ENDPOINT_PATTERN, task);
 }
 
 /**

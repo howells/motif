@@ -8,8 +8,7 @@
  * says so. Today no Task is bench-ranked: the bench holds two human ratings,
  * both on one model, which is not an order.
  *
- * Model ids are the short aliases used everywhere else: a key of `MODELS` or
- * of `FAL_TOOLS`. `resolveTask` in `./resolve` is the only place a Model is
+ * Model ids are the short aliases `-m` and `TaskInput.model` accept. `resolveTask` in `./resolve` is the only place a Model is
  * chosen from these lists.
  *
  * A Task can have modes: a variant of the job a caller names explicitly, such
@@ -46,7 +45,7 @@ export type Capability =
   | "video";
 
 export interface RankedModel {
-  /** A key of `MODELS` or `FAL_TOOLS`. */
+  /** A Model id, as accepted by `-m` or `TaskInput.model`. */
   readonly model: string;
   /** The Tier this Model is offered at. */
   readonly tier: Tier;

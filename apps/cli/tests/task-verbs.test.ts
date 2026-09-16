@@ -797,6 +797,12 @@ describe("TASK_FAILED messages", () => {
       "Expected image/png and/or video/mp4 at https://fal.ai/models/fal-ai/x or /tmp/a-1/b";
     expect(withoutEndpoints(message, "task")).toBe(message);
   });
+
+  it("keeps relative paths and body keys", () => {
+    const message =
+      "Could not write out-1/a.png from packages/motif-sdk/src at body/image_urls/0";
+    expect(withoutEndpoints(message, "task")).toBe(message);
+  });
 });
 
 describe("removed surface", () => {

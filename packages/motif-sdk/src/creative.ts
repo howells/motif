@@ -1,4 +1,3 @@
-import type { GenerationModelName } from "./models";
 import type { AspectRatio } from "./types";
 
 // oxlint-disable-next-line no-control-regex -- intentionally matches control characters for prompt sanitization
@@ -51,8 +50,8 @@ export interface LookOption extends CreativeOption {
    * change more than the others.
    */
   experimental?: boolean;
-  /** Default generation model alias, e.g. `"flux2-pro"`. */
-  model: GenerationModelName;
+  /** Default generation Model id, e.g. `"flux2-pro"`. */
+  model: string;
 }
 
 /** Structured details returned when a creative direction id is not recognized. */
