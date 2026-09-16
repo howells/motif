@@ -39,6 +39,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 | Make an image or video larger without losing detail. | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
 | Fix noise, softness, damage, colour or tone without changing the size. | `motif restore [image]` | Making an image larger (upscale). |
 | Change the light in a photo without regenerating it. | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |
+| Redraw an image in the style of a reference image. | `motif restyle [image] --like <image>` | A house style kept across images (generate with a look). |
 | Mask a named thing in an image or video. | `motif segment "what" [image-or-video]` | The background behind the subject (cutout), or boxes without masks (ask detect). |
 | Answer a question about an image, caption it, count or find things in it. | `motif ask "question" [image]` | Pixel masks of a named thing (segment). |
 | Split an image into transparent layers. | `motif layers [image]` | Masking one named thing (segment), or removing the background (cutout). |

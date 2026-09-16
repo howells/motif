@@ -111,6 +111,7 @@ const DRY_RUNS: { args: string[]; mode?: string }[] = [
   { args: ["relight", "warm dusk light", SOURCE] },
   { args: ["relight", "--even", SOURCE], mode: "even" },
   { args: ["restore", SOURCE] },
+  { args: ["restyle", SOURCE, "--like", SOURCE] },
   { args: ["restore", "--noise", SOURCE], mode: "noise" },
   { args: ["restore", "--dark", SOURCE], mode: "dark" },
   { args: ["segment", "the chair", SOURCE] },
@@ -381,6 +382,46 @@ describe("relight", () => {
   });
 });
 
+describe("restyle", () => {
+  it("sends the source and one --like reference to the style Model", async () => {
+    const home = tempHome();
+    writeFileSync(join(home, "gouache.png"), PNG_1X1);
+    const result = await runMotifIn(home, [
+      "restyle",
+      join(home, "in.png"),
+      "--like",
+      join(home, "gouache.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.stderr).toBe("");
+    const payload = parseJson(result.stdout);
+    expect(payload).toMatchObject({
+      source: join(home, "in.png"),
+      task: "restyle",
+    });
+    const request = asRecord(payload.request);
+    expect(request.content_image_url).toBeTypeOf("string");
+    expect(request.style_image_url).toBeTypeOf("string");
+  });
+
+  it("refuses a restyle without --like", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "restyle",
+      join(home, "in.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(String(parseJson(result.stderr).message)).toContain("--like");
+  });
+});
+
 describe("history prompts", () => {
   it("tags a Task run once, replacing an earlier Task's tag (MOT-48 #3)", () => {
     expect(historyPrompt("layers", "[layers]")).toBe("[layers]");
@@ -523,6 +564,7 @@ describe("no model names in human output", () => {
     ["upscale", SOURCE],
     ["segment", "the chair", SOURCE],
     ["relight", SOURCE, "--mood", "dawn"],
+    ["restyle", SOURCE, "--like", SOURCE],
   ])("keeps them out of the human dry run of %j", async (...args) => {
     const home = tempHome();
     const result = await runMotifIn(home, [

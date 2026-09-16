@@ -123,6 +123,25 @@ function moodInput(options: VerbOptions, format: OutputFormat): TaskInput {
   return { mood: parsed(format, () => validateEnumOption(mood, ids, "mood")) };
 }
 
+/** `--like <path>`, the one style Reference restyle needs. */
+async function likeInput(
+  options: VerbOptions,
+  format: OutputFormat
+): Promise<TaskInput> {
+  const like = stringOption(options, "like");
+  if (like === undefined) {
+    invalid(
+      "motif restyle needs a style reference: motif restyle [image] --like <image>",
+      format
+    );
+  }
+  try {
+    return { references: [await imageSource(like)] };
+  } catch (error) {
+    handleError(error, "INVALID_IMAGE_PATH", format);
+  }
+}
+
 export const TASK_VERBS: readonly VerbDefinition[] = [
   {
     command: "animate",
@@ -387,6 +406,21 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     task: "restore",
     usage: "[image]",
     verb: "Restoring",
+  },
+  {
+    command: "restyle",
+    input: likeInput,
+    modes: [],
+    options: (command) =>
+      command.option(
+        "--like <image>",
+        "Style reference image to redraw it like"
+      ),
+    promptFirst: never,
+    sourceKind: "image",
+    task: "restyle",
+    usage: "[image]",
+    verb: "Restyling",
   },
   {
     command: "segment",

@@ -116,6 +116,12 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     ["light", "lighting", "shadows"]
   ),
   verbRow(
+    "restyle",
+    "motif restyle [image] --like <image>",
+    "redraw in a reference's style",
+    ["style-transfer", "stylise", "stylize"]
+  ),
+  verbRow(
     "segment",
     'motif segment "what" [image-or-video]',
     "mask a named thing",

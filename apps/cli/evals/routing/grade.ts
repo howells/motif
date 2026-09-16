@@ -166,6 +166,7 @@ const SUBCOMMANDS = new Set([
   "reframe",
   "relight",
   "restore",
+  "restyle",
   "segment",
   "sheet",
   "studio",

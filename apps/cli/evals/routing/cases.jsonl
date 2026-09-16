@@ -43,3 +43,4 @@
 {"id":"tile-brick","request":"make a seamless repeating brick wall texture","command":"tile","source":"coverage: tile, MOT-53"}
 {"id":"mesh-chair","request":"make a 3D model of the chair in chair.png","command":"mesh","args":["chair.png"],"source":"coverage: mesh, MOT-53"}
 {"id":"relight-mood-dawn","request":"give kitchen.jpg our dawn light without regenerating the photo","command":"relight","flags":["--mood dawn"],"args":["kitchen.jpg"],"source":"MOT-55: relight with a house mood"}
+{"id":"restyle-like-gouache","request":"redraw room.jpg in the style of gouache.jpg","command":"restyle","flags":["--like gouache.jpg"],"args":["room.jpg"],"source":"MOT-56: restyle from one style reference"}
