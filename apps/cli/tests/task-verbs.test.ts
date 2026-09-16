@@ -1,12 +1,12 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 import { CREATIVE_TAXONOMY, FAL_TOOL_IDS, MODELS } from "@howells/motif-sdk";
 import type { CreativeField } from "@howells/motif-sdk";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { historyPrompt } from "../src/commands/task-run";
+import { generationRecord, historyPrompt } from "../src/commands/task-run";
 import { TASK_VERBS } from "../src/commands/verbs/task-verbs";
 import { withoutEndpoints } from "../src/utils/task-model";
 import { runMotifIn } from "./cli-env";
@@ -105,7 +105,7 @@ const DRY_RUNS: { args: string[]; mode?: string }[] = [
   { args: ["material", SOURCE] },
   { args: ["material", "--extract", "the rug", SOURCE], mode: "extract" },
   { args: ["mesh", SOURCE] },
-  { args: ["mesh", SOURCE, "--objects", "chair, lamp"], mode: "objects" },
+  { args: ["mesh", SOURCE, "--objects", "chair"], mode: "objects" },
   { args: ["mesh", "--body", SOURCE], mode: "body" },
   { args: ["mesh", SOURCE, "--rig"] },
   { args: ["reframe", "--og", SOURCE] },
@@ -487,14 +487,183 @@ describe("mesh", () => {
   );
 });
 
+describe("value flags never swallow --dry-run", () => {
+  // Without a key, a run that got past parsing would exit 3 or 5; exit 2
+  // with INVALID_OPTION means it stopped before any request.
+  it.each([
+    [["ask", SOURCE, "--detect"], "--detect"],
+    [["ask", SOURCE, "--point"], "--point"],
+    [["material", SOURCE, "--extract"], "--extract"],
+    [["erase", SOURCE, "--with"], "--with"],
+    [["upscale", SOURCE, "--tier"], "--tier"],
+    [["vary", SOURCE, "--prompt"], "--prompt"],
+    [["a cat", "-m"], "--model"],
+  ])("refuses %j followed by --dry-run", async (args, flag) => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      ...withSource(args, home),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    const error = parseJson(result.stderr);
+    expect(error.code).toBe("INVALID_OPTION");
+    expect(error.message).toBe(`${flag} needs a value; got --dry-run`);
+  });
+});
+
+describe("review fixes: relight, restyle, mesh", () => {
+  it.each([
+    [["relight", "{missing}", "--mood", "dawn"]],
+    [["relight", "{missing}", "low sun"]],
+    [["erase", "{missing}"]],
+  ])(
+    "refuses a missing image path instead of reading it as the prompt: %j",
+    async (args) => {
+      const home = tempHome();
+      seedHistory(home);
+      const missing = join(home, "kitchne.jpg");
+      const result = await runMotifIn(home, [
+        ...args.map((arg) => (arg === "{missing}" ? missing : arg)),
+        "--dry-run",
+        "--format",
+        "json",
+      ]);
+
+      expect(result.code).toBe(2);
+      const error = parseJson(result.stderr);
+      expect(error.code).toBe("INVALID_IMAGE_PATH");
+      expect(String(error.message)).toContain(missing);
+    }
+  );
+
+  it("refuses --mood alongside --even", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "relight",
+      "--even",
+      join(home, "in.png"),
+      "--mood",
+      "dawn",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(parseJson(result.stderr).message).toBe(
+      "motif relight --even takes no --mood"
+    );
+  });
+
+  it("suggests only dropping --rig or -m when -m can't rig", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "mesh",
+      join(home, "in.png"),
+      "--rig",
+      "-m",
+      "trellis-2",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    const suggestions = parseJson(result.stderr).suggestions;
+    expect(suggestions).toStrictEqual([
+      "Drop -m to use a Model that can do --rig",
+      "Or drop --rig",
+    ]);
+  });
+
+  it("names a missing --like file as the style reference", async () => {
+    const home = tempHome();
+    const missing = join(home, "gouache.png");
+    const result = await runMotifIn(home, [
+      "restyle",
+      join(home, "in.png"),
+      "--like",
+      missing,
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(parseJson(result.stderr).message).toBe(
+      `Style reference not found: ${missing}`
+    );
+  });
+
+  it("refuses --like given twice", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "restyle",
+      join(home, "in.png"),
+      "--like",
+      join(home, "in.png"),
+      "--like",
+      join(home, "in.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(String(parseJson(result.stderr).message)).toContain(
+      "--like takes one image"
+    );
+  });
+
+  it.each([
+    ["relight", ["prompt", "mood", "mask", "mode"], "[image] [light]"],
+    ["erase", ["prompt", "mask", "mode"], "[image]"],
+    ["restyle", ["like"], "--like <image>"],
+    ["mesh", ["rig", "mode", "prompt"], "[image] [--rig]"],
+    ["reframe", ["aspect", "mode"], "[image] --og"],
+    ["try-on", ["garment"], "--garment <image>"],
+  ])("describes %s from its own flags", async (command, properties, usage) => {
+    const result = await runMotifIn(tempHome(), [
+      "--describe",
+      command,
+      "--format",
+      "json",
+    ]);
+
+    const schema = parseJson(result.stdout);
+    expect(String(schema.usage)).toContain(usage);
+    const input = asRecord(asRecord(schema.input).properties);
+    for (const property of properties) {
+      expect(input, property).toHaveProperty([property]);
+    }
+  });
+
+  it("lists the mood ids as relight's mood enum", async () => {
+    const result = await runMotifIn(tempHome(), [
+      "--describe",
+      "relight",
+      "--format",
+      "json",
+    ]);
+
+    const input = asRecord(asRecord(parseJson(result.stdout).input).properties);
+    expect(asRecord(input.mood).enum).toStrictEqual(
+      CREATIVE_TAXONOMY.mood.map((option) => option.id)
+    );
+  });
+});
+
 describe("mesh --objects", () => {
-  it("sends the named objects as the prompt", async () => {
+  it("sends the one named object as the prompt", async () => {
     const home = tempHome();
     const result = await runMotifIn(home, [
       "mesh",
       join(home, "in.png"),
       "--objects",
-      "chair, lamp",
+      "chair",
       "--dry-run",
       "--format",
       "json",
@@ -502,11 +671,11 @@ describe("mesh --objects", () => {
 
     expect(result.stderr).toBe("");
     expect(asRecord(parseJson(result.stdout).request)).toMatchObject({
-      prompt: "chair, lamp",
+      prompt: "chair",
     });
   });
 
-  it("asks for the objects when none are named", async () => {
+  it("asks for the object when none is named", async () => {
     const home = tempHome();
     const result = await runMotifIn(home, [
       "mesh",
@@ -518,9 +687,32 @@ describe("mesh --objects", () => {
     ]);
 
     expect(result.code).toBe(2);
-    expect(String(parseJson(result.stderr).message)).toContain(
-      "the objects to reconstruct"
+    expect(String(parseJson(result.stderr).message)).toContain("--objects");
+  });
+});
+
+describe("history references", () => {
+  it("records a --like path beside the source", () => {
+    const record = generationRecord(
+      {
+        command: "restyle",
+        input: {},
+        outputSuffix: "-restyle",
+        referencePaths: ["gouache.png", "https://example.com/coat.png"],
+        sourceKind: "image",
+        task: "restyle",
+        verb: "Restyling",
+        writesFiles: true,
+      },
+      { cost: { basis: "projected", usd: 0.04 }, model: "telestyle-v2" },
+      { aspect: "1:1", path: "room.png", prompt: "", resolution: "1K" },
+      { path: "/out/room-restyle.png" }
     );
+
+    expect(record).toMatchObject({
+      editedFrom: resolve("room.png"),
+      references: [resolve("gouache.png"), "https://example.com/coat.png"],
+    });
   });
 });
 
@@ -708,7 +900,7 @@ describe("no model names in human output", () => {
     ["relight", SOURCE, "--mood", "dawn"],
     ["restyle", SOURCE, "--like", SOURCE],
     ["try-on", SOURCE, "--garment", SOURCE],
-    ["mesh", SOURCE, "--objects", "chair, lamp"],
+    ["mesh", SOURCE, "--objects", "chair"],
   ])("keeps them out of the human dry run of %j", async (...args) => {
     const home = tempHome();
     const result = await runMotifIn(home, [

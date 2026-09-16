@@ -67,21 +67,36 @@ function exitMissingKey(key: string, format: OutputFormat): never {
 }
 
 /** Task flags a Model can refuse, keyed by the SDK capability they ask for. */
-const FLAG_BLOCKERS: Readonly<Record<string, string>> = { rig: "--rig" };
+const FLAG_BLOCKERS: Readonly<Record<string, string>> = {
+  maskImageUrl: "--mask",
+  rig: "--rig",
+  "transparent output": "--transparent",
+};
 
 /**
  * The refusal in the flag's words, without the Model's name: the SDK says
  * "trellis-2 (model) cannot do rig.", the CLI says which flag to drop.
  */
-function refusalMessage(resolution: RefusedResolution): string {
+function flagRefusal(
+  resolution: RefusedResolution
+): { message: string; suggestions: string[] } | undefined {
   const flag = FLAG_BLOCKERS[resolution.blockedBy];
   if (flag === undefined) {
-    return resolution.message;
+    return undefined;
   }
   const task = resolution.task ?? "this Task";
   return resolution.message.startsWith("No Model")
-    ? `No Model for this ${task} mode can do ${flag}: drop the mode flag or ${flag}.`
-    : `The Model named with -m can't do ${flag}: drop -m to use one that can, or drop ${flag}.`;
+    ? {
+        message: `No Model for this ${task} mode can do ${flag}: drop the mode flag or ${flag}.`,
+        suggestions: [`Drop ${flag}`, "Or drop the mode flag"],
+      }
+    : {
+        message: `The Model named with -m can't do ${flag}: drop -m to use one that can, or drop ${flag}.`,
+        suggestions: [
+          `Drop -m to use a Model that can do ${flag}`,
+          `Or drop ${flag}`,
+        ],
+      };
 }
 
 /**
@@ -96,6 +111,7 @@ export function exitNoModelAvailable(
   if (resolution.blockedBy === "key") {
     exitMissingKey(resolution.missingKey ?? "FAL_KEY", format);
   }
+  const refused = flagRefusal(resolution);
   const code =
     resolution.blockedBy === "unknown-model"
       ? "UNKNOWN_MODEL"
@@ -109,7 +125,8 @@ export function exitNoModelAvailable(
         task: resolution.task,
         unblockedBy: resolution.unblockedBy,
       },
-      message: refusalMessage(resolution),
+      message: refused?.message ?? resolution.message,
+      ...(refused !== undefined && { suggestions: refused.suggestions }),
     },
     format
   );

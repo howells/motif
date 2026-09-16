@@ -44,6 +44,8 @@ export interface Generation {
   cost: number | null;
   editedFrom?: string;
   id: string;
+  /** Reference images the run took besides its source, e.g. restyle's --like. */
+  references?: string[];
   /** Look id, when the run used one. */
   look?: string;
   model: string;

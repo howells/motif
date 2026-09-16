@@ -11,6 +11,9 @@
 import { CREATIVE_TAXONOMY, LOOKS, TASKS } from "@howells/motif-sdk";
 import type { TaskId } from "@howells/motif-sdk";
 
+import { TASK_VERBS } from "./task-verbs";
+import { tableUsage } from "./verb-kit";
+
 export interface CommandTask {
   /**
    * Key under `--describe` `commands`. `series run` is the one subcommand with
@@ -37,13 +40,17 @@ export interface CommandTask {
  */
 function verbRow(
   task: TaskId,
-  usage: string,
   summary: string,
   tasks: readonly string[]
 ): CommandTask {
+  const definition = TASK_VERBS.find((verb) => verb.command === task);
   return {
     command: task,
-    usage,
+    // vary is the one verb registered outside the Task verb definitions.
+    usage:
+      definition === undefined
+        ? `motif ${task} [image]`
+        : tableUsage(definition),
     summary,
     whenToUse: TASKS[task].summary,
     notFor: TASKS[task].notFor,
@@ -64,124 +71,114 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     tasks: ["create", "draw", "edit", "illustrate", "make", "render"],
     inHelp: true,
   },
-  verbRow("vary", "motif vary [image]", "variations of an image", [
+  verbRow("vary", "variations of an image", [
     "alternatives",
     "remix",
     "variant",
     "variation",
     "variations",
   ]),
-  verbRow(
-    "erase",
-    'motif erase "what" [image]',
-    "remove something, fill the gap",
-    ["cleanup", "delete", "erase-object", "inpaint", "remove", "remove-object"]
-  ),
-  verbRow("cutout", "motif cutout [image-or-video]", "remove the background", [
+  verbRow("erase", "remove something, fill the gap", [
+    "cleanup",
+    "delete",
+    "erase-object",
+    "inpaint",
+    "remove",
+    "remove-object",
+  ]),
+  verbRow("cutout", "remove the background", [
     "background",
     "isolate",
     "remove-background",
     "rmbg",
     "transparent-background",
   ]),
-  verbRow(
-    "reframe",
-    "motif reframe --og [image]",
-    "extend to a new aspect ratio",
-    ["crop", "expand", "extend", "outpaint", "ratio", "resize", "uncrop"]
-  ),
-  verbRow("upscale", "motif upscale [image-or-video]", "make it larger", [
+  verbRow("reframe", "extend to a new aspect ratio", [
+    "crop",
+    "expand",
+    "extend",
+    "outpaint",
+    "ratio",
+    "resize",
+    "uncrop",
+  ]),
+  verbRow("upscale", "make it larger", [
     "enlarge",
     "hi-res",
     "super-resolution",
   ]),
-  verbRow(
-    "restore",
-    "motif restore [image]",
-    "fix noise, blur, damage, colour",
-    [
-      "colorize",
-      "colourise",
-      "deblur",
-      "denoise",
-      "improve",
-      "repair",
-      "sharpen",
-    ]
-  ),
-  verbRow(
-    "relight",
-    'motif relight [image] "light"',
-    "relight a photo, or --mood <id>",
-    ["light", "lighting", "shadows"]
-  ),
-  verbRow(
-    "restyle",
-    "motif restyle [image] --like <image>",
-    "redraw in a reference's style",
-    ["style-transfer", "stylise", "stylize"]
-  ),
-  verbRow(
-    "segment",
-    'motif segment "what" [image-or-video]',
-    "mask a named thing",
-    ["cut-out", "mask", "select"]
-  ),
-  verbRow(
-    "ask",
-    'motif ask "question" [image]',
-    "caption, count, find or ask",
-    ["caption", "count", "describe-image", "detect", "identify", "ocr", "query"]
-  ),
-  verbRow("layers", "motif layers [image]", "split into transparent layers", [
+  verbRow("restore", "fix noise, blur, damage, colour", [
+    "colorize",
+    "colourise",
+    "deblur",
+    "denoise",
+    "improve",
+    "repair",
+    "sharpen",
+  ]),
+  verbRow("relight", "relight to a described light or a mood", [
+    "light",
+    "lighting",
+    "shadows",
+  ]),
+  verbRow("restyle", "redraw in a reference's style", [
+    "style-transfer",
+    "stylise",
+    "stylize",
+  ]),
+  verbRow("segment", "mask a named thing", ["cut-out", "mask", "select"]),
+  verbRow("ask", "caption, count, find or ask", [
+    "caption",
+    "count",
+    "describe-image",
+    "detect",
+    "identify",
+    "ocr",
+    "query",
+  ]),
+  verbRow("layers", "split into transparent layers", [
     "decompose",
     "layer",
     "separate",
     "split",
   ]),
-  verbRow("vectorize", "motif vectorize [image]", "trace to a clean SVG", [
+  verbRow("vectorize", "trace to a clean SVG", [
     "svg",
     "trace",
     "vector",
     "vectorise",
   ]),
-  verbRow("map", "motif map [image]", "depth, edge, normal or pose map", [
+  verbRow("map", "depth, edge, normal or pose map", [
     "control-map",
     "depth",
     "edges",
     "normals",
     "pose",
   ]),
-  verbRow(
-    "material",
-    "motif material [image]",
-    "PBR maps from a surface photo",
-    ["pbr", "roughness", "surface"]
-  ),
-  verbRow(
-    "tile",
-    'motif tile "prompt" [image]',
-    "a seamlessly tiling texture",
-    ["pattern", "seamless", "texture", "tiling"]
-  ),
-  verbRow(
-    "mesh",
-    "motif mesh [image] [--rig]",
-    "a textured 3D mesh, rigged with --rig",
-    ["3d", "glb", "model-3d", "rig"]
-  ),
-  verbRow(
-    "try-on",
-    "motif try-on [image] --garment <image>",
-    "dress a person in a garment",
-    ["dress", "outfit", "wear"]
-  ),
-  verbRow(
-    "animate",
-    'motif animate "prompt" [image]',
-    "turn an image into a video",
-    ["clip", "motion", "movie", "video"]
-  ),
+  verbRow("material", "PBR maps from a surface photo", [
+    "pbr",
+    "roughness",
+    "surface",
+  ]),
+  verbRow("tile", "a seamlessly tiling texture", [
+    "pattern",
+    "seamless",
+    "texture",
+    "tiling",
+  ]),
+  verbRow("mesh", "a textured 3D mesh, rigged with --rig", [
+    "3d",
+    "glb",
+    "model-3d",
+    "rig",
+  ]),
+  verbRow("try-on", "dress a person in a garment", ["dress", "outfit", "wear"]),
+  verbRow("animate", "turn an image into a video", [
+    "clip",
+    "motion",
+    "movie",
+    "video",
+  ]),
   {
     command: "sheet",
     usage: "motif sheet <images...>",
@@ -346,7 +343,7 @@ export function taskCorrection(
   if (firstPlaceholder === -1) {
     return { invocation: row.usage, row };
   }
-  const placeholders = tokens.slice(firstPlaceholder);
+  const { flags, placeholders } = usageSlots(tokens.slice(firstPlaceholder));
   const unlimited = placeholders.some((token) => token.includes("..."));
   const overflow = rest.length - placeholders.length;
   const args =
@@ -357,9 +354,39 @@ export function taskCorrection(
     invocation: [
       ...tokens.slice(0, firstPlaceholder),
       ...args.map(shellWord),
+      ...flags,
     ].join(" "),
     row,
   };
+}
+
+/**
+ * A usage's tail split into positional placeholders and the flags it
+ * requires, e.g. `[image] --like <image>`. Optional flags such as `[--rig]`
+ * are left out of a correction.
+ */
+function usageSlots(tokens: readonly string[]): {
+  flags: string[];
+  placeholders: string[];
+} {
+  const flags: string[] = [];
+  const placeholders: string[] = [];
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index] ?? "";
+    if (token.startsWith("[--")) {
+      while (!(tokens[index] ?? "]").endsWith("]")) {
+        index += 1;
+      }
+    } else if (token.startsWith("--")) {
+      const value = tokens[index + 1];
+      const takesValue = value?.startsWith("<") === true;
+      flags.push(takesValue ? `${token} ${value}` : token);
+      index += takesValue ? 1 : 0;
+    } else {
+      placeholders.push(token);
+    }
+  }
+  return { flags, placeholders };
 }
 
 /** Room for the longest help usage and a two-space gap. */

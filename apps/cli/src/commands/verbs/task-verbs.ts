@@ -5,6 +5,8 @@
  * commander command over the `runTask` kernel.
  */
 
+import { existsSync } from "node:fs";
+
 import {
   ASPECT_RATIOS,
   CREATIVE_TAXONOMY,
@@ -16,6 +18,7 @@ import type {
   TaskInput,
   TaskOutput,
 } from "@howells/motif-sdk";
+import { InvalidArgumentError, Option } from "commander";
 
 import { handleError } from "../../utils/errors";
 import {
@@ -23,7 +26,7 @@ import {
   parseNumberOption,
   validateEnumOption,
 } from "../../utils/input";
-import { imageSource } from "../../utils/motif-client";
+import { imageSource, REMOTE_URL_REGEX } from "../../utils/motif-client";
 import type { OutputFormat } from "../../utils/output";
 import { hasText } from "../../utils/text";
 import { parseBoxes, parseMargin, parseSizes } from "./pixel-options";
@@ -113,26 +116,40 @@ function renderAnswer(output: TaskOutput): string | undefined {
   return JSON.stringify(located ?? data, null, 2);
 }
 
-/** `--mood <id>`, checked against the mood ids. */
-function moodInput(options: VerbOptions, format: OutputFormat): TaskInput {
+const MOOD_IDS = CREATIVE_TAXONOMY.mood.map((option) => option.id);
+
+/** `--mood <id>`; commander has already checked it against the mood ids. */
+function moodInput(options: VerbOptions): TaskInput {
   const mood = stringOption(options, "mood");
-  if (mood === undefined) {
-    return {};
-  }
-  const ids = CREATIVE_TAXONOMY.mood.map((option) => option.id);
-  return { mood: parsed(format, () => validateEnumOption(mood, ids, "mood")) };
+  return mood === undefined ? {} : { mood };
+}
+
+/** A commander parser that refuses a flag given twice. */
+function once(flag: string): (value: string, previous?: string) => string {
+  return (value, previous) => {
+    if (previous !== undefined) {
+      throw new InvalidArgumentError(`--${flag} takes one image, not several.`);
+    }
+    return value;
+  };
 }
 
 /** A required image flag, sent as the Task's one Reference. */
 async function referenceInput(
   options: VerbOptions,
   format: OutputFormat,
-  flag: string,
-  usage: string
+  reference: { flag: string; label: string; missing: string }
 ): Promise<TaskInput> {
-  const path = stringOption(options, flag);
+  const path = stringOption(options, reference.flag);
   if (path === undefined) {
-    invalid(usage, format);
+    invalid(reference.missing, format);
+  }
+  if (!REMOTE_URL_REGEX.test(path) && !existsSync(path)) {
+    handleError(
+      new Error(`${reference.label} not found: ${path}`),
+      "INVALID_IMAGE_PATH",
+      format
+    );
   }
   try {
     return { references: [await imageSource(path)] };
@@ -146,12 +163,12 @@ async function likeInput(
   options: VerbOptions,
   format: OutputFormat
 ): Promise<TaskInput> {
-  return await referenceInput(
-    options,
-    format,
-    "like",
-    "motif restyle needs a style reference: motif restyle [image] --like <image>"
-  );
+  return await referenceInput(options, format, {
+    flag: "like",
+    label: "Style reference",
+    missing:
+      "motif restyle needs a style reference: motif restyle [image] --like <image>",
+  });
 }
 
 /** `--garment <path>`, what try-on dresses the person in. */
@@ -159,12 +176,12 @@ async function garmentInput(
   options: VerbOptions,
   format: OutputFormat
 ): Promise<TaskInput> {
-  return await referenceInput(
-    options,
-    format,
-    "garment",
-    "motif try-on needs a garment: motif try-on [image] --garment <image>"
-  );
+  return await referenceInput(options, format, {
+    flag: "garment",
+    label: "Garment",
+    missing:
+      "motif try-on needs a garment: motif try-on [image] --garment <image>",
+  });
 }
 
 export const TASK_VERBS: readonly VerbDefinition[] = [
@@ -340,17 +357,19 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     modes: [
       { description: "Reconstruct a human body", mode: "body" },
       {
-        description: 'Reconstruct the named objects: --objects "chair, lamp"',
+        description: "Reconstruct every instance of one named object",
         mode: "objects",
-        prompt: 'the objects to reconstruct, e.g. "chair, lamp"',
+        value: "object",
+        valueIsPrompt: true,
       },
     ],
     options: (command) =>
       command.option("--rig", "Rig the mesh with a skeleton for animation"),
-    promptFirst: (mode) => mode === "objects",
+    promptFirst: never,
     sourceKind: "image",
     task: "mesh",
-    usage: "[image] [objects]",
+    usage: "[image]",
+    usageFlags: "[--rig]",
     verb: "Making a mesh",
   },
   {
@@ -397,23 +416,28 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     sourceKind: "image",
     task: "reframe",
     usage: "[image]",
+    usageFlags: "--og",
     verb: "Reframing",
   },
   {
     command: "relight",
-    input: async (options, format) => ({
-      ...(await maskInput(options, format)),
-      ...moodInput(options, format),
-    }),
+    input: async (options, format, mode) => {
+      if (mode !== undefined && stringOption(options, "mood") !== undefined) {
+        invalid(`motif relight --${mode} takes no --mood`, format);
+      }
+      return {
+        ...(await maskInput(options, format)),
+        ...moodInput(options),
+      };
+    },
     modes: [
       { description: "Restore natural, even lighting", mode: "even" },
       { description: "Strip baked-in light and shadow", mode: "flat" },
     ],
     options: (command) =>
       command
-        .option(
-          "--mood <id>",
-          `Light a house mood: ${CREATIVE_TAXONOMY.mood.map((option) => option.id).join(", ")}`
+        .addOption(
+          new Option("--mood <id>", "Light a house mood").choices(MOOD_IDS)
         )
         .option("--mask <path>", "Mask image: white marks what to relight"),
     promptFirst: (mode) => mode === undefined,
@@ -443,15 +467,18 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     command: "restyle",
     input: likeInput,
     modes: [],
+    referenceFlag: "like",
     options: (command) =>
       command.option(
         "--like <image>",
-        "Style reference image to redraw it like"
+        "Style reference image to redraw it like",
+        once("like")
       ),
     promptFirst: never,
     sourceKind: "image",
     task: "restyle",
     usage: "[image]",
+    usageFlags: "--like <image>",
     verb: "Restyling",
   },
   {
@@ -516,12 +543,18 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     command: "try-on",
     input: garmentInput,
     modes: [],
+    referenceFlag: "garment",
     options: (command) =>
-      command.option("--garment <image>", "The garment to dress the person in"),
+      command.option(
+        "--garment <image>",
+        "The garment to dress the person in",
+        once("garment")
+      ),
     promptFirst: never,
     sourceKind: "image",
     task: "try-on",
     usage: "[image]",
+    usageFlags: "--garment <image>",
     verb: "Dressing",
   },
   {

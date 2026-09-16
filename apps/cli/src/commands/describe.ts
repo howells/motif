@@ -34,7 +34,7 @@ import { emit } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 import { PACKAGE_VERSION } from "../version";
-import { usageLine } from "./verbs/register-verb";
+import { verbFlags } from "./verbs/register-verb";
 import { TASK_VERBS } from "./verbs/task-verbs";
 import {
   COMMAND_TASKS,
@@ -42,6 +42,7 @@ import {
   commandTask,
   taskRouting,
 } from "./verbs/tasks";
+import { promptSource, usageLine } from "./verbs/verb-kit";
 
 /**
  * Build creative direction properties for `motif describe` output.
@@ -621,6 +622,17 @@ function taskVerbSchema(
   const modes: readonly { id: string; summary: string }[] =
     "modes" in task ? task.modes : [];
   const writesFiles = definition.writesFiles?.() ?? true;
+  const promptFrom = promptSource(definition);
+  const flags = Object.fromEntries(
+    verbFlags(definition).map((option) => [
+      option.attributeName(),
+      {
+        description: `${option.description} (CLI: ${option.long ?? option.flags})`,
+        ...(option.argChoices !== undefined && { enum: option.argChoices }),
+        type: option.required || option.optional ? "string" : "boolean",
+      },
+    ])
+  );
   return {
     command: definition.command,
     description: task.summary,
@@ -646,6 +658,13 @@ function taskVerbSchema(
             type: "string",
           },
         }),
+        ...(promptFrom !== undefined && {
+          prompt: {
+            description: `Prompt: ${promptFrom}`,
+            type: "string",
+          },
+        }),
+        ...flags,
         noOpen: { default: false, type: "boolean" },
         output: {
           description:

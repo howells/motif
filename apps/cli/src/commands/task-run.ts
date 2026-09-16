@@ -31,7 +31,7 @@ import chalk from "chalk";
 import ora from "ora";
 import type { Ora } from "ora";
 
-import type { MotifConfig } from "../utils/config";
+import type { Generation, MotifConfig } from "../utils/config";
 import { addGeneration, generateId, getLastGeneration } from "../utils/config";
 import { exitForErrorCode, handleError, validateOutput } from "../utils/errors";
 import {
@@ -48,6 +48,7 @@ import {
   motifClient,
   planForOutput,
   redactDataUrls,
+  REMOTE_URL_REGEX,
   videoSource,
 } from "../utils/motif-client";
 import { emit, emitError, isStructured } from "../utils/output";
@@ -69,6 +70,8 @@ export interface TaskRunSpec {
   task: TaskId;
   /** Everything but the source, which the kernel fills in. */
   input: TaskInput;
+  /** Reference image paths as given, recorded in history beside the source. */
+  referencePaths?: readonly string[];
   /** Whether a video path is a valid source. */
   sourceKind: "image" | "image-or-video";
   /**
@@ -103,7 +106,7 @@ export interface TaskRunInput {
   noOpen?: boolean;
 }
 
-interface ResolvedSource {
+export interface ResolvedSource {
   aspect: AspectRatio;
   path: string;
   /** The prompt of the generation this came from; empty for a given path. */
@@ -412,6 +415,30 @@ export function historyPrompt(
   return hasText(base) ? `[${command}] ${base}` : `[${command}]`;
 }
 
+/** The history entry for a run that wrote files. */
+export function generationRecord(
+  spec: TaskRunSpec,
+  output: Pick<TaskOutput, "cost" | "model">,
+  source: ResolvedSource | undefined,
+  primary: Pick<WrittenFile, "path">
+): Generation {
+  const references = (spec.referencePaths ?? []).map((path) =>
+    REMOTE_URL_REGEX.test(path) ? path : resolve(path)
+  );
+  return {
+    aspect: source?.aspect ?? "1:1",
+    cost: output.cost.usd,
+    ...(source !== undefined && { editedFrom: resolve(source.path) }),
+    id: generateId(),
+    model: output.model,
+    output: primary.path,
+    prompt: historyPrompt(spec.command, source?.prompt ?? spec.input.prompt),
+    ...(references.length > 0 && { references }),
+    resolution: source?.resolution ?? "1K",
+    timestamp: new Date().toISOString(),
+  };
+}
+
 async function recordRun(
   spec: TaskRunSpec,
   output: TaskOutput,
@@ -421,17 +448,7 @@ async function recordRun(
   if (!primary) {
     return;
   }
-  await addGeneration({
-    aspect: source?.aspect ?? "1:1",
-    cost: output.cost.usd,
-    ...(source !== undefined && { editedFrom: resolve(source.path) }),
-    id: generateId(),
-    model: output.model,
-    output: primary.path,
-    prompt: historyPrompt(spec.command, source?.prompt ?? spec.input.prompt),
-    resolution: source?.resolution ?? "1K",
-    timestamp: new Date().toISOString(),
-  });
+  await addGeneration(generationRecord(spec, output, source, primary));
 }
 
 export async function runTask(

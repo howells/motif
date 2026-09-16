@@ -35,7 +35,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 | Make variations of an image you already have. | `motif vary [image]` | A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run). |
 | Remove an object, person, text or clutter from an image and fill the gap. | `motif erase "what" [image]` | The whole background (cutout), or extending the canvas (reframe). |
 | Remove the background behind the main subject of an image or video. | `motif cutout [image-or-video]` | Taking one object out and filling the gap (erase), or masking a named thing (segment). |
-| Extend or recut an image to a new aspect ratio, generating the new edges. | `motif reframe --og [image]` | A new image at a given ratio (generate with a ratio). |
+| Extend or recut an image to a new aspect ratio, generating the new edges. | `motif reframe [image] --og` | A new image at a given ratio (generate with a ratio). |
 | Make an image or video larger without losing detail. | `motif upscale [image-or-video]` | Fixing noise, softness or colour without changing the size (restore). |
 | Fix noise, softness, damage, colour or tone without changing the size. | `motif restore [image]` | Making an image larger (upscale). |
 | Change the light in a photo without regenerating it. | `motif relight [image] "light"` | Regenerating the scene in a new light (generate with a mood). |

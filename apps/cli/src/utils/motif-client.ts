@@ -31,7 +31,7 @@ import { imageToDataUrl } from "./image";
 import { validateEditPath } from "./input";
 import { hasText } from "./text";
 
-const REMOTE_URL_REGEX = /^https:\/\//i;
+export const REMOTE_URL_REGEX = /^https:\/\//i;
 
 const VIDEO_TYPES: Readonly<Record<string, string>> = {
   ".m4v": "video/mp4",

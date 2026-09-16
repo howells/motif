@@ -6,9 +6,11 @@
 import { existsSync } from "node:fs";
 
 import { TASKS } from "@howells/motif-sdk";
-import type { Command } from "commander";
+import { Command } from "commander";
+import type { Option } from "commander";
 
 import type { MotifConfig } from "../../utils/config";
+import { handleError } from "../../utils/errors";
 import type { OutputFormat } from "../../utils/output";
 import { hasText } from "../../utils/text";
 import { runTask } from "../task-run";
@@ -19,29 +21,13 @@ import {
   withCommonOptions,
 } from "./shared";
 import type { VerbOptions } from "./shared";
-import { invalid, stringOption } from "./verb-kit";
+import { invalid, stringOption, usageLine, usageTail } from "./verb-kit";
 import type { VerbDefinition } from "./verb-kit";
 
 const SOURCE_PATH_REGEX =
   /\.(png|jpe?g|webp|gif|avif|tiff?|mp4|mov|m4v|webm)$/i;
 
-/** `motif <command> <usage>`, as errors quote it. */
-export function usageLine(definition: VerbDefinition): string {
-  return `motif ${definition.command} ${definition.usage}`;
-}
-
-function needsPrompt(
-  definition: VerbDefinition,
-  mode: string | undefined,
-  format: OutputFormat
-): never {
-  const modeFlag = definition.modes.find((flag) => flag.mode === mode);
-  if (modeFlag?.prompt !== undefined) {
-    invalid(
-      `motif ${definition.command} --${modeFlag.mode} needs ${modeFlag.prompt}: ${usageLine(definition)}`,
-      format
-    );
-  }
+function needsPrompt(definition: VerbDefinition, format: OutputFormat): never {
   const alternative =
     definition.promptFlag === undefined
       ? ""
@@ -55,6 +41,23 @@ function needsPrompt(
 /** Whether an argument names an existing image or video file. */
 function isSourcePath(arg: string | undefined): arg is string {
   return hasText(arg) && SOURCE_PATH_REGEX.test(arg) && existsSync(arg);
+}
+
+/**
+ * `motif relight kitchne.jpg --mood dawn`: an image path that doesn't exist
+ * is a typo, not a prompt, so it must not fall back to the last generation.
+ */
+function refuseMissingPath(
+  arg: string | undefined,
+  format: OutputFormat
+): void {
+  if (hasText(arg) && SOURCE_PATH_REGEX.test(arg) && !existsSync(arg)) {
+    handleError(
+      new Error(`Image not found: ${arg}`),
+      "INVALID_IMAGE_PATH",
+      format
+    );
+  }
 }
 
 /** Split positionals into the prompt and the source, per the chosen mode. */
@@ -74,6 +77,9 @@ function positionals(
   const promptOptional =
     definition.promptFlag !== undefined &&
     stringOption(options, definition.promptFlag.key) !== undefined;
+  if (definition.promptFirst(mode, options)) {
+    refuseMissingPath(first, format);
+  }
   if (definition.promptFirst(mode, options) && isSourcePath(first)) {
     // `motif relight kitchen.jpg "low sun"`: the image may come first.
     if (hasText(second) && !isSourcePath(second)) {
@@ -93,7 +99,7 @@ function positionals(
       return {};
     }
     if (!hasText(first) || isSourcePath(first)) {
-      needsPrompt(definition, mode, format);
+      needsPrompt(definition, format);
     }
     return { prompt: first, source: second };
   }
@@ -106,6 +112,12 @@ function positionals(
   return { prompt: flagPrompt, source: first };
 }
 
+/** The flags a verb adds beyond its modes and the common set. */
+export function verbFlags(definition: VerbDefinition): readonly Option[] {
+  const scratch = new Command();
+  return (definition.options?.(scratch) ?? scratch).options;
+}
+
 export function registerTaskVerb(
   program: Command,
   definition: VerbDefinition,
@@ -116,7 +128,7 @@ export function registerTaskVerb(
     .command(definition.command)
     .description(TASKS[definition.task].summary)
     .argument("[first]")
-    .usage(`${definition.usage} [options]`);
+    .usage(`${usageTail(definition)} [options]`);
   if (takesTwo) {
     command = command.argument("[second]");
   }
@@ -151,6 +163,10 @@ export function registerTaskVerb(
       format
     );
     const extra = (await definition.input?.(options, format, mode)) ?? {};
+    const referencePath =
+      definition.referenceFlag === undefined
+        ? undefined
+        : stringOption(options, definition.referenceFlag);
 
     await runTask(
       {
@@ -171,6 +187,9 @@ export function registerTaskVerb(
             : `-${definition.command}-${mode}`,
         ...(definition.quiet === true && { quiet: true }),
         ...(definition.render !== undefined && { render: definition.render }),
+        ...(referencePath !== undefined && {
+          referencePaths: [referencePath],
+        }),
         sourceKind: definition.sourceKind,
         ...(definition.sourceOptional?.(mode) === true && {
           sourceOptional: true,

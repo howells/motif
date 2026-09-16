@@ -208,12 +208,41 @@ function discardCommanderErrorLine(message: string): void {
  * `refine` sees each failure first, so a caller can emit a more specific error
  * and exit; when it returns, the generic envelope goes out.
  */
+/**
+ * Refuse an option whose value is another flag. Commander hands the next
+ * argument to a value option whatever it is, so `ask --detect --dry-run`
+ * would read `--dry-run` as the thing to detect and make a paid call.
+ */
+export function refuseFlagValues(command: Command, format: OutputFormat): void {
+  for (const option of command.options) {
+    if (!(option.required || option.optional)) {
+      continue;
+    }
+    const value: unknown = command.getOptionValue(option.attributeName());
+    const values = Array.isArray(value) ? value : [value];
+    const flag = values.find(
+      (entry): entry is string =>
+        typeof entry === "string" && entry.startsWith("--")
+    );
+    if (flag !== undefined) {
+      handleError(
+        new Error(`${option.long ?? option.flags} needs a value; got ${flag}`),
+        "INVALID_OPTION",
+        format
+      );
+    }
+  }
+}
+
 export function routeCommanderErrors(
   program: Command,
   format: OutputFormat,
   refine?: (err: CommanderError) => void
 ): Command {
   return program
+    .hook("preAction", (_program, actionCommand) => {
+      refuseFlagValues(actionCommand, format);
+    })
     .configureOutput({ outputError: discardCommanderErrorLine })
     .exitOverride((err) => {
       if (COMMANDER_SUCCESS_CODES.has(err.code)) {

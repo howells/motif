@@ -31,6 +31,7 @@ import {
   exitForErrorCode,
   formatForParseErrors,
   handleError,
+  refuseFlagValues,
   routeCommanderErrors,
 } from "./utils/errors";
 import { readStdinJson, reservedPromptSuggestion } from "./utils/input";
@@ -192,6 +193,7 @@ export async function runCli(
   });
 
   program.parse(args);
+  refuseFlagValues(program, parseFormat);
 
   const options = program.opts<CliOptions>();
   const prompt = program.args[0];
