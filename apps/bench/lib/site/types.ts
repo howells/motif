@@ -76,13 +76,11 @@ export interface Capability {
   demo: Demo;
   group: CapabilityGroup;
   id: string;
+  /** The Model that made the asset. Provenance only; never shown. */
+  model?: string;
   notes?: string;
-  /** The Motif command this demonstrates, when a fal tool made the asset. */
-  relatesTo?: string;
   /** The user's task, in sentence case. */
   title: string;
-  /** The fal registry tool that made the asset, when one did. */
-  tool?: string;
 }
 
 export interface LookEntry {

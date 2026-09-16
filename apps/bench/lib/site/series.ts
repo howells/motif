@@ -101,7 +101,7 @@ const image = (index: number, alt: string): Asset => ({
 export const SERIES_CAPABILITY: Capability = {
   caption:
     "A series keeps a shared style, references and model defaults together, and series run makes a set of images from one theme inside it.",
-  command: `motif series run "${THEME}" --count 6 -m banana --look editorial --mood raking --no-open --format json`,
+  command: `motif series run "${THEME}" --count 6 --look editorial --mood raking --no-open --format json`,
   demo: {
     kind: "series",
     list: { command: "motif series list --format json", output: LIST_OUTPUT },

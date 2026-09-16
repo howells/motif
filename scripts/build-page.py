@@ -3,17 +3,19 @@
 Build the demonstration page from scripts/demo-manifest.json.
 
 Every plate in the manifest becomes a catalogue entry: its source, its real
-output, the argument for the tool as written in the manifest, the command that
-produced it, and what it cost. Nothing here calls fal and nothing here spends.
+output, the argument for it as written in the manifest, the verb command that
+makes it, and what it cost. Nothing here calls fal and nothing here spends.
+Plates marked `pending` have no output yet and are left off.
 
 Images are downscaled on the way in and inlined as data URIs, so the result is
 one file you can send to somebody. Costs come from the CLI: the per-run figure
-from ~/.motif/history.json where a plate recorded one, and the rate from the
-tool registry via `motif tools --format json`. Neither is ever guessed.
+from ~/.motif/history.json where a plate recorded one, and the projected price
+from a dry run of the plate's own command, with no API keys in its environment.
+Neither is ever guessed.
 
     python3 scripts/build-page.py
 
-Writes ~/Desktop/motif-seventy-one-endpoints.html and prints its size.
+Writes ~/Desktop/motif-shown.html and prints its size.
 """
 
 import base64
@@ -24,8 +26,10 @@ import io
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
+import tempfile
 from datetime import datetime
 
 from PIL import Image, ImageFilter
@@ -34,7 +38,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXAMPLES = os.path.join(ROOT, "docs/tools/examples")
 CLI = os.path.join(ROOT, "apps/cli/dist/index.js")
 HISTORY = os.path.expanduser("~/.motif/history.json")
-TARGET = os.path.expanduser("~/Desktop/motif-seventy-one-endpoints.html")
+TARGET = os.path.expanduser("~/Desktop/motif-shown.html")
 
 MANIFEST = json.load(open(os.path.join(ROOT, "scripts/demo-manifest.json")))
 
@@ -53,15 +57,38 @@ PBR_ORDER = ["basecolor", "normal", "roughness", "metalness", "height"]
 # ── Facts read from elsewhere ─────────────────────────────────────────────────
 
 
-def registry():
-    """Tool metadata straight from the CLI. Read-only; spends nothing."""
+def dry_env():
+    """No keys and an empty home, so a dry run cannot reach an account."""
+    env = {k: v for k, v in os.environ.items() if k not in ("FAL_KEY", "OPENAI_API_KEY")}
+    env["HOME"] = tempfile.mkdtemp(prefix="motif-dry-")
+    return env
+
+
+def motif(argv):
+    """The built CLI, keyless. Returns its JSON output."""
     if not os.path.exists(CLI):
         sys.exit("Build the CLI first: pnpm --filter @howells/motif-cli build")
     out = subprocess.run(
-        ["node", CLI, "tools", "--format", "json"],
-        cwd=ROOT, capture_output=True, text=True, check=True,
+        ["node", CLI, *argv], cwd=ROOT, capture_output=True, text=True, env=dry_env(),
     )
-    return json.loads(out.stdout)["tools"]
+    return json.loads(out.stdout)
+
+
+def projected(demos):
+    """Each plate's projected price, from a dry run of its own command."""
+    prices = {}
+    for demo in demos:
+        result = motif(demo_argv(demo) + ["--dry-run", "--format", "json", "--no-open"])
+        if result.get("error"):
+            sys.exit(f"{demo['plate']}: dry run failed: {result.get('message')}")
+        prices[demo["plate"]] = result.get("cost")
+    return prices
+
+
+def verbs():
+    """Every Task verb and what it does, from `motif --describe tasks`."""
+    commands = motif(["--describe", "tasks", "--format", "json"])["commands"]
+    return [(name, meta["summary"]) for name, meta in commands.items() if meta.get("task")]
 
 
 def recorded_costs():
@@ -112,6 +139,33 @@ def source_path(source_id):
     if "have" in entry:
         return os.path.join(ROOT, entry["have"])
     return first(f"source-{source_id}.*")
+
+
+def source_ref(token, demo):
+    """A manifest argv token with `$source` or `$source:<id>` resolved."""
+    if token == "$source":
+        return input_path(demo)
+    if token.startswith("$source:"):
+        return source_path(token[len("$source:"):])
+    return token
+
+
+def output_arg(demo):
+    """The -o target scripts/run-demos.mjs writes to, relative to the repo root."""
+    plate = demo["plate"]
+    if demo.get("dir"):
+        return f"docs/tools/examples/{plate}/"
+    if demo.get("svg"):
+        return f"docs/tools/examples/out-{plate}.svg"
+    return f"docs/tools/examples/out-{plate}.{'png' if demo.get('png') else 'jpg'}"
+
+
+def demo_argv(demo):
+    """The verb command scripts/run-demos.mjs issues, without `motif`."""
+    argv = [relative(source_ref(t, demo)) if t.startswith("$source") else t for t in demo["argv"]]
+    if not demo.get("json"):
+        argv += ["-o", output_arg(demo)]
+    return argv
 
 
 def input_path(demo):
@@ -317,14 +371,7 @@ def figure(asset, caption, extra=""):
 
 def command_for(demo):
     """The command scripts/run-demos.mjs issues, with paths relative to the repo root."""
-    parts = ["motif", "tool", "run", demo["tool"]]
-    parts += ["--inputs" if demo.get("inputs") else "-i", relative(input_path(demo))]
-    if not demo.get("json"):
-        target = output_path(demo)
-        parts += ["-o", relative(target) + ("/" if demo.get("dir") else "")]
-    if demo.get("opts"):
-        parts += ["--json", "'" + json.dumps(demo["opts"], separators=(",", ": ")) + "'"]
-    return " ".join(parts)
+    return " ".join(["motif", *(shlex.quote(part) for part in demo_argv(demo))])
 
 
 JSON_KEY = re.compile(r'(&quot;[^&]*?&quot;)(\s*:)')
@@ -345,14 +392,13 @@ def json_block(path):
 
 def cost_line(demo, prices, rates):
     plate = demo["plate"]
-    rate = rates.get(demo["tool"], {}).get("pricing")
+    rate = rates.get(plate)
     bits = []
     if plate in prices:
         bits.append(f'<b>{money(prices[plate])}</b> this run')
     else:
         bits.append('<em>this run not recorded</em>')
-    if rate:
-        bits.append(f"<span>{esc(rate)}</span>")
+    bits.append(f"<span>{money(rate)} a run</span>" if isinstance(rate, (int, float)) else "<span>metered</span>")
     return '<p class="cost">' + " &middot; ".join(bits) + "</p>"
 
 
@@ -501,13 +547,11 @@ def widths(demos):
 def entry(demo, number, prices, rates, force_wide=False):
     body, note, wide = media_for(demo, number)
     wide = wide or force_wide
-    meta = rates.get(demo["tool"], {})
     return f"""<article class="entry{' wide' if wide else ''}" id="p-{esc(demo['plate'])}">
   {body}
   <div class="entry-text">
     <p class="entry-top"><span class="entry-no">{number:02d}</span>
-      <span class="entry-tool">{esc(demo['tool'])}</span>
-      <span class="entry-name">{esc(meta.get('name', ''))}</span></p>
+      <span class="entry-tool">motif {esc(demo['argv'][0])}</span></p>
     <h3>{esc(demo['title'])}</h3>
     <p class="why">{esc(demo['why'])}</p>
     {f'<p class="note">{esc(note)}</p>' if note else ''}
@@ -683,7 +727,6 @@ body {
 }
 .entry-no { color: var(--ink); font-weight: 500; }
 .entry-tool { color: var(--accent); letter-spacing: .06em; text-transform: none; font-size: 12px; }
-.entry-name { color: var(--muted); letter-spacing: .06em; text-transform: none; font-size: 12px; }
 .entry h3 {
   font-size: clamp(20px, 2.3vw, 24px); line-height: 1.2; letter-spacing: -.022em;
   font-weight: 700; margin: 0 0 10px; text-wrap: balance;
@@ -810,25 +853,23 @@ footer {
 }
 """
 
-VERBS = """  <section class="ref">
-    <h2>The seven verbs</h2>
-    <p class="standfirst">Everything else stays reachable through <code>motif tool run</code>.
-      These are the ones that earned a word of their own.</p>
+def verbs_table(rows):
+    body = "".join(
+        f"<tr><td>motif {esc(name)}</td><td>{esc(summary[:1].upper() + summary[1:])}</td></tr>"
+        for name, summary in rows
+    )
+    return f"""  <section class="ref">
+    <h2>One verb per job</h2>
+    <p class="standfirst">Each command names the job, and Motif picks what runs it. Read the
+      same list from <code>motif --describe tasks</code>.</p>
     <div class="tablewrap">
       <table>
-        <thead><tr><th>Command</th><th>Does</th><th>Behind it</th><th>Cost</th></tr></thead>
-        <tbody>
-          <tr><td>motif segment</td><td>Mask an object named in a phrase</td><td>sam3-image</td><td class="num">$0.005</td></tr>
-          <tr><td>motif ask</td><td>Question, caption, detect or point</td><td>moondream 3</td><td class="num">metered</td></tr>
-          <tr><td>motif erase</td><td>Remove a prompted object</td><td>object-removal</td><td class="num">$0.024</td></tr>
-          <tr><td>motif reframe</td><td>Change ratio without regenerating</td><td>ideogram-reframe</td><td class="num">$0.06</td></tr>
-          <tr><td>motif enhance</td><td>Restore, denoise, sharpen, upscale</td><td>topaz &times;8</td><td class="num">per 24MP</td></tr>
-          <tr><td>motif layers</td><td>Decompose into editable layers</td><td>qwen-layered</td><td class="num">metered</td></tr>
-          <tr><td>motif vectorize</td><td>Raster to SVG</td><td>recraft-vectorize</td><td class="num">$0.04</td></tr>
-        </tbody>
+        <thead><tr><th>Command</th><th>Does</th></tr></thead>
+        <tbody>{body}</tbody>
       </table>
     </div>
   </section>"""
+
 
 BUGS = """  <section class="ref">
     <h2>Thirteen bugs, none of them a crash</h2>
@@ -902,18 +943,20 @@ BUGS = """  <section class="ref">
 
 
 def build():
-    rates = registry()
+    shown = [d for d in MANIFEST["demos"] if not d.get("pending")]
+    rates = projected(shown)
     prices = recorded_costs()
+    verb_rows = verbs()
 
-    order = [s["id"] for s in MANIFEST["sections"]]
-    by_section = {sid: [d for d in MANIFEST["demos"] if d["section"] == sid] for sid in order}
-    missing = [d["plate"] for d in MANIFEST["demos"] if d["section"] not in by_section]
+    missing = [d["plate"] for d in shown if d["section"] not in {s["id"] for s in MANIFEST["sections"]}]
     if missing:
         sys.exit(f"plates in an unknown section: {', '.join(missing)}")
+    sections = [s for s in MANIFEST["sections"] if any(d["section"] == s["id"] for d in shown)]
+    by_section = {s["id"]: [d for d in shown if d["section"] == s["id"]] for s in sections}
 
     number = 0
     sections_html = []
-    for index, meta in enumerate(MANIFEST["sections"], start=1):
+    for index, meta in enumerate(sections, start=1):
         demos = by_section[meta["id"]]
         entries = []
         for demo, full in zip(demos, widths(demos)):
@@ -932,25 +975,30 @@ def build():
 
     nav = "".join(
         f'<a href="#s-{esc(s["id"])}"><i>{i:02d}</i>{esc(s["title"])}</a>'
-        for i, s in enumerate(MANIFEST["sections"], start=1)
+        for i, s in enumerate(sections, start=1)
     )
     contents = "".join(
         f'<li><a href="#s-{esc(s["id"])}">'
         f'<span class="num"><span>Section {i:02d}</span>'
         f'<span>{len(by_section[s["id"]])} plates</span></span>'
         f'<h2>{esc(s["title"])}</h2><p>{esc(s["standfirst"])}</p></a></li>'
-        for i, s in enumerate(MANIFEST["sections"], start=1)
+        for i, s in enumerate(sections, start=1)
     )
 
-    spend = sum(prices.get(d["plate"], 0) for d in MANIFEST["demos"])
-    recorded = sum(1 for d in MANIFEST["demos"] if d["plate"] in prices)
+    spend = sum(prices.get(d["plate"], 0) for d in shown)
+    recorded = sum(1 for d in shown if d["plate"] in prices)
+    versions = " &middot; ".join(
+        f"{p['name']} {p['version']}"
+        for p in (json.load(open(os.path.join(ROOT, rel, "package.json")))
+                  for rel in ("packages/motif-sdk", "apps/cli"))
+    )
 
     page = f"""<!doctype html>
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Seventy-One Endpoints</title>
+<title>Motif, Shown</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Spline+Sans+Mono:wght@400;500&display=swap">
@@ -959,17 +1007,15 @@ def build():
 <body>
 <div class="wrap">
   <header class="masthead">
-    <p class="eyebrow">Motif &middot; non-generation tooling</p>
-    <h1>Seventy-one endpoints</h1>
-    <p class="lede">fal hosts around two hundred image endpoints that make nothing new: they
-      read, cut, repair, decompose and measure. Motif wrapped almost none of them. This is what
-      it wraps now, shown against real output rather than described.</p>
+    <p class="eyebrow">Motif &middot; beyond generation</p>
+    <h1>Read, cut, repair, rebuild</h1>
+    <p class="lede">Motif does more than make images. It reads them, cuts them up, repairs,
+      relights and decomposes them, with one command for each job. This is each of those
+      commands against real output rather than described.</p>
     <dl class="tally">
-      <div><dt>Registry</dt><dd>{len(rates)} <span>was 22</span></dd></div>
-      <div><dt>Promoted verbs</dt><dd>7</dd></div>
-      <div><dt>MCP tools</dt><dd>10 <span>was 5</span></dd></div>
-      <div><dt>Plates shown</dt><dd>{len(MANIFEST['demos'])} <span>in {len(MANIFEST['sections'])} sections</span></dd></div>
-      <div><dt>Recorded spend</dt><dd>${spend:.2f} <span>{recorded} of {len(MANIFEST['demos'])}</span></dd></div>
+      <div><dt>Verbs</dt><dd>{len(verb_rows)}</dd></div>
+      <div><dt>Plates shown</dt><dd>{len(shown)} <span>in {len(sections)} sections</span></dd></div>
+      <div><dt>Recorded spend</dt><dd>${spend:.2f} <span>{recorded} of {len(shown)}</span></dd></div>
     </dl>
   </header>
 </div>
@@ -983,15 +1029,15 @@ def build():
 
 {chr(10).join(sections_html)}
 
-{VERBS}
+{verbs_table(verb_rows)}
 
 {BUGS}
 
   <footer>
-    <div>@howells/motif-sdk 1.3.0 &middot; @howells/motif-cli 1.10.0</div>
+    <div>{versions}</div>
     <div>Every plate produced through the CLI against the source beside it, and checked by
       scripts/verify-demos.py to have measurably changed the picture. Source photography made
-      for this page. Prices are the registry's; per-run figures are the CLI's own history.</div>
+      for this page. Prices are the CLI's dry runs; per-run figures are its own history.</div>
     <div>Built {datetime.now().strftime('%-d %B %Y')} from scripts/demo-manifest.json.</div>
   </footer>
 </div>
@@ -1002,7 +1048,7 @@ def build():
     open(TARGET, "w").write(page)
     size = os.path.getsize(TARGET)
     print(f"{TARGET}")
-    print(f"  {len(MANIFEST['sections'])} sections, {len(MANIFEST['demos'])} plates, "
+    print(f"  {len(sections)} sections, {len(shown)} plates, "
           f"{len(FIGURES)} images")
     print(f"  {size / 1_048_576:.2f} MB")
     print(f"  {money(spend)} recorded across {recorded} plates")

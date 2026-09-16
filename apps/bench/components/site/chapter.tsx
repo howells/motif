@@ -45,25 +45,6 @@ export function Chapter({
         <div className="border-t border-(--site-rule) pt-4">
           <CommandLine>{capability.command}</CommandLine>
         </div>
-        {capability.tool === undefined &&
-        capability.relatesTo === undefined ? null : (
-          <dl className="m-0 grid grid-cols-[auto_1fr] gap-x-5 gap-y-1 text-[14px]">
-            {capability.tool === undefined ? null : (
-              <>
-                <dt className="text-(--site-muted)">fal tool</dt>
-                <dd className="m-0 font-mono text-[13px]">{capability.tool}</dd>
-              </>
-            )}
-            {capability.relatesTo === undefined ? null : (
-              <>
-                <dt className="text-(--site-muted)">Related command</dt>
-                <dd className="m-0 font-mono text-[13px]">
-                  {capability.relatesTo}
-                </dd>
-              </>
-            )}
-          </dl>
-        )}
         {capability.notes === undefined ? null : (
           <p className="max-w-[34rem] text-[15px] leading-[1.6] text-(--site-muted)">
             {capability.notes}

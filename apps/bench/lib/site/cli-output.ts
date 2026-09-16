@@ -6,19 +6,29 @@
 /** From `motif --help`: the "Commands, by task" block and the looks and moods
  * lines, verbatim. */
 export const HELP_EXCERPT = `Commands, by task:
-  motif "prompt"                make an image from a prompt, or edit with -e
-  motif erase "what" [image]    remove an object and fill the gap
-  motif reframe --og [image]    extend the canvas to a new aspect ratio
-  motif segment "what" [image]  cut out or mask a named thing
-  motif ask "question" [image]  caption, count, detect or ask about an image
-  motif enhance [image]         upscale, restore, denoise or sharpen
-  motif layers [image]          split an image into transparent layers
-  motif vectorize [image]       trace a raster image to a clean SVG
-  motif sheet <images...>       lay images out on a captioned contact sheet
-  motif series run "theme"      make a consistent set of images from a theme
-  motif series <subcommand>     keep a reusable style, references and history
-  motif tool list               other fal utilities: depth, 3D, relight, OCR
-  motif studio                  open the interactive terminal Studio
+  motif "prompt"                          make an image from a prompt
+  motif vary [image]                      variations of an image
+  motif erase "what" [image]              remove something, fill the gap
+  motif cutout [image-or-video]           remove the background
+  motif reframe [image] --og              extend to a new aspect ratio
+  motif upscale [image-or-video]          make it larger
+  motif restore [image]                   fix noise, blur, damage, colour
+  motif relight [image] "light"           relight to a described light or a mood
+  motif restyle [image] --like <image>    redraw in a reference's style
+  motif segment "what" [image-or-video]   mask a named thing
+  motif ask "question" [image]            caption, count, find or ask
+  motif layers [image]                    split into transparent layers
+  motif vectorize [image]                 trace to a clean SVG
+  motif map [image]                       depth, edge, normal or pose map
+  motif material [image]                  PBR maps from a surface photo
+  motif tile "prompt" [image]             a seamlessly tiling texture
+  motif mesh [image] [--rig]              a textured 3D mesh, rigged with --rig
+  motif try-on [image] --garment <image>  dress a person in a garment
+  motif animate "prompt" [image]          turn an image into a video
+  motif sheet <images...>                 a captioned contact sheet
+  motif series run "theme"                a consistent set from a theme
+  motif series <subcommand>               a reusable style and references
+  motif studio                            the interactive terminal Studio
   When to use each, and what to use instead: motif --describe tasks
 
 Looks, a house style added to the prompt: --look <id>
@@ -44,7 +54,7 @@ export const DID_YOU_MEAN_OUTPUT = String.raw`{
   "is_retriable": false,
   "suggestions": [
     "Run 'motif erase \"the car\" x.png'",
-    "motif erase: Remove an object, person or clutter from a photo, named in words, and fill the gap it leaves."
+    "motif erase: Remove an object, person, text or clutter from an image and fill the gap."
   ]
 }`;
 
@@ -54,19 +64,26 @@ export const DESCRIBE_TASKS_EXCERPT = String.raw`{
   "tasks": {
     "remove": "erase",
     "outpaint": "reframe",
-    "cutout": "segment",
+    "rmbg": "cutout",
     "ocr": "ask",
-    "upscale": "enhance",
+    "denoise": "restore",
     "svg": "vectorize",
-    "depth": "tool"
+    "depth": "map",
+    "3d": "mesh",
+    "dress": "try-on"
   },
   "commands": {
     "erase": {
-      "summary": "remove an object and fill the gap",
+      "summary": "remove something, fill the gap",
       "usage": "motif erase \"what\" [image]",
-      "whenToUse": "Remove an object, person or clutter from a photo, named in words, and fill the gap it leaves.",
-      "notFor": "An object with a visible shadow (tool finegrain-eraser), putting something else in the gap (tool bria-genfill), text (tool text-removal), or the whole background (--rmbg).",
-      "tasks": ["cleanup", "delete", "erase-object", "inpaint", "remove", "remove-object"]
+      "whenToUse": "Remove an object, person, text or clutter from an image and fill the gap.",
+      "notFor": "The whole background (cutout), or extending the canvas (reframe).",
+      "tasks": ["cleanup", "delete", "erase-object", "inpaint", "remove", "remove-object"],
+      "modes": [
+        { "id": "boxes", "summary": "Remove whatever falls inside the given boxes." },
+        { "id": "text", "summary": "Remove all rendered text." },
+        { "id": "with", "summary": "Fill the masked region with something described in words." }
+      ]
     }
   }
 }`;
@@ -87,11 +104,9 @@ export const STUDIO_SCREEN =
 export const DESCRIBE_ERRORS_EXCERPT =
   '{\n  "command": "errors",\n  "errors": {\n    "EMPTY_PROMPT": {\n      "docUri": "motif://describe/errors#empty-prompt",\n      "isRetriable": false,\n      "status": 400,\n      "title": "Empty Prompt",\n      "type": "urn:motif:error:empty-prompt",\n      "suggestions": [\n        "Provide a non-empty prompt as an argument or stdin JSON field"\n      ]\n    },\n    "ACCOUNT_LOCKED": {\n      "docUri": "motif://describe/errors#account-locked",\n      "isRetriable": false,\n      "status": 403,\n      "title": "Account Locked",\n      "type": "urn:motif:error:account-locked",\n      "suggestions": [\n        "The fal account is out of credit. Top up at https://fal.ai/dashboard/billing, then run the command again"\n      ]\n    }\n  }\n}';
 
-/** The first five lines of `motif tool list` and its closing line. */
-export const TOOL_LIST_EXCERPT =
-  "Fal tools\n\ngot-ocr  GOT-OCR 2.0  $0.05/image\nmoondream-caption  Moondream 3 Caption  $0.40/M input tokens, $3.50/M output tokens  use motif ask\nmoondream-detect  Moondream 3 Detect  $0.40/M input tokens, $3.50/M output tokens  use motif ask\nmoondream-point  Moondream 3 Point  $0.40/M input tokens, $3.50/M output tokens  use motif ask\nmoondream-query  Moondream 3 Query  $0.40/M input tokens, $3.50/M output tokens  use motif ask\n…\n\nEvery argument a tool accepts, with fal's own default and Motif's override, is at `motif tool describe <id>`.";
-
-export const TOOL_COUNT = 71;
+/** `motif erase "the small amber bottle" source-apothecary.jpg --dry-run --format json --fields cost,costBasis,valid`, verbatim. */
+export const DRY_RUN_OUTPUT =
+  '{"cost":0.024,"costBasis":"projected","valid":true}';
 
 /** `motif ask --detect "bottle" source-apothecary.jpg --no-open --format json`. */
 export const DETECT_OUTPUT =

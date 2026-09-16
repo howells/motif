@@ -1,5 +1,5 @@
 {
-  "note": "Every distinct capability in the fal non-generation catalogue, paired with a source chosen so the effect is actually visible. The trap this guards against: running a restoration tool on a clean image and calling the identical output a demonstration. Where an effect only reads at full magnification, `crop` says so.",
+  "note": "Every Motif verb, paired with a source chosen so the effect is actually visible. The trap this guards against: running a restoration on a clean image and calling the identical output a demonstration. Where an effect only reads at full magnification, `crop` says so. `argv` is the command as shown and run, with `$source` standing for the demo's source image and `$source:<id>` for another source. `model` records which Model made the existing plate; it is provenance only and never shown on the page.",
   "sources": [
     {
       "id": "still-life",
@@ -60,16 +60,26 @@
       "aspect": "--square",
       "prompt": "A simple flat vector wordmark on a plain bone-white ground: the word SALVAGE in a heavy geometric sans-serif, deep olive, beneath it a single horizontal rule and a small circular monogram, absolutely flat solid colour with no gradients, no texture, no photography, logo artwork",
       "for": "vectorization"
+    },
+    {
+      "id": "garment",
+      "model": "banana",
+      "aspect": "--square",
+      "prompt": "Flat-lay product photograph of a single rust-coloured heavy cotton overshirt with patch pockets and horn buttons, laid flat and symmetrical on a plain bone-white ground, even soft light, no model, no hanger, no other objects, catalogue photograph",
+      "for": "try-on garment"
+    },
+    {
+      "id": "drawing",
+      "have": "apps/bench/public/demo/looks/drawing.jpg",
+      "for": "restyle style reference: the drawing look's proof image"
     }
   ],
   "demos": [
     {
       "plate": "segment",
-      "tool": "sam3-image",
+      "argv": ["segment", "the white ceramic bowl", "$source"],
+      "model": "sam3-image",
       "source": "still-life",
-      "opts": {
-        "prompt": "the white ceramic bowl"
-      },
       "dir": true,
       "why": "A mask from a description, with no clicking and no hand-drawn box. It feeds straight into an edit call's mask parameter, which is what makes the rest of the catalogue composable.",
       "section": "select",
@@ -77,7 +87,8 @@
     },
     {
       "plate": "segment-auto",
-      "tool": "sam2-auto",
+      "argv": ["segment", "--auto", "$source"],
+      "model": "sam2-auto",
       "source": "still-life",
       "dir": true,
       "why": "Every region at once rather than one you named. Use it to inventory an unfamiliar image before deciding what to act on.",
@@ -86,11 +97,13 @@
     },
     {
       "plate": "ask",
-      "tool": "moondream-query",
+      "argv": [
+        "ask",
+        "How many bottles are there, and what is the vessel on the right made of?",
+        "$source"
+      ],
+      "model": "moondream-query",
       "source": "still-life",
-      "opts": {
-        "prompt": "How many bottles are there, and what is the vessel on the right made of?"
-      },
       "json": true,
       "why": "Reads an image into an answer. The cheapest way to branch a pipeline on what a picture actually contains.",
       "section": "read",
@@ -98,11 +111,9 @@
     },
     {
       "plate": "detect",
-      "tool": "moondream-detect",
+      "argv": ["ask", "--detect", "bottle", "$source"],
+      "model": "moondream-detect",
       "source": "still-life",
-      "opts": {
-        "prompt": "bottle"
-      },
       "json": true,
       "why": "Open-vocabulary detection: boxes for anything you can name, without training a detector for it.",
       "section": "read",
@@ -110,7 +121,8 @@
     },
     {
       "plate": "ocr",
-      "tool": "got-ocr",
+      "argv": ["ask", "--read", "$source"],
+      "model": "got-ocr",
       "source": "label",
       "json": true,
       "why": "Type out of a photograph as text. The step before you can search, index or re-set what a picture says.",
@@ -119,7 +131,8 @@
     },
     {
       "plate": "depth",
-      "tool": "depth-anything",
+      "argv": ["map", "$source"],
+      "model": "depth-anything",
       "source": "interior",
       "why": "Distance encoded as brightness. Feed it to a ControlNet-style model to regenerate a scene while keeping its geometry.",
       "section": "structure",
@@ -127,7 +140,8 @@
     },
     {
       "plate": "pose",
-      "tool": "dwpose",
+      "argv": ["map", "--pose", "$source"],
+      "model": "dwpose",
       "source": "figure",
       "why": "A body reduced to a skeleton. Hold a figure's stance steady while everything else about the image changes.",
       "section": "structure",
@@ -135,7 +149,8 @@
     },
     {
       "plate": "lineart",
-      "tool": "lineart",
+      "argv": ["map", "--lineart", "$source"],
+      "model": "lineart",
       "source": "vessel",
       "why": "Contour without tone or colour. Carries composition into a restyle that would otherwise drag the original palette with it.",
       "section": "structure",
@@ -143,7 +158,8 @@
     },
     {
       "plate": "normals",
-      "tool": "midas-preprocessor",
+      "argv": ["map", "--normals", "$source"],
+      "model": "midas-preprocessor",
       "source": "linen",
       "why": "Surface direction per pixel. The input a renderer needs to light a flat photograph as though it had relief.",
       "section": "structure",
@@ -151,7 +167,8 @@
     },
     {
       "plate": "rmbg",
-      "tool": "birefnet",
+      "argv": ["cutout", "$source"],
+      "model": "birefnet",
       "source": "vessel",
       "png": true,
       "why": "A cut-out on transparency. The first step of any composite, and the reason alpha matters more than resolution here.",
@@ -160,29 +177,32 @@
     },
     {
       "plate": "erase-cheap",
-      "tool": "object-removal",
+      "argv": ["erase", "the smallest amber bottle", "$source"],
+      "model": "object-removal",
       "source": "still-life",
-      "opts": {
-        "prompt": "the smallest amber bottle"
-      },
       "why": "Take an object out and rebuild what was behind it. Cheap, and it leaves what the object did to the light.",
       "section": "remove",
       "title": "Remove an object for $0.024"
     },
     {
       "plate": "erase-good",
-      "tool": "finegrain-eraser",
+      "argv": [
+        "erase",
+        "the smallest amber bottle",
+        "$source",
+        "--tier",
+        "quality"
+      ],
+      "model": "finegrain-eraser",
       "source": "still-life",
-      "opts": {
-        "prompt": "the smallest amber bottle"
-      },
       "why": "The same removal including the object's shadow and its caustic. Eleven times the price, and the only version that survives a second look.",
       "section": "remove",
       "title": "Remove its shadow too, for $0.27"
     },
     {
       "plate": "text-removal",
-      "tool": "text-removal",
+      "argv": ["erase", "--text", "$source"],
+      "model": "text-removal",
       "source": "label",
       "why": "Strip the words and keep the surface. Useful when the artwork is right and the copy is not.",
       "section": "remove",
@@ -190,32 +210,26 @@
     },
     {
       "plate": "expand",
-      "tool": "bria-expand",
+      "argv": ["reframe", "$source", "--square", "--tier", "fast"],
+      "model": "bria-expand",
       "source": "interior",
-      "opts": {
-        "canvas_size": [1536, 1536]
-      },
       "why": "Invent canvas beyond the frame. For when a crop is tight and reframing would cut something you need.",
       "section": "reshape",
       "title": "Invent canvas beyond the frame"
     },
     {
       "plate": "reframe",
-      "tool": "ideogram-reframe",
+      "argv": ["reframe", "$source", "--portrait"],
+      "model": "ideogram-reframe",
       "source": "interior",
-      "opts": {
-        "image_size": {
-          "height": 1536,
-          "width": 1024
-        }
-      },
       "why": "One image into another ratio without regenerating it. Regenerating gives you a different picture; this gives you the same one, differently shaped.",
       "section": "reshape",
       "title": "A new ratio, the same picture"
     },
     {
       "plate": "upscale",
-      "tool": "topaz-precision",
+      "argv": ["upscale", "$source", "--tier", "quality"],
+      "model": "topaz-precision",
       "source": "vessel",
       "derive": "shrink-360",
       "crop": true,
@@ -225,7 +239,8 @@
     },
     {
       "plate": "denoise",
-      "tool": "topaz-denoise",
+      "argv": ["restore", "--noise", "$source"],
+      "model": "topaz-denoise",
       "source": "noisy",
       "crop": true,
       "why": "Sensor noise removed without taking the texture with it. The failure mode of a bad denoiser is wax, so look at the grain, not the whole frame.",
@@ -234,7 +249,8 @@
     },
     {
       "plate": "colourise",
-      "tool": "ddcolor",
+      "argv": ["restore", "--colour", "$source"],
+      "model": "ddcolor",
       "source": "monochrome",
       "why": "Plausible colour for a monochrome original. It is an interpretation, not a recovery: nothing in the negative knows what colour the coat was.",
       "section": "repair",
@@ -242,7 +258,8 @@
     },
     {
       "plate": "unlight",
-      "tool": "remove-lighting",
+      "argv": ["relight", "--flat", "$source"],
+      "model": "remove-lighting",
       "source": "harsh",
       "why": "Harsh directional light flattened to an even base. What you want before compositing a product into a scene with different lighting.",
       "section": "relight",
@@ -250,18 +267,21 @@
     },
     {
       "plate": "relight",
-      "tool": "iclight-v2",
+      "argv": [
+        "relight",
+        "$source",
+        "soft diffused north window light from the left, gentle falloff, no hard shadow"
+      ],
+      "model": "iclight-v2",
       "source": "harsh",
-      "opts": {
-        "prompt": "soft diffused north window light from the left, gentle falloff, no hard shadow"
-      },
       "why": "Light the shot again after it was taken. Cheaper than reshooting and the only option when the subject is gone.",
       "section": "relight",
       "title": "Put different light back"
     },
     {
       "plate": "layers-objects",
-      "tool": "seedream-layerize",
+      "argv": ["layers", "$source", "--tier", "quality"],
+      "model": "seedream-layerize",
       "source": "still-life",
       "dir": true,
       "why": "A scene taken apart into named objects plus the emptied room behind them. Re-compose without regenerating anything.",
@@ -270,7 +290,8 @@
     },
     {
       "plate": "layers-type",
-      "tool": "ideogram-layerize-text",
+      "argv": ["layers", "--text", "$source"],
+      "model": "ideogram-layerize-text",
       "source": "label",
       "dir": true,
       "why": "The plate with the type lifted off, and the type returned as positions and fonts. For changing what a finished design says.",
@@ -279,7 +300,8 @@
     },
     {
       "plate": "vectorize",
-      "tool": "recraft-vectorize",
+      "argv": ["vectorize", "$source"],
+      "model": "recraft-vectorize",
       "source": "mark",
       "svg": true,
       "why": "Pixels to paths. Scales to any size, edits as shapes, and prints without a resolution argument.",
@@ -288,7 +310,8 @@
     },
     {
       "plate": "pbr",
-      "tool": "patina",
+      "argv": ["material", "$source"],
+      "model": "patina",
       "source": "linen",
       "dir": true,
       "why": "A photograph of a surface becomes the five maps a renderer needs to light it. Photograph a material once, use it in 3D forever.",
@@ -297,18 +320,21 @@
     },
     {
       "plate": "tiling",
-      "tool": "ideogram-tiling",
+      "argv": [
+        "tile",
+        "seamless undyed linen weave, natural oat, flat even light",
+        "$source"
+      ],
+      "model": "ideogram-tiling",
       "source": "linen",
-      "opts": {
-        "prompt": "seamless undyed linen weave, natural oat, flat even light"
-      },
       "why": "A texture that repeats without a visible seam. The difference between a photograph of fabric and a material you can apply.",
       "section": "material",
       "title": "A texture that repeats"
     },
     {
       "plate": "3d",
-      "tool": "trellis-2",
+      "argv": ["mesh", "$source"],
+      "model": "trellis-2",
       "source": "vessel",
       "dir": true,
       "why": "A mesh from a single photograph. Not a scan, but enough geometry to place a real object into a rendered scene. The mesh itself is not kept in the repository - it is 15MB of geometry that nothing on a page can render. Regenerate it with scripts/run-demos.mjs.",
@@ -318,20 +344,61 @@
     },
     {
       "plate": "nsfw",
-      "tool": "nsfw",
+      "argv": ["ask", "--safe", "$source"],
+      "model": "nsfw",
       "source": "still-life",
       "json": true,
-      "inputs": true,
       "why": "A sub-cent gate for a pipeline that publishes what it generates. Returns a probability, not a decision.",
       "section": "read",
       "title": "Gate a pipeline for a fraction of a penny"
+    },
+    {
+      "plate": "relight-mood",
+      "argv": ["relight", "$source", "--mood", "dawn"],
+      "model": "iclight-v2",
+      "source": "interior",
+      "pending": true,
+      "why": "A house mood applied to a photograph that already exists. The same six moods a generation takes, without regenerating the room.",
+      "section": "relight",
+      "title": "Give a photograph a house mood"
+    },
+    {
+      "plate": "restyle",
+      "argv": ["restyle", "$source", "--like", "$source:drawing"],
+      "model": "telestyle-v2",
+      "source": "interior",
+      "pending": true,
+      "why": "The room redrawn in the manner of another picture, here the watercolour drawing look. The composition stays; the handling changes.",
+      "section": "restyle",
+      "title": "Redraw it in another picture's style"
+    },
+    {
+      "plate": "try-on",
+      "argv": ["try-on", "$source", "--garment", "$source:garment"],
+      "model": "virtual-try-on",
+      "source": "figure",
+      "pending": true,
+      "why": "A person dressed in a garment from a flat product photograph. Pose, light and room stay; only the clothes change.",
+      "section": "restyle",
+      "title": "Dress a person in another garment"
+    },
+    {
+      "plate": "mesh-rig",
+      "argv": ["mesh", "$source", "--rig"],
+      "model": "meshy-v7",
+      "source": "figure",
+      "dir": true,
+      "pending": true,
+      "why": "A figure turned into a mesh with a skeleton already in it, ready to pose or animate in a 3D tool.",
+      "section": "material",
+      "title": "A rigged figure from one photograph"
     }
   ],
   "sections": [
     {
       "id": "read",
       "title": "Read an image",
-      "standfirst": "Tools that return data rather than pixels. Everything here can gate a pipeline in CI, because the answer is checkable without looking."
+      "standfirst": "Commands that return data rather than pixels. Everything here can gate a pipeline in CI, because the answer is checkable without looking."
     },
     {
       "id": "select",
@@ -361,17 +428,22 @@
     {
       "id": "relight",
       "title": "Light it again",
-      "standfirst": "Separating a surface from the light falling on it, then putting light back."
+      "standfirst": "Separating a surface from the light falling on it, then putting light back, or a house mood."
+    },
+    {
+      "id": "restyle",
+      "title": "Restyle or dress it",
+      "standfirst": "Keeping what is in the picture while changing how it is drawn, or what a person is wearing."
     },
     {
       "id": "decompose",
       "title": "Take it apart",
-      "standfirst": "Two tools called layerize, doing two genuinely different jobs."
+      "standfirst": "Two kinds of layers: the objects in a scene, and the type on a design."
     },
     {
       "id": "material",
       "title": "Turn it into a material",
-      "standfirst": "A photograph becomes something a renderer can light, tile or scale."
+      "standfirst": "A photograph becomes something a renderer can light, tile, scale or rig."
     }
   ]
 }

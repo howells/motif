@@ -69,11 +69,9 @@ export function Appendix({ number }: { readonly number: string }) {
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <Subhead>Other fal tools</Subhead>
-          <CodeBlock>{AGENT_SURFACE.toolList.command}</CodeBlock>
-          <CodeBlock label={AGENT_SURFACE.toolList.label}>
-            {AGENT_SURFACE.toolList.output}
-          </CodeBlock>
+          <Subhead>Price a call before running it</Subhead>
+          <CodeBlock>{AGENT_SURFACE.dryRun.command}</CodeBlock>
+          <CodeBlock label="Output">{AGENT_SURFACE.dryRun.output}</CodeBlock>
         </div>
       </div>
     </section>

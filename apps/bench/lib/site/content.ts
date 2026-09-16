@@ -3,9 +3,8 @@
  * neighbouring files only keep this one short.
  *
  * Every image is a real Motif output, web-sized into `public/demo/`. Each
- * capability's `command` is the one that produced its asset. Where a fal tool
- * made the asset in place of a Motif command, `relatesTo` names that command
- * and `notes` says how the two differ. The agent surface is the CLI's own
+ * capability's `command` is the verb command for its asset; the Model that
+ * made it is kept as data and never shown. The agent surface is the CLI's own
  * captured output.
  */
 
@@ -16,9 +15,8 @@ import {
   DESCRIBE_ERRORS_EXCERPT,
   DESCRIBE_TASKS_EXCERPT,
   DID_YOU_MEAN_OUTPUT,
+  DRY_RUN_OUTPUT,
   HELP_EXCERPT,
-  TOOL_COUNT,
-  TOOL_LIST_EXCERPT,
 } from "@/lib/site/cli-output";
 import { LOOK_PROOFS, MOOD_IMAGES, MOOD_RUN } from "@/lib/site/looks";
 import type { CapabilityGroup, LookEntry, MoodEntry } from "@/lib/site/types";
@@ -46,7 +44,7 @@ export const CAPABILITY_GROUPS: { id: CapabilityGroup; title: string }[] = [
   { id: "make", title: "Make" },
   { id: "edit", title: "Edit" },
   { id: "understand", title: "Understand" },
-  { id: "tools", title: "Tools" },
+  { id: "tools", title: "Maps and more" },
   { id: "more", title: "Everything else" },
 ];
 
@@ -111,10 +109,10 @@ export const AGENT_SURFACE = {
     exitCode: 2,
     output: DID_YOU_MEAN_OUTPUT,
   },
-  help: HELP_EXCERPT,
-  toolList: {
-    command: "motif tool list",
-    label: `Output, 5 of ${TOOL_COUNT} tools and the closing line`,
-    output: TOOL_LIST_EXCERPT,
+  dryRun: {
+    command:
+      'motif erase "the small amber bottle" source-apothecary.jpg --dry-run --format json --fields cost,costBasis,valid',
+    output: DRY_RUN_OUTPUT,
   },
+  help: HELP_EXCERPT,
 };

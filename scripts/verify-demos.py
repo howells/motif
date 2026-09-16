@@ -52,6 +52,9 @@ EXPECT = {
     "expand": ("aspect changed", lambda a, b: abs(b["ar"] - a["ar"]) > 0.05),
     "reframe": ("aspect changed", lambda a, b: abs(b["ar"] - a["ar"]) > 0.05),
     "tiling": ("differs", lambda a, b: b["diff"] > 0.05),
+    "relight-mood": ("differs", lambda a, b: b["diff"] > 0.04),
+    "restyle": ("differs", lambda a, b: b["diff"] > 0.1),
+    "try-on": ("local change", lambda a, b: b["peak"] > 0.08),
     "colourise_": (None, None),
 }
 
@@ -159,6 +162,10 @@ for demo in MANIFEST["demos"]:
         # failure, but it must be declared in the manifest rather than assumed.
         if demo.get("artefactNotRetained"):
             rows.append((plate, "ok", "artefact not retained; regenerate to verify"))
+        elif demo.get("pending"):
+            # Declared but not yet run: priced by scripts/run-demos.mjs, left off
+            # the page, and checked here once it has output.
+            rows.append((plate, "ok", "pending run; not on the page yet"))
         else:
             rows.append((plate, "MISSING", "no output produced"))
         continue

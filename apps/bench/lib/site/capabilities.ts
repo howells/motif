@@ -1,11 +1,10 @@
 /**
  * Every capability shown on the demo page, each with a real output.
  *
- * Each `command` is the one that produced its asset, with file paths
- * shortened to file names. Motif commands come from the demo runs in
- * `commands.json`; the `motif tool run` chapters from `docs/tools/regenerate.sh`
- * or `scripts/run-demos.mjs`. A tool run stays only where it shows something
- * the Motif command doesn't. Import from `@/lib/site/content`.
+ * Each `command` is the verb command for its asset, with file paths shortened
+ * to file names. Motif chooses the Model, so no command names one; `model`
+ * records which Model made the asset, as provenance only. Import from
+ * `@/lib/site/content`.
  */
 
 import {
@@ -34,28 +33,25 @@ const VASE_PROMPT =
 
 const ERASE_PROMPT = "the small amber bottle on the right of the group";
 
-const VIDEO_INPUT = JSON.stringify({
-  command: "video",
-  imagePath: "source-apothecary.jpg",
-  prompt:
-    "Soft daylight drifts slowly across the wall behind the bottles. The camera stays still.",
-});
+const VIDEO_PROMPT =
+  "Soft daylight drifts slowly across the wall behind the bottles. The camera stays still.";
 
 export const CAPABILITIES: Capability[] = [
   // Make
   {
     caption:
       "A 16:9 still life made from the prompt alone, with no reference image.",
-    command: `motif "${GENERATE_PROMPT}" -m banana -a 16:9 -r 2K --no-open -o source-apothecary.jpg`,
+    command: `motif "${GENERATE_PROMPT}" -a 16:9 -r 2K --no-open -o source-apothecary.jpg`,
     demo: { kind: "set", outputs: [APOTHECARY] },
     group: "make",
     id: "generate",
+    model: "banana",
     title: "Make an image from a prompt",
   },
   {
     caption: "The same shelf at dusk, with the bottles in cobalt blue glass.",
     command:
-      'motif "The same shelf at dusk, the bottles in cobalt blue glass" -e source-apothecary.jpg -m banana -o edit.png --no-open --format json',
+      'motif "The same shelf at dusk, the bottles in cobalt blue glass" -e source-apothecary.jpg -o edit.png --no-open --format json',
     demo: {
       after: {
         alt: "The same shelf at dusk, the three bottles in cobalt blue glass and low orange light on the wall",
@@ -68,6 +64,7 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "make",
     id: "edit-with-prompt",
+    model: "banana",
     notes: "No -a was given, so the edit came back square.",
     title: "Edit an image with a prompt",
   },
@@ -75,7 +72,7 @@ export const CAPABILITIES: Capability[] = [
     caption:
       "A celadon vase made straight onto a transparent background, with no cut-out step.",
     command:
-      'motif "A ceramic vase with a pale celadon glaze, studio product shot" -m gpt --transparent -o vase-transparent.png --no-open --format json',
+      'motif "A ceramic vase with a pale celadon glaze, studio product shot" --transparent -o vase-transparent.png --no-open --format json',
     demo: {
       kind: "set",
       outputs: [
@@ -89,11 +86,12 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "make",
     id: "transparent",
+    model: "gpt",
     title: "Make an image with a transparent background",
   },
   {
-    caption: "Two new takes of the same prompt and model.",
-    command: `motif --vary "${VASE_PROMPT}" -m banana2 -n 2 -o vary.png --no-open --format json`,
+    caption: "Two takes of the same prompt from one call.",
+    command: `motif "${VASE_PROMPT}" -n 2 -o vary.png --no-open --format json`,
     demo: {
       kind: "set",
       outputs: [
@@ -112,10 +110,11 @@ export const CAPABILITIES: Capability[] = [
       ],
     },
     group: "make",
-    id: "vary",
+    id: "takes",
+    model: "banana2",
     notes:
-      "--vary sends no image. It runs the last prompt and model again, so each take is a new picture.",
-    title: "Make new takes of the last prompt",
+      "Each take is a new picture. motif vary makes variations of an image you already have.",
+    title: "Make several takes of a prompt",
   },
   SERIES_CAPABILITY,
   {
@@ -140,7 +139,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "Five seconds from the shelf photograph. The camera stays still and the shadows shift slightly.",
-    command: `echo '${VIDEO_INPUT}' | motif --video-no-audio -o apothecary.mp4 --no-open --format json`,
+    command: `motif animate "${VIDEO_PROMPT}" source-apothecary.jpg -o apothecary.mp4 --no-open --format json`,
     demo: {
       kind: "video",
       label: "Output, 5 seconds, no sound",
@@ -155,7 +154,6 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "make",
     id: "video",
-    notes: "Video reads its prompt from JSON on standard input.",
     title: "Make a short video from an image",
   },
 
@@ -176,14 +174,14 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "erase",
+    model: "object-removal",
     notes:
-      "motif erase runs object-removal at $0.024. finegrain-eraser also removes the shadow, at $0.27.",
+      "This is the default tier, at $0.024. --tier quality removes the shadow too, at $0.27.",
     title: "Remove an object",
-    tool: "object-removal",
   },
   {
     caption: "The small bottle and the shadow it cast are both gone.",
-    command: `motif tool run finegrain-eraser source-apothecary.jpg --prompt "${ERASE_PROMPT}" -o out-erased-finegrain.jpg`,
+    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg --tier quality --no-open -o out-erased-finegrain.jpg`,
     demo: {
       after: {
         alt: "The same shelf with the small bottle and its shadow both gone",
@@ -196,17 +194,15 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "erase-shadow",
-    notes:
-      "The help for motif erase recommends finegrain-eraser for objects with a visible shadow.",
-    relatesTo: "motif erase",
+    model: "finegrain-eraser",
+    notes: "Use --tier quality for an object that casts a visible shadow.",
     title: "Remove an object and its shadow",
-    tool: "finegrain-eraser",
   },
   {
     caption:
       "The room redrawn at 16:9, with a little more wall and floor around the bench.",
     command:
-      "motif reframe --og source-interior.jpg -o reframe.png --no-open --format json",
+      "motif reframe source-interior.jpg --og -o reframe.png --no-open --format json",
     demo: {
       after: {
         alt: "The same room redrawn slightly wider, with more wall above the bench and more floor below",
@@ -219,16 +215,16 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "reframe",
+    model: "ideogram-reframe",
     notes:
-      "The source was already close to 16:9, so the change is small. bria-expand, under Tools, adds canvas by a set amount instead.",
+      "The source was already close to 16:9, so the change is small. The fast tier keeps the original and adds canvas around it instead.",
     title: "Change an image's shape",
-    tool: "ideogram-reframe",
   },
   {
     caption:
       "A 360px, heavily compressed copy of the vessel, enlarged to 720px.",
     command:
-      "motif enhance --upscale derived-upscale.jpg -o enhanced.png --no-open --format json",
+      "motif upscale derived-upscale.jpg --tier quality -o enhanced.png --no-open --format json",
     demo: {
       after: {
         alt: "The vessel at 720px, its flutes and the plinth's veining defined",
@@ -241,15 +237,15 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "upscale",
+    model: "topaz-precision",
     notes:
       "The source was shrunk to 360px at JPEG quality 35 first, so there was detail to recover.",
     title: "Upscale a small image",
-    tool: "topaz-precision",
   },
   {
-    caption: "The same 360px copy enlarged to 720px with one flag.",
+    caption: "The same 360px copy enlarged to 720px at the default tier.",
     command:
-      "motif --up derived-upscale.jpg -o upscaled.png --no-open --format json",
+      "motif upscale derived-upscale.jpg -o upscaled.png --no-open --format json",
     demo: {
       after: {
         alt: "The vessel at 720px, smoother, with softer flutes",
@@ -262,15 +258,16 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "up",
+    model: "clarity",
     notes:
-      "--up runs a Clarity upscale. Without a file it upscales the last image.",
-    title: "Upscale quickly",
+      "Softer than --tier quality above. Without a file it upscales the last image.",
+    title: "Upscale at the default tier",
   },
   {
     caption:
       "The fine grain on the walls and ceiling is smoothed, and the sign, faces and edges stay sharp.",
     command:
-      "motif enhance --denoise source-noisy.jpg -o denoised.png --no-open --format json",
+      "motif restore --noise source-noisy.jpg -o denoised.png --no-open --format json",
     demo: {
       after: {
         alt: "The same bar after denoising, the grain smoothed and the sign and faces still sharp",
@@ -302,14 +299,14 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "denoise",
+    model: "topaz-denoise",
     notes:
       "The grain is too fine to see in the whole frame, so the detail below shows the same 400x300 region of each file at full size.",
     title: "Remove noise from a photo",
-    tool: "topaz-denoise",
   },
   {
     caption: "The vase cut out of the room it was made in.",
-    command: `motif "${VASE_PROMPT}" -m banana2 -o vase.png --no-open --format json\nmotif --rmbg --no-open --format json`,
+    command: `motif "${VASE_PROMPT}" -o vase.png --no-open --format json\nmotif cutout vase.png -o vase-cutout.png --no-open --format json`,
     demo: {
       after: {
         alt: "The same vase alone on a transparent background",
@@ -322,10 +319,8 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "remove-background",
-    notes:
-      "--rmbg works on the last image, here the vase made by the line before it.",
+    model: "birefnet",
     title: "Remove the background",
-    tool: "birefnet",
   },
   {
     caption:
@@ -364,9 +359,9 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "layers",
+    model: "qwen-layered",
     notes: "The layers come back at 864x480, smaller than the 1400x781 source.",
     title: "Split an image into layers",
-    tool: "qwen-layered",
   },
   {
     caption: "The wordmark, rule and monogram traced to SVG paths.",
@@ -384,8 +379,8 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "edit",
     id: "vectorize",
+    model: "recraft-vectorize",
     title: "Trace an image to SVG",
-    tool: "recraft-vectorize",
   },
 
   // Understand
@@ -405,8 +400,8 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "understand",
     id: "segment",
+    model: "sam3-image",
     title: "Cut out a named object",
-    tool: "sam3-image",
   },
   {
     caption: "A plain question, answered in a sentence.",
@@ -455,12 +450,12 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "understand",
     id: "detect",
+    model: "moondream-detect",
     title: "Find objects in an image",
-    tool: "moondream-detect",
   },
   {
     caption: "The words on the label, transcribed.",
-    command: "motif tool run got-ocr --inputs source-label.jpg --format json",
+    command: "motif ask --read source-label.jpg --format json",
     demo: {
       kind: "text",
       output: "SALVAGE& CO BOTANICAL EXTRACT NO. 04",
@@ -468,10 +463,10 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "understand",
     id: "ocr",
+    model: "got-ocr",
     notes:
       "The label reads SALVAGE & CO. The transcription runs the ampersand into the word before it.",
     title: "Read the text in an image",
-    tool: "got-ocr",
   },
 
   ...TOOL_CAPABILITIES,

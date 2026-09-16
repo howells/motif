@@ -1,8 +1,7 @@
 /**
- * The Tools chapters: fal tools with no Motif command of their own, run with
- * `motif tool run`, plus bria-expand, kept because it does something
- * `motif reframe` doesn't. Commands come from `docs/tools/regenerate.sh` or
- * `scripts/run-demos.mjs`. Import from `@/lib/site/content`.
+ * The later chapters: modes and tiers of the verbs, and the map and material
+ * commands. Commands match `scripts/demo-manifest.json`; `model` records which
+ * Model made each asset, as provenance only. Import from `@/lib/site/content`.
  */
 
 import {
@@ -19,7 +18,8 @@ export const TOOL_CAPABILITIES: Capability[] = [
   {
     caption:
       "The 16:9 room becomes a square, with new wall above and new floor below.",
-    command: `motif tool run bria-expand -i source-interior.jpg --format json -o out-expand.jpg --json '{"canvas_size":[1536,1536]}'`,
+    command:
+      "motif reframe source-interior.jpg --square --tier fast -o out-expand.jpg --format json",
     demo: {
       after: {
         alt: "The same interior extended to a square, with more wall above the bench and more floor below it",
@@ -32,17 +32,16 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-expand",
+    model: "bria-expand",
     notes:
-      "motif reframe redraws the whole image at a new ratio. bria-expand keeps the original and adds canvas around it.",
-    relatesTo: "motif reframe",
-    title: "Extend the canvas by a set size",
-    tool: "bria-expand",
+      "The default tier redraws the whole image at the new ratio. The fast tier keeps the original and adds canvas around it.",
+    title: "Extend the canvas around the original",
   },
   {
     caption:
       "All the text is gone, with the paper and plaster behind it rebuilt.",
     command:
-      "motif tool run text-removal -i source-label.jpg --format json -o out-text-removal.jpg",
+      "motif erase --text source-label.jpg -o out-text-removal.jpg --format json",
     demo: {
       after: {
         alt: "The deckle-edged paper on plaster, blank, with all the type removed",
@@ -55,14 +54,13 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-text-removal",
+    model: "text-removal",
     title: "Remove text from an image",
-    tool: "text-removal",
   },
   {
     caption:
       "The label with its text removed. The words come back as data, with their positions and likely fonts.",
-    command:
-      "motif tool run ideogram-layerize-text source-label.jpg -o layers/",
+    command: "motif layers --text source-label.jpg -o layers/",
     demo: {
       after: {
         alt: "The same label with the type gone, paper grain and plaster intact",
@@ -75,15 +73,15 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-type-layers",
+    model: "ideogram-layerize-text",
     notes:
       "The text comes back in the text_containers and text_html fields, not as image layers.",
     title: "Separate text from artwork",
-    tool: "ideogram-layerize-text",
   },
   {
     caption: "The black-and-white street photograph given plausible colour.",
     command:
-      "motif tool run ddcolor -i source-monochrome.jpg --format json -o out-colourise.jpg",
+      "motif restore --colour source-monochrome.jpg -o out-colourise.jpg --format json",
     demo: {
       after: {
         alt: "The same street photograph in colour, with a plum car and a brown tweed coat",
@@ -96,14 +94,13 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-colourise",
+    model: "ddcolor",
     title: "Colourise a black-and-white photo",
-    tool: "ddcolor",
   },
   {
     caption:
       "The room as a depth map, with near surfaces light and far ones dark.",
-    command:
-      "motif tool run depth-anything source-interior.jpg -o out-depth.jpg",
+    command: "motif map source-interior.jpg -o out-depth.jpg",
     demo: {
       after: {
         alt: "The same interior as a greyscale depth map",
@@ -116,12 +113,12 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-depth",
+    model: "depth-anything",
     title: "Make a depth map",
-    tool: "depth-anything",
   },
   {
     caption: "The vessel and plinth reduced to white lines on black.",
-    command: "motif tool run lineart source-vessel.jpg -o out-lineart.jpg",
+    command: "motif map --lineart source-vessel.jpg -o out-lineart.jpg",
     demo: {
       after: {
         alt: "The same vessel as white line art on black",
@@ -134,13 +131,12 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-lineart",
+    model: "lineart",
     title: "Turn a photo into line art",
-    tool: "lineart",
   },
   {
     caption: "The figure's stance as a coloured skeleton on black.",
-    command:
-      "motif tool run dwpose -i source-figure.jpg --format json -o out-pose.jpg",
+    command: "motif map --pose source-figure.jpg -o out-pose.jpg --format json",
     demo: {
       after: {
         alt: "A coloured stick-figure skeleton of the standing pose on black",
@@ -153,13 +149,13 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-pose",
+    model: "dwpose",
     title: "Trace a person's pose",
-    tool: "dwpose",
   },
   {
     caption:
       "Base colour, normal and roughness maps from one photograph of linen.",
-    command: "motif tool run patina source-linen.jpg -o pbr/",
+    command: "motif material source-linen.jpg -o pbr/",
     demo: {
       kind: "set",
       outputs: [
@@ -186,9 +182,9 @@ export const TOOL_CAPABILITIES: Capability[] = [
     },
     group: "tools",
     id: "tool-materials",
+    model: "patina",
     notes:
-      "patina also writes metalness and height maps, which aren't shown. The roughness map still carries a lighter band from the light on the fold.",
+      "It also writes metalness and height maps, which aren't shown. The roughness map still carries a lighter band from the light on the fold.",
     title: "Make material maps from a photo",
-    tool: "patina",
   },
 ];
