@@ -37,20 +37,20 @@ export const SITE = {
   install: "npm install -g @howells/motif-cli",
   name: "Motif",
   summary:
-    "Motif is a command-line tool for making, editing and reading images with fal.ai models.",
+    "Motif is a command-line tool for making, editing and reading images and video. You say what to do; it chooses the model.",
 };
 
 export const CAPABILITY_GROUPS: { id: CapabilityGroup; title: string }[] = [
   { id: "make", title: "Make" },
   { id: "edit", title: "Edit" },
   { id: "understand", title: "Understand" },
-  { id: "tools", title: "Maps and more" },
-  { id: "more", title: "Everything else" },
+  { id: "tools", title: "Modes and maps" },
+  { id: "more", title: "At the terminal" },
 ];
 
-/** Every section and chapter anchor on the page. The first three are fixed in
- * the looks, moods and appendix components. A repeat fails the build, since
- * the contents links would land on the wrong one. */
+/** Every anchor on the page: the three fixed sections, then one per group and
+ * one per capability. A repeat fails the build, since a thumbnail on the sheet
+ * would land on the wrong frame. */
 const ANCHORS = [
   "looks",
   "moods",
@@ -63,8 +63,6 @@ if (repeated !== undefined) {
   throw new Error(`Two sections share the id "${repeated}"`);
 }
 
-const FIELDS = "--no-open --format json --fields model,aspect,cost,prompt";
-
 /** Every look in catalogue order. A look without a proof image fails the
  * build, so a new look in the SDK can't ship without one. */
 export const LOOK_ENTRIES: LookEntry[] = LOOKS.map((look) => {
@@ -74,7 +72,7 @@ export const LOOK_ENTRIES: LookEntry[] = LOOKS.map((look) => {
   }
   return {
     acceptsMood: look.acceptsMood,
-    command: `motif "${proof.prompt}" --look ${look.id} -o ${look.id}.png ${FIELDS}`,
+    command: `motif "${proof.prompt}" --look ${look.id}`,
     description: look.description,
     id: look.id,
     image: proof.image,
@@ -89,7 +87,7 @@ export const MOOD_ENTRIES: MoodEntry[] = CREATIVE_TAXONOMY.mood.map((mood) => {
     throw new Error(`No proof image for the "${mood.id}" mood`);
   }
   return {
-    command: `motif "${MOOD_RUN.prompt}" --look ${MOOD_RUN.look} --mood ${mood.id} --seed ${MOOD_RUN.seed} -o ${mood.id}.png ${FIELDS}`,
+    command: `motif "${MOOD_RUN.prompt}" --look ${MOOD_RUN.look} --mood ${mood.id} --seed ${MOOD_RUN.seed}`,
     description: mood.description,
     id: mood.id,
     image,

@@ -98,7 +98,7 @@ export const HISTORY_OUTPUT =
 
 /** The first screen of `motif studio` on a fresh install, ANSI colour stripped. */
 export const STUDIO_SCREEN =
-  " ◆ motif │ ↑↓ navigate  enter select  q quit\n\n  ◆ Generate      Create new image from prompt\n    Edit          Modify, upscale, or remove background\n    Gallery       Browse generation history\n    Settings      Model, aspect, defaults\n\n ◆ $0.00 session │ $0.00 today │ $0.00 total";
+  " ◆ motif │ ↑↓ navigate  enter select  q quit\n\n  ◆ Generate      Make an image from a prompt\n    Edit          Change, upscale or remove the background\n    Gallery       Browse generation history\n    Settings      Aspect, resolution, API key\n\n ◆ $0.00 session │ $0.00 today │ $0.00 total";
 
 /** Two entries from `motif --describe errors --format json`. */
 export const DESCRIBE_ERRORS_EXCERPT =

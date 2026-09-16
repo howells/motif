@@ -98,8 +98,8 @@ const image = (index: number, alt: string): Asset => ({
 
 export const SERIES_CAPABILITY: Capability = {
   caption:
-    "A series keeps a shared style, references and model defaults together, and series run makes a set of images from one theme inside it.",
-  command: `motif series run "${THEME}" --count 6 --look editorial --mood raking --no-open --format json`,
+    "A series keeps a shared style, references and defaults together, and series run makes a set of images from one theme inside it.",
+  command: `motif series run "${THEME}" --count 6 --look editorial --mood raking`,
   demo: {
     kind: "series",
     list: { command: "motif series list --format json", output: LIST_OUTPUT },
@@ -109,9 +109,9 @@ export const SERIES_CAPABILITY: Capability = {
       slot: scene.slot,
     })),
     sheet: {
-      command: `D=${OUTPUT_DIR}\nmotif sheet ${FILES.map((file) => `$D/${file}`).join(" ")} --cols 3 -o series-sheet.jpg --no-open --format json`,
+      command: `D=${OUTPUT_DIR}\nmotif sheet ${FILES.map((file) => `$D/${file}`).join(" ")} --cols 3`,
       image: {
-        alt: "The six series images on one contact sheet, three to a row, each captioned with its model, look, mood and cost",
+        alt: "The six series images on one contact sheet, three to a row, each captioned with its look, mood and cost",
         height: 1192,
         src: "/demo/series/sheet.jpg",
         width: 1632,
@@ -126,5 +126,5 @@ export const SERIES_CAPABILITY: Capability = {
   id: "series",
   notes:
     "Each scene prompt takes the next framing from a fixed list, in order. Images 2 to 6 were also given image 1 as a reference.",
-  title: "Make a consistent set of images from a theme",
+  title: "Make a consistent set from a theme",
 };

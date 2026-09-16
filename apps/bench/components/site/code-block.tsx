@@ -1,6 +1,7 @@
 /** Captured CLI text on a plate. It scrolls sideways rather than wrapping, so
  * JSON and aligned columns keep their shape, unless `wrap` is set for long
- * single lines such as NDJSON. */
+ * single lines such as NDJSON. A scrolling plate is focusable, so it can be
+ * scrolled from the keyboard. */
 export function CodeBlock({
   children,
   label,
@@ -18,9 +19,12 @@ export function CodeBlock({
         </figcaption>
       )}
       <pre
+        aria-label={wrap ? undefined : (label ?? "Captured output")}
         className={`m-0 bg-(--site-plate) px-4 py-3.5 font-mono text-[12.5px] leading-[1.65] text-(--site-ink) ${
           wrap ? "break-words whitespace-pre-wrap" : "overflow-x-auto"
         }`}
+        role={wrap ? undefined : "region"}
+        tabIndex={wrap ? undefined : 0}
       >
         <code>{children}</code>
       </pre>

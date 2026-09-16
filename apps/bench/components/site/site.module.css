@@ -1,27 +1,29 @@
-/* The site is a committed light look: warm paper, warm ink and one forest
-   accent. The app globals paint the bench's dark ground, so the paper is
-   painted on this root and on the document behind it, which keeps the
-   overscroll areas paper too. `:has()` scopes that to the site, so `/bench`
-   keeps its dark shell. */
+/* The site is a committed dark look: a warm near-black ground so the images
+   are the only bright thing on the page, warm off-white ink and one pale
+   straw accent for links. The bench's own dark theme is a separate, cooler
+   ladder, so the paper is painted on this root and on the document behind
+   it, which keeps the overscroll areas the same colour. `:has()` scopes that
+   to the site, so `/bench` keeps its shell. */
 
 .root {
-  --site-paper: #f6f3ec;
-  --site-plate: #ece7dc;
-  --site-ink: #1f1b16;
-  --site-muted: #5c554a;
-  --site-rule: rgb(31 27 22 / 0.14);
-  --site-accent: #315c4b;
+  --site-paper: #161412;
+  --site-plate: #221f1b;
+  --site-ink: #efe9dd;
+  --site-muted: #a59d8e;
+  --site-rule: rgb(239 233 221 / 0.14);
+  --site-accent: #e3d3ab;
 
   background: var(--site-paper);
   color: var(--site-ink);
+  color-scheme: dark;
   font-size: 17px;
   line-height: 1.6;
 }
 
 :global(html):has(.root),
 :global(body):has(.root) {
-  background: #f6f3ec;
-  color-scheme: light;
+  background: #161412;
+  color-scheme: dark;
 }
 
 .root :focus-visible {
@@ -38,11 +40,11 @@
 
 /* Transparent outputs sit on a checkerboard so the transparency reads. */
 .checker {
-  background-color: #fbfaf6;
+  background-color: #2a2622;
   background-image: conic-gradient(
-    #e4ddcf 25%,
+    #35302a 25%,
     transparent 0 50%,
-    #e4ddcf 0 75%,
+    #35302a 0 75%,
     transparent 0
   );
   background-size: 16px 16px;

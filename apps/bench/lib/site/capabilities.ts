@@ -42,7 +42,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "A 16:9 still life made from the prompt alone, with no reference image.",
-    command: `motif "${GENERATE_PROMPT}" -a 16:9 -r 2K --no-open -o source-apothecary.jpg`,
+    command: `motif "${GENERATE_PROMPT}" -a 16:9 -r 2K`,
     demo: { kind: "set", outputs: [APOTHECARY] },
     group: "make",
     id: "generate",
@@ -52,7 +52,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption: "The same shelf at dusk, with the bottles in cobalt blue glass.",
     command:
-      'motif "The same shelf at dusk, the bottles in cobalt blue glass" -e source-apothecary.jpg -o edit.png --no-open --format json',
+      'motif "The same shelf at dusk, the bottles in cobalt blue glass" -e source-apothecary.jpg',
     demo: {
       after: {
         alt: "The same shelf at dusk, the three bottles in cobalt blue glass and low orange light on the wall",
@@ -73,7 +73,7 @@ export const CAPABILITIES: Capability[] = [
     caption:
       "A celadon vase made straight onto a transparent background, with no cut-out step.",
     command:
-      'motif "A ceramic vase with a pale celadon glaze, studio product shot" --transparent -o vase-transparent.png --no-open --format json',
+      'motif "A ceramic vase with a pale celadon glaze, studio product shot" --transparent',
     demo: {
       kind: "set",
       outputs: [
@@ -88,11 +88,11 @@ export const CAPABILITIES: Capability[] = [
     group: "make",
     id: "transparent",
     model: "gpt",
-    title: "Make an image with a transparent background",
+    title: "Make an image with no background",
   },
   {
     caption: "Two takes of the same prompt from one call.",
-    command: `motif "${VASE_PROMPT}" -n 2 -o vary.png --no-open --format json`,
+    command: `motif "${VASE_PROMPT}" -n 2`,
     demo: {
       kind: "set",
       outputs: [
@@ -114,14 +114,14 @@ export const CAPABILITIES: Capability[] = [
     id: "takes",
     model: "banana2",
     notes:
-      "Each take is a new picture. motif vary makes variations of an image you already have.",
-    title: "Make several takes of a prompt",
+      "Each take is a new picture. To vary an image you already have, run motif vary.",
+    title: "Make several takes",
   },
   SERIES_CAPABILITY,
   {
     caption: "Five images on one captioned sheet, three to a row.",
     command:
-      "motif sheet editorial.jpg still-life.jpg lived-in.jpg architectural.jpg homeowner.jpg -o sheet.png",
+      "motif sheet editorial.jpg still-life.jpg lived-in.jpg architectural.jpg homeowner.jpg",
     demo: {
       kind: "set",
       outputs: [
@@ -135,12 +135,12 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "make",
     id: "sheet",
-    title: "Lay images out on a contact sheet",
+    title: "Make a contact sheet",
   },
   {
     caption:
       "Five seconds from the shelf photograph. The camera stays still and the shadows shift slightly.",
-    command: `motif animate "${VIDEO_PROMPT}" source-apothecary.jpg -o apothecary.mp4 --no-open --format json`,
+    command: `motif animate "${VIDEO_PROMPT}" source-apothecary.jpg`,
     demo: {
       kind: "video",
       label: "Output, 5 seconds, no sound",
@@ -155,14 +155,14 @@ export const CAPABILITIES: Capability[] = [
     },
     group: "make",
     id: "video",
-    title: "Make a short video from an image",
+    title: "Turn an image into a video",
   },
 
   // Edit
   {
     caption:
       "The small bottle is gone and the shelf rebuilt, but its shadow is still on the wall.",
-    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg --no-open -o out-erased.jpg`,
+    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg`,
     demo: {
       after: {
         alt: "The same shelf with the small bottle gone but its shadow still on the wall",
@@ -182,7 +182,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     caption: "The small bottle and the shadow it cast are both gone.",
-    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg --tier quality --no-open -o erased-with-shadow.jpg`,
+    command: `motif erase "${ERASE_PROMPT}" source-apothecary.jpg --tier quality`,
     demo: {
       after: {
         alt: "The same shelf with the small bottle and its shadow both gone",
@@ -202,8 +202,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "The room redrawn at 16:9, with a little more wall and floor around the bench.",
-    command:
-      "motif reframe source-interior.jpg --og -o reframe.png --no-open --format json",
+    command: "motif reframe source-interior.jpg --og",
     demo: {
       after: {
         alt: "The same room redrawn slightly wider, with more wall above the bench and more floor below",
@@ -224,8 +223,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "A 360px, heavily compressed copy of the vessel, enlarged to 720px.",
-    command:
-      "motif upscale derived-upscale.jpg --tier quality -o upscaled-quality.png --no-open --format json",
+    command: "motif upscale vessel-360.jpg --tier quality",
     demo: {
       after: {
         alt: "The vessel at 720px, its flutes and the plinth's veining defined",
@@ -240,13 +238,12 @@ export const CAPABILITIES: Capability[] = [
     id: "upscale",
     model: "topaz-precision",
     notes:
-      "The source was shrunk to 360px at JPEG quality 35 first, so there was detail to recover.",
+      "The source is the vessel shrunk to 360px at JPEG quality 35, so there was detail to recover.",
     title: "Upscale a small image",
   },
   {
     caption: "The same 360px copy enlarged to 720px at the default tier.",
-    command:
-      "motif upscale derived-upscale.jpg -o upscaled.png --no-open --format json",
+    command: "motif upscale vessel-360.jpg",
     demo: {
       after: {
         alt: "The vessel at 720px, smoother, with softer flutes",
@@ -267,8 +264,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "The fine grain on the walls and ceiling is smoothed, and the sign, faces and edges stay sharp.",
-    command:
-      "motif restore --noise source-noisy.jpg -o denoised.png --no-open --format json",
+    command: "motif restore --noise source-bar.jpg",
     demo: {
       after: {
         alt: "The same bar after denoising, the grain smoothed and the sign and faces still sharp",
@@ -307,7 +303,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     caption: "The vase cut out of the room it was made in.",
-    command: `motif "${VASE_PROMPT}" -o vase.png --no-open --format json\nmotif cutout vase.png -o vase-cutout.png --no-open --format json`,
+    command: "motif cutout vase.jpg",
     demo: {
       after: {
         alt: "The same vase alone on a transparent background",
@@ -326,8 +322,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "Four layers: the wall and shelf, the small bottle, the two tall bottles and the bowl.",
-    command:
-      "motif layers source-apothecary.jpg -o layers/ --no-open --format json",
+    command: "motif layers source-apothecary.jpg",
     demo: {
       kind: "set",
       outputs: [
@@ -366,8 +361,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     caption: "The wordmark, rule and monogram traced to SVG paths.",
-    command:
-      "motif vectorize source-mark.jpg -o mark.svg --no-open --format json",
+    command: "motif vectorize source-mark.jpg",
     demo: {
       after: {
         alt: "The SALVAGE wordmark, rule and monogram as a vector drawing",
@@ -386,8 +380,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "The room under the dawn mood: low warm sun from a tall window, long light across the floor.",
-    command:
-      "motif relight source-interior.jpg --mood dawn -o relight-dawn.jpg --no-open --format json",
+    command: "motif relight source-interior.jpg --mood dawn",
     demo: {
       after: {
         alt: "The bench, throw and vases kept, now in front of tall glazing with low warm sun and a city skyline beyond",
@@ -403,13 +396,12 @@ export const CAPABILITIES: Capability[] = [
     model: "iclight-v2",
     notes:
       "The bench, throw and vases stay put, but the plain wall became a window. Relighting redraws what the new light needs.",
-    title: "Give a photo a house mood",
+    title: "Relight a photo with a mood",
   },
   {
     caption:
       "The same room redrawn as a loose ink and watercolour sketch, taken from the drawing look's proof image.",
-    command:
-      "motif restyle source-interior.jpg --like drawing.jpg -o restyle.jpg --no-open --format json",
+    command: "motif restyle source-interior.jpg --like drawing.jpg",
     demo: {
       after: {
         alt: "The bench, throw, branch and two vases as an ink and watercolour drawing on cream paper",
@@ -423,13 +415,12 @@ export const CAPABILITIES: Capability[] = [
     group: "edit",
     id: "restyle",
     model: "telestyle-v2",
-    title: "Redraw an image in another image's style",
+    title: "Redraw in a reference's style",
   },
   {
     caption:
       "The figure wearing a rust cotton overshirt, taken from a flat product photograph. The pose, room and light stay the same.",
-    command:
-      "motif try-on source-figure.jpg --garment garment.jpg -o try-on.jpg --no-open --format json",
+    command: "motif try-on source-figure.jpg --garment garment.jpg",
     demo: {
       after: {
         alt: "The same person in the plaster room, now wearing a rust-coloured overshirt with patch pockets over the linen trousers",
@@ -451,8 +442,7 @@ export const CAPABILITIES: Capability[] = [
   // Understand
   {
     caption: "The bowl, found by name and cut out on a transparent background.",
-    command:
-      'motif segment "the white ceramic bowl" source-apothecary.jpg --no-open -o segment/',
+    command: 'motif segment "the white ceramic bowl" source-apothecary.jpg',
     demo: {
       after: {
         alt: "The bowl isolated on transparency",
@@ -483,8 +473,7 @@ export const CAPABILITIES: Capability[] = [
   {
     caption:
       "One box for each of the three bottles, as fractions of the image's width and height.",
-    command:
-      'motif ask --detect "bottle" source-apothecary.jpg --no-open --format json',
+    command: 'motif ask --detect "bottle" source-apothecary.jpg --format json',
     demo: {
       boxes: [
         {
@@ -520,7 +509,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     caption: "The words on the label, transcribed.",
-    command: "motif ask --read source-label.jpg --format json",
+    command: "motif ask --read source-label.jpg",
     demo: {
       kind: "text",
       output: "SALVAGE& CO BOTANICAL EXTRACT NO. 04",

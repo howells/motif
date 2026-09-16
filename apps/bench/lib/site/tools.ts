@@ -18,8 +18,7 @@ export const TOOL_CAPABILITIES: Capability[] = [
   {
     caption:
       "The 16:9 room becomes a square, with new wall above and new floor below.",
-    command:
-      "motif reframe source-interior.jpg --square --tier fast -o out-expand.jpg --format json",
+    command: "motif reframe source-interior.jpg --square --tier fast",
     demo: {
       after: {
         alt: "The same interior extended to a square, with more wall above the bench and more floor below it",
@@ -35,13 +34,12 @@ export const TOOL_CAPABILITIES: Capability[] = [
     model: "bria-expand",
     notes:
       "The default tier redraws the whole image at the new ratio. The fast tier keeps the original and adds canvas around it.",
-    title: "Extend the canvas around the original",
+    title: "Extend the canvas",
   },
   {
     caption:
       "All the text is gone, with the paper and plaster behind it rebuilt.",
-    command:
-      "motif erase --text source-label.jpg -o out-text-removal.jpg --format json",
+    command: "motif erase --text source-label.jpg",
     demo: {
       after: {
         alt: "The deckle-edged paper on plaster, blank, with all the type removed",
@@ -60,7 +58,7 @@ export const TOOL_CAPABILITIES: Capability[] = [
   {
     caption:
       "The label with its text removed. The words come back as data, with their positions and likely fonts.",
-    command: "motif layers --text source-label.jpg -o layers/",
+    command: "motif layers --text source-label.jpg",
     demo: {
       after: {
         alt: "The same label with the type gone, paper grain and plaster intact",
@@ -80,8 +78,7 @@ export const TOOL_CAPABILITIES: Capability[] = [
   },
   {
     caption: "The black-and-white street photograph given plausible colour.",
-    command:
-      "motif restore --colour source-monochrome.jpg -o out-colourise.jpg --format json",
+    command: "motif restore --colour source-monochrome.jpg",
     demo: {
       after: {
         alt: "The same street photograph in colour, with a plum car and a brown tweed coat",
@@ -95,12 +92,12 @@ export const TOOL_CAPABILITIES: Capability[] = [
     group: "tools",
     id: "tool-colourise",
     model: "ddcolor",
-    title: "Colourise a black-and-white photo",
+    title: "Colourise a photo",
   },
   {
     caption:
       "The room as a depth map, with near surfaces light and far ones dark.",
-    command: "motif map source-interior.jpg -o out-depth.jpg",
+    command: "motif map source-interior.jpg",
     demo: {
       after: {
         alt: "The same interior as a greyscale depth map",
@@ -118,7 +115,7 @@ export const TOOL_CAPABILITIES: Capability[] = [
   },
   {
     caption: "The vessel and plinth reduced to white lines on black.",
-    command: "motif map --lineart source-vessel.jpg -o out-lineart.jpg",
+    command: "motif map --lineart source-vessel.jpg",
     demo: {
       after: {
         alt: "The same vessel as white line art on black",
@@ -136,7 +133,7 @@ export const TOOL_CAPABILITIES: Capability[] = [
   },
   {
     caption: "The figure's stance as a coloured skeleton on black.",
-    command: "motif map --pose source-figure.jpg -o out-pose.jpg --format json",
+    command: "motif map --pose source-figure.jpg",
     demo: {
       after: {
         alt: "A coloured stick-figure skeleton of the standing pose on black",
@@ -155,7 +152,7 @@ export const TOOL_CAPABILITIES: Capability[] = [
   {
     caption:
       "Base colour, normal and roughness maps from one photograph of linen.",
-    command: "motif material source-linen.jpg -o pbr/",
+    command: "motif material source-linen.jpg",
     demo: {
       kind: "set",
       outputs: [
@@ -184,13 +181,13 @@ export const TOOL_CAPABILITIES: Capability[] = [
     id: "tool-materials",
     model: "patina",
     notes:
-      "It also writes metalness and height maps, which aren't shown. The roughness map still carries a lighter band from the light on the fold.",
-    title: "Make material maps from a photo",
+      "It also writes metalness and height maps, which aren't shown. The roughness map still carries a lighter band from the light on the fold. For a texture that repeats without a seam and no maps, run motif tile.",
+    title: "Make material maps",
   },
   {
     caption:
       "The figure as a textured 3D mesh with a skeleton already inside, ready to pose or animate.",
-    command: "motif mesh source-figure.jpg --rig -o mesh-rig/",
+    command: "motif mesh source-figure.jpg --rig",
     demo: {
       kind: "set",
       outputs: [
@@ -208,6 +205,6 @@ export const TOOL_CAPABILITIES: Capability[] = [
     model: "meshy-v7",
     notes:
       "The mesh comes back as GLB and FBX files for a 3D tool. The image here is the preview render that comes with them.",
-    title: "Make a rigged 3D figure from a photo",
+    title: "Make a rigged 3D figure",
   },
 ];

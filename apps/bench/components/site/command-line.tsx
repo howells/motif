@@ -10,18 +10,21 @@ const LONG_TOKEN = 40;
  * whole command. */
 export function CommandLine({
   children,
+  plate = false,
   quiet = false,
 }: {
   readonly children: string;
+  /** On a plate, to sit beside the captured output it produced. */
+  readonly plate?: boolean;
   readonly quiet?: boolean;
 }) {
   return (
     <pre
-      className={`m-0 overflow-x-auto font-mono leading-[1.7] whitespace-pre-wrap select-all ${
+      className={`m-0 font-mono leading-[1.7] whitespace-pre-wrap select-all ${
         quiet
           ? "text-[12.5px] text-(--site-muted)"
           : "text-[13px] text-(--site-ink)"
-      }`}
+      } ${plate ? "bg-(--site-plate) px-4 py-3.5" : ""}`}
     >
       <code>
         {[...children.matchAll(/[^\n]+/gu)].map((line) => (

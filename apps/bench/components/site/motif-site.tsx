@@ -1,17 +1,30 @@
-import { Appendix } from "@/components/site/appendix";
-import { Chapter, chapterNumber } from "@/components/site/chapter";
-import { CommandLine } from "@/components/site/command-line";
+import Image from "next/image";
+
+import { CodeBlock } from "@/components/site/code-block";
+import { CommandLine, OptionFlag } from "@/components/site/command-line";
+import { DemoView } from "@/components/site/demo";
 import { newsreader } from "@/components/site/fonts";
-import { LooksSpread } from "@/components/site/looks";
-import { MoodsSpread } from "@/components/site/moods";
-import { CAPABILITIES, CAPABILITY_GROUPS, SITE } from "@/lib/site/content";
+import { mayBeTransparent, Picture } from "@/components/site/picture";
+import {
+  AGENT_SURFACE,
+  CAPABILITIES,
+  CAPABILITY_GROUPS,
+  LOOK_ENTRIES,
+  MOOD_ENTRIES,
+  SITE,
+} from "@/lib/site/content";
+import type { Asset, Capability, Demo } from "@/lib/site/content";
 
 import styles from "@/components/site/site.module.css";
 
-/** The public page, set like a printed specimen: warm paper, a large serif
- * title, the looks as the opening spread, then every capability as a
- * numbered chapter. */
+/** The public page, set like a darkroom contact sheet: a warm near-black
+ * ground, and the whole page first as a sheet of thumbnails, one for every
+ * command, look and mood. Each thumbnail links to its frame below, where the
+ * result sits at full size beside its source with the command underneath. */
 
+const chapterNumber = (index: number) => String(index + 1).padStart(2, "0");
+
+/** The capabilities in page order, numbered once across all groups. */
 const PARTS = (() => {
   let next = 0;
   return CAPABILITY_GROUPS.flatMap((group) => {
@@ -26,114 +39,455 @@ const PARTS = (() => {
   });
 })();
 
-const CHAPTER_COUNT = PARTS.reduce(
-  (sum, part) => sum + part.chapters.length,
-  0
-);
+const CHAPTERS = PARTS.flatMap((part) => part.chapters);
 
-const chapterRange = (first: number, last: number) =>
-  first === last
-    ? `Chapter ${chapterNumber(first)}`
-    : `Chapters ${chapterNumber(first)} to ${chapterNumber(last)}`;
+/** The verb of a command: `motif erase …` is "erase", `motif "prompt"` is
+ * "generate", `motif --last` is "--last". A command run as several lines is
+ * named by its last `motif` line, which is the one that did the job. */
+const verbOf = (command: string): string => {
+  const line =
+    command
+      .split("\n")
+      .findLast((candidate) => candidate.startsWith("motif")) ?? "";
+  const verb = /^motif\s+(series run|series|--[a-z]+|[a-z-]+)/u.exec(line);
+  return verb?.[1] ?? "generate";
+};
 
-const CONTENTS = [
-  { href: "#looks", number: "", title: "Looks" },
-  { href: "#moods", number: "", title: "Moods" },
-  ...PARTS.map((part) => ({
-    href: `#${part.group.id}`,
-    number: chapterNumber(part.chapters[0]?.index ?? 0),
-    title: part.group.title,
-  })),
-  {
-    href: "#agents",
-    number: chapterNumber(CHAPTER_COUNT),
-    title: "For agents",
-  },
-];
+/** The one image that stands for a demo's result on the sheet. A command that
+ * only prints has no image, so it is named under the sheet instead. */
+const heroOf = (demo: Demo): Asset | undefined => {
+  switch (demo.kind) {
+    case "pair": {
+      return demo.after;
+    }
+    case "set": {
+      return demo.outputs[0];
+    }
+    case "boxes":
+    case "text": {
+      return demo.source;
+    }
+    case "video": {
+      return demo.poster;
+    }
+    case "series": {
+      return demo.scenes[0]?.image;
+    }
+    case "terminal": {
+      return undefined;
+    }
+    default: {
+      return undefined;
+    }
+  }
+};
+
+const lookNames = (acceptsMood: boolean) =>
+  LOOK_ENTRIES.filter((look) => look.acceptsMood === acceptsMood)
+    .map((look) => look.name)
+    .join(", ");
+
+const LINK =
+  "text-(--site-accent) underline decoration-(--site-accent)/40 underline-offset-2 hover:decoration-(--site-accent)";
+
+/** One square on the sheet. The first row or two are in the first viewport,
+ * so those load eagerly. */
+function Thumb({
+  asset,
+  eager = false,
+  href,
+  label,
+  sub,
+}: {
+  readonly asset: Asset;
+  readonly eager?: boolean;
+  readonly href: string;
+  readonly label: string;
+  readonly sub: string;
+}) {
+  return (
+    <a className="group flex min-w-0 flex-col gap-2 no-underline" href={href}>
+      <span
+        className={`block aspect-square overflow-hidden ${
+          mayBeTransparent(asset) ? styles.checker : "bg-(--site-plate)"
+        }`}
+      >
+        <Image
+          alt={asset.alt}
+          className="h-full w-full object-cover transition-opacity group-hover:opacity-80"
+          height={asset.height}
+          loading={eager ? "eager" : "lazy"}
+          src={asset.src}
+          unoptimized
+          width={asset.width}
+        />
+      </span>
+      <span className="flex flex-col gap-0.5">
+        <span className="font-mono text-[12px] leading-[1.4] text-(--site-muted)">
+          {sub}
+        </span>
+        <span className="text-[13px] leading-[1.4] text-(--site-ink) group-hover:underline">
+          {label}
+        </span>
+      </span>
+    </a>
+  );
+}
+
+function SheetHead({ children }: { readonly children: string }) {
+  return <h3 className="pb-4 text-[14px] text-(--site-muted)">{children}</h3>;
+}
+
+const THUMB_GRID =
+  "grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-4 lg:grid-cols-8 lg:gap-x-4";
+
+/** A command at full size: the result and its source, with the title,
+ * caption and command beside them, and a way back to the sheet. */
+function Frame({
+  capability,
+  index,
+}: {
+  readonly capability: Capability;
+  readonly index: number;
+}) {
+  return (
+    <article
+      aria-labelledby={`${capability.id}-title`}
+      className="grid scroll-mt-6 grid-cols-1 gap-6 border-t border-(--site-rule) py-10 sm:py-14 lg:grid-cols-12 lg:gap-12 lg:py-20"
+      id={capability.id}
+    >
+      <div className="min-w-0 lg:col-span-8">
+        <DemoView demo={capability.demo} />
+      </div>
+      <div className="flex flex-col gap-4 lg:sticky lg:top-6 lg:col-span-4 lg:self-start">
+        <p className="font-mono text-[13px] text-(--site-muted)">
+          {chapterNumber(index)} motif {verbOf(capability.command)}
+        </p>
+        <h3
+          className={`${styles.display} text-[1.75rem] leading-[1.1] tracking-[-0.01em] lg:text-[2rem]`}
+          id={`${capability.id}-title`}
+        >
+          {capability.title}
+        </h3>
+        <p className="text-[15px] leading-[1.55]">{capability.caption}</p>
+        <CommandLine>{capability.command}</CommandLine>
+        {capability.notes === undefined ? null : (
+          <p className="text-[14px] leading-[1.55] text-(--site-muted)">
+            {capability.notes}
+          </p>
+        )}
+        <a className={`${LINK} text-[14px]`} href="#sheet">
+          Back to the sheet
+        </a>
+      </div>
+    </article>
+  );
+}
+
+function SectionHead({
+  children,
+  id,
+  note,
+}: {
+  readonly children: string;
+  readonly id: string;
+  readonly note?: React.ReactNode;
+}) {
+  return (
+    <header className="flex flex-col gap-3 border-t border-(--site-ink) pt-4 pb-8 sm:flex-row sm:items-baseline sm:justify-between">
+      <h2
+        className={`${styles.display} text-[2rem] leading-none tracking-[-0.015em] sm:text-[2.5rem]`}
+        id={`${id}-heading`}
+      >
+        {children}
+      </h2>
+      {note === undefined ? null : (
+        <p className="max-w-[30rem] text-[15px] text-(--site-muted)">{note}</p>
+      )}
+    </header>
+  );
+}
+
+function Proof({
+  command,
+  description,
+  flag,
+  id,
+  image,
+  name,
+}: {
+  readonly command: string;
+  readonly description: string;
+  readonly flag: string;
+  readonly id: string;
+  readonly image: Asset;
+  readonly name: string;
+}) {
+  return (
+    <figure
+      className="m-0 flex min-w-0 scroll-mt-6 flex-col gap-3"
+      id={`${flag}-${id}`}
+    >
+      <Picture asset={image} />
+      <figcaption className="flex flex-col gap-2">
+        <span className="flex flex-wrap items-baseline gap-x-3">
+          <span className={`${styles.display} text-[1.375rem] leading-tight`}>
+            {name}
+          </span>
+          <OptionFlag name={flag} value={id} />
+        </span>
+        <span className="text-[14px] leading-[1.5] text-(--site-muted)">
+          {description}
+        </span>
+        <CommandLine quiet>{command}</CommandLine>
+        <a className={`${LINK} text-[14px]`} href="#sheet">
+          Back to the sheet
+        </a>
+      </figcaption>
+    </figure>
+  );
+}
 
 export function MotifSite() {
   return (
     <main
       className={`${newsreader.variable} ${styles.root} min-h-dvh overflow-x-clip`}
     >
-      <div className="mx-auto max-w-[88rem] px-5 sm:px-10 lg:px-16">
-        <header className="grid grid-cols-1 gap-10 pt-10 pb-10 sm:gap-12 sm:pt-14 sm:pb-16 lg:grid-cols-12 lg:pt-28 lg:pb-28">
-          <div className="flex flex-col gap-5 sm:gap-6 lg:col-span-8">
+      <div className="mx-auto max-w-[96rem] px-5 sm:px-8 lg:px-12">
+        <header className="flex flex-col gap-6 pt-8 pb-10 sm:flex-row sm:items-end sm:justify-between sm:pt-10 sm:pb-14">
+          <div className="flex flex-col gap-3">
             <h1
-              className={`${styles.display} text-[3rem] leading-[0.95] tracking-[-0.025em] lg:text-[6rem]`}
+              className={`${styles.display} text-[2.5rem] leading-none tracking-[-0.02em] sm:text-[3rem]`}
             >
               {SITE.name}
             </h1>
-            <p className="max-w-[32rem] text-[1.1875rem] leading-[1.5] lg:text-[1.375rem]">
+            <p className="max-w-[34rem] text-[1.0625rem] leading-[1.5]">
               {SITE.summary}
             </p>
-            <div className="flex flex-col gap-1 pt-1 sm:pt-2">
-              <span className="text-[14px] text-(--site-muted)">Install</span>
-              <CommandLine>{SITE.install}</CommandLine>
-            </div>
           </div>
-
-          <nav aria-label="Contents" className="lg:col-span-4 lg:self-end">
-            <ol className="m-0 list-none border-t border-(--site-rule) p-0">
-              {CONTENTS.map((entry) => (
-                <li className="border-b border-(--site-rule)" key={entry.href}>
-                  <a
-                    className="flex min-h-11 items-center justify-between gap-4 text-(--site-accent) no-underline hover:underline"
-                    href={entry.href}
-                  >
-                    <span>{entry.title}</span>
-                    <span
-                      className={`${styles.display} text-[1.125rem] text-(--site-muted)`}
-                    >
-                      {entry.number}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
+          <div className="flex flex-col gap-1 sm:items-end">
+            <span className="text-[14px] text-(--site-muted)">Install</span>
+            <CommandLine>{SITE.install}</CommandLine>
+          </div>
         </header>
 
-        <LooksSpread />
-        <MoodsSpread />
-
-        {PARTS.map((part) => {
-          const first = part.chapters[0]?.index ?? 0;
-          const last = part.chapters.at(-1)?.index ?? first;
-          return (
-            <section
-              aria-labelledby={`${part.group.id}-heading`}
-              className="scroll-mt-8 pt-12 sm:pt-24 lg:pt-40"
-              id={part.group.id}
-              key={part.group.id}
-            >
-              <header className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 border-t border-(--site-ink) pt-6 pb-2 sm:pt-8 sm:pb-4 lg:grid lg:grid-cols-12 lg:gap-12">
-                <h2
-                  className={`${styles.display} text-[2.5rem] leading-none tracking-[-0.02em] sm:text-[3rem] lg:col-span-8 lg:text-[4.5rem]`}
-                  id={`${part.group.id}-heading`}
-                >
-                  {part.group.title}
-                </h2>
-                <p className="text-[15px] text-(--site-muted) sm:text-[17px] lg:col-span-4 lg:self-end">
-                  {chapterRange(first, last)}
-                </p>
-              </header>
-              {part.chapters.map(({ capability, index }) => (
-                <Chapter
-                  capability={capability}
-                  index={index}
-                  key={capability.id}
+        <section
+          aria-labelledby="sheet-heading"
+          className="flex scroll-mt-6 flex-col gap-10 sm:gap-14"
+          id="sheet"
+        >
+          <h2 className="sr-only" id="sheet-heading">
+            The sheet
+          </h2>
+          <div>
+            <SheetHead>Commands, one result each</SheetHead>
+            <div className={THUMB_GRID}>
+              {CHAPTERS.map(({ capability, index }) => {
+                const hero = heroOf(capability.demo);
+                return hero === undefined ? null : (
+                  <Thumb
+                    asset={hero}
+                    eager={index < 16}
+                    href={`#${capability.id}`}
+                    key={capability.id}
+                    label={capability.title}
+                    sub={`${chapterNumber(index)} motif ${verbOf(capability.command)}`}
+                  />
+                );
+              })}
+            </div>
+            <p className="pt-5 text-[14px] text-(--site-muted)">
+              Three more print to the terminal rather than making a file. They
+              are{" "}
+              <a className={LINK} href="#more">
+                at the end
+              </a>
+              .
+            </p>
+          </div>
+          <div>
+            <SheetHead>Looks, one image each</SheetHead>
+            <div className={THUMB_GRID}>
+              {LOOK_ENTRIES.map((look) => (
+                <Thumb
+                  asset={look.image}
+                  href={`#look-${look.id}`}
+                  key={look.id}
+                  label={look.name}
+                  sub={`--look ${look.id}`}
                 />
               ))}
-            </section>
-          );
-        })}
+            </div>
+          </div>
+          <div>
+            <SheetHead>Moods, one kitchen under six lights</SheetHead>
+            <div className={THUMB_GRID}>
+              {MOOD_ENTRIES.map((mood) => (
+                <Thumb
+                  asset={mood.image}
+                  href={`#mood-${mood.id}`}
+                  key={mood.id}
+                  label={mood.name}
+                  sub={`--mood ${mood.id}`}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
 
-        <div className="pt-12 sm:pt-24 lg:pt-40">
-          <Appendix number={chapterNumber(CHAPTER_COUNT)} />
-        </div>
+        {PARTS.map((part) => (
+          <section
+            aria-labelledby={`${part.group.id}-heading`}
+            className="scroll-mt-6 pt-16 sm:pt-24"
+            id={part.group.id}
+            key={part.group.id}
+          >
+            <SectionHead id={part.group.id}>{part.group.title}</SectionHead>
+            {part.chapters.map(({ capability, index }) => (
+              <Frame
+                capability={capability}
+                index={index}
+                key={capability.id}
+              />
+            ))}
+          </section>
+        ))}
 
-        <footer className="flex flex-col gap-1 border-t border-(--site-rule) pt-8 pb-16 sm:pt-10 sm:pb-24">
+        <section
+          aria-labelledby="looks-heading"
+          className="scroll-mt-6 pt-16 sm:pt-24"
+          id="looks"
+        >
+          <SectionHead
+            id="looks"
+            note={
+              <>
+                Add one to any prompt with{" "}
+                <OptionFlag name="look" value="<id>" />. A look sets the medium,
+                finish and framing.
+              </>
+            }
+          >
+            Looks
+          </SectionHead>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-14">
+            {LOOK_ENTRIES.map((look) => (
+              <Proof
+                command={look.command}
+                description={look.prompt}
+                flag="look"
+                id={look.id}
+                image={look.image}
+                key={look.id}
+                name={look.name}
+              />
+            ))}
+          </div>
+        </section>
+
+        <section
+          aria-labelledby="moods-heading"
+          className="scroll-mt-6 pt-16 sm:pt-24"
+          id="moods"
+        >
+          <SectionHead
+            id="moods"
+            note={
+              <>
+                Add one with <OptionFlag name="mood" value="<id>" /> to set the
+                light. All six use the same prompt, look and seed, so only the
+                light changes.
+              </>
+            }
+          >
+            Moods
+          </SectionHead>
+          <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-8">
+            {MOOD_ENTRIES.map((mood) => (
+              <Proof
+                command={mood.command}
+                description={mood.description}
+                flag="mood"
+                id={mood.id}
+                image={mood.image}
+                key={mood.id}
+                name={mood.name}
+              />
+            ))}
+          </div>
+          <dl className="m-0 mt-12 grid grid-cols-1 gap-x-12 gap-y-4 border-t border-(--site-rule) pt-6 sm:mt-16 sm:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <dt className="text-[14px] text-(--site-muted)">
+                Looks that take a mood
+              </dt>
+              <dd className="m-0 text-[15px] leading-[1.55]">
+                {lookNames(true)}
+              </dd>
+            </div>
+            <div className="flex flex-col gap-1">
+              <dt className="text-[14px] text-(--site-muted)">
+                Looks that ignore one
+              </dt>
+              <dd className="m-0 text-[15px] leading-[1.55]">
+                {lookNames(false)}
+              </dd>
+            </div>
+          </dl>
+        </section>
+
+        <section
+          aria-labelledby="agents-heading"
+          className="scroll-mt-6 pt-16 pb-16 sm:pt-24 sm:pb-24"
+          id="agents"
+        >
+          <SectionHead
+            id="agents"
+            note="Every command answers --format json, prices a run with --dry-run and returns a coded error."
+          >
+            For agents
+          </SectionHead>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-10">
+            <CodeBlock label="From motif --help">
+              {AGENT_SURFACE.help}
+            </CodeBlock>
+            <div className="flex min-w-0 flex-col gap-8">
+              <div className="flex flex-col gap-3">
+                <CommandLine plate>
+                  {AGENT_SURFACE.didYouMean.command}
+                </CommandLine>
+                <CodeBlock
+                  label={`stderr, exit code ${AGENT_SURFACE.didYouMean.exitCode}`}
+                >
+                  {AGENT_SURFACE.didYouMean.output}
+                </CodeBlock>
+              </div>
+              <div className="flex flex-col gap-3">
+                <CommandLine plate>{AGENT_SURFACE.dryRun.command}</CommandLine>
+                <CodeBlock label="Output">
+                  {AGENT_SURFACE.dryRun.output}
+                </CodeBlock>
+              </div>
+              <div className="flex flex-col gap-3">
+                <CommandLine plate>
+                  {AGENT_SURFACE.describeTasksCommand}
+                </CommandLine>
+                <CodeBlock label="Output, shortened">
+                  {AGENT_SURFACE.describeTasksExcerpt}
+                </CodeBlock>
+              </div>
+              <div className="flex flex-col gap-3">
+                <CommandLine plate>
+                  {AGENT_SURFACE.describeErrors.command}
+                </CommandLine>
+                <CodeBlock label="Output, 2 of the entries">
+                  {AGENT_SURFACE.describeErrors.output}
+                </CodeBlock>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="flex flex-col gap-1 border-t border-(--site-rule) pt-6 pb-16">
           <span className="text-[14px] text-(--site-muted)">Install</span>
           <CommandLine>{SITE.install}</CommandLine>
         </footer>
