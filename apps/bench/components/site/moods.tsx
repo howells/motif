@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { ChapterHead } from "@/components/site/chapter";
 import { Plate } from "@/components/site/plate";
-import { MOOD_COMMAND, MOODS } from "@/lib/site/page";
+import { MOOD_COMMAND, MOODS } from "@/lib/site/content";
 
 type MoodId = (typeof MOODS)[number]["id"];
 

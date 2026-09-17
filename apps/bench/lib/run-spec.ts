@@ -26,11 +26,10 @@ export const DEFAULT_PROMPT =
  * — the same number the dry run prices, so the summary line and this
  * selection can never disagree about which models are "cheapest". */
 export const cheapestModelAliases = (count: number): string[] =>
-  [...BENCH_ROUTES]
-    .sort(
-      (left, right) =>
-        left.pricing.estimatedCostUsd - right.pricing.estimatedCostUsd
-    )
+  BENCH_ROUTES.toSorted(
+    (left, right) =>
+      left.pricing.estimatedCostUsd - right.pricing.estimatedCostUsd
+  )
     .slice(0, count)
     .map((route) => route.alias);
 

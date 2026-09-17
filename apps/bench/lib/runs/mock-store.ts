@@ -240,7 +240,7 @@ const cohortHashFor = (spec: RunSpecInput): string => {
     spec.prompt,
     spec.aspect,
     spec.resolution,
-    [...spec.models].sort().join(","),
+    spec.models.toSorted().join(","),
     // Always a segment, even when null: omitting it for the default would let
     // a jpeg run and a default run hash identically, and a container format
     // that costs quality (jpeg) is not the same cohort as one that does not.

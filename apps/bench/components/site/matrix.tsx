@@ -1,6 +1,6 @@
 import { ChapterHead } from "@/components/site/chapter";
-import type { MatrixFal } from "@/lib/site/page";
-import { MATRIX, matrixRows } from "@/lib/site/page";
+import type { MatrixFal } from "@/lib/site/content";
+import { MATRIX, matrixRows } from "@/lib/site/content";
 
 const PROVIDERS = ["OpenAI", "Google", "Replicate"] as const;
 

@@ -21,7 +21,7 @@ const RunSelectionContext = createContext<RunSelection | null>(null);
 
 export const RunSelectionProvider = RunSelectionContext.Provider;
 
-export const useRunSelection = (): RunSelection => {
+const useRunSelection = (): RunSelection => {
   const value = use(RunSelectionContext);
   if (value === null) {
     throw new Error("useRunSelection must be called inside the bench shell.");

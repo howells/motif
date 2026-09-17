@@ -3,7 +3,7 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { Plate } from "@/components/site/plate";
-import { HERO_STEPS, SITE } from "@/lib/site/page";
+import { HERO_STEPS, SITE } from "@/lib/site/content";
 
 /** How long a step holds before the sequence moves on. Long enough to read the
  * command and look at the picture; the progress rule under the command shows
@@ -166,7 +166,7 @@ export function Hero() {
           {step.video === undefined ? (
             <Plate
               fadeKey={step.id}
-              priority={index === 0}
+              eager={index === 0}
               ratio="1000 / 530"
               sizes="(max-width: 767px) 100vw, 1000px"
               source={step.plate}

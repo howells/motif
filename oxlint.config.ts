@@ -1,4 +1,4 @@
-import react from "@howells/lint/oxlint/react";
+import next from "@howells/lint/oxlint/next";
 import { disabledReactDoctorRules } from "@howells/lint/oxlint/react-doctor-rules";
 
 // Single root config for the whole monorepo, per the @howells/lint README's
@@ -22,7 +22,7 @@ import { disabledReactDoctorRules } from "@howells/lint/oxlint/react-doctor-rule
 // toolchain migration. Promote these after the parsing/test-style cleanup;
 // existing correctness rules and native type-aware checks remain errors.
 function newStyleWarnings(
-  config: typeof react | string
+  config: typeof next | string
 ): Record<string, "warn"> {
   if (typeof config === "string") {
     return {};
@@ -38,15 +38,13 @@ function newStyleWarnings(
 }
 
 export default {
-  extends: [react],
+  extends: [next],
   rules: {
-    ...newStyleWarnings(react),
+    ...newStyleWarnings(next),
     "react/function-component-definition": "warn",
     "react/immutability": "warn",
     "react/purity": "warn",
     "react/set-state-in-effect": "warn",
-    // Migration exception: React Doctor rules are DOM-oriented (see header note).
-    ...disabledReactDoctorRules,
     // Repo convention: function declarations, not expressions. Flipping every
     // top-level helper is a convention change, not a mechanical fix.
     "func-style": "off",
@@ -62,6 +60,11 @@ export default {
     // Sequential awaits are intentional (queue polling, ordered generation,
     // pagination).
     "no-await-in-loop": "off",
+    // React Doctor's names for the same two patterns. In the bench's judging
+    // store the order also guards spend: the paid judge call waits until the
+    // database is known to be reachable.
+    "react-doctor/async-await-in-loop": "off",
+    "react-doctor/server-sequential-independent-await": "off",
     // Promise-based sleep/poll helpers (`new Promise(r => setTimeout(r, ...))`)
     // are legitimate.
     "no-promise-executor-return": "off",
@@ -97,6 +100,32 @@ export default {
     "default-case": "off",
   },
   overrides: [
+    {
+      // The bench app does not run React Compiler (no `reactCompiler` in
+      // next.config.ts), so its `useMemo`/`useCallback` calls are still doing
+      // the work this rule assumes the compiler does. Remove this entry when
+      // the compiler is turned on.
+      files: ["apps/bench/**"],
+      rules: {
+        "react-doctor/react-compiler-no-manual-memoization": "off",
+      },
+    },
+    {
+      // Migration exception: the bench tool's own shell and run screens set
+      // metadata below the size this rule allows. Reported while those screens
+      // get a type pass; promote back to an error once they are clean. The
+      // public site under components/site is not covered by this entry.
+      files: ["apps/bench/components/shell/**", "apps/bench/components/run/**"],
+      rules: {
+        "react-doctor/no-tiny-text": "warn",
+      },
+    },
+    {
+      // Migration exception: React Doctor rules are DOM-oriented (see header
+      // note), so they stay off everywhere except the Next app.
+      files: ["apps/cli/**", "packages/**"],
+      rules: disabledReactDoctorRules,
+    },
     {
       files: ["**/*.test.*", "**/*.spec.*", "**/__tests__/**"],
       plugins: ["vitest"],

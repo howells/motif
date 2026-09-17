@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { MotifSite } from "@/components/site/motif-site";
-import { SITE } from "@/lib/site/page";
+import { SITE } from "@/lib/site/content";
 
 export const metadata: Metadata = {
   description: SITE.description,

@@ -22,7 +22,7 @@ export interface ModelTierGroup {
 }
 
 export const modelTierGroups = (): ModelTierGroup[] => {
-  const sorted = [...BENCH_ROUTES].sort(
+  const sorted = BENCH_ROUTES.toSorted(
     (left, right) =>
       left.pricing.estimatedCostUsd - right.pricing.estimatedCostUsd
   );

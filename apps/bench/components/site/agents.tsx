@@ -1,5 +1,5 @@
 import { ChapterHead, Label } from "@/components/site/chapter";
-import { AGENT_EXAMPLES } from "@/lib/site/page";
+import { AGENT_EXAMPLES } from "@/lib/site/content";
 
 /** What the CLI looks like from a script: a price before the spend, a refusal
  * that names the right verb, and the whole surface as JSON. Real output,

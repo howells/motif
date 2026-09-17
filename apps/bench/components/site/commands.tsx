@@ -1,6 +1,6 @@
 import { ChapterHead, Command, Label } from "@/components/site/chapter";
 import { Plate } from "@/components/site/plate";
-import { COMMAND_GROUPS, DEMO_ROWS, TILE_ROW } from "@/lib/site/page";
+import { COMMAND_GROUPS, DEMO_ROWS, TILE_ROW } from "@/lib/site/content";
 
 /** Every command, grouped, then three of them shown working.
  *

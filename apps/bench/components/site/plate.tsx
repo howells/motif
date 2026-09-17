@@ -16,8 +16,8 @@ interface PlateSource {
  * caller. */
 export function Plate({
   className,
+  eager,
   fadeKey,
-  priority,
   ratio,
   sizes,
   source,
@@ -25,7 +25,10 @@ export function Plate({
   readonly className?: string;
   /** Changing this re-runs the cross-fade, for plates that swap in place. */
   readonly fadeKey?: string;
-  readonly priority?: boolean;
+  /** For the hero's first plate: fetched straight away and ahead of the rest.
+   * `priority` is deprecated in Next.js 16, and its docs prefer these two
+   * attributes to `preload`. */
+  readonly eager?: boolean;
   readonly ratio: string;
   readonly sizes: string;
   readonly source: PlateSource;
@@ -38,9 +41,10 @@ export function Plate({
       <Image
         alt={source.alt}
         className={fadeKey === undefined ? undefined : "site-fade"}
+        fetchPriority={eager === true ? "high" : undefined}
         height={source.height}
         key={fadeKey}
-        priority={priority}
+        loading={eager === true ? "eager" : undefined}
         sizes={sizes}
         src={source.src}
         width={source.width}

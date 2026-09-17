@@ -46,5 +46,3 @@ export const Badge = ({
     {...props}
   />
 );
-
-export { badgeVariants };

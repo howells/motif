@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { Command } from "@/components/site/chapter";
 import { Plate } from "@/components/site/plate";
-import { COMPARE } from "@/lib/site/page";
+import { COMPARE } from "@/lib/site/content";
 
 /** The try-on result, with the photograph that went into it held underneath.
  *

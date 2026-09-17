@@ -98,9 +98,9 @@ export const planReconciliation = (
     return { finalRunStatus: null, timedOutSampleIds: [] };
   }
 
-  const timedOutSampleIds = samples
-    .filter((sample) => UNSETTLED_STATUSES.has(sample.status))
-    .map((sample) => sample.id);
+  const timedOutSampleIds = samples.flatMap((sample) =>
+    UNSETTLED_STATUSES.has(sample.status) ? [sample.id] : []
+  );
   const timedOutIdSet = new Set(timedOutSampleIds);
   const succeededCount = samples.filter(
     (sample) => !timedOutIdSet.has(sample.id) && sample.status === "completed"

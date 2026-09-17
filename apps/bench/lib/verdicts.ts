@@ -42,10 +42,13 @@ export const aggregateQualityByModel = (
   ].toSorted();
 
   return aliases.map((modelAlias) => {
-    const stars = samples
-      .filter((sample) => sample.modelAlias === modelAlias)
-      .map((sample) => starsBySample.get(sample.id))
-      .filter((value) => typeof value === "number");
+    const stars = samples.flatMap((sample) => {
+      const value =
+        sample.modelAlias === modelAlias
+          ? starsBySample.get(sample.id)
+          : undefined;
+      return value === undefined ? [] : [value];
+    });
 
     return {
       meanStars:

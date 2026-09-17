@@ -277,7 +277,7 @@ const cohortHashFor = (spec: RunSpecInput): string => {
     spec.prompt,
     spec.aspect,
     spec.resolution,
-    [...spec.models].sort().join(","),
+    spec.models.toSorted().join(","),
     // Always a segment, even when null: omitting it for the default would let
     // a jpeg run and a default run hash identically, and a container format
     // that costs quality (jpeg) is not the same cohort as one that does not.
@@ -521,16 +521,14 @@ export const settleSample = async (
   engine: RunEngine
 ): Promise<void> => {
   const db = await getDb();
-  const [sample] = await db
-    .select()
-    .from(benchSamples)
-    .where(eq(benchSamples.id, sampleId))
-    .limit(1);
-  const [run] = await db
-    .select()
-    .from(benchRuns)
-    .where(eq(benchRuns.id, runId))
-    .limit(1);
+  const [[sample], [run]] = await Promise.all([
+    db
+      .select()
+      .from(benchSamples)
+      .where(eq(benchSamples.id, sampleId))
+      .limit(1),
+    db.select().from(benchRuns).where(eq(benchRuns.id, runId)).limit(1),
+  ]);
   if (!sample || !run) {
     return;
   }

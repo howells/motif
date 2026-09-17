@@ -1,6 +1,6 @@
 import { ChapterHead } from "@/components/site/chapter";
 import { Plate } from "@/components/site/plate";
-import { LOOKS } from "@/lib/site/page";
+import { LOOKS } from "@/lib/site/content";
 
 /** Three looks at three widths.
  *

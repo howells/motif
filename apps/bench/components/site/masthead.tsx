@@ -1,4 +1,4 @@
-import { FOOTER_LINKS, MASTHEAD_LINKS, SITE } from "@/lib/site/page";
+import { FOOTER_LINKS, MASTHEAD_LINKS, SITE } from "@/lib/site/content";
 
 /** The install line on the left, where a reader looks for it, and the three
  * places the package lives on the right. */
