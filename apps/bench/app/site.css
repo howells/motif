@@ -29,6 +29,9 @@
 
   background: var(--ground);
   color: var(--ink);
+  /* `body` in globals.css sets 450 for the bench app. Reset once here so any
+     text that is between roles cannot render heavier than the roles do. */
+  font-weight: 400;
   /* The boards run their photographs off the right edge. Clipping here means
      that bleed costs no sideways scroll. */
   overflow-x: clip;
@@ -48,8 +51,8 @@
 
        display   56px   Faculty Glyphic 400
        title     22px   Faculty Glyphic 400
-       body      15px   Inter 450
-       small     13px   Inter 450, or the same in mono
+       body      14px   Inter 400
+       small     13px   Inter 400, or the same in mono
 
    Quieter than the Paper boards drew them. The boards set the display role at
    120px, which made the headings the loudest thing on a page whose subject is
@@ -79,13 +82,14 @@
   line-height: 1.75rem;
 }
 
-/* Inter at the Patternmode weight. 450 is inherited from `body` in
-   globals.css, and named here anyway so the role carries its own shape and
-   the same class cannot render at two weights depending on its tag. */
+/* Inter at 400 rather than the bench app's Patternmode 450: this page carries
+   its subject in photographs and long reading columns, and the lighter face
+   suits both. Named on the role so the same class cannot render at two
+   weights depending on the tag it lands on. */
 .type-body {
-  font-size: 0.9375rem;
-  font-weight: 450;
-  line-height: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.375rem;
 }
 
 /* The workhorse — labels, captions, table cells, controls — and, with
@@ -94,7 +98,7 @@
    share a size and a leading. */
 .type-small {
   font-size: 0.8125rem;
-  font-weight: 450;
+  font-weight: 400;
   line-height: 1.25rem;
 }
 
