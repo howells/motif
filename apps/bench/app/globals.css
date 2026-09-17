@@ -10,6 +10,8 @@
    are `ScrollFrame`s — measured edge fades, so a part-scrolled pane reads as
    continuing rather than ending (`docs/design/specs/design-bench-shell.md`). */
 @import "@patternmode/scrollframe/styles.css";
+/* The public page at `/` carries its own scoped palette and type case. */
+@import "./site.css";
 
 @theme {
   /* ── Dark throughout ──────────────────────────────────────────────

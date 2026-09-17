@@ -1,12 +1,13 @@
-import { Newsreader } from "next/font/google";
+import { Faculty_Glyphic } from "next/font/google";
 
-/** Newsreader sets the titles and numerals. Its optical-size axis draws the
- * 6rem title with fine display contrast and the chapter titles with sturdier
- * text contrast, all from one family. Instrument Serif has a single weight
- * and no optical sizes, so it only holds up at the largest size. */
-export const newsreader = Newsreader({
-  axes: ["opsz"],
+/** Faculty Glyphic sets the wordmark, the chapter heads and the row titles.
+ * It is a glyphic sans with one weight, drawn with carved rather than drawn
+ * terminals, and it holds the 120px wordmark and the 28px row title from the
+ * same file. There is no second weight to reach for, which is the point: the
+ * page separates display from body by family, not by weight. */
+export const facultyGlyphic = Faculty_Glyphic({
   display: "swap",
   subsets: ["latin"],
-  variable: "--font-newsreader",
+  variable: "--font-faculty",
+  weight: "400",
 });

@@ -1,0 +1,205 @@
+/* The public page at `/`, drawn from the Paper file "Motif".
+   https://app.paper.design/file/01M2NF0PQEPFE3X84ZYDG4K4KT/1-0
+
+   The bench app at /bench owns the tokens in globals.css: a near-achromatic
+   dark built for judging image colour. This page is a different job — an
+   editorial page whose subject is the photography — so it carries its own
+   warm palette, scoped to `.site` rather than declared in `@theme`. Two
+   palettes, one stylesheet, no collision: nothing here escapes the class. */
+
+.site {
+  /* Ground and surface come off the Paper file unchanged. */
+  --ground: #131211;
+  --surface: #1c1a17;
+
+  /* Three text rungs. `ink` is the reading colour, `muted` carries captions
+     and standfirsts, `faint` is for text that must recede without becoming
+     unreadable.
+
+     Paper drew `faint` at #6f675b, which measures 3.36:1 on the ground and
+     fails WCAG AA for text below 24px — and it carried 114 nodes there,
+     including every "not supported" dash in the matrix. Lifted to #8d8474,
+     it reads as the same rung of the ladder at 5.0:1. */
+  --ink: #efe7d8;
+  --muted: #a99f8f;
+  --faint: #8d8474;
+
+  --rule: rgb(239 231 216 / 8%);
+  --accent: #93cdae;
+
+  /* Faculty Glyphic arrives as a next/font variable on the same element. */
+  --font-display: var(--font-faculty), ui-serif, Georgia, serif;
+
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  /* The page is one dark surface whatever the browser's scheme. */
+  color-scheme: dark;
+}
+
+/* ── The type case ────────────────────────────────────────────────────
+   Four roles, and a family variant on the smallest. Every piece of text on
+   the page picks exactly one; colour, alignment and wrapping stay free.
+   Sizes are the ones measured off the Paper boards — 120 / 28 / 16 / 14 —
+   with the display role clamped down to the 56px the 390 board draws. */
+
+.type-display {
+  font-family: var(--font-display);
+  font-size: clamp(3.5rem, 8.4vw, 7.5rem);
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+}
+
+.type-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  letter-spacing: -0.01em;
+  line-height: 2rem;
+}
+
+.type-body {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.type-small {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Mono is the small role in another family, never its own step. `line-height`
+   opens to 22px because commands wrap and need the room. */
+.type-mono {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+}
+
+/* ── Page furniture ──────────────────────────────────────────────────── */
+
+/* 64px gutters at 1440, tightening to 20px on a phone. The measured value is
+   the desktop one; the floor keeps the images off the screen edge. */
+.site-gutter {
+  margin-inline: auto;
+  max-width: 90rem;
+  padding-inline: clamp(1.25rem, 4.4vw, 4rem);
+  width: 100%;
+}
+
+/* A chapter opens with 96px of air above it at desktop, less on a phone. */
+.site-chapter {
+  padding-top: clamp(4rem, 6.7vw, 6rem);
+}
+
+/* Every image on the page sits in a fixed-ratio box and fills it, so a slow
+   connection reflows nothing. */
+.site-plate {
+  background: var(--surface);
+  overflow: clip;
+  position: relative;
+}
+
+/* Taken out of flow so the box's ratio is the only thing setting its height.
+   Left in flow, `block-size: 100%` has no definite height to resolve against,
+   falls back to the file's own height, and a square source stretches the box
+   it was supposed to be cropped into. */
+.site-plate img,
+.site-plate video {
+  block-size: 100%;
+  inline-size: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+}
+
+/* The answer `motif ask` gave, set over the photograph it was asked about.
+   Its own size rather than the display role's: the answer has to sit inside
+   the picture without covering the shelf it is counting. */
+.site-answer {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  inset-block-end: 1.5rem;
+  inset-inline: 1.5rem;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  position: absolute;
+}
+
+@media (width >= 48rem) {
+  .site-answer {
+    inset-block-end: 2.5rem;
+    inset-inline: 2.5rem;
+  }
+}
+
+/* The command chips: a surface block with mono text, used wherever the page
+   shows something you could type. */
+.site-command {
+  background: var(--surface);
+  padding: 0.75rem 1rem;
+}
+
+/* Underline for the selected tab in the mood and step rows. Drawn as a
+   pseudo-element so the label does not move when it becomes selected. */
+.site-tab {
+  background: none;
+  border: 0;
+  color: var(--faint);
+  cursor: pointer;
+  display: block;
+  padding: 0 0 0.5rem;
+  position: relative;
+  text-align: left;
+}
+
+.site-tab::after {
+  background: var(--accent);
+  block-size: 2px;
+  content: "";
+  inset-block-end: 0;
+  inset-inline: 0;
+  opacity: 0;
+  position: absolute;
+}
+
+.site-tab[aria-selected="true"],
+.site-tab[aria-current="step"] {
+  color: var(--ink);
+}
+
+.site-tab[aria-selected="true"]::after {
+  opacity: 1;
+}
+
+.site-tab:hover {
+  color: var(--ink);
+}
+
+/* Motion is confined to the two places where something genuinely changes
+   under the pointer: the plate cross-fade and the compare swap. */
+@media (prefers-reduced-motion: no-preference) {
+  .site-fade {
+    animation: site-fade 320ms ease-out;
+  }
+}
+
+@keyframes site-fade {
+  from {
+    opacity: 0.4;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* The hero's dwell timer, drawn as a rule that fills under the command. */
+@keyframes hero-progress {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 100%;
+  }
+}

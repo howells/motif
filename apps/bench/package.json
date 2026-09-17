@@ -23,7 +23,7 @@
     "@vercel/blob": "^2.6.1",
     "ai": "^7.0.22",
     "class-variance-authority": "^0.7.1",
-    "cn": "^0.2.5",
+    "cn": "^0.2.6",
     "drizzle-orm": "1.0.0-rc.4",
     "lucide-react": "^1.28.0",
     "next": "^16.2.12",
