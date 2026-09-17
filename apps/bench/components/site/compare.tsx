@@ -23,7 +23,7 @@ export function Compare() {
   return (
     <section className="site-chapter site-gutter">
       <div className="flex flex-col gap-3">
-        <h2 className="type-display" id="compare">
+        <h2 className="type-title" id="compare">
           {COMPARE.title}
         </h2>
         <p

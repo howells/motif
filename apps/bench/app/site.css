@@ -54,18 +54,24 @@
    fifth *style* without being a fifth size — mono is the small role in
    another family.
 
-       display   56px   Faculty Glyphic 400
-       title     22px   Faculty Glyphic 400
+       display   72px   Faculty Glyphic 400 — the wordmark, and only it
+       title     28px   Faculty Glyphic 400 — chapter heads and row titles
        body      14px   Inter 400
        small     13px   Inter 400, or the same in mono
 
-   Quieter than the Paper boards drew them. The boards set the display role at
-   120px, which made the headings the loudest thing on a page whose subject is
-   the photographs; at 56px the pictures lead and the headings label them. */
+   A chapter head and a row title share the title size. What separates them is
+   the 96px of air a chapter opens with and the standfirst set against it,
+   which is the principle globals.css already states for the bench app:
+   hierarchy comes from spacing rather than from another step on the ladder.
+
+   Quieter than the Paper boards drew them. The boards set every serif heading
+   at 120px, which made them the loudest thing on a page whose subject is the
+   photographs. Only the wordmark keeps display scale now; the chapter heads
+   label the pictures rather than competing with them. */
 
 .type-display {
   font-family: var(--font-display);
-  font-size: clamp(2.25rem, 4.4vw, 3.5rem);
+  font-size: clamp(3rem, 6vw, 4.5rem);
   /* Faculty Glyphic has one weight. Declared here so the app-wide
      `h1,h2,h3,h4 { font-weight: 500 }` in globals.css cannot leak in: the
      serif has no 500 to give, and with `font-synthesis: none` the rule was
@@ -73,18 +79,18 @@
   font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1.1;
-  /* The clamp's floor is a floor in the reader's rem, not ours: a browser set
-     to a 32px default draws "command" wider than a 390px phone. `break-word`
-     only splits when the line has no other option. */
+  /* The clamp's floor is a floor in the reader's rem, not ours: at a 32px
+     default the wordmark can outgrow a 390px phone. `break-word` only splits
+     when the line has no other option. */
   overflow-wrap: break-word;
 }
 
 .type-title {
   font-family: var(--font-display);
-  font-size: 1.375rem;
+  font-size: 1.75rem;
   font-weight: 400;
   letter-spacing: -0.01em;
-  line-height: 1.75rem;
+  line-height: 2rem;
 }
 
 /* Inter at 400 rather than the bench app's Patternmode 450: this page carries
@@ -159,10 +165,11 @@
 }
 
 /* The answer `motif ask` gave, set over the photograph it was asked about.
-   Position only: the shape is `type-display`, which this used to shadow with
-   a clamp a hair away from it. Set in ink like everything else: the plates it
-   lies on are daylit and pale, and paper-coloured type disappeared into
-   them. */
+   Position only: the shape is `type-title`, the page's one serif heading
+   size. Display scale belongs to the wordmark alone, and at 72px an answer
+   would cover the shelf it is counting. Set in ink like everything else: the
+   plates it lies on are daylit and pale, and paper-coloured type disappeared
+   into them. */
 .site-answer {
   color: var(--ink);
   inset-block-end: 1.5rem;

@@ -187,7 +187,7 @@ export function Hero() {
             </div>
           )}
           {step.answer === undefined ? null : (
-            <p className="site-answer type-display">{step.answer}</p>
+            <p className="site-answer type-title">{step.answer}</p>
           )}
         </div>
 

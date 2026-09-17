@@ -22,7 +22,7 @@ export function ChapterHead({
 }) {
   return (
     <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-end md:gap-16">
-      <h2 className="type-display" id={id}>
+      <h2 className="type-title" id={id}>
         {title}
       </h2>
       <div className="flex min-w-0 flex-col md:mb-2.5">
