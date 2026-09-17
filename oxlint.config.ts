@@ -104,7 +104,6 @@ export default {
         // Existing Result-based tests narrow success/error before asserting.
         "vitest/no-conditional-expect": "warn",
         "vitest/require-mock-type-parameters": "warn",
-        "vitest/prefer-to-be-falsy": "warn",
         "vitest/prefer-import-in-mock": "warn",
         "vitest/prefer-called-once": "warn",
         "vitest/prefer-mock-return-shorthand": "warn",
@@ -113,7 +112,6 @@ export default {
         // Vitest accepts an optional diagnostic message as the second argument.
         "vitest/valid-expect": ["error", { maxArgs: 2 }],
         "vitest/prefer-strict-equal": "warn",
-        "vitest/prefer-to-be-truthy": "warn",
         "vitest/prefer-describe-function-title": "warn",
         "vitest/max-expects": "warn",
         "vitest/prefer-expect-type-of": "warn",
