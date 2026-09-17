@@ -11,13 +11,14 @@
     "test": "turbo run test",
     "test:fal-canary": "RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.ts",
     "eval:routing": "node apps/cli/evals/routing/run.ts",
-    "prepare": "husky",
+    "prepare": "howells-husky",
     "knip": "knip",
     "clean": "turbo clean",
     "check": "pnpm build && pnpm typecheck && pnpm lint && pnpm test",
     "check:affected": "turbo run build lint typecheck test --affected"
   },
   "devDependencies": {
+    "@howells/husky": "^0.2.3",
     "@howells/lint": "^3.2.5",
     "@howells/typescript-config": "^0.1.6",
     "husky": "^9.1.7",
