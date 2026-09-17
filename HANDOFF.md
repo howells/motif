@@ -17,13 +17,15 @@ Verified in a browser at 15 widths from 320 to 1920, the RTL mirror, and 200% pa
 
 ## Next action
 
-Push, then deploy from the repo root:
+Nothing outstanding. To deploy again from the repo root:
 
 ```bash
 vercel pull --yes --environment=production && vercel build --prod && vercel deploy --prebuilt --prod
 ```
 
-Nothing is mid-flight. A dev server may still be running on port 4400 — kill it by port, never with `pkill -f`, because other sessions share this machine.
+The Vercel CLI is linked to the `danielhowells` scope rather than the shell's default `material-instruments`, so `vercel inspect` needs `--scope danielhowells`.
+
+A dev server may still be running on port 4400 — kill it by port, never with `pkill -f`, because other sessions share this machine.
 
 ## Paths
 
