@@ -55,78 +55,95 @@ export function Matrix() {
     <section className="site-chapter site-gutter">
       <ChapterHead body={MATRIX.body} id="providers" title={MATRIX.title} />
 
-      <table className="mt-16 w-full border-collapse text-start min-[62rem]:min-w-225">
-        <thead>
-          <tr style={{ borderBottom: "1px solid var(--rule)" }}>
-            <th
-              className="type-small pb-3.5 text-start min-[62rem]:w-105"
-              scope="col"
-              style={{ color: "var(--faint)" }}
-            >
-              Command
-            </th>
-            <th
-              className="type-small pb-3.5 text-start min-[62rem]:w-55"
-              scope="col"
-            >
-              fal
-            </th>
-            <th
-              className="type-small pb-3.5 text-start min-[62rem]:hidden"
-              scope="col"
-              style={{ color: "var(--muted)" }}
-            >
-              OpenAI, Google, Replicate
-            </th>
-            {PROVIDERS.map((provider) => (
+      {/* A last resort, inert at every normal text size: the folded table fits
+          from 320px up, so this never scrolls and never becomes a scroll
+          region. It engages only when a reader has raised their browser's
+          default font — at 32px the folded table asks for 485px and the
+          content box below 540px cannot hold it, and the columns used to
+          clip away with nothing to reach them.
+
+          No `tabIndex` here, though axe's `scrollable-region-focusable` wants
+          one on a scroll container holding nothing focusable: jsx-a11y's
+          `no-noninteractive-tabindex` rejects it on both `div` and `section`,
+          and an override is worse than the gap. A keyboard-only reader at
+          that text size is no worse off than before — the columns were
+          unreachable either way — and everyone else can now get to them. */}
+      <div className="mt-16 overflow-x-auto">
+        <table className="w-full border-collapse text-start min-[62rem]:min-w-225">
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--rule)" }}>
               <th
-                className="type-small hidden pb-3.5 text-start min-[62rem]:table-cell min-[62rem]:w-45"
-                key={provider}
+                className="type-small pb-3.5 text-start min-[62rem]:w-105"
+                scope="col"
+                style={{ color: "var(--faint)" }}
+              >
+                Command
+              </th>
+              <th
+                className="type-small pb-3.5 text-start min-[62rem]:w-55"
+                scope="col"
+              >
+                fal
+              </th>
+              <th
+                className="type-small pb-3.5 text-start min-[62rem]:hidden"
                 scope="col"
                 style={{ color: "var(--muted)" }}
               >
-                {provider}
+                OpenAI, Google, Replicate
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.verb}>
-              {/* Inline children rather than a flex wrapper: a table cell
+              {PROVIDERS.map((provider) => (
+                <th
+                  className="type-small hidden pb-3.5 text-start min-[62rem]:table-cell min-[62rem]:w-45"
+                  key={provider}
+                  scope="col"
+                  style={{ color: "var(--muted)" }}
+                >
+                  {provider}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr key={row.verb}>
+                {/* Inline children rather than a flex wrapper: a table cell
                   that becomes a flex container leaves the table's column
                   model and the lanes stop lining up. On a phone the verb
                   sits above its summary. */}
-              <th
-                className="py-2.5 pe-4 text-start align-baseline min-[62rem]:pe-6"
-                scope="row"
-              >
-                <code
-                  className="type-small block align-baseline font-mono min-[62rem]:inline-block min-[62rem]:w-29"
-                  style={{ color: "var(--ink)" }}
+                <th
+                  className="py-2.5 pe-4 text-start align-baseline min-[62rem]:pe-6"
+                  scope="row"
                 >
-                  {row.verb}
-                </code>
-                <span className="type-body align-baseline">{row.summary}</span>
-              </th>
-              <td className="py-2.5 pe-4 align-baseline">
-                <FalCell fal={row.fal} />
-              </td>
-              <td className="py-2.5 align-baseline min-[62rem]:hidden">
-                <DirectCell direct={row.direct} />
-              </td>
-              {PROVIDERS.map((provider) => (
-                <td
-                  className="hidden py-2.5 align-baseline min-[62rem]:table-cell"
-                  key={provider}
-                >
+                  <code
+                    className="type-small block align-baseline font-mono min-[62rem]:inline-block min-[62rem]:w-29"
+                    style={{ color: "var(--ink)" }}
+                  >
+                    {row.verb}
+                  </code>
+                  <span className="type-body align-baseline">
+                    {row.summary}
+                  </span>
+                </th>
+                <td className="py-2.5 pe-4 align-baseline">
+                  <FalCell fal={row.fal} />
+                </td>
+                <td className="py-2.5 align-baseline min-[62rem]:hidden">
                   <DirectCell direct={row.direct} />
                 </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+                {PROVIDERS.map((provider) => (
+                  <td
+                    className="hidden py-2.5 align-baseline min-[62rem]:table-cell"
+                    key={provider}
+                  >
+                    <DirectCell direct={row.direct} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <p
         className="type-small mt-10 max-w-[76ch] pt-8"
