@@ -47,7 +47,7 @@ function StepCommand({
   return (
     <div className="hidden md:block">
       <code
-        className="type-mono block max-w-[380px] whitespace-pre-wrap"
+        className="type-small block max-w-[380px] font-mono whitespace-pre-wrap"
         style={{ color: "var(--muted)" }}
       >
         {command}
@@ -63,7 +63,7 @@ function StepCommand({
             animation: running
               ? `hero-progress ${DWELL_MS}ms linear`
               : undefined,
-            background: "var(--accent)",
+            background: "var(--faint)",
             width: running ? 0 : "40%",
           }}
         />
@@ -118,7 +118,7 @@ export function Hero() {
         <h1 className="type-display">{SITE.name}</h1>
         <p className="type-body max-w-[380px] pt-7">{SITE.standfirst}</p>
         <code
-          className="site-install type-mono pt-4 md:hidden"
+          className="type-small pt-4 font-mono md:hidden"
           style={{ color: "var(--faint)" }}
         >
           {SITE.install}
@@ -126,7 +126,7 @@ export function Hero() {
 
         <div
           aria-label="What Motif did to this shelf"
-          className="flex gap-5 pt-9 md:flex-col md:gap-3.5 md:pt-11"
+          className="flex flex-wrap gap-x-5 gap-y-2 pt-9 md:flex-col md:gap-x-0 md:gap-y-3.5 md:pt-11"
           role="tablist"
         >
           {HERO_STEPS.map((item, position) => (
@@ -187,14 +187,14 @@ export function Hero() {
             </div>
           )}
           {step.answer === undefined ? null : (
-            <p className="site-answer">{step.answer}</p>
+            <p className="site-answer type-display">{step.answer}</p>
           )}
         </div>
 
         {/* On a phone the command sits in a block under the picture, where the
             390 board puts it. */}
         <code
-          className="site-command type-mono block whitespace-pre-wrap md:hidden"
+          className="site-command type-small block font-mono whitespace-pre-wrap md:hidden"
           style={{ color: "var(--ink)" }}
         >
           {step.command}

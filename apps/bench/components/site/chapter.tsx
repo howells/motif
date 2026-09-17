@@ -2,7 +2,12 @@ import type { ReactNode } from "react";
 
 /** A chapter opening: the title at display size with its standfirst set
  * against it. The two sit on one baseline at desktop and stack on a phone,
- * which is the only difference between the two layouts. */
+ * which is the only difference between the two layouts.
+ *
+ * Neither column is pinned. `max-width` gives the standfirst its measure and
+ * nothing stops it narrowing below that, so the longest heading on the page
+ * ("Every command", whose shortest line is one 64px word) can take the room
+ * it needs at 768 instead of pushing the standfirst off the screen. */
 export function ChapterHead({
   body,
   children,
@@ -20,7 +25,7 @@ export function ChapterHead({
       <h2 className="type-display" id={id}>
         {title}
       </h2>
-      <div className="flex flex-col md:mb-2.5 md:shrink-0">
+      <div className="flex min-w-0 flex-col md:mb-2.5">
         <p
           className="type-body max-w-[420px]"
           style={{ color: "var(--muted)" }}
@@ -47,7 +52,7 @@ export function Label({ children }: { readonly children: ReactNode }) {
 export function Command({ children }: { readonly children: string }) {
   return (
     <code
-      className="site-command type-mono block whitespace-pre-wrap"
+      className="site-command type-small block font-mono whitespace-pre-wrap"
       style={{ color: "var(--ink)" }}
     >
       {children}

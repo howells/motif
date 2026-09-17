@@ -5,10 +5,7 @@ import { FOOTER_LINKS, MASTHEAD_LINKS, SITE } from "@/lib/site/content";
 export function Masthead() {
   return (
     <header className="site-gutter hidden flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 md:flex">
-      <code
-        className="site-install type-mono"
-        style={{ color: "var(--faint)" }}
-      >
+      <code className="type-small font-mono" style={{ color: "var(--faint)" }}>
         {SITE.install}
       </code>
       <nav className="flex gap-6">
@@ -30,7 +27,7 @@ export function Masthead() {
 export function Footer() {
   return (
     <footer className="site-gutter flex flex-wrap items-center justify-between gap-x-12 gap-y-4 pt-30 pb-16">
-      <code className="type-mono" style={{ color: "var(--ink)" }}>
+      <code className="type-small font-mono" style={{ color: "var(--ink)" }}>
         {SITE.install}
       </code>
       <nav className="flex flex-wrap gap-x-7 gap-y-2">

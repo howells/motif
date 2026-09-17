@@ -97,6 +97,23 @@ export default {
   },
   overrides: [
     {
+      // The type case for the public page at `/` (apps/bench/app/site.css):
+      // four roles — `type-display`, `type-title`, `type-body`, `type-small` —
+      // and every piece of text on that page picks exactly one. This rule is
+      // what holds the case; written down on its own it drifts, because each
+      // file's raw utility looks reasonable in isolation. `font-mono` is the
+      // one sanctioned modifier: mono is the small role in another family
+      // rather than a step of its own, so a command and a caption share a
+      // size and a leading and differ only in the face.
+      //
+      // Scoped to the site, not the bench app, which is a different design
+      // system on its own tokens and is not migrated.
+      files: ["apps/bench/components/site/**"],
+      rules: {
+        "howells/no-raw-type-utilities": ["error", { allow: ["font-mono"] }],
+      },
+    },
+    {
       // Migration exception: React Doctor rules are DOM-oriented (see header
       // note), so they stay off everywhere except the Next app.
       files: ["apps/cli/**", "packages/**"],

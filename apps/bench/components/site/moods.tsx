@@ -36,7 +36,7 @@ export function Moods() {
 
         <div
           aria-label="Moods"
-          className="-mx-5 flex gap-8 overflow-x-auto px-5 pt-7 md:mx-0 md:gap-10 md:px-0"
+          className="-mx-(--gutter) flex gap-8 overflow-x-auto px-(--gutter) pt-7 md:mx-0 md:gap-10 md:px-0"
           role="tablist"
         >
           {MOODS.map((item) => (
@@ -56,7 +56,7 @@ export function Moods() {
         </div>
 
         <code
-          className="site-command type-mono mt-6 self-start whitespace-pre-wrap"
+          className="site-command type-small mt-6 self-start font-mono whitespace-pre-wrap"
           style={{ color: "var(--ink)" }}
         >
           {MOOD_COMMAND.replace("{mood}", mood.id)}

@@ -18,13 +18,13 @@ export function Agents() {
           <div className="flex min-w-0 flex-col gap-3" key={example.label}>
             <Label>{example.label}</Label>
             <code
-              className="type-mono break-words"
+              className="type-small font-mono break-words"
               style={{ color: "var(--ink)" }}
             >
               {example.command}
             </code>
             <pre
-              className="type-mono m-0 p-4 break-words whitespace-pre-wrap"
+              className="type-small m-0 p-4 font-mono break-words whitespace-pre-wrap"
               style={{ background: "var(--surface)", color: "var(--muted)" }}
             >
               {example.output}

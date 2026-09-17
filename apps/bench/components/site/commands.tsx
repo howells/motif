@@ -26,8 +26,8 @@ export function Commands() {
               {group.commands.map((command) => (
                 <div className="flex gap-4" key={command.verb}>
                   <code
-                    className="type-mono w-[92px] shrink-0"
-                    style={{ color: "var(--accent)" }}
+                    className="type-small w-[92px] shrink-0 font-mono"
+                    style={{ color: "var(--ink)" }}
                   >
                     {command.verb}
                   </code>

@@ -106,7 +106,10 @@ export function Looks() {
               <figcaption className="flex flex-col gap-1.5">
                 <span className="flex flex-wrap items-baseline gap-3">
                   <span className="type-title">{look.name}</span>
-                  <code className="type-mono" style={{ color: "var(--faint)" }}>
+                  <code
+                    className="type-small font-mono"
+                    style={{ color: "var(--faint)" }}
+                  >
                     {look.flag}
                   </code>
                 </span>

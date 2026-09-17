@@ -43,7 +43,7 @@ export function Compare() {
             source={shown}
           />
 
-          <div className="absolute bottom-4 left-4 flex gap-2.5">
+          <div className="absolute start-4 bottom-4 flex gap-2.5">
             <button
               aria-label="Hold to see the source photograph"
               aria-pressed={held}
@@ -76,7 +76,7 @@ export function Compare() {
                 setHeld(false);
               }}
               style={{
-                borderColor: held ? "var(--accent)" : "var(--ground)",
+                borderColor: held ? "var(--ink)" : "var(--ground)",
                 touchAction: "none",
                 WebkitTouchCallout: "none",
               }}
@@ -117,7 +117,7 @@ export function Compare() {
             <span className="inline-block w-[112px] shrink-0">
               {COMPARE.sourceLabel}
             </span>
-            <code className="type-mono">{COMPARE.garmentLabel}</code>
+            <code className="type-small font-mono">{COMPARE.garmentLabel}</code>
           </p>
         )}
       </div>
