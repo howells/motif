@@ -32,6 +32,9 @@
 
   background: var(--ground);
   color: var(--ink);
+  /* The boards run their photographs off the right edge. Clipping here means
+     that bleed costs no sideways scroll. */
+  overflow-x: clip;
   font-family: var(--font-sans);
   /* The page is one dark surface whatever the browser's scheme. */
   color-scheme: dark;
@@ -77,13 +80,24 @@
 
 /* ── Page furniture ──────────────────────────────────────────────────── */
 
-/* 64px gutters at 1440, tightening to 20px on a phone. The measured value is
-   the desktop one; the floor keeps the images off the screen edge. */
+/* 64px gutters at 1440 and 16px at 390, both measured off the boards. */
 .site-gutter {
+  --gutter: clamp(1rem, 4.4vw, 4rem);
+
   margin-inline: auto;
   max-width: 90rem;
-  padding-inline: clamp(1.25rem, 4.4vw, 4rem);
+  padding-inline: var(--gutter);
   width: 100%;
+}
+
+/* The desktop boards give image rows a left gutter and no right one: the
+   photograph runs to the edge of the screen. Applied to the row, not the
+   picture, so the text beside it keeps its measure. The phone boards keep
+   both gutters, so the bleed starts where the two-column layout does. */
+@media (width >= 48rem) {
+  .site-bleed {
+    padding-right: 0;
+  }
 }
 
 /* A chapter opens with 96px of air above it at desktop, less on a phone. */
@@ -103,6 +117,16 @@
    Left in flow, `block-size: 100%` has no definite height to resolve against,
    falls back to the file's own height, and a square source stretches the box
    it was supposed to be cropped into. */
+/* A cut-out with no holding colour behind it. */
+.site-plate-plain {
+  background: none;
+}
+
+/* A cut-out with no holding colour behind it. */
+.site-plate-plain {
+  background: none;
+}
+
 .site-plate img,
 .site-plate video {
   block-size: 100%;
@@ -140,13 +164,16 @@
 }
 
 /* Underline for the selected tab in the mood and step rows. Drawn as a
-   pseudo-element so the label does not move when it becomes selected. */
+   pseudo-element so the label does not move when it becomes selected. The
+   22px leading is the boards' own: it packs the step list tighter than
+   running text. */
 .site-tab {
   background: none;
   border: 0;
   color: var(--faint);
   cursor: pointer;
   display: block;
+  line-height: 1.375rem;
   padding: 0 0 0.5rem;
   position: relative;
   text-align: left;
@@ -202,4 +229,18 @@
   to {
     width: 100%;
   }
+}
+
+/* The hero's steps carry the underline only where the phone board draws it.
+   Down the desktop column the command appearing beneath a step is what marks
+   it, so a second marker would be saying the same thing twice. */
+@media (width >= 48rem) {
+  .site-step[aria-selected="true"]::after {
+    opacity: 0;
+  }
+}
+
+/* The install line, at the tracking the boards set on it. */
+.site-install {
+  letter-spacing: 0.02em;
 }

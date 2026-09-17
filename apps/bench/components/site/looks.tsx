@@ -38,7 +38,7 @@ export function Looks() {
                 </code>
               </span>
               <span
-                className="type-small max-w-[52ch]"
+                className="type-small max-w-[560px]"
                 style={{ color: "var(--muted)" }}
               >
                 {look.body}

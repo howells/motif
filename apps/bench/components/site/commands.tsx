@@ -72,6 +72,7 @@ export function Commands() {
                     : "(max-width: 767px) 33vw, 330px"
                 }
                 source={plate}
+                plain={row.plates.length === 1}
                 className={
                   row.plates.length === 1 ? "w-full max-w-[560px]" : ""
                 }

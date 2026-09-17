@@ -23,6 +23,9 @@ export interface HeroStep {
   readonly id: string;
   readonly label: string;
   readonly plate: Plate;
+  /** The phone board labels the same step in one or two words, so six fit a
+   * 390 screen without a scroller. */
+  readonly short: string;
   /** Present on the one step whose result is a clip; the plate is its poster. */
   readonly video?: string;
 }
@@ -62,6 +65,7 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
       'motif "amber apothecary bottles and a stoneware bowl on a stone shelf"',
     id: "make",
     label: "Make a still life",
+    short: "Make",
     plate: {
       alt: "Three amber glass bottles and a white bowl on a stone shelf in raking daylight",
       height: 781,
@@ -74,6 +78,7 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
     command: 'motif erase "the small amber bottle" shelf.jpg',
     id: "erase",
     label: "Remove the small bottle",
+    short: "Erase",
     plate: {
       alt: "The same shelf with the smallest bottle removed and its shadow filled in",
       height: 781,
@@ -87,6 +92,7 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
       'motif "the same shelf at dusk, the bottles in cobalt blue glass" -e shelf.jpg',
     id: "dusk",
     label: "Redraw it at dusk",
+    short: "Dusk",
     plate: {
       alt: "The same shelf at dusk with the bottles rendered in cobalt blue glass",
       height: 1536,
@@ -99,6 +105,7 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
     command: 'motif segment "the bowl" shelf.jpg',
     id: "cutout",
     label: "Cut out the bowl",
+    short: "Cut out",
     plate: {
       alt: "The white bowl masked out of the scene and shown on its own",
       height: 781,
@@ -111,6 +118,7 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
     command: 'motif animate "the light moves across the shelf" shelf.jpg',
     id: "video",
     label: "Turn it into a video",
+    short: "Video",
     plate: {
       alt: "A still frame from the generated video of the shelf",
       height: 781,
@@ -125,6 +133,7 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
     command: 'motif ask "how many vessels are on the shelf?" shelf.jpg',
     id: "ask",
     label: "Ask what is on it",
+    short: "Ask",
     plate: {
       alt: "The shelf of bottles and a bowl, with the model's answer set over it",
       height: 781,
@@ -345,7 +354,11 @@ export const MOOD_COMMAND =
  * it, and holding the source thumbnail brings it up full size. */
 export const COMPARE = {
   body: "The big image is the result. The small one sitting on it is what went in. Press and hold the source to see it full size; let go and the result comes back.",
-  command: "motif try-on person.jpg --garment jacket.jpg",
+  /** The two labels the board sets under the thumbnails, and the line that
+   * replaces them while the source is held. */
+  garmentLabel: "--garment",
+  heldCaption: "The source, while you hold.",
+  sourceLabel: "before",
   garment: {
     alt: "A rust-coloured chore jacket photographed flat",
     height: 1000,

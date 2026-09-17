@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { Command } from "@/components/site/chapter";
 import { Plate } from "@/components/site/plate";
 import { COMPARE } from "@/lib/site/content";
 
@@ -27,13 +26,16 @@ export function Compare() {
         <h2 className="type-display" id="compare">
           {COMPARE.title}
         </h2>
-        <p className="type-body max-w-[62ch]" style={{ color: "var(--muted)" }}>
+        <p
+          className="type-body max-w-[560px]"
+          style={{ color: "var(--muted)" }}
+        >
           {COMPARE.body}
         </p>
       </div>
 
-      <div className="flex flex-col gap-8 pt-16 md:flex-row md:items-start md:justify-between md:gap-12">
-        <div className="relative w-full max-w-[620px]">
+      <div className="flex w-full max-w-[620px] flex-col gap-5 pt-16">
+        <div className="relative">
           <Plate
             fadeKey={shown.src}
             ratio="1 / 1"
@@ -101,14 +103,23 @@ export function Compare() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 md:w-[320px] md:shrink-0">
+        {/* At rest the two thumbnails are named in their own lanes; while the
+            source is held, the line under the picture says what is showing. */}
+        {held ? (
           <p className="type-small" style={{ color: "var(--muted)" }}>
-            {held
-              ? "The source, while you hold."
-              : "The result. The small pictures are what went in."}
+            {COMPARE.heldCaption}
           </p>
-          <Command>{COMPARE.command}</Command>
-        </div>
+        ) : (
+          <p
+            className="type-small flex gap-3"
+            style={{ color: "var(--faint)" }}
+          >
+            <span className="inline-block w-[112px] shrink-0">
+              {COMPARE.sourceLabel}
+            </span>
+            <code className="type-mono">{COMPARE.garmentLabel}</code>
+          </p>
+        )}
       </div>
     </section>
   );

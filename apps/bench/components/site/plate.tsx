@@ -18,6 +18,7 @@ export function Plate({
   className,
   eager,
   fadeKey,
+  plain,
   ratio,
   sizes,
   source,
@@ -29,13 +30,16 @@ export function Plate({
    * `priority` is deprecated in Next.js 16, and its docs prefer these two
    * attributes to `preload`. */
   readonly eager?: boolean;
+  /** Omits the holding colour behind the picture, for a cut-out sitting
+   * straight on the page. */
+  readonly plain?: boolean;
   readonly ratio: string;
   readonly sizes: string;
   readonly source: PlateSource;
 }) {
   return (
     <div
-      className={`site-plate ${className ?? ""}`}
+      className={`site-plate ${plain === true ? "site-plate-plain" : ""} ${className ?? ""}`}
       style={{ aspectRatio: ratio }}
     >
       <Image
