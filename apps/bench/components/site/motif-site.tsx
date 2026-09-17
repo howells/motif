@@ -1,7 +1,7 @@
 import { Agents } from "@/components/site/agents";
 import { Commands } from "@/components/site/commands";
 import { Compare } from "@/components/site/compare";
-import { facultyGlyphic } from "@/components/site/fonts";
+import { dmMono, facultyGlyphic } from "@/components/site/fonts";
 import { Hero } from "@/components/site/hero";
 import { Looks } from "@/components/site/looks";
 import { Footer, Masthead } from "@/components/site/masthead";
@@ -21,7 +21,7 @@ import { Moods } from "@/components/site/moods";
  * the moods and the comparison. */
 export function MotifSite() {
   return (
-    <div className={`site ${facultyGlyphic.variable}`}>
+    <div className={`site ${facultyGlyphic.variable} ${dmMono.variable}`}>
       <Masthead />
       <main>
         <Hero />

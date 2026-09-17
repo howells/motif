@@ -24,8 +24,13 @@
 
   --rule: rgb(28 27 26 / 12%);
 
-  /* Faculty Glyphic arrives as a next/font variable on the same element. */
+  /* Both faces arrive as next/font variables on the same element. Overriding
+     `--font-mono` here rather than in `@theme` keeps it to this page: the
+     `font-mono` utility reads this variable, so every command on `/` is set
+     in DM Mono while /bench keeps the system stack it was built on. */
   --font-display: var(--font-faculty), ui-serif, Georgia, serif;
+  --font-mono:
+    var(--font-dm-mono), "SFMono-Regular", "SF Mono", Menlo, monospace;
 
   background: var(--ground);
   color: var(--ink);
