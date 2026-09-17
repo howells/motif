@@ -124,7 +124,7 @@ describe("advanced generation flags reach the request body", () => {
       "enable_safety_checker=false",
     ]);
     expect(body.style).toBe("realistic_image");
-    expect(body.enable_safety_checker).toBeFalsy();
+    expect(body.enable_safety_checker).toBe(false);
   });
 
   it("-o with an image extension asks for that format where the Model takes one (qwen)", async () => {

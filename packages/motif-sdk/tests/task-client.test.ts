@@ -190,7 +190,7 @@ describe("createMotif plan", () => {
     const motif = createMotif({ falKey: "", fetch: noNetwork.fetch });
     const result = motif.plan(task, input, { dryRun: true });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     const plan = result._unsafeUnwrap();
     expect(plan.task).toBe(task);
     expect(plan.endpoint).not.toBe("");
@@ -511,7 +511,7 @@ describe("createMotif plan", () => {
       tier: "fast",
     });
 
-    expect(MODELS[plan.model]?.supportsResolution).toBeTruthy();
+    expect(MODELS[plan.model]?.supportsResolution).toBe(true);
     // No Model takes both, so the refusal names resolution, not qwen3's.
     const error = refused("generate", {
       negativePrompt: "dogs",
@@ -555,7 +555,7 @@ describe("createMotif plan", () => {
 
     expect(plan.model).toBe("virtual-try-on");
     expect(plan.endpoint).toBe("google/virtual-try-on");
-    expect(plan.queued).toBeTruthy();
+    expect(plan.queued).toBe(true);
     expect(plan.body).toStrictEqual({
       person_image_url: IMAGE,
       product_image_url: REFERENCE,
@@ -584,7 +584,7 @@ describe("createMotif plan", () => {
     const plan = planned("animate", { image: IMAGE, prompt: "slow pan" });
 
     expect(plan.model).toBe("kling");
-    expect(plan.queued).toBeTruthy();
+    expect(plan.queued).toBe(true);
     expect(plan.body).toMatchObject({
       duration: "5",
       prompt: "slow pan",
@@ -603,7 +603,7 @@ describe("createMotif plan", () => {
     expect(plan.endpoint).toBe(
       "fal-ai/kling-video/v3/turbo/pro/image-to-video"
     );
-    expect(plan.queued).toBeTruthy();
+    expect(plan.queued).toBe(true);
     expect(plan.body).toStrictEqual({
       duration: "5",
       image_url: IMAGE,
@@ -1210,7 +1210,7 @@ describe("createMotif OpenAI route", () => {
     });
     expect(output.provider).toBe("openai");
     expect(output.files).toHaveLength(1);
-    expect(output.files[0]?.url.startsWith("data:image/")).toBeTruthy();
+    expect(output.files[0]?.url.startsWith("data:image/")).toBe(true);
   });
 });
 

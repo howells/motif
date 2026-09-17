@@ -85,9 +85,9 @@ async function npmPackDryRun(packagePath: string): Promise<PackResult> {
 function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {
   const files = pack.files.map((file) => file.path).toSorted();
   expect(files).toStrictEqual(expectedFiles.toSorted());
-  expect(files.some((file) => file.includes("apps/web"))).toBeFalsy();
-  expect(files.some((file) => file.includes(".env"))).toBeFalsy();
-  expect(files.some((file) => file.includes("src/"))).toBeFalsy();
+  expect(files.some((file) => file.includes("apps/web"))).toBe(false);
+  expect(files.some((file) => file.includes(".env"))).toBe(false);
+  expect(files.some((file) => file.includes("src/"))).toBe(false);
   expect(
     files.every(
       (file) =>
@@ -98,7 +98,7 @@ function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {
         file.startsWith("dist/") ||
         file.startsWith("bin/")
     )
-  ).toBeTruthy();
+  ).toBe(true);
 }
 
 describe("package smoke", () => {
@@ -114,9 +114,7 @@ describe("package smoke", () => {
 
   it("runs the built CLI binary without a Fal key", async () => {
     const cliBin = resolve(repoRoot, "apps/cli/bin/motif");
-    expect(
-      existsSync(resolve(repoRoot, "apps/cli/dist/index.js"))
-    ).toBeTruthy();
+    expect(existsSync(resolve(repoRoot, "apps/cli/dist/index.js"))).toBe(true);
 
     const help = await runCommand(
       process.execPath,

@@ -113,7 +113,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-3.1-flash-image-preview",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.images[0]?.uint8Array.length).toBeGreaterThan(0);
@@ -143,7 +143,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-3.1-flash-image-preview",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.requestId).toBe("req_123");
     }
@@ -166,7 +166,7 @@ describe("createMotifImage.generate", () => {
       model: "custom-model-x",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(seen).toStrictEqual([
       { provider: "google", modelId: "custom-model-x" },
     ]);
@@ -194,7 +194,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.cost.source).toBe("provider-metadata");
       expect(result.value.cost.usd).toBe(0.5);
@@ -212,7 +212,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -237,7 +237,7 @@ describe("createMotifImage.generate", () => {
         prompt: "x",
         model: "gemini-2.5-flash-image",
       });
-      expect(result.isErr()).toBeTruthy();
+      expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error).toBeInstanceOf(MotifError);
         expect(result.error.message).toContain("GOOGLE_GENERATIVE_AI_API_KEY");
@@ -268,7 +268,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(captured?.prompt).toBe("a bare concrete wall");
     // A text→image call carries no input files.
     expect(captured?.files).toBeUndefined();
@@ -285,7 +285,7 @@ describe("createMotifImage.generate", () => {
       model: "some-model",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("not-real");
@@ -317,7 +317,7 @@ describe("createMotifImage.generate", () => {
       providerOptions: { google: { style: "vivid" } },
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(call?.n).toBe(3);
     expect(call?.size).toBe("512x512");
     expect(call?.seed).toBe(42);
@@ -345,7 +345,7 @@ describe("createMotifImage.generate", () => {
       aspectRatio: "16:9",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(call?.aspectRatio).toBe("16:9");
   });
 
@@ -375,7 +375,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.requestId).toBe("goog_req_9");
     }
@@ -389,7 +389,7 @@ describe("createMotifImage.generate", () => {
       model: "totally-unpriced-model",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.cost.source).toBe("unknown");
       expect(result.value.cost.usd).toBe(0);
@@ -422,7 +422,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.warnings).toHaveLength(2);
       expect(result.value.warnings?.[0]).toContain("size");
@@ -441,7 +441,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.warnings).toBeUndefined();
     }
@@ -459,7 +459,7 @@ describe("createMotifImage.generate", () => {
       providerOptions: { google: { big: 10n } },
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("providerOptions");
@@ -478,7 +478,7 @@ describe("createMotifImage.generate", () => {
       providerOptions: { google: { cb: () => 1 } },
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -501,7 +501,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       // Callers branch on `error.status === 429`, not the message text.
@@ -527,7 +527,7 @@ describe("createMotifImage.generate", () => {
       model: "gemini-2.5-flash-image",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error.status).toBe(0);
       expect(result.error.message).toBe("local failure");
@@ -554,7 +554,7 @@ describe("createMotifImage.generate", () => {
       headers: { "X-Fal-Store-IO": "0" },
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(call?.headers).toStrictEqual({ "X-Fal-Store-IO": "0" });
   });
 });
@@ -586,7 +586,7 @@ describe("createMotifImage.edit", () => {
       mask: maskBytes,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (!lastCall || typeof lastCall.prompt === "string") {
       throw new Error("expected an object prompt with images/text/mask");
     }
@@ -610,7 +610,7 @@ describe("createMotifImage.edit", () => {
       instruction: "brighten the wall",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.provider).toBe("google");
@@ -642,7 +642,7 @@ describe("createMotifImage.edit", () => {
       mask: maskBytes,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(captured?.prompt).toBe(
       "Apply the oak texture from image 2 onto image 1."
     );
@@ -675,7 +675,7 @@ describe("createMotifImage.edit", () => {
       instruction: "brighten the wall",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -702,7 +702,7 @@ describe("createMotifImage.edit", () => {
       headers: { "X-Fal-Store-IO": "0" },
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(call?.headers).toStrictEqual({ "X-Fal-Store-IO": "0" });
   });
 });
@@ -720,7 +720,7 @@ describe("createMotifImage — fal explicit-model pricing", () => {
       model: "fal-ai/flux/schnell",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.model).toBe("fal-ai/flux/schnell");
       expect(result.value.cost.source).toBe("table");
@@ -795,7 +795,7 @@ describe.each(PROVIDER_CASES)(
         model: defaultModel,
       });
 
-      expect(result.isOk()).toBeTruthy();
+      expect(result.isOk()).toBe(true);
       expect(seen).toStrictEqual([{ provider, modelId: defaultModel }]);
     });
 
@@ -815,7 +815,7 @@ describe.each(PROVIDER_CASES)(
         instruction: "apply texture",
       });
 
-      expect(result.isOk()).toBeTruthy();
+      expect(result.isOk()).toBe(true);
       expect(seen).toStrictEqual([{ provider, modelId: defaultModel }]);
       if (result.isOk()) {
         expect(result.value.provider).toBe(provider);
@@ -834,7 +834,7 @@ describe.each(PROVIDER_CASES)(
         model: defaultModel,
       });
 
-      expect(result.isOk()).toBeTruthy();
+      expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value.cost.source).toBe(
           priceUsd === undefined ? "unknown" : "table"
@@ -861,7 +861,7 @@ describe.each(PROVIDER_CASES)(
 
         const result = await img.generate({ prompt: "x", model: defaultModel });
 
-        expect(result.isErr()).toBeTruthy();
+        expect(result.isErr()).toBe(true);
         if (result.isErr()) {
           expect(result.error).toBeInstanceOf(MotifError);
           expect(result.error.message).toContain(apiKeyEnv);
@@ -971,7 +971,7 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       const { value } = result;
       expect(value.candidates).toHaveLength(3);
@@ -1001,7 +1001,7 @@ describe("createMotifImage.bestOfN", () => {
       n: 2,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.chosenIndex).toBe(0);
       expect(result.value.reason).toBeUndefined();
@@ -1029,11 +1029,11 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     // Every candidate went through the edit path: files + mask reached the model.
     expect(state.sawFiles).toHaveLength(2);
-    expect(state.sawFiles.every(Boolean)).toBeTruthy();
-    expect(state.sawMask.every(Boolean)).toBeTruthy();
+    expect(state.sawFiles.every(Boolean)).toBe(true);
+    expect(state.sawMask.every(Boolean)).toBe(true);
   });
 
   it("passes a distinct seed (seed + index) to each candidate", async () => {
@@ -1050,7 +1050,7 @@ describe("createMotifImage.bestOfN", () => {
       seed: 100,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     // Order across the parallel fan-out is not guaranteed; assert the set.
     expect(
       [...state.seeds].sort((a, b) => Number(a) - Number(b))
@@ -1075,7 +1075,7 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.candidates).toHaveLength(2);
       // Two successes @ $0.039 each.
@@ -1095,7 +1095,7 @@ describe("createMotifImage.bestOfN", () => {
       n: 2,
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -1117,7 +1117,7 @@ describe("createMotifImage.bestOfN", () => {
       },
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("judge blew up");
@@ -1138,7 +1138,7 @@ describe("createMotifImage.bestOfN", () => {
       judge: () => ({ index: 5 }),
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("out-of-range");
@@ -1158,7 +1158,7 @@ describe("createMotifImage.bestOfN", () => {
       n: 0,
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
     }
@@ -1181,11 +1181,11 @@ describe("createMotifImage.bestOfN", () => {
       signal: controller.signal,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(state.signals).toHaveLength(3);
-    expect(
-      state.signals.every((signal) => signal === controller.signal)
-    ).toBeTruthy();
+    expect(state.signals.every((signal) => signal === controller.signal)).toBe(
+      true
+    );
   });
 });
 

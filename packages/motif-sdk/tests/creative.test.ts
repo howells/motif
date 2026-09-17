@@ -184,7 +184,7 @@ describe("house looks", () => {
           expect(
             allowed.has(String(match[1]).toLowerCase()),
             `${option.id} negates "${match[0]}"`
-          ).toBeTruthy();
+          ).toBe(true);
         }
       }
     }

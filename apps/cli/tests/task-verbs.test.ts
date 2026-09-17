@@ -144,7 +144,7 @@ describe("Task verbs: dry runs", () => {
               run.args[0] === definition.command && run.mode !== undefined
           ),
           definition.command
-        ).toBeTruthy();
+        ).toBe(true);
       }
     }
   });
@@ -279,9 +279,9 @@ describe("Task verbs: sources and output names", () => {
     ]);
 
     expect(result.stderr).toBe("");
-    expect(
-      String(parseJson(result.stdout).output).endsWith(`/${name}`)
-    ).toBeTruthy();
+    expect(String(parseJson(result.stdout).output).endsWith(`/${name}`)).toBe(
+      true
+    );
   });
 
   it("reports no output for a Task that writes no file", async () => {

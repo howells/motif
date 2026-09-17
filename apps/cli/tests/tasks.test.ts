@@ -57,7 +57,7 @@ describe("task table", () => {
   it("never shadows a word the CLI already routes as a command", () => {
     const routed = new Set(COMMAND_TASKS.map((row) => row.usage.split(" ")[1]));
     for (const word of Object.keys(TASK_INDEX)) {
-      expect(routed.has(word), word).toBeFalsy();
+      expect(routed.has(word), word).toBe(false);
     }
   });
 

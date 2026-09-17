@@ -133,7 +133,7 @@ describe(grade, () => {
       `The erase command does this.\n\n${sh('$ motif erase "the parked car" ./street.png --dry-run')}`
     );
     expect(result.command).toBe("erase");
-    expect(result.pass).toBeTruthy();
+    expect(result.pass).toBe(true);
   });
 
   it("fails a generation edit or cutout where erase was wanted", () => {
@@ -142,12 +142,12 @@ describe(grade, () => {
       sh('motif "remove the car" -e street.png -m gpt')
     );
     expect(edit.command).toBe("generate");
-    expect(edit.commandOk).toBeFalsy();
-    expect(edit.pass).toBeFalsy();
+    expect(edit.commandOk).toBe(false);
+    expect(edit.pass).toBe(false);
 
     const cutout = grade(caseById("erase-car"), sh("motif cutout street.png"));
     expect(cutout.command).toBe("cutout");
-    expect(cutout.pass).toBeFalsy();
+    expect(cutout.pass).toBe(false);
   });
 
   it("fails an answer with no motif command", () => {
@@ -157,7 +157,7 @@ describe(grade, () => {
     );
     expect(result.invocation).toBeNull();
     expect(result.command).toBeNull();
-    expect(result.pass).toBeFalsy();
+    expect(result.pass).toBe(false);
     expect(result.missingArgs).toStrictEqual([
       "a.png",
       "b.png",
@@ -172,22 +172,22 @@ describe(grade, () => {
       testCase,
       sh('motif "a family kitchen" --look lived-in')
     );
-    expect(missing.commandOk).toBeTruthy();
+    expect(missing.commandOk).toBe(true);
     expect(missing.missingFlags).toStrictEqual(["--mood lamplit"]);
-    expect(missing.pass).toBeFalsy();
+    expect(missing.pass).toBe(false);
 
     const equals = grade(
       testCase,
       sh('motif "a family kitchen" --look=lived-in --mood=lamplit --dry-run')
     );
-    expect(equals.pass).toBeTruthy();
+    expect(equals.pass).toBe(true);
   });
 
   it("accepts any listed alternative and short aliases", () => {
     const reframe = caseById("reframe-16x9");
-    expect(
-      grade(reframe, sh("motif reframe --landscape hero.png")).pass
-    ).toBeTruthy();
+    expect(grade(reframe, sh("motif reframe --landscape hero.png")).pass).toBe(
+      true
+    );
     expect(
       grade(reframe, sh("motif reframe --wide hero.png")).missingFlags
     ).toStrictEqual(["--og | --landscape | --aspect 16:9"]);
@@ -196,13 +196,13 @@ describe(grade, () => {
         caseById("generate-hero-16x9"),
         sh('motif "a lighthouse at dusk" -a 16:9 -m flux2-pro')
       ).pass
-    ).toBeTruthy();
+    ).toBe(true);
     expect(
       grade(
         caseById("generate-edit-cabinets"),
         sh('motif "dark green cabinets" -e kitchen.png')
       ).pass
-    ).toBeTruthy();
+    ).toBe(true);
   });
 
   it("checks flag values", () => {
@@ -212,7 +212,7 @@ describe(grade, () => {
         testCase,
         sh('motif series run "brutalist architecture" --count 6 --dry-run')
       ).pass
-    ).toBeTruthy();
+    ).toBe(true);
     expect(
       grade(testCase, sh('motif series run "brutalist architecture" --count 4'))
         .missingFlags
@@ -222,9 +222,9 @@ describe(grade, () => {
   it("accepts either command when a case lists two", () => {
     const testCase = caseById("segment-chair");
     const listed = { ...testCase, command: ["segment", "cutout"] };
-    expect(grade(listed, sh("motif segment chair room.png")).pass).toBeTruthy();
-    expect(grade(listed, sh("motif cutout room.png")).pass).toBeTruthy();
-    expect(grade(listed, sh('motif "a chair" -e room.png')).pass).toBeFalsy();
+    expect(grade(listed, sh("motif segment chair room.png")).pass).toBe(true);
+    expect(grade(listed, sh("motif cutout room.png")).pass).toBe(true);
+    expect(grade(listed, sh('motif "a chair" -e room.png')).pass).toBe(false);
   });
 });
 

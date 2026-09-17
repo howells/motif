@@ -77,7 +77,7 @@ describe(downloadAll, () => {
       join(testDir, "image.png"),
       join(testDir, "mask_image.png"),
     ]);
-    expect(written.every((file) => file.size.length > 0)).toBeTruthy();
+    expect(written.every((file) => file.size.length > 0)).toBe(true);
   });
 
   it("creates the target directory and ignores url query strings", async () => {

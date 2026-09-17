@@ -28,7 +28,7 @@ describe(TASKS, () => {
       expect(
         Object.hasOwn(MODELS, model) || isFalToolId(model),
         `${model} is neither a MODELS key nor a fal tool id`
-      ).toBeTruthy();
+      ).toBe(true);
     }
   });
 
@@ -53,7 +53,7 @@ describe(TASKS, () => {
           expect(
             modeIds.has(entry.mode),
             `${entry.model} names mode ${entry.mode}, missing from modes`
-          ).toBeTruthy();
+          ).toBe(true);
         }
       }
     }
@@ -68,7 +68,7 @@ describe(TASKS, () => {
         expect(
           models.some((entry: RankedModel): boolean => entry.mode === mode.id),
           `mode ${mode.id} has no ranked entry`
-        ).toBeTruthy();
+        ).toBe(true);
       }
     }
   );
@@ -81,9 +81,9 @@ describe(TASKS, () => {
         const requires: readonly string[] = entry.requires ?? [];
         for (const capability of requires) {
           expect(
-            supports.includes(capability),
+            supports,
             `${entry.model} requires ${capability} but does not list it in supports`
-          ).toBeTruthy();
+          ).toContain(capability);
         }
       }
     }
@@ -92,7 +92,7 @@ describe(TASKS, () => {
   it.each(entries)("%s is hand-ranked on an ISO date", (_task, definition) => {
     expect(definition.rankedFrom).toBe("hand");
     expect(definition.rankedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(Number.isNaN(Date.parse(definition.rankedAt))).toBeFalsy();
+    expect(Number.isNaN(Date.parse(definition.rankedAt))).toBe(false);
   });
 
   it("ranks vary as generate filtered to edit-capable Models", () => {

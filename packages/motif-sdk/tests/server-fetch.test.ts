@@ -65,7 +65,7 @@ describe("FalClient fetch integration", () => {
 
     const result = await motif.generate({ model: "banana", prompt: "x" });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error.code).toBe("ACCOUNT_LOCKED");
       expect(result.error.status).toBe(403);
@@ -99,7 +99,7 @@ describe("FalClient fetch integration", () => {
       fileName: "file.png",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error.code).toBe("ACCOUNT_LOCKED");
       expect(result.error.status).toBe(403);
@@ -144,7 +144,7 @@ describe("FalClient fetch integration", () => {
       syncMode: true,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     expect(fetch).toHaveBeenCalledOnce();
 
     const request = requestAt(0);
@@ -179,7 +179,7 @@ describe("FalClient fetch integration", () => {
       prompt: "local-only image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.requestId).toBe("req_ephemeral_123");
     }
@@ -211,7 +211,7 @@ describe("FalClient fetch integration", () => {
       syncMode: true,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value).toMatchObject({
         endpoint: "openai/gpt-image-2/edit",
@@ -240,7 +240,7 @@ describe("FalClient fetch integration", () => {
     const motif = new FalClient({ apiKey: "test-key", retries: 0 });
     const result = await motif.deletePayloads("req_ephemeral_123");
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
 
     const request = requestAt(0);
     expect(request.url).toBe(
@@ -267,7 +267,7 @@ describe("FalClient fetch integration", () => {
       prompt: "a red balloon",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     const error = result.isErr() ? result.error : undefined;
     expect(error?.requestId).toBe("req_fal_err_789");
     expect(error?.status).toBe(500);
@@ -289,7 +289,7 @@ describe("FalClient fetch integration", () => {
       prompt: "a red balloon",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     const error = result.isErr() ? result.error : undefined;
     expect(error).toBeDefined();
     expect(error?.requestId).toBeUndefined();
@@ -317,7 +317,7 @@ describe("FalClient fetch integration", () => {
       tool: "sam3-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
 
     const request = requestAt(0);
     expect(request.url).toBe("https://fal.run/fal-ai/sam-3/image");
@@ -349,7 +349,7 @@ describe("FalClient fetch integration", () => {
       tool: "sam3-image",
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value).toStrictEqual({
         endpoint: "fal-ai/sam-3/image",
@@ -392,7 +392,7 @@ describe("FalClient fetch integration", () => {
       }
     );
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value).toMatchObject({
         image: { url: "https://example.com/big.png" },
@@ -429,7 +429,7 @@ describe("FalClient fetch integration", () => {
       tool: "sam3-image",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     const error = result.isErr() ? result.error : undefined;
     expect(error?.message).toBe("out of memory");
     expect(error?.requestId).toBe("req_tool_3");

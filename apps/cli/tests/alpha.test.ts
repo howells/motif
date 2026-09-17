@@ -34,17 +34,17 @@ async function fixture(
 describe(hasTransparentPixels, () => {
   it("accepts a PNG with fully transparent pixels", async () => {
     const path = await fixture("clear.png", 4, 0);
-    await expect(hasTransparentPixels(path)).resolves.toBeTruthy();
+    await expect(hasTransparentPixels(path)).resolves.toBe(true);
   });
 
   it("refuses a PNG with no alpha channel", async () => {
     const path = await fixture("rgb.png", 3, 1);
-    await expect(hasTransparentPixels(path)).resolves.toBeFalsy();
+    await expect(hasTransparentPixels(path)).resolves.toBe(false);
   });
 
   it("refuses a PNG whose alpha channel is opaque everywhere", async () => {
     const path = await fixture("opaque.png", 4, 1);
-    await expect(hasTransparentPixels(path)).resolves.toBeFalsy();
+    await expect(hasTransparentPixels(path)).resolves.toBe(false);
   });
 });
 

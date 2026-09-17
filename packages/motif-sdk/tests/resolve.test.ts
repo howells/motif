@@ -68,9 +68,9 @@ describe("resolveTask ranking", () => {
       { mask: true, tier: "balanced" },
       fal
     );
-    expect(result.ok).toBeTruthy();
+    expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(MODELS[result.model]?.supportsMaskImage).toBeTruthy();
+      expect(MODELS[result.model]?.supportsMaskImage).toBe(true);
     }
   });
 });
@@ -175,15 +175,15 @@ describe("Tier and Source", () => {
   });
 
   it("reports whether the Tier changes the choice", () => {
-    expect(tierChangesChoice("cutout", { source: "video" }, fal)).toBeFalsy();
-    expect(tierChangesChoice("generate", {}, fal)).toBeTruthy();
+    expect(tierChangesChoice("cutout", { source: "video" }, fal)).toBe(false);
+    expect(tierChangesChoice("generate", {}, fal)).toBe(true);
   });
 
   it.each(
     TASK_IDS.flatMap((task) => TIERS.map((tier) => [task, tier] as const))
   )("resolves %s at the %s Tier with an empty request", (task, tier) => {
     const source = task === "generate" || task === "vary" ? undefined : "image";
-    expect(resolveTask(task, { source, tier }, fal).ok).toBeTruthy();
+    expect(resolveTask(task, { source, tier }, fal).ok).toBe(true);
   });
 });
 
@@ -304,7 +304,7 @@ describe("modes and required inputs", () => {
   });
 
   it("says the Tier never changes restyle's single Model", () => {
-    expect(tierChangesChoice("restyle", { source: "image" }, fal)).toBeFalsy();
+    expect(tierChangesChoice("restyle", { source: "image" }, fal)).toBe(false);
   });
 
   it("resolves reframe to bria-expand at fast, and mode margin to flux-outpaint", () => {

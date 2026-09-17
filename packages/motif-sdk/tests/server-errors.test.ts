@@ -12,7 +12,7 @@ describe("FalClient builder-error contract", () => {
       prompt: "x",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.code).toBe("INVALID_OPTION");
@@ -27,7 +27,7 @@ describe("FalClient builder-error contract", () => {
       prompt: "x",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.code).toBe("INVALID_OPTION");
@@ -41,7 +41,7 @@ describe("FalClient builder-error contract", () => {
       prompt: "x",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain("Unknown model: nope");
@@ -55,7 +55,7 @@ describe("FalClient builder-error contract", () => {
       quality: "high",
     });
 
-    expect(result.isErr()).toBeTruthy();
+    expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.message).toContain(

@@ -207,8 +207,8 @@ describe("CLI contract", () => {
       expect(command.notFor, name).toBeTypeOf("string");
       expect(asArray(command.tasks).length, name).toBeGreaterThan(0);
     }
-    expect(asRecord(commands.ask).mutating).toBeFalsy();
-    expect(asRecord(commands.erase).mutating).toBeTruthy();
+    expect(asRecord(commands.ask).mutating).toBe(false);
+    expect(asRecord(commands.erase).mutating).toBe(true);
     expect(
       asRecord(asRecord(asRecord(commands.series).subcommandTasks).run)
         .whenToUse

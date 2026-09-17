@@ -43,7 +43,7 @@ describe("unsupported option errors", () => {
 
   it("derive both lists from the registry", () => {
     for (const id of modelsSupporting("resolution")) {
-      expect(MODELS[id]?.supportsResolution).toBeTruthy();
+      expect(MODELS[id]?.supportsResolution).toBe(true);
     }
     const gpt = MODELS.gpt;
     expect(gpt).toBeDefined();

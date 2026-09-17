@@ -27,12 +27,7 @@
     "typescript": "7.0.2"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "howells-fix"
-    ],
-    "*.{json,jsonc}": [
-      "howells-oxfmt"
-    ]
+    "*.{js,ts,jsx,tsx,json,jsonc,css,md,mdx}": "howells-oxfmt --write"
   },
   "engines": {
     "node": ">=24.15.0"

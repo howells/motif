@@ -70,9 +70,9 @@ describe("createSeries", () => {
     expect(config.outputs).toStrictEqual([]);
 
     const dir = join(series.SERIES_DIR, "my-series");
-    expect(existsSync(join(dir, "series.json"))).toBeTruthy();
-    expect(existsSync(join(dir, "refs"))).toBeTruthy();
-    expect(existsSync(join(dir, "outputs"))).toBeTruthy();
+    expect(existsSync(join(dir, "series.json"))).toBe(true);
+    expect(existsSync(join(dir, "refs"))).toBe(true);
+    expect(existsSync(join(dir, "outputs"))).toBe(true);
   });
 
   it("honors supplied aspect, resolution, and style prompt", async () => {
@@ -102,7 +102,7 @@ describe("createSeries", () => {
     expect(ref?.filename).toBe("style-cover.png");
     expect(
       existsSync(join(series.seriesRefsDir("cover"), "style-cover.png"))
-    ).toBeTruthy();
+    ).toBe(true);
   });
 
   it("throws when the series already exists", async () => {
@@ -176,7 +176,7 @@ describe("addRef / removeRef / resolveRefs", () => {
     expect(resolved[0]).toBe(
       join(series.seriesRefsDir("refs"), "character-luna.png")
     );
-    expect(existsSync(resolved[0] ?? "")).toBeTruthy();
+    expect(existsSync(resolved[0] ?? "")).toBe(true);
   });
 
   it("filters resolveRefs by tag and removes references", async () => {
@@ -196,7 +196,7 @@ describe("addRef / removeRef / resolveRefs", () => {
     expect(after.refs.map((r) => r.filename)).toStrictEqual(["location-b.png"]);
     expect(
       existsSync(join(series.seriesRefsDir("tagged"), "character-a.png"))
-    ).toBeFalsy();
+    ).toBe(false);
   });
 
   it("throws when removing a reference that does not exist", async () => {
@@ -250,7 +250,7 @@ describe("path traversal guards", () => {
     // Nothing escaped the refs directory.
     const refsDir = series.seriesRefsDir("guarded");
     expect(readdirSync(refsDir)).toHaveLength(0);
-    expect(existsSync(join(series.SERIES_DIR, "escape"))).toBeFalsy();
+    expect(existsSync(join(series.SERIES_DIR, "escape"))).toBe(false);
   });
 
   it("rejects removing a ref whose filename escapes the refs directory", async () => {
@@ -274,6 +274,6 @@ describe("path traversal guards", () => {
       /escapes series refs directory/
     );
     // The guard threw before unlink — the outside file is untouched.
-    expect(existsSync(sentinel)).toBeTruthy();
+    expect(existsSync(sentinel)).toBe(true);
   });
 });

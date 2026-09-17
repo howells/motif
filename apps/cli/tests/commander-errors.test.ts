@@ -100,7 +100,7 @@ describe("commander argument errors", () => {
     expect(envelope.message).toBe(
       "motif segment needs a prompt: motif segment [what] [image-or-video]"
     );
-    expect(Array.isArray(envelope.suggestions)).toBeTruthy();
+    expect(Array.isArray(envelope.suggestions)).toBe(true);
     expect(result.stdout).toBe("");
   });
 

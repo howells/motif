@@ -9,7 +9,7 @@ const describeCanary =
 describeCanary("fal live canaries", () => {
   it("generates one low-cost image with advanced generation controls", async () => {
     const apiKey = getFalKeyFromEnv();
-    expect(apiKey, "FAL_KEY is required when RUN_FAL_CANARY=1").toBeTruthy();
+    expect(apiKey, "FAL_KEY is required when RUN_FAL_CANARY=1").toBe(true);
 
     const motif = new FalClient({ apiKey: apiKey ?? "", retries: 1 });
     const result = await motif.generate({
@@ -25,7 +25,7 @@ describeCanary("fal live canaries", () => {
       syncMode: false,
     });
 
-    expect(result.isOk()).toBeTruthy();
+    expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.images[0]?.url).toMatch(/^https?:\/\//);
@@ -34,7 +34,7 @@ describeCanary("fal live canaries", () => {
 
   it("runs one live SAM 3 image tool request with non-default options", async () => {
     const apiKey = getFalKeyFromEnv();
-    expect(apiKey, "FAL_KEY is required when RUN_FAL_CANARY=1").toBeTruthy();
+    expect(apiKey, "FAL_KEY is required when RUN_FAL_CANARY=1").toBe(true);
 
     const motif = new FalClient({ apiKey: apiKey ?? "", retries: 1 });
     const result = await motif.runTool({
@@ -50,10 +50,9 @@ describeCanary("fal live canaries", () => {
     });
 
     // oxlint-disable-next-line no-standalone-expect,valid-expect -- second arg is a debug label; vitest ignores it (tracked as a test-quality finding)
-    expect(
-      result.isOk(),
-      result.isErr() ? result.error.message : ""
-    ).toBeTruthy();
+    expect(result.isOk(), result.isErr() ? result.error.message : "").toBe(
+      true
+    );
     if (result.isOk()) {
       expect(result.value).toStrictEqual(expect.any(Object));
       expect(Object.keys(result.value).length).toBeGreaterThan(0);

@@ -108,7 +108,7 @@ describe(migrateLegacyConfig, () => {
       defaultModel: "banana",
       upscaler: "clarity",
     });
-    expect(changed).toBeTruthy();
+    expect(changed).toBe(true);
     expect(config).toStrictEqual({ defaultAspect: "1:1" });
   });
 
