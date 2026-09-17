@@ -34,7 +34,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@howells/lint": "^3.2.5",
+    "@howells/lint": "^3.3.4",
     "@howells/typescript-config": "^0.1.6",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",

@@ -21,7 +21,7 @@
     "ai": "^7.0.22"
   },
   "devDependencies": {
-    "@howells/lint": "^3.2.5",
+    "@howells/lint": "^3.3.4",
     "@howells/typescript-config": "^0.1.6",
     "@types/node": "^26.1.1",
     "typescript": "7.0.2",
