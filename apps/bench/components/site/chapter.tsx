@@ -5,10 +5,13 @@ import type { ReactNode } from "react";
  * which is the only difference between the two layouts. */
 export function ChapterHead({
   body,
+  children,
   id,
   title,
 }: {
   readonly body: string;
+  /** Sits under the standfirst, for a chapter that carries a control. */
+  readonly children?: ReactNode;
   readonly id?: string;
   readonly title: string;
 }) {
@@ -17,12 +20,15 @@ export function ChapterHead({
       <h2 className="type-display" id={id}>
         {title}
       </h2>
-      <p
-        className="type-body max-w-[38ch] md:mb-2.5 md:shrink-0"
-        style={{ color: "var(--muted)" }}
-      >
-        {body}
-      </p>
+      <div className="flex flex-col md:mb-2.5 md:shrink-0">
+        <p
+          className="type-body max-w-[420px]"
+          style={{ color: "var(--muted)" }}
+        >
+          {body}
+        </p>
+        {children}
+      </div>
     </div>
   );
 }

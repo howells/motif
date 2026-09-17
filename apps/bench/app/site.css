@@ -38,6 +38,7 @@
   font-family: var(--font-sans);
   /* The page is one dark surface whatever the browser's scheme. */
   color-scheme: dark;
+  --gutter: clamp(1rem, 4.4vw, 4rem);
 }
 
 /* ── The type case ────────────────────────────────────────────────────
@@ -82,8 +83,6 @@
 
 /* 64px gutters at 1440 and 16px at 390, both measured off the boards. */
 .site-gutter {
-  --gutter: clamp(1rem, 4.4vw, 4rem);
-
   margin-inline: auto;
   max-width: 90rem;
   padding-inline: var(--gutter);
@@ -238,6 +237,40 @@
   .site-step[aria-selected="true"]::after {
     opacity: 0;
   }
+}
+
+/* The looks strip: a left gutter, no right one, and its cards moved by the
+   controls rather than scrolled. Clipping at the content edge means a card
+   never shows through the gutter, and moving rather than scrolling means the
+   row is not a scroll region at all, so there is nothing a keyboard cannot
+   reach. */
+.site-strip {
+  margin-inline: var(--gutter);
+  overflow: clip;
+}
+
+/* The bleed is a desktop device; the phone boards keep both gutters. */
+@media (width >= 48rem) {
+  .site-strip {
+    margin-right: 0;
+  }
+}
+
+.site-strip-row {
+  transition: transform 400ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-strip-row {
+    transition: none;
+  }
+}
+
+/* A step that can run out of road: the strip's controls at either end. */
+.site-step:disabled {
+  color: var(--faint);
+  cursor: default;
+  opacity: 0.4;
 }
 
 /* The install line, at the tracking the boards set on it. */

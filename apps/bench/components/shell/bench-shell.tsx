@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import type { ReactNode, RefObject } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { RunPane } from "@/components/shell/run-pane";
 import { RunsRail, RunsSheet } from "@/components/shell/runs-rail";
@@ -46,31 +46,25 @@ const useShellSelection = (
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const pendingRef = useRef<{ readonly id: string | null } | null>(null);
 
-  const selectRun = useCallback(
-    (runId: string | null) => {
-      pendingRef.current = { id: runId };
-      setSelectedRunId(runId);
-      onNavigate();
-      router.push(runId === null ? "/bench" : `/bench/runs/${runId}`, {
-        scroll: false,
-      });
-    },
-    [onNavigate, router]
-  );
+  const selectRun = (runId: string | null) => {
+    pendingRef.current = { id: runId };
+    setSelectedRunId(runId);
+    onNavigate();
+    router.push(runId === null ? "/bench" : `/bench/runs/${runId}`, {
+      scroll: false,
+    });
+  };
 
-  const reportRouteRun = useCallback((runId: string | null) => {
+  const reportRouteRun = (runId: string | null) => {
     const pending = pendingRef.current;
     if (pending !== null && pending.id !== runId) {
       return;
     }
     pendingRef.current = null;
     setSelectedRunId(runId);
-  }, []);
+  };
 
-  return useMemo(
-    () => ({ reportRouteRun, selectRun, selectedRunId }),
-    [reportRouteRun, selectRun, selectedRunId]
-  );
+  return { reportRouteRun, selectRun, selectedRunId };
 };
 
 /** Keyboard-first is the difference between a tool and a form: `⌘K` focuses
@@ -128,32 +122,26 @@ export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
   const createRun = useCreateRun();
   const { reset: resetCreateRun } = createRun;
 
-  const closeRunsSheet = useCallback(() => {
+  const closeRunsSheet = () => {
     setRunsSheetOpen(false);
-  }, []);
+  };
   const selection = useShellSelection(closeRunsSheet);
   const { selectRun, selectedRunId } = selection;
 
-  const patch = useCallback(
-    (next: RunDraftPatch) => {
-      setDraft((current) => ({ ...current, ...next }));
-      resetCreateRun();
-    },
-    [resetCreateRun]
-  );
+  const patch = (next: RunDraftPatch) => {
+    setDraft((current) => ({ ...current, ...next }));
+    resetCreateRun();
+  };
 
-  const onToggleModel = useCallback(
-    (alias: string) => {
-      setDraft((current) => ({
-        ...current,
-        models: toggleModel(current.models, alias),
-      }));
-      resetCreateRun();
-    },
-    [resetCreateRun]
-  );
+  const onToggleModel = (alias: string) => {
+    setDraft((current) => ({
+      ...current,
+      models: toggleModel(current.models, alias),
+    }));
+    resetCreateRun();
+  };
 
-  const spec = useMemo(() => specFromDraft(draft), [draft]);
+  const spec = specFromDraft(draft);
   const specIsRunnable = spec.models.length > 0 && spec.prompt.length > 0;
   const preview = usePreview(spec, specIsRunnable);
 
@@ -162,7 +150,7 @@ export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
   const isRunning = detail?.run.status === "running" || createRun.isPending;
   const canRun = specIsRunnable && !isRunning;
 
-  const handleRun = useCallback(() => {
+  const handleRun = () => {
     if (!canRun) {
       return;
     }
@@ -171,7 +159,7 @@ export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
         selectRun(runId);
       },
     });
-  }, [canRun, createRun, selectRun, spec]);
+  };
 
   useShellShortcuts(promptRef, handleRun);
 

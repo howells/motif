@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // The compiler memoizes components itself, which is why this app no longer
+  // writes useMemo or useCallback by hand.
+  reactCompiler: true,
   // Mastra ships native/ESM-only bits that must not go through Next's
   // client/server bundling — same convention as materialdesk.
   serverExternalPackages: ["@mastra/*"],

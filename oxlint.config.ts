@@ -9,15 +9,16 @@ import { disabledReactDoctorRules } from "@howells/lint/oxlint/react-doctor-rule
 // this file by walking upward, and root-cwd runs (lint-staged / pre-commit) read
 // it directly — so both contexts resolve the same configuration.
 //
-// Lane choice: `react` (not `core`) because apps/cli's Studio screens are
-// genuine React (.tsx) rendered through ink, keeping hook-correctness rules
-// (rules-of-hooks, exhaustive-deps, jsx-key) and no-generic-component-suffix.
+// Lane choice: `next`, the preset the @howells/lint README prescribes for a
+// monorepo containing a Next.js app, so apps/bench gets the Next rules and
+// apps/cli's Studio screens still get the React ones beneath them (those are
+// genuine React .tsx rendered through ink, so hook-correctness rules apply).
 // React Doctor's rules, however, target react-dom web apps: on ink (terminal
 // renderer, no DOM, its own reconciler) rules like rerender-functional-setstate,
-// no-giant-component, prefer-useReducer, no-event-handler, and react-compiler
-// fire as noise rather than real defects, and the node-only packages have no
-// React at all. Per MIGRATIONS.md they are disabled as a documented migration
-// exception with a removal path.
+// no-giant-component, prefer-useReducer and no-event-handler fire as noise
+// rather than real defects, and the node-only packages have no React at all.
+// Per MIGRATIONS.md they are disabled for those paths as a documented
+// migration exception with a removal path; apps/bench gets them in full.
 // Rules newly introduced since Motif's 1.x preset are reported during this
 // toolchain migration. Promote these after the parsing/test-style cleanup;
 // existing correctness rules and native type-aware checks remain errors.
@@ -95,16 +96,6 @@ export default {
     "default-case": "off",
   },
   overrides: [
-    {
-      // The bench app does not run React Compiler (no `reactCompiler` in
-      // next.config.ts), so its `useMemo`/`useCallback` calls are still doing
-      // the work this rule assumes the compiler does. Remove this entry when
-      // the compiler is turned on.
-      files: ["apps/bench/**"],
-      rules: {
-        "react-doctor/react-compiler-no-manual-memoization": "off",
-      },
-    },
     {
       // Migration exception: React Doctor rules are DOM-oriented (see header
       // note), so they stay off everywhere except the Next app.

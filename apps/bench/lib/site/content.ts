@@ -256,6 +256,7 @@ export const LOOKS = [
       width: 1800,
     },
     ratio: "840 / 560",
+    width: 840,
   },
   {
     body: "Pencil under flat washes, the drawing still showing through.",
@@ -268,6 +269,7 @@ export const LOOKS = [
       width: 1024,
     },
     ratio: "420 / 560",
+    width: 420,
   },
   {
     body: "Printed paper that has been handled: foxing, wear, a used press.",
@@ -280,6 +282,7 @@ export const LOOKS = [
       width: 768,
     },
     ratio: "400 / 560",
+    width: 400,
   },
 ] as const;
 
