@@ -86,7 +86,7 @@ const TabBar = ({
       ))}
     </div>
     {detail === undefined ? null : (
-      <span className="text-muted ml-auto hidden truncate pl-4 text-[11px] sm:block">
+      <span className="text-muted ml-auto hidden truncate pl-4 text-xs sm:block">
         {detail.samples.length} sample
         {detail.samples.length === 1 ? "" : "s"} · {detail.run.aspect} ·{" "}
         {detail.run.resolution}

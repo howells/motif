@@ -49,10 +49,10 @@ export const SampleError = ({
 
   return (
     <div className="bg-plate flex h-full flex-col items-center justify-center gap-2 px-4 py-6 text-center">
-      <span className="text-bad font-mono text-[11px]">
+      <span className="text-bad font-mono text-xs">
         {errorCode ?? "UNKNOWN"}
       </span>
-      <p className="text-plate-ink max-w-[30ch] text-[11px] leading-[1.5]">
+      <p className="text-plate-ink max-w-[30ch] text-xs leading-[1.5]">
         {errorCode
           ? ERROR_COPY[errorCode]
           : "This attempt failed for an unrecorded reason."}
@@ -64,7 +64,7 @@ export const SampleError = ({
           accent elements on screen and neither of them is this. */}
       {retryable ? (
         <Button
-          className="mt-1 h-7 px-2.5 text-[11px]"
+          className="mt-1 h-7 px-2.5 text-xs"
           disabled={retry.isPending}
           onClick={() => {
             retry.mutate([sampleId]);
@@ -80,7 +80,7 @@ export const SampleError = ({
           its resting label with nothing else happening is the "started: true
           while doing nothing" failure in miniature. */}
       {retry.error === null ? null : (
-        <p className="text-bad max-w-[30ch] text-[11px] leading-[1.5]">
+        <p className="text-bad max-w-[30ch] text-xs leading-[1.5]">
           {retry.error.message}
         </p>
       )}

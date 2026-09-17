@@ -66,9 +66,7 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
             {readout.format(readout.pick)}
           </span>
           {readout.unit === undefined ? null : (
-            <span className="text-muted shrink-0 text-[11px]">
-              {readout.unit}
-            </span>
+            <span className="text-muted shrink-0 text-xs">{readout.unit}</span>
           )}
           {/* The alias is a name, read on its own — never scanned down a
               column — so it takes the body font. Only the figure beside it is

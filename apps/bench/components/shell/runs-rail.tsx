@@ -91,7 +91,7 @@ const RunEntry = ({
             "which run was the expensive one" is the question the column
             answers, and tabular figures are what let you answer it by
             scanning. Everything else here is read one row at a time. */}
-        <span className="bench-numeric text-muted ml-auto text-[11px]">
+        <span className="bench-numeric text-muted ml-auto text-xs">
           {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
           {run.costActualMicros === null ? " est" : ""}
         </span>
@@ -99,7 +99,7 @@ const RunEntry = ({
 
       {/* Indented past the disc so the meta line hangs off the count above it
           rather than starting a second column. */}
-      <span className="text-muted flex flex-wrap items-baseline gap-x-1.5 pl-[11px] text-[11px]">
+      <span className="text-muted flex flex-wrap items-baseline gap-x-1.5 pl-[11px] text-xs">
         <span>
           {progress === null
             ? run.status
@@ -138,17 +138,17 @@ const RunList = ({ onSelect, progress, selectedRunId }: RunsRailProps) => {
   const runs = data?.runs ?? [];
 
   if (isLoading) {
-    return <p className="text-muted px-3 py-2.5 text-[11px]">Loading runs…</p>;
+    return <p className="text-muted px-3 py-2.5 text-xs">Loading runs…</p>;
   }
   if (isError) {
     return (
-      <p className="text-muted px-3 py-2.5 text-[11px] leading-[1.5]">
+      <p className="text-muted px-3 py-2.5 text-xs leading-[1.5]">
         Could not load runs. The app&apos;s own store may be unavailable.
       </p>
     );
   }
   if (runs.length === 0) {
-    return <p className="text-muted px-3 py-2.5 text-[11px]">No runs yet.</p>;
+    return <p className="text-muted px-3 py-2.5 text-xs">No runs yet.</p>;
   }
 
   return (
@@ -178,7 +178,7 @@ const RailHeading = () => {
     <span className="text-ink flex items-baseline gap-1.5 text-[13px]">
       Runs
       {count === undefined ? null : (
-        <span className="text-muted text-[11px]">{count}</span>
+        <span className="text-muted text-xs">{count}</span>
       )}
     </span>
   );

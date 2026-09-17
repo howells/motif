@@ -109,13 +109,12 @@ const judgeOneSample = async (
   judgeModel: string,
   engine: RunEngine
 ): Promise<void> => {
-  const db = await getDb();
-  const verdict = await engine.buildJudgment({
-    alias: modelAlias,
-    imagePath,
-    prompt,
-    sampleId,
-  });
+  // `getDb` only loads the client module, so holding the judge call behind it
+  // buys nothing; the two are independent.
+  const [db, verdict] = await Promise.all([
+    getDb(),
+    engine.buildJudgment({ alias: modelAlias, imagePath, prompt, sampleId }),
+  ]);
   const levels = toLevelsJson(verdict);
 
   await db
@@ -340,8 +339,10 @@ const runComparativePass = async (
   seed: number,
   samples: readonly RankableSample[]
 ): Promise<void> => {
-  const db = await getDb();
-  const urlBySample = await resolveJudgeableUrls(judge, samples);
+  const [db, urlBySample] = await Promise.all([
+    getDb(),
+    resolveJudgeableUrls(judge, samples),
+  ]);
   const judgeable = samples.filter((sample) => urlBySample.has(sample.id));
   if (judgeable.length < 2) {
     await setJudgingStatus(db, runId, "running", "done");
@@ -386,60 +387,65 @@ const runComparativePass = async (
   // it to the CDN — otherwise `markJudgingDoneIfSettled` would never see the
   // run as fully judged and the "Judging…" banner would stay up forever
   // (the hang class this app has already been bitten by once).
-  for (const sample of samples) {
-    const entry = rankedById.get(sample.id) ?? {
-      comparisons: 0,
-      losses: 0,
-      rank: null,
-      rankScore: null,
-      ties: 0,
-      wins: 0,
-    };
-    const levels = toRankLevelsJson({
-      comparisons: entry.comparisons,
-      losses: entry.losses,
-      opponents: opponentsBySample.get(sample.id) ?? new Map(),
-      rank: entry.rank,
-      rankedCount: ranked.rankedCount,
-      ties: entry.ties,
-      wins: entry.wins,
-    });
-    const status = entry.rankScore === null ? "inconclusive" : "scored";
-    const critique = entry.rankScore === null ? null : standingsCritique(entry);
+  // One upsert per sample, all independent: they target different rows and
+  // nothing downstream depends on the order they land in.
+  await Promise.all(
+    samples.map((sample) => {
+      const entry = rankedById.get(sample.id) ?? {
+        comparisons: 0,
+        losses: 0,
+        rank: null,
+        rankScore: null,
+        ties: 0,
+        wins: 0,
+      };
+      const levels = toRankLevelsJson({
+        comparisons: entry.comparisons,
+        losses: entry.losses,
+        opponents: opponentsBySample.get(sample.id) ?? new Map(),
+        rank: entry.rank,
+        rankedCount: ranked.rankedCount,
+        ties: entry.ties,
+        wins: entry.wins,
+      });
+      const status = entry.rankScore === null ? "inconclusive" : "scored";
+      const critique =
+        entry.rankScore === null ? null : standingsCritique(entry);
 
-    await db
-      .insert(benchJudgments)
-      .values({
-        // fal's `any-llm/vision` reports no billing field, so this stays
-        // `null` — unknown cost, not free cost (`BRIEF.md` rule 9).
-        costMicros: null,
-        critique,
-        id: randomUUID(),
-        judgeModel: judge.modelLabel,
-        levels,
-        overall: entry.rankScore,
-        rubricId: RANK_RUBRIC_ID,
-        rubricVersion: RANK_RUBRIC_VERSION,
-        sampleId: sample.id,
-        status,
-      })
-      .onConflictDoUpdate({
-        set: {
+      return db
+        .insert(benchJudgments)
+        .values({
+          // fal's `any-llm/vision` reports no billing field, so this stays
+          // `null` — unknown cost, not free cost (`BRIEF.md` rule 9).
           costMicros: null,
           critique,
+          id: randomUUID(),
+          judgeModel: judge.modelLabel,
           levels,
           overall: entry.rankScore,
+          rubricId: RANK_RUBRIC_ID,
+          rubricVersion: RANK_RUBRIC_VERSION,
+          sampleId: sample.id,
           status,
-          updatedAt: new Date(),
-        },
-        target: [
-          benchJudgments.sampleId,
-          benchJudgments.judgeModel,
-          benchJudgments.rubricId,
-          benchJudgments.rubricVersion,
-        ],
-      });
-  }
+        })
+        .onConflictDoUpdate({
+          set: {
+            costMicros: null,
+            critique,
+            levels,
+            overall: entry.rankScore,
+            status,
+            updatedAt: new Date(),
+          },
+          target: [
+            benchJudgments.sampleId,
+            benchJudgments.judgeModel,
+            benchJudgments.rubricId,
+            benchJudgments.rubricVersion,
+          ],
+        });
+    })
+  );
 
   await markJudgingDoneIfSettled(runId);
 };

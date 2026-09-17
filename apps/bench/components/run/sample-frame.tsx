@@ -43,7 +43,7 @@ const ParamLine = ({
     return null;
   }
   return (
-    <span className="text-plate-muted/70 truncate text-[11px]">
+    <span className="text-plate-muted/70 truncate text-xs">
       {parts.length === 0 ? " " : parts.join(" · ")}
     </span>
   );
@@ -83,7 +83,7 @@ const LatencyCell = ({
   const counting = sample.elapsedMs !== null;
 
   return (
-    <span className="bench-numeric text-plate-ink ml-auto flex shrink-0 items-baseline gap-1.5 text-[11px]">
+    <span className="bench-numeric text-plate-ink ml-auto flex shrink-0 items-baseline gap-1.5 text-xs">
       {sample.queuePolled && !counting ? (
         <Tooltip>
           <TooltipTrigger className="text-warn cursor-help">±3s</TooltipTrigger>
@@ -228,7 +228,7 @@ export const SampleFrame = ({
       </span>
 
       {sample.status === "failed" ? null : (
-        <span className="bench-numeric text-plate-muted flex items-baseline gap-2 text-[11px]">
+        <span className="bench-numeric text-plate-muted flex items-baseline gap-2 text-xs">
           {formatUsd(sample.costRefinedMicros ?? sample.costEstimatedMicros)}
           <span className="text-plate-muted/70 ml-auto shrink-0">
             {formatDimensions(sample.width, sample.height)}

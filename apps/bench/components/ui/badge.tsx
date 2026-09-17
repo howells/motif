@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
  * the uniform texture that makes an interface read as generated. Mono is kept
  * for figures that are scanned against each other. */
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center gap-1 rounded-full border px-2 py-px text-[11px] whitespace-nowrap [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center gap-1 rounded-full border px-2 py-px text-xs whitespace-nowrap [&>svg]:size-3",
   {
     defaultVariants: {
       variant: "default",

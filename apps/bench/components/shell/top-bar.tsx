@@ -38,9 +38,7 @@ const SummaryLine = ({
 }: Pick<TopBarProps, "draft" | "preview" | "runError">) => {
   if (runError !== null) {
     return (
-      <output className="text-bad block truncate text-[11px]">
-        {runError}
-      </output>
+      <output className="text-bad block truncate text-xs">{runError}</output>
     );
   }
   // Body font throughout. This is one line of running text — a count, a
@@ -50,7 +48,7 @@ const SummaryLine = ({
   // the rail heading and every table header, which is how a screen ends up
   // with one uniform texture and no emphasis left to spend.
   return (
-    <p className="text-muted truncate text-[11px] md:whitespace-nowrap">
+    <p className="text-muted truncate text-xs md:whitespace-nowrap">
       {draft.models.size} model{draft.models.size === 1 ? "" : "s"}
       {draft.samplesPerModel > 1 ? ` × ${draft.samplesPerModel} samples` : ""}
       {/* Framing and size drop out below `xl` and give their width back to the

@@ -60,11 +60,6 @@ export default {
     // Sequential awaits are intentional (queue polling, ordered generation,
     // pagination).
     "no-await-in-loop": "off",
-    // React Doctor's names for the same two patterns. In the bench's judging
-    // store the order also guards spend: the paid judge call waits until the
-    // database is known to be reachable.
-    "react-doctor/async-await-in-loop": "off",
-    "react-doctor/server-sequential-independent-await": "off",
     // Promise-based sleep/poll helpers (`new Promise(r => setTimeout(r, ...))`)
     // are legitimate.
     "no-promise-executor-return": "off",
@@ -108,16 +103,6 @@ export default {
       files: ["apps/bench/**"],
       rules: {
         "react-doctor/react-compiler-no-manual-memoization": "off",
-      },
-    },
-    {
-      // Migration exception: the bench tool's own shell and run screens set
-      // metadata below the size this rule allows. Reported while those screens
-      // get a type pass; promote back to an error once they are clean. The
-      // public site under components/site is not covered by this entry.
-      files: ["apps/bench/components/shell/**", "apps/bench/components/run/**"],
-      rules: {
-        "react-doctor/no-tiny-text": "warn",
       },
     },
     {
