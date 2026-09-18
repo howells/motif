@@ -167,10 +167,10 @@ describe(grade, () => {
   });
 
   it("requires every flag, in either spelling", () => {
-    const testCase = caseById("look-lived-in-lamplit");
+    const testCase = caseById("look-interior-lamplit");
     const missing = grade(
       testCase,
-      sh('motif "a family kitchen" --look lived-in')
+      sh('motif "a family kitchen" --look interior')
     );
     expect(missing.commandOk).toBe(true);
     expect(missing.missingFlags).toStrictEqual(["--mood lamplit"]);
@@ -178,7 +178,7 @@ describe(grade, () => {
 
     const equals = grade(
       testCase,
-      sh('motif "a family kitchen" --look=lived-in --mood=lamplit --dry-run')
+      sh('motif "a family kitchen" --look=interior --mood=lamplit --dry-run')
     );
     expect(equals.pass).toBe(true);
   });

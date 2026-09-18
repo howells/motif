@@ -85,17 +85,14 @@ Creative direction adds house sentences to your prompt. A **look** sets the kind
 | Look | What it's for |
 | --- | --- |
 | `editorial` | Quiet, materially rich editorial photography |
-| `still-life` | Objects and material samples on a plaster ground |
-| `lived-in` | Bright, collected rooms that feel lived in |
-| `architectural` | Whole rooms with one product installed, to show it at scale |
-| `homeowner` | Unstyled phone snapshots of real homes |
-| `drawing` | Line and gouache room drawings of a colour scheme (experimental) |
-| `plate` | Flat, edge-to-edge surface photographs for textures and swatches |
-| `engraved` | Grey-ink botanical engravings for patterns and backgrounds |
-| `ephemera` | Aged 1940s printed matter where the lettering matters |
-| `canvas` | Loose abstract paintings on linen |
+| `still-life` | Objects and products on a plaster ground |
+| `interior` | Bright, collected rooms that feel lived in |
+| `architectural` | Buildings and their settings from outside |
 | `portrait` | Natural, unposed documentary portraits |
 | `object` | One object in one colour on a clean ground |
+| `surface` | Flat, edge-to-edge surface photographs for textures and swatches |
+| `abstract` | Painted abstraction edge to edge, for wall art and backgrounds |
+| `illustration` | Line and gouache illustration of any subject (experimental) |
 
 | Mood       | Light                                  |
 | ---------- | -------------------------------------- |
@@ -107,11 +104,11 @@ Creative direction adds house sentences to your prompt. A **look** sets the kind
 | `nocturne` | Night, one warm low light, deep shadow |
 
 ```bash
-motif "a green kitchen" --look lived-in --mood overcast --dry-run
+motif "a green kitchen" --look interior --mood overcast --dry-run
 motif relight kitchen.jpg --mood dawn --dry-run
 ```
 
-These reflect one studio's taste (quiet, material, interiors-led). A look's Model wins over the Tier. `plate`, `engraved`, `ephemera`, `canvas` and `object` carry their own light and refuse a mood. `relight --mood` applies a mood to an existing photo.
+These reflect one studio's taste: quiet, material, shot on film, generous with space. A look's Model wins over the Tier. `object`, `surface`, `abstract` and `illustration` carry their own light and refuse a mood. No look renders lettering; for type in the picture, override the Model with `-m ideogram4`. `relight --mood` applies a mood to an existing photo.
 
 ## Series
 

@@ -12,7 +12,7 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 motif series create "Luna's Adventure" --from cover.png --style "children's book, watercolour, soft pastels" -a 3:2
 
 # Pin a house look and mood; the look also sets the aspect (3:2) because -a isn't given
-motif series create "Kitchen Stories" --style "warm family kitchens" --look lived-in --mood overcast
+motif series create "Kitchen Stories" --style "warm family kitchens" --look interior --mood overcast
 
 # Add tagged references
 motif series ref-add luna-s-adventure character-luna.png --tag character -d "Luna front view"
@@ -30,7 +30,7 @@ motif series history luna-s-adventure
 
 ```bash
 echo '{"command":"series-run","theme":"brutalist architecture","numImages":6,"dryRun":true}' | motif series --format json
-echo '{"command":"series-create","name":"Kitchen Stories","creative":{"look":"lived-in","mood":"overcast"}}' | motif series --format json
+echo '{"command":"series-create","name":"Kitchen Stories","creative":{"look":"interior","mood":"overcast"}}' | motif series --format json
 ```
 
 ## How it works

@@ -19,22 +19,22 @@ describe(resolveCreativeDirection, () => {
   it("fills fields the flags omit from the base", () => {
     const result = resolveCreativeDirection(
       {},
-      { look: "lived-in", mood: "overcast" }
+      { look: "interior", mood: "overcast" }
     );
 
-    expect(result).toStrictEqual({ look: "lived-in", mood: "overcast" });
+    expect(result).toStrictEqual({ look: "interior", mood: "overcast" });
   });
 
   it("drops a field for a false flag or a null value, even over a base", () => {
     expect(
       resolveCreativeDirection(
         { mood: false },
-        { look: "plate", mood: "overcast" }
+        { look: "surface", mood: "overcast" }
       )
-    ).toStrictEqual({ look: "plate" });
+    ).toStrictEqual({ look: "surface" });
     expect(
-      resolveCreativeDirection({}, { look: "plate", mood: null })
-    ).toStrictEqual({ look: "plate" });
+      resolveCreativeDirection({}, { look: "surface", mood: null })
+    ).toStrictEqual({ look: "surface" });
     expect(resolveCreativeDirection({ mood: false })).toBeUndefined();
   });
 

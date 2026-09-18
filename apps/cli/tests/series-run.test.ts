@@ -154,14 +154,14 @@ describe("loadOrCreateRunSeries", () => {
 
     const config = await loadOrCreateRunSeries({
       aspect: "3:2",
-      look: "lived-in",
+      look: "interior",
       mood: "overcast",
       resolution: "2K",
       stylePrompt: "warm kitchens",
       theme: "Pinned Kitchens",
     });
 
-    expect(config).toMatchObject({ look: "lived-in", mood: "overcast" });
+    expect(config).toMatchObject({ look: "interior", mood: "overcast" });
   });
 
   it("falls back to loading when the theme slug already exists", async () => {

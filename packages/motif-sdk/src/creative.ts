@@ -40,7 +40,8 @@ export interface CreativeOption {
 export interface LookOption extends CreativeOption {
   /**
    * Whether a mood may be combined with this look. Flat looks (surfaces,
-   * prints, paintings, studio objects) carry their own light and refuse one.
+   * paintings, illustrations, studio objects) carry their own light and
+   * refuse one.
    */
   acceptsMood: boolean;
   /** Default aspect ratio, e.g. `"3:2"`. */
@@ -96,10 +97,11 @@ export const CREATIVE_FIELDS = [
 ] as const satisfies readonly CreativeField[];
 
 /**
- * Built-in creative direction catalogue: twelve house looks and six light moods.
+ * Built-in creative direction catalogue: nine house looks and six light moods.
  *
  * Each option carries the exact prompt sentence appended when it is selected.
- * Looks also carry the aspect ratio and model they were tuned for.
+ * Looks also carry the aspect ratio and model they were tuned for. The five
+ * photographic looks come first, then the four flat ones.
  */
 export const CREATIVE_TAXONOMY = {
   look: [
@@ -120,9 +122,9 @@ export const CREATIVE_TAXONOMY = {
       clause:
         "Editorial still life on a warm bone plaster ground, chalky unglazed surfaces, a long soft shadow, generous empty space, shot on film with fine grain. No text, no logos, no people",
       description:
-        "Objects and material samples on a plaster ground, for product and swatch shots.",
+        "Objects and products on a plaster ground, for product and editorial still life.",
       id: "still-life",
-      label: "Material still life",
+      label: "Editorial still life",
       model: "flux2-pro",
     },
     {
@@ -132,86 +134,19 @@ export const CREATIVE_TAXONOMY = {
         "Interior photograph shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, slightly imperfect and lived-in rather than showroom-perfect, photographic realism. No text, no logos, no people",
       description:
         "Bright, collected rooms that feel lived in, for interior scenes.",
-      id: "lived-in",
-      label: "Lived-in interior",
+      id: "interior",
+      label: "Interior",
       model: "flux2-pro",
     },
     {
       acceptsMood: true,
       aspect: "4:5",
       clause:
-        "Architectural editorial photograph at full room scale, honest materials meeting precise detailing, one hero element genuinely installed, plausible light and shadow, generous negative space, empty of people. No text, no logos",
+        "Architectural photograph of the building from outside at editorial distance, its setting included, honest materials meeting precise detailing, plausible daylight and long shadow, generous negative space, shot on film with fine grain. No text, no logos, no people",
       description:
-        "Whole rooms with one product installed, for showing a material at scale.",
+        "Buildings and their settings from outside, for architecture, property and place.",
       id: "architectural",
-      label: "Architectural scale",
-      model: "banana",
-    },
-    {
-      acceptsMood: true,
-      aspect: "4:3",
-      clause:
-        "Amateur phone photo of a real home taken by the homeowner, slightly wonky framing, unstyled domestic photography, ordinary exposure. No text, no people",
-      description:
-        "Unstyled phone snapshots of real homes, for believable before and after shots.",
-      id: "homeowner",
-      label: "Homeowner snapshot",
-      model: "seedream45",
-    },
-    {
-      acceptsMood: true,
-      aspect: "1:1",
-      clause:
-        "Stylised architectural illustration of the room, colour laid as flat planes on walls, joinery and trim, fine hand-drawn line with a gentle gouache wash, clearly a drawing of a design decision rather than a photograph. No text, no people",
-      description:
-        "Line and gouache room drawings, for showing a colour scheme as a design idea.",
-      experimental: true,
-      id: "drawing",
-      label: "Palette drawing",
-      model: "gpt2",
-    },
-    {
-      acceptsMood: false,
-      aspect: "1:1",
-      clause:
-        "Straight-on orthographic photograph of the surface filling the entire frame edge to edge, even shadowless studio light, crisp macro texture, colour-accurate. No text, no logos",
-      description:
-        "Flat, edge-to-edge surface photographs, for textures and material swatches.",
-      id: "plate",
-      label: "Flat plate",
-      model: "flux2-pro",
-    },
-    {
-      acceptsMood: false,
-      aspect: "1:1",
-      clause:
-        "Fine hand-engraved botanical plate with delicate hatching and dry brush, grey ink only, reaching near-black at its densest, on matte uncoated stock under flat even light, cropped mid-motif and running past all four edges, never simplified or cartoonish. No text",
-      description:
-        "Grey-ink botanical engravings that run off the edges, for patterns and backgrounds.",
-      id: "engraved",
-      label: "Engraved grey ink",
-      model: "gpt2",
-    },
-    {
-      acceptsMood: false,
-      aspect: "2:3",
-      clause:
-        "Tightly cropped photograph of a single piece of late-1940s American printed matter, flat and square-on in even light, every pixel paper, letterpress and wood type, sun-faded ink, foxing, soft creases and thumbtack holes, era-correct typography, nothing that looks like a digital photo run through a filter",
-      description:
-        "Aged mid-century printed matter such as posters and cards, where the lettering matters.",
-      id: "ephemera",
-      label: "Period ephemera",
-      model: "ideogram4",
-    },
-    {
-      acceptsMood: false,
-      aspect: "3:4",
-      clause:
-        "Physical mineral pigment and chalk gesso on coarse natural linen, two or three confident gestures, warm ivory, oatmeal, putty and soft charcoal, flat diffuse museum reproduction lighting, shown unframed. No text",
-      description:
-        "Loose abstract paintings on linen, for wall art and calm backgrounds.",
-      id: "canvas",
-      label: "Linen abstract",
+      label: "Architectural exterior",
       model: "banana",
     },
     {
@@ -235,6 +170,40 @@ export const CREATIVE_TAXONOMY = {
       id: "object",
       label: "Studio object",
       model: "flux2-pro",
+    },
+    {
+      acceptsMood: false,
+      aspect: "1:1",
+      clause:
+        "Straight-on orthographic photograph of the surface filling the entire frame edge to edge, even shadowless studio light, crisp macro texture, colour-accurate. No text, no logos",
+      description:
+        "Flat, edge-to-edge surface photographs, for textures, backgrounds and material swatches.",
+      id: "surface",
+      label: "Flat surface",
+      model: "flux2-pro",
+    },
+    {
+      acceptsMood: false,
+      aspect: "3:2",
+      clause:
+        "Painted abstraction filling the frame edge to edge, mineral pigment and chalk gesso on coarse natural linen, two or three confident gestures, warm ivory, oatmeal, putty and soft charcoal, flat diffuse reproduction light. No text",
+      description:
+        "Painted abstraction edge to edge, for wall art, heroes and calm backgrounds.",
+      id: "abstract",
+      label: "Painted abstract",
+      model: "banana",
+    },
+    {
+      acceptsMood: false,
+      aspect: "1:1",
+      clause:
+        "Stylised editorial illustration, colour laid as flat planes, fine hand-drawn line with a gentle gouache wash, clearly a drawing rather than a photograph. No text, no logos",
+      description:
+        "Line and gouache illustration of any subject, for drawn editorial imagery.",
+      experimental: true,
+      id: "illustration",
+      label: "Editorial illustration",
+      model: "gpt2",
     },
   ],
   mood: [
@@ -287,7 +256,7 @@ export const CREATIVE_TAXONOMY = {
 /** Every house look, in catalogue order. */
 export const LOOKS: readonly LookOption[] = CREATIVE_TAXONOMY.look;
 
-/** Stable id of a house look, e.g. `"lived-in"`. */
+/** Stable id of a house look, e.g. `"interior"`. */
 export type LookId = (typeof CREATIVE_TAXONOMY.look)[number]["id"];
 
 /** Stable id of a light mood, e.g. `"overcast"`. */

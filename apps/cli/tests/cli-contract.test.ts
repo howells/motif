@@ -301,16 +301,16 @@ describe("CLI contract", () => {
       type: "string",
     });
     expect(
-      asRecord(asRecord(properties.look).enumDescriptions).ephemera
+      asRecord(asRecord(properties.look).enumDescriptions).architectural
     ).toMatchObject({
-      clause: clause("look", "ephemera"),
-      defaultAspect: "2:3",
-      defaultModel: "ideogram4",
+      clause: clause("look", "architectural"),
+      defaultAspect: "4:5",
+      defaultModel: "banana",
       experimental: false,
-      label: "Period ephemera",
+      label: "Architectural exterior",
     });
     expect(
-      asRecord(asRecord(properties.look).enumDescriptions).drawing
+      asRecord(asRecord(properties.look).enumDescriptions).illustration
     ).toMatchObject({ experimental: true });
     expect(properties.mood).toMatchObject({
       enum: ["window", "dawn", "raking", "overcast", "lamplit", "nocturne"],
@@ -429,7 +429,7 @@ describe("CLI contract", () => {
         "--format",
         "json",
         "--look",
-        "lived-in",
+        "interior",
         "--mood",
         "window",
       ],
@@ -444,9 +444,9 @@ describe("CLI contract", () => {
     expect(payload).toMatchObject({
       command: "series-generate",
       creative: {
-        clauses: [clause("look", "lived-in"), clause("mood", "window")],
+        clauses: [clause("look", "interior"), clause("mood", "window")],
         selected: {
-          look: "lived-in",
+          look: "interior",
           mood: "window",
         },
       },
@@ -455,7 +455,7 @@ describe("CLI contract", () => {
       scenePrompt: "hero watch on steel table",
     });
     expect(payload.prompt).toBe(
-      `Editorial product language. Hero watch on steel table. ${clause("look", "lived-in")}. ${cap(clause("mood", "window"))}.`
+      `Editorial product language. Hero watch on steel table. ${clause("look", "interior")}. ${cap(clause("mood", "window"))}.`
     );
   });
 
@@ -469,7 +469,7 @@ describe("CLI contract", () => {
         "--style",
         "warm family kitchens",
         "--look",
-        "lived-in",
+        "interior",
         "--mood",
         "overcast",
         "--format",
@@ -484,7 +484,7 @@ describe("CLI contract", () => {
     expect(series).toMatchObject({
       command: "series-create",
       defaultAspect: "3:2",
-      look: "lived-in",
+      look: "interior",
       mood: "overcast",
     });
     expect(series).not.toHaveProperty("model");
@@ -496,7 +496,7 @@ describe("CLI contract", () => {
       home
     );
     expect(parseJsonLine(shown.stdout)).toMatchObject({
-      look: "lived-in",
+      look: "interior",
       mood: "overcast",
     });
     const listed = await runMotif(
@@ -505,7 +505,7 @@ describe("CLI contract", () => {
       home
     );
     expect(asArray(parseJsonLine(listed.stdout).series)[0]).toMatchObject({
-      look: "lived-in",
+      look: "interior",
       mood: "overcast",
     });
 
@@ -528,12 +528,12 @@ describe("CLI contract", () => {
     expect(payload).toMatchObject({
       aspect: "3:2",
       command: "series-generate",
-      creative: { selected: { look: "lived-in", mood: "overcast" } },
+      creative: { selected: { look: "interior", mood: "overcast" } },
       model: "flux2-pro",
       stylePrompt: "warm family kitchens",
     });
     expect(payload.prompt).toBe(
-      `Warm family kitchens. A green kitchen. ${clause("look", "lived-in")}. ${cap(clause("mood", "overcast"))}.`
+      `Warm family kitchens. A green kitchen. ${clause("look", "interior")}. ${cap(clause("mood", "overcast"))}.`
     );
 
     const overridden = await runMotif(
@@ -553,7 +553,7 @@ describe("CLI contract", () => {
     );
     expect(overridden.code).toBe(0);
     expect(parseJsonLine(overridden.stdout)).toMatchObject({
-      creative: { selected: { look: "lived-in", mood: "lamplit" } },
+      creative: { selected: { look: "interior", mood: "lamplit" } },
     });
 
     const flatNoMood = await runMotif(
@@ -563,7 +563,7 @@ describe("CLI contract", () => {
         slug,
         "an oak plank",
         "--look",
-        "plate",
+        "surface",
         "--no-mood",
         "--dry-run",
         "--format",
@@ -574,14 +574,14 @@ describe("CLI contract", () => {
     );
     expect(flatNoMood.code).toBe(0);
     expect(parseJsonLine(flatNoMood.stdout)).toMatchObject({
-      creative: { selected: { look: "plate" } },
+      creative: { selected: { look: "surface" } },
     });
 
     const stdinNoMood = await runMotif(
       ["series", "--format", "json"],
       JSON.stringify({
         command: "series-generate",
-        creative: { look: "plate", mood: null },
+        creative: { look: "surface", mood: null },
         dryRun: true,
         prompt: "an oak plank",
         series: slug,
@@ -590,7 +590,7 @@ describe("CLI contract", () => {
     );
     expect(stdinNoMood.code).toBe(0);
     expect(parseJsonLine(stdinNoMood.stdout)).toMatchObject({
-      creative: { selected: { look: "plate" } },
+      creative: { selected: { look: "surface" } },
     });
 
     const run = await runMotif(
@@ -611,7 +611,7 @@ describe("CLI contract", () => {
     );
     expect(run.code).toBe(0);
     expect(parseJsonLine(run.stdout)).toMatchObject({
-      creative: { selected: { look: "lived-in", mood: "overcast" } },
+      creative: { selected: { look: "interior", mood: "overcast" } },
       model: "flux2-pro",
     });
   });
@@ -620,9 +620,9 @@ describe("CLI contract", () => {
     const result = await runMotif([
       "series",
       "create",
-      "Fight Night",
+      "Site Visits",
       "--look",
-      "ephemera",
+      "architectural",
       "-a",
       "1:1",
       "--format",
@@ -632,7 +632,7 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
       defaultAspect: "1:1",
-      look: "ephemera",
+      look: "architectural",
       mood: null,
     });
   });
@@ -643,7 +643,7 @@ describe("CLI contract", () => {
       "create",
       "Veneers",
       "--look",
-      "plate",
+      "surface",
       "--mood",
       "lamplit",
       "--format",
@@ -731,7 +731,7 @@ describe("CLI contract", () => {
       "--format",
       "json",
       "--look",
-      "lived-in",
+      "interior",
       "--mood",
       "overcast",
     ]);
@@ -739,16 +739,16 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     expect(result.stderr).toBe("");
 
-    const expectedPrompt = `A green kitchen. ${clause("look", "lived-in")}. ${cap(clause("mood", "overcast"))}.`;
+    const expectedPrompt = `A green kitchen. ${clause("look", "interior")}. ${cap(clause("mood", "overcast"))}.`;
     const dryRun = parseJsonLine(result.stdout);
     expect(dryRun).toMatchObject({
       aspect: "3:2",
       basePrompt: "a green kitchen",
       command: "generate",
       creative: {
-        clauses: [clause("look", "lived-in"), clause("mood", "overcast")],
+        clauses: [clause("look", "interior"), clause("mood", "overcast")],
         selected: {
-          look: "lived-in",
+          look: "interior",
           mood: "overcast",
         },
       },
@@ -762,9 +762,9 @@ describe("CLI contract", () => {
 
   it("applies the look's default model and aspect when none is given", async () => {
     const result = await runMotif([
-      "a boxing match card",
+      "a brick chapel on a hillside",
       "--look",
-      "ephemera",
+      "architectural",
       "--dry-run",
       "--format",
       "json",
@@ -773,8 +773,8 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     expect(result.stderr).toBe("");
     expect(parseJsonLine(result.stdout)).toMatchObject({
-      aspect: "2:3",
-      model: "ideogram4",
+      aspect: "4:5",
+      model: "banana",
     });
   });
 
@@ -804,7 +804,7 @@ describe("CLI contract", () => {
     const result = await runMotif([
       "a lamp",
       "--look",
-      "ephemera",
+      "architectural",
       "--og",
       "--dry-run",
       "--format",
@@ -814,7 +814,7 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
       aspect: "16:9",
-      model: "ideogram4",
+      model: "banana",
     });
   });
 
@@ -856,17 +856,17 @@ describe("CLI contract", () => {
       JSON.stringify({
         aspect: "1:1",
         command: "generate",
-        creative: { look: "ephemera" },
+        creative: { look: "abstract" },
         dryRun: true,
-        model: "banana",
-        prompt: "a boxing match card",
+        model: "gpt2",
+        prompt: "two confident gestures in oatmeal and charcoal",
       })
     );
 
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
       aspect: "1:1",
-      model: "banana",
+      model: "gpt2",
     });
   });
 
@@ -926,7 +926,7 @@ describe("CLI contract", () => {
     const result = await runMotif([
       "oak veneer",
       "--look",
-      "plate",
+      "surface",
       "--mood",
       "lamplit",
       "--dry-run",
@@ -947,7 +947,7 @@ describe("CLI contract", () => {
       },
       error: true,
     });
-    expect(String(error.message)).toContain("plate");
+    expect(String(error.message)).toContain("surface");
   });
 
   it("accepts a mood on a look that takes one", async () => {
@@ -974,7 +974,7 @@ describe("CLI contract", () => {
       ["--format", "json", "--no-mood"],
       JSON.stringify({
         command: "generate",
-        creative: { look: "plate", mood: "dawn" },
+        creative: { look: "surface", mood: "dawn" },
         dryRun: true,
         prompt: "an oak plank",
       })
@@ -982,7 +982,7 @@ describe("CLI contract", () => {
 
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
-      creative: { selected: { look: "plate" } },
+      creative: { selected: { look: "surface" } },
     });
   });
 
@@ -990,7 +990,7 @@ describe("CLI contract", () => {
     const warned = await runMotif([
       "a shop poster on a wall, no text, no chairs",
       "--look",
-      "lived-in",
+      "interior",
       "--dry-run",
       "--format",
       "json",
@@ -1009,7 +1009,7 @@ describe("CLI contract", () => {
     const clean = await runMotif([
       "a green kitchen",
       "--look",
-      "lived-in",
+      "interior",
       "--dry-run",
       "--format",
       "json",

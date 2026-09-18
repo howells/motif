@@ -70,12 +70,12 @@ The old flags (`--quality`, `--rendering-speed`, `--thinking`, `--style`, `--bac
 
 A look is a house visual register added to the prompt, with its own Model and aspect ratio. A mood is a light condition. Set them with `--look <id>` and `--mood <id>`; `motif --describe --format json` carries the sentences each adds.
 
-Looks: `editorial`, `still-life`, `lived-in`, `architectural`, `homeowner`, `drawing`, `plate`, `engraved`, `ephemera`, `canvas`, `portrait`, `object`. Moods: `window`, `dawn`, `raking`, `overcast`, `lamplit`, `nocturne`.
+Looks: `editorial`, `still-life`, `interior`, `architectural`, `portrait`, `object`, `surface`, `abstract`, `illustration`. Moods: `window`, `dawn`, `raking`, `overcast`, `lamplit`, `nocturne`.
 
-Precedence for the Model: `-m`, then the look's Model, then a pinned Model, then the ranking at the chosen Tier. For the aspect: `-a` or a preset, then the look's, then `defaultAspect` in config. The flat looks `plate`, `engraved`, `ephemera`, `canvas` and `object` refuse a mood with `INVALID_OPTION`. `--no-mood` drops a mood, including one pinned on a Series.
+Precedence for the Model: `-m`, then the look's Model, then a pinned Model, then the ranking at the chosen Tier. For the aspect: `-a` or a preset, then the look's, then `defaultAspect` in config. The flat looks `object`, `surface`, `abstract` and `illustration` refuse a mood with `INVALID_OPTION`. `--no-mood` drops a mood, including one pinned on a Series. No look renders lettering; for type in the picture, use `-m ideogram4`.
 
 ```bash
-motif "a green kitchen" --look lived-in --mood overcast --dry-run
+motif "a green kitchen" --look interior --mood overcast --dry-run
 ```
 
 ## Stdin JSON

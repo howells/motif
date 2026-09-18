@@ -1,5 +1,16 @@
 # @howells/motif-sdk
 
+## Unreleased
+
+### Major Changes
+
+- The house looks are reset from twelve to nine. Each of the twelve was lifted from one client's work, so the taste carried subjects most callers will never ask for. The register is unchanged: quiet, material, shot on film, generous with space.
+- Renamed, same clause and defaults: `lived-in` is now `interior`, `plate` is now `surface`. `canvas` is now `abstract` and is the painting itself rather than one hung on a wall, at 3:2 instead of 3:4. `drawing` is now `illustration` and no longer says "of the room", so it draws any subject.
+- `architectural` keeps its id, aspect and Model but now photographs a building from outside with its setting, rather than a room with one product installed in it.
+- Removed: `homeowner` (a deliberately unstyled phone snapshot), `engraved` (grey-ink botanical plates) and `ephemera` (1940s printed matter). `ephemera` was the only look that permitted lettering; for type in the picture, override the Model with `-m ideogram4`.
+- The flat looks that refuse a mood are now `object`, `surface`, `abstract` and `illustration`. `illustration` carries `experimental: true`; no other look does.
+- Every look's Model can now edit, so vary honours all nine. `resolveTask` still falls back to the ranking for a Look whose Model a Task doesn't offer; no look reaches that branch today.
+
 ## 4.0.0
 
 Released alongside `@howells/motif-cli` 3.0.0: "tasks replace models" (ADR 0001, MOT-63). Callers name a Task and Motif chooses the Model.

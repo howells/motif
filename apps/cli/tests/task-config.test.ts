@@ -351,7 +351,7 @@ describe("vary Model choice (spawned CLI)", () => {
     const result = await runMotifIn(home, [
       "vary",
       "--look",
-      "lived-in",
+      "interior",
       "--num",
       "1",
       "--dry-run",

@@ -41,7 +41,7 @@ Motif is a public creative automation interface for fal.ai media endpoints, with
 - generate takes zero or more **References** and no **Source**; every other **Task** changes one **Source** and may take **References**.
 - A **Series** has no **Model** of its own; its generations choose one as any other generation does.
 - A generation uses at most one **Look** and at most one **Mood**.
-- In a generation, a **Mood** applies only to a photographic **Look**; flat **Looks** (scans, prints, paintings, studio objects) carry their own light and refuse a **Mood**. Relighting applies a **Mood** to any existing image.
+- In a generation, a **Mood** applies only to a photographic **Look**; flat **Looks** (surfaces, paintings, illustrations, studio objects) carry their own light and refuse a **Mood**. Relighting applies a **Mood** to any existing image.
 - A project can pin a **Task**'s **Model**; otherwise a release that changes a ranking changes that **Task**'s results.
 - A **Series** can pin one **Look** and one **Mood**, which then apply to every generation in it.
 - Only Motif defines **Looks**. A user's own visual identity lives in a **Series**, through its **References** and style prompt.

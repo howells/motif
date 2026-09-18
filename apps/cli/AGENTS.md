@@ -193,24 +193,23 @@ Each option is one or more full sentences. The final prompt is your prompt, then
 
 In `generate`, a look sets the Model and aspect when you gave none. Explicit `-m`/`--model`, `-a`/`--aspect`, a preset flag such as `--og`, or stdin `model`, `aspect` or `preset` always win. A look's Model comes before a pinned Model and the Tier ranking, so `--tier` has no effect with `--look`. Resolution is never changed.
 
-Five looks are flat and take no mood: `plate`, `engraved`, `ephemera`, `canvas` and `object` (`acceptsMood: false` in `--describe`). A mood with one of them fails with `INVALID_OPTION` (exit `2`) on field `mood`, and `details.availableIds` lists the looks that do accept a mood. A mood with no look is valid. `--no-mood` on `generate`, `series gen` and `series run` (or `"mood": null` in stdin `creative`) drops any mood, including a Series' pinned one, so `series gen <slug> "x" --look plate --no-mood` works on a Series pinned to a mood.
+Four looks are flat and take no mood: `object`, `surface`, `abstract` and `illustration` (`acceptsMood: false` in `--describe`). A mood with one of them fails with `INVALID_OPTION` (exit `2`) on field `mood`, and `details.availableIds` lists the looks that do accept a mood. A mood with no look is valid. `--no-mood` on `generate`, `series gen` and `series run` (or `"mood": null` in stdin `creative`) drops any mood, including a Series' pinned one, so `series gen <slug> "x" --look surface --no-mood` works on a Series pinned to a mood.
 
-The `drawing` look is experimental (`experimental: true` in `--describe`): it works, but its text and defaults may change. Look defaults outrank `tasks.generate.model` and `defaultAspect` in `~/.motif/config.json`; explicit flags and stdin outrank both.
+The `illustration` look is experimental (`experimental: true` in `--describe`): it works, but its text and defaults may change. Look defaults outrank `tasks.generate.model` and `defaultAspect` in `~/.motif/config.json`; explicit flags and stdin outrank both.
+
+No look renders lettering. For type in the picture, override the Model: `-m ideogram4`.
 
 | Look | What it's for | Aspect | Model |
 | --- | --- | --- | --- |
 | `editorial` | Quiet, materially rich editorial photography | 1:1 | `flux2-pro` |
-| `still-life` | Objects and material samples on a plaster ground | 1:1 | `flux2-pro` |
-| `lived-in` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
-| `architectural` | Whole rooms with one product installed, to show it at scale | 4:5 | `banana` |
-| `homeowner` | Unstyled phone snapshots of real homes | 4:3 | `seedream45` |
-| `drawing` | Line and gouache room drawings of a colour scheme (experimental) | 1:1 | `gpt2` |
-| `plate` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
-| `engraved` | Grey-ink botanical engravings for patterns and backgrounds | 1:1 | `gpt2` |
-| `ephemera` | Aged 1940s printed matter where the lettering matters | 2:3 | `ideogram4` |
-| `canvas` | Loose abstract paintings on linen | 3:4 | `banana` |
+| `still-life` | Objects and products on a plaster ground | 1:1 | `flux2-pro` |
+| `interior` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
+| `architectural` | Buildings and their settings from outside | 4:5 | `banana` |
 | `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
 | `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
+| `surface` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
+| `abstract` | Painted abstraction edge to edge, for wall art and backgrounds | 3:2 | `banana` |
+| `illustration` | Line and gouache illustration of any subject (experimental) | 1:1 | `gpt2` |
 
 ### Moods
 
@@ -227,13 +226,13 @@ The `drawing` look is experimental (`experimental: true` in `--describe`): it wo
 
 ```bash
 # CLI flags - the look sets the Model and a 3:2 aspect
-motif "a green kitchen" --look lived-in --mood overcast --dry-run --format json
+motif "a green kitchen" --look interior --mood overcast --dry-run --format json
 
 # Explicit flags beat the look's defaults
 motif "a lamp" --look object -m flux2-pro -a 16:9 --dry-run --format json
 
 # Stdin JSON
-echo '{"prompt":"a green kitchen","creative":{"look":"lived-in","mood":"overcast"},"dryRun":true}' | motif --format json
+echo '{"prompt":"a green kitchen","creative":{"look":"interior","mood":"overcast"},"dryRun":true}' | motif --format json
 ```
 
 Each flag overrides the matching key in the stdin `creative` object. Only the fields you set are applied. Dry-run JSON reports `basePrompt`, `creative.clauses`, `creative.selected`, `warnings`, and the final `prompt`, `model` and `aspect`.

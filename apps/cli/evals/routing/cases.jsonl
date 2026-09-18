@@ -26,7 +26,7 @@
 {"id":"series-run-look-like-set","request":"make eight illustrations of Scandinavian cabins that look like a set","command":"series run","flags":["--count 8"],"source":"plan SURF-18: six images that look like a set"}
 {"id":"series-named-style","request":"set up a reusable style called Luna Adventure, a watercolour children's book with character references, so every later image matches it","command":"series","source":"audit: series only found in the unshipped guide's heading"}
 {"id":"look-editorial","request":"our usual editorial look: a reading chair by a window","command":"generate","flags":["--look editorial"],"source":"audit: --look is one hop away from 'our usual editorial look'"}
-{"id":"look-lived-in-lamplit","request":"lived-in interior, evening light: a family kitchen","command":"generate","flags":["--look lived-in","--mood lamplit"],"source":"audit: house look and mood from the user's own words"}
+{"id":"look-interior-lamplit","request":"a collected interior, evening light: a family kitchen","command":"generate","flags":["--look interior","--mood lamplit"],"source":"audit: house look and mood from the user's own words"}
 {"id":"look-still-life","request":"three terrazzo tile samples in our house still-life style","command":"generate","flags":["--look still-life"],"source":"audit: house look from the user's own words"}
 {"id":"map-depth","request":"make a depth map of room.png","command":"map","source":"audit: utilities with no command went through tool; MOT-53 map","args":["room.png"]}
 {"id":"studio-browse","request":"open the interactive terminal app so I can browse and review my images by hand","command":"studio","source":"coverage: studio"}

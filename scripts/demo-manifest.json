@@ -70,8 +70,8 @@
     },
     {
       "id": "drawing",
-      "have": "apps/bench/public/demo/looks/drawing.jpg",
-      "for": "restyle style reference: the drawing look's proof image"
+      "have": "apps/bench/public/demo/restyle/reference.jpg",
+      "for": "restyle style reference: a line and gouache room drawing"
     }
   ],
   "demos": [

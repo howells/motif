@@ -4,7 +4,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { getLook } from "../src/creative";
+import { getLook, LOOKS } from "../src/creative";
 import { MODELS } from "../src/models";
 import type { TaskEnvironment } from "../src/resolve";
 import {
@@ -374,12 +374,15 @@ describe("fixed Models that do not fit the request", () => {
     });
   });
 
-  it("lets a Look whose Model cannot edit fall through on vary", () => {
-    const result = resolveTask(
-      "vary",
-      { look: "ephemera", references: 1 },
-      { keys: ["FAL_KEY"] }
-    );
-    expect(result).toMatchObject({ chosenBy: "ranking", ok: true });
+  /** Every house look's Model can edit, so vary honours all nine. The
+   * fall-through for a Look whose Model a Task does not offer still exists in
+   * resolveTask; no look reaches it now. */
+  it("honours every Look on vary", () => {
+    for (const look of LOOKS) {
+      expect(
+        resolveTask("vary", { look: look.id, references: 1 }, fal),
+        look.id
+      ).toMatchObject({ chosenBy: "look", model: look.model, ok: true });
+    }
   });
 });

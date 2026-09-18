@@ -11,7 +11,7 @@ import {
 } from "../src/index";
 import { GENERATION_MODELS } from "../src/models";
 
-const LIVED_IN_CLAUSE =
+const INTERIOR_CLAUSE =
   "Interior photograph shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, slightly imperfect and lived-in rather than showroom-perfect, photographic realism. No text, no logos, no people";
 const OVERCAST_CLAUSE =
   "overcast afternoon with rain on a tall window, soft even grey light";
@@ -24,7 +24,7 @@ function capitalise(text: string): string {
 /** A flat look paired with a mood, which the SDK must refuse. */
 function flatWithMood() {
   return enrichPrompt({
-    creative: { look: "plate", mood: "lamplit" },
+    creative: { look: "surface", mood: "lamplit" },
     prompt: "oak veneer",
   });
 }
@@ -49,7 +49,7 @@ describe(enrichPrompt, () => {
     const result = enrichPrompt({
       creative: {
         mood: "overcast",
-        look: "lived-in",
+        look: "interior",
       },
       prompt: "a green kitchen",
     });
@@ -57,13 +57,13 @@ describe(enrichPrompt, () => {
     expect(result).toStrictEqual({
       basePrompt: "a green kitchen",
       creative: {
-        clauses: [LIVED_IN_CLAUSE, OVERCAST_CLAUSE],
+        clauses: [INTERIOR_CLAUSE, OVERCAST_CLAUSE],
         selected: {
-          look: "lived-in",
+          look: "interior",
           mood: "overcast",
         },
       },
-      prompt: `A green kitchen. ${LIVED_IN_CLAUSE}. Overcast afternoon with rain on a tall window, soft even grey light.`,
+      prompt: `A green kitchen. ${INTERIOR_CLAUSE}. Overcast afternoon with rain on a tall window, soft even grey light.`,
     });
   });
 
@@ -109,7 +109,7 @@ describe(enrichPrompt, () => {
         value: "lamplit",
       })
     );
-    expect(flatWithMood).toThrow(/plate look is flat/);
+    expect(flatWithMood).toThrow(/surface look is flat/);
     expect(() =>
       validateCreativeDirection({ look: "object", mood: "window" })
     ).toThrow(expect.objectContaining({ field: "mood" }));
@@ -145,9 +145,9 @@ describe(enrichPrompt, () => {
 });
 
 describe("house looks", () => {
-  it("ships twelve looks and six moods with unique ids", () => {
+  it("ships nine looks and six moods with unique ids", () => {
     expect(CREATIVE_FIELDS).toStrictEqual(["look", "mood"]);
-    expect(CREATIVE_TAXONOMY.look).toHaveLength(12);
+    expect(CREATIVE_TAXONOMY.look).toHaveLength(9);
     expect(CREATIVE_TAXONOMY.mood).toHaveLength(6);
     for (const field of CREATIVE_FIELDS) {
       const ids = CREATIVE_TAXONOMY[field].map((option) => option.id);
@@ -170,10 +170,10 @@ describe("house looks", () => {
     }
   });
 
-  it("marks exactly the five flat looks as refusing a mood", () => {
+  it("marks exactly the four flat looks as refusing a mood", () => {
     expect(
       LOOKS.filter((look) => !look.acceptsMood).map((look) => look.id)
-    ).toStrictEqual(["plate", "engraved", "ephemera", "canvas", "object"]);
+    ).toStrictEqual(["object", "surface", "abstract", "illustration"]);
   });
 
   it("only negates text, logos and people in look and mood texts", () => {
@@ -190,23 +190,23 @@ describe("house looks", () => {
     }
   });
 
-  it("marks only the drawing look as experimental", () => {
+  it("marks only the illustration look as experimental", () => {
     expect(
       LOOKS.filter((look) => look.experimental === true).map((look) => look.id)
-    ).toStrictEqual(["drawing"]);
+    ).toStrictEqual(["illustration"]);
   });
 
   it("defaults editorial and object to flux2-pro", () => {
     expect(getLook("editorial")?.model).toBe("flux2-pro");
     expect(getLook("object")?.model).toBe("flux2-pro");
-    expect(getLook("drawing")?.model).toBe("gpt2");
-    expect(getLook("engraved")?.model).toBe("gpt2");
+    expect(getLook("illustration")?.model).toBe("gpt2");
+    expect(getLook("architectural")?.model).toBe("banana");
   });
 
   it("looks up a look by id", () => {
-    expect(getLook("ephemera")).toMatchObject({
-      aspect: "2:3",
-      model: "ideogram4",
+    expect(getLook("abstract")).toMatchObject({
+      aspect: "3:2",
+      model: "banana",
     });
     expect(getLook("not-a-look")).toBeUndefined();
   });
