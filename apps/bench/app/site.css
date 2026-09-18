@@ -136,11 +136,6 @@
   }
 }
 
-/* A chapter opens with 96px of air above it at desktop, less on a phone. */
-.site-chapter {
-  padding-top: clamp(4rem, 6.7vw, 6rem);
-}
-
 /* Every image on the page sits in a fixed-ratio box and fills it, so a slow
    connection reflows nothing. */
 .site-plate {
@@ -428,11 +423,23 @@
     width: 100%;
   }
 
+  /* The band stacks, so the field is a column rather than the right-hand
+     half. `flex: 1` sizes the main axis, which is now the block direction,
+     leaving the field to shrink-wrap its widest picture and run off the
+     screen. On a phone the boards keep both gutters, so it takes the column. */
+  .site-field {
+    width: 100%;
+  }
+
   .site-rail-usage {
     white-space: pre-wrap;
   }
 
   .site-band-chapter {
+    /* Stacked, the cross axis is the width. `baseline` leaves each row
+       sized to its content, so the standfirst sets itself to its own
+       measure and runs off a phone; stretch gives it the column. */
+    align-items: stretch;
     flex-direction: column;
     gap: 16px;
     padding: 64px 20px 32px;
@@ -460,10 +467,18 @@
   background: none;
 }
 
+/* A square crop at a size the caller names. The size is a custom property
+   rather than an inline width so the box can still give way on a phone.
+   A definite `width` with a cap rather than `min(…, 100%)`: a detail pane
+   holds nothing but an absolutely placed file, so a percentage would resolve
+   against the very column the box is there to set. */
 .site-cover {
+  aspect-ratio: 1 / 1;
   flex-shrink: 0;
+  max-width: 100%;
   overflow: clip;
   position: relative;
+  width: var(--cover);
 }
 
 .site-cover img {
@@ -492,6 +507,12 @@
   display: flex;
   gap: 22px;
   padding-top: 22px;
+}
+
+/* The counter is one token — "01 / 09" — and must not break across lines
+   when the row is narrow. */
+.site-carousel-controls p {
+  white-space: nowrap;
 }
 
 .site-progress {
@@ -534,8 +555,7 @@
 
 .site-takes-source {
   flex-shrink: 0;
-  padding-top: 88px;
-  width: 212px;
+  width: 318px;
 }
 
 /* Source-and-takes stacks the source row over full-width controls, so the
@@ -558,22 +578,18 @@
 }
 
 .site-pair {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
   gap: 48px;
 }
 
-.site-pair-source {
-  flex-shrink: 0;
-  width: min(268px, 32%);
-}
-
-.site-pair-source-plain {
-  padding-top: 86px;
-}
-
+/* Both halves take the same measure. The pairs carry very different aspects
+   (reframe puts a 16:9 source beside a square result), and matching widths is
+   what makes the change read as the change the command actually made rather
+   than as one picture being bigger than the other. */
+.site-pair-source,
 .site-pair-result {
-  flex: 1;
+  flex: 1 1 0;
   min-width: 0;
 }
 
@@ -583,7 +599,7 @@
 }
 
 .site-repeat {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
   gap: 40px;
   overflow: clip;
@@ -599,40 +615,52 @@
 
 /* The layers band: the flattened picture beside its planes, fanned with
    heavy overlaps and a small downhill drift so the transparent stack reads
-   as depth. DOM order is back-to-front, so no z-index is needed. */
+   as depth. DOM order is back-to-front, so no z-index is needed. The column
+   is centred against the flat and given a fixed measure, so the fan stays
+   inside the page rather than being cut through a plane by the bleed. */
 .site-stack {
-  align-items: flex-start;
+  align-items: center;
   display: flex;
   gap: 24px;
 }
 
 .site-stack-flat {
-  flex: 1.25;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .site-stack-layers {
-  flex: 0.85;
+  flex: 0 0 420px;
   min-width: 0;
 }
 
+/* Each plane carries the holding colour, so a transparent file reads as a
+   sheet rather than as a hole in the fan, and a hairline so two overlapping
+   planes do not merge into one slab. The width is fixed, because a drift set
+   on an auto-width block resizes it instead of moving it. */
+.site-stack-layer {
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--rule);
+  width: 300px;
+}
+
 .site-stack-layer + .site-stack-layer {
-  margin-top: -68%;
+  margin-top: -150px;
 }
 
 .site-stack-layers > :nth-child(2) {
-  margin-left: 5%;
+  margin-left: 60px;
 }
 
 .site-stack-layers > :nth-child(3) {
-  margin-left: 10%;
+  margin-left: 120px;
 }
 
 .site-stack-mount {
   background: var(--surface);
   flex-shrink: 0;
   padding: 12px;
-  width: 296px;
+  width: 100%;
 }
 
 .site-lifted {
@@ -681,8 +709,10 @@
   gap: 48px;
 }
 
+/* The readout takes its own measure and no more, so the plate sits beside
+   it rather than a column away. */
 .site-specimen-lines {
-  flex: 1;
+  flex: 0 1 62ch;
   min-width: 0;
 }
 
@@ -734,6 +764,16 @@
 .site-studio-row code {
   flex-shrink: 0;
   min-width: 14ch;
+}
+
+/* The ledger is type, not a photograph: the band's field bleeds to the right
+   edge of the screen, which would run the cost column off it and leave the
+   eye tracking a prompt across half a screen to reach its price. It keeps a
+   measure instead. The phone band has both gutters already. */
+@media (width >= 62rem) {
+  .site-ledger {
+    max-width: 52rem;
+  }
 }
 
 .site-ledger-head,
@@ -858,8 +898,7 @@
   }
 
   .site-takes-source {
-    padding-top: 0;
-    width: 212px;
+    width: 100%;
   }
 
   .site-pair,
@@ -873,9 +912,7 @@
     gap: 20px;
   }
 
-  .site-pair-source,
-  .site-pair-source-plain {
-    padding-top: 0;
+  .site-pair-source {
     width: 100%;
   }
 
@@ -885,6 +922,22 @@
 
   .site-stack-layers {
     width: 100%;
+  }
+
+  .site-stack-layer {
+    width: 72%;
+  }
+
+  .site-stack-layer + .site-stack-layer {
+    margin-top: -32%;
+  }
+
+  .site-stack-layers > :nth-child(2) {
+    margin-left: 14%;
+  }
+
+  .site-stack-layers > :nth-child(3) {
+    margin-left: 28%;
   }
 
   .site-ask-exchange {

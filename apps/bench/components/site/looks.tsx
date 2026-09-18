@@ -22,14 +22,12 @@ export function Looks() {
   const total = LOOKS.length;
 
   return (
-    <section className="site-chapter">
-      <div className="site-gutter">
-        <ChapterHead
-          body="Add one to any prompt with --look. A look sets the medium, the finish and the framing."
-          id="looks"
-          title="Looks"
-        />
-      </div>
+    <section>
+      <ChapterHead
+        body="Add one to any prompt with --look. A look sets the medium, the finish and the framing."
+        id="looks"
+        title="Looks"
+      />
 
       <div className="site-strip site-carousel pt-20" data-carousel="">
         <BlossomCarousel

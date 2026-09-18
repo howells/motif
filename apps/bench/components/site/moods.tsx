@@ -22,7 +22,7 @@ type MoodId = (typeof MOODS)[number]["id"];
  * glance apart — and the row carries the catalogue's own chrome underneath.
  * The command underneath updates with the choice. */
 export function Moods() {
-  const [id, setId] = useState<MoodId>(MOODS[4].id);
+  const [id, setId] = useState<MoodId>(MOODS[0].id);
   const handle = useRef<BlossomCarouselHandle | null>(null);
   const { index, onScroll: onProgress, ratio } = useCarousel();
   const trackId = "carousel-moods";
@@ -65,17 +65,15 @@ export function Moods() {
   }
 
   return (
-    <section className="site-chapter">
-      <div className="site-gutter">
-        <ChapterHead
-          body="One kitchen, one prompt, one seed. Only the light changes."
-          id="moods"
-          title="Moods"
-        />
-
+    <section>
+      <ChapterHead
+        body="One kitchen, one prompt, one seed. Only the light changes."
+        id="moods"
+        title="Moods"
+      >
         <div
           aria-label="Moods"
-          className="flex gap-8 overflow-x-auto pt-10 md:gap-10"
+          className="flex gap-8 overflow-x-auto pt-8 md:gap-10"
           role="tablist"
         >
           {MOODS.map((item, position) => (
@@ -93,7 +91,7 @@ export function Moods() {
             </button>
           ))}
         </div>
-      </div>
+      </ChapterHead>
 
       <div className="site-strip site-carousel pt-10" data-carousel="">
         <BlossomCarousel

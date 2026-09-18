@@ -146,14 +146,14 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
   },
 ];
 
-/** Looks that have an accepted plate on disk, in `apps/cli/AGENTS.md` table
- * order. Bodies are that table's "What it's for" sentences verbatim. The
- * lookup throws at build time if an image ever goes missing. `architectural`,
- * `abstract` and `illustration` ship in the CLI but are omitted here until
- * Daniel supplies plates — generated candidates were rejected. */
+/** The nine house looks, in the SDK's own order: the five photographic ones
+ * first, then the four flat ones. Bodies are the SDK's `description` fields
+ * verbatim, so the page cannot describe a look differently from the CLI. The
+ * lookup throws at build time if an image ever goes missing, and matches on
+ * the id rather than the extension because `illustration` ships as a PNG. */
 function lookPlate(id: string) {
-  const found = LOOK_PLATES.find(
-    (item) => item.src === `/demo/looks/${id}.jpg`
+  const found = LOOK_PLATES.find((item) =>
+    item.src.startsWith(`/demo/looks/${id}.`)
   );
   if (found === undefined) {
     throw new Error(`missing look plate ${id}`);
@@ -172,14 +172,49 @@ function lookSlide(id: string, body: string, width: number) {
 }
 
 export const LOOKS = [
-  lookSlide("editorial", "Quiet, materially rich editorial photography", 560),
-  lookSlide("still-life", "Objects and products on a plaster ground", 560),
-  lookSlide("interior", "Bright, collected rooms that feel lived in", 740),
-  lookSlide("portrait", "Natural, unposed documentary portraits", 560),
-  lookSlide("object", "One object in one colour on a clean ground", 560),
+  lookSlide(
+    "editorial",
+    "Quiet, materially rich editorial photography for brand and mood imagery.",
+    560
+  ),
+  lookSlide(
+    "still-life",
+    "Objects and products on a plaster ground, for product and editorial still life.",
+    560
+  ),
+  lookSlide(
+    "interior",
+    "Bright, collected rooms that feel lived in, for interior scenes.",
+    740
+  ),
+  lookSlide(
+    "architectural",
+    "Buildings and their settings from outside, for architecture, property and place.",
+    450
+  ),
+  lookSlide(
+    "portrait",
+    "Natural, unposed documentary portraits of people. Pair with a mood for the light.",
+    560
+  ),
+  lookSlide(
+    "object",
+    "One object in one colour on a clean ground, for icons and simple product shots.",
+    560
+  ),
   lookSlide(
     "surface",
-    "Flat, edge-to-edge surface photographs for textures and swatches",
+    "Flat, edge-to-edge surface photographs, for textures, backgrounds and material swatches.",
+    560
+  ),
+  lookSlide(
+    "abstract",
+    "Painted abstraction edge to edge, for wall art, heroes and calm backgrounds.",
+    834
+  ),
+  lookSlide(
+    "illustration",
+    "Line and gouache illustration of any subject, for drawn editorial imagery.",
     560
   ),
 ];
@@ -269,7 +304,7 @@ export const COMPARE = {
   result: {
     alt: "A person in a plaster-walled room wearing the rust chore jacket",
     height: 2048,
-    src: "/demo/try-on/dressed.png",
+    src: "/demo/try-on/dressed.jpg",
     width: 2048,
   },
   source: {

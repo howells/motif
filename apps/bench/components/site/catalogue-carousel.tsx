@@ -28,7 +28,7 @@ function SlideCaption({
   if (caption === undefined) {
     return null;
   }
-  return <Note mono>{caption}</Note>;
+  return <Note>{caption}</Note>;
 }
 
 /** The scrolling row of stills: the region, its slides, keyboard arrows.
@@ -170,7 +170,7 @@ export function SourceAndTakes({
     <div className="site-takes-stack" data-carousel="">
       <div className="site-takes">
         <div className="site-takes-source">
-          <Cover picture={source} size={212} sizes="212px" />
+          <Cover picture={source} size={318} sizes="318px" />
           <Note>{source.caption ?? "the source"}</Note>
         </div>
         <CarouselTrack

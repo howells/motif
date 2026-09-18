@@ -1,4 +1,5 @@
 import Image from "next/image";
+import type { CSSProperties } from "react";
 
 import type { Plate } from "@/lib/site/catalogue";
 
@@ -32,8 +33,11 @@ export function Cover({
   readonly size: number;
   readonly sizes: string;
 }) {
+  const style: CSSProperties & { "--cover": string } = {
+    "--cover": `${String(size)}px`,
+  };
   return (
-    <div className="site-cover" style={{ height: size, width: size }}>
+    <div className="site-cover" style={style}>
       <Image alt={picture.alt} fill sizes={sizes} src={picture.src} />
     </div>
   );

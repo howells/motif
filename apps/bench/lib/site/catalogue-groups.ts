@@ -37,13 +37,13 @@ const MAKE: CatalogueGroup = {
           1000
         ),
         plate(
-          "/demo/vary/vary-1.png",
+          "/demo/vary/vary-1.jpg",
           "The same vase, a further variation",
           2048,
           2048
         ),
         plate(
-          "/demo/vary/vary-2.png",
+          "/demo/vary/vary-2.jpg",
           "The same vase, a fourth variation",
           2048,
           2048
@@ -68,9 +68,9 @@ const MAKE: CatalogueGroup = {
       id: "sheet",
       result: plate(
         "/demo/sheet.jpg",
-        "Five images laid out in a grid with their filenames printed under each one",
+        "Nine look plates in a grid, each captioned with its filename or its cost",
         1632,
-        1192
+        1776
       ),
       summary: "A captioned contact sheet.",
       treatment: "plate",
@@ -98,8 +98,7 @@ const MAKE: CatalogueGroup = {
         "/demo/tile/wall.jpg",
         "A Cotswold dry stone wall with lichen, the tile that repeats",
         1024,
-        1024,
-        "the tile"
+        1024
       ),
       summary: "A seamlessly tiling texture.",
       treatment: "repeat",
@@ -194,6 +193,7 @@ const EDIT: CatalogueGroup = {
       verb: "reframe",
     },
     {
+      focus: { x: 0.5, y: 0.5 },
       id: "upscale",
       result: plate(
         "/demo/upscale/4x.jpg",
@@ -207,38 +207,43 @@ const EDIT: CatalogueGroup = {
         "A small, soft 360 pixel photograph of a fluted cream vessel on a plinth",
         360,
         360,
-        "360 × 360"
+        "360 × 360, shown at four times"
       ),
       summary: "Make it larger.",
-      treatment: "matched",
+      treatment: "detail",
       usage: "motif upscale [image-or-video]",
       verb: "upscale",
+      zoom: 1440,
     },
     {
+      focus: { x: 0.55, y: 0.45 },
       id: "restore",
+      mono: true,
       result: plate(
-        "/demo/restore/sharpened.png",
-        "The same portrait with detail recovered: wrinkles, beard and knit crisp, compression gone, tone untouched",
-        2048,
-        2048,
-        "restored"
+        "/demo/restore/restored.jpg",
+        "The same jug, the throw-lines, speckle and plaster texture back",
+        1024,
+        1024,
+        "motif restore damaged.jpg --softness"
       ),
       source: plate(
         "/demo/restore/damaged.jpg",
-        "A portrait softened, blocked and dulled: blur, JPEG artefacts and flat tone",
-        2048,
-        2048,
-        "damaged"
+        "A celadon jug and a linen cloth on a plaster shelf, softened until the crackle and the plaster texture are gone",
+        1024,
+        1024,
+        "softened"
       ),
       summary: "Fix noise, blur, damage, colour.",
-      treatment: "matched",
+      treatment: "detail",
       usage: "motif restore [image]",
       verb: "restore",
+      zoom: 1024,
     },
     {
       id: "relight",
+      mono: true,
       result: plate(
-        "/demo/relight/even.png",
+        "/demo/relight/even.jpg",
         "The same kitchen with the daylight evened out: hotspots tamed, shadows lifted, nothing moved",
         1024,
         1024,
@@ -252,7 +257,7 @@ const EDIT: CatalogueGroup = {
         "the source kitchen"
       ),
       summary: "Relight to a described light or a mood.",
-      treatment: "matched",
+      treatment: "held",
       usage: 'motif relight [image] "light"',
       verb: "relight",
     },
@@ -288,7 +293,7 @@ const EDIT: CatalogueGroup = {
           "--garment garment.jpg"
         ),
         plate(
-          "/demo/try-on/dressed.png",
+          "/demo/try-on/dressed.jpg",
           "The same woman in the same room, now wearing the rust chore jacket",
           2048,
           2048,
@@ -326,8 +331,7 @@ const EDIT: CatalogueGroup = {
         "/demo/sources/vessel.jpg",
         "A ribbed stoneware pot on a white plinth against a plaster wall",
         1400,
-        1400,
-        "the flattened picture"
+        1400
       ),
       summary: "Split into transparent layers.",
       treatment: "stack",
@@ -363,7 +367,6 @@ const UNDERSTAND: CatalogueGroup = {
   entries: [
     {
       id: "segment",
-      plain: true,
       result: plate(
         "/demo/segment/bowl.png",
         "The white bowl on its own, masked out of the shelf at the edge it actually has",
@@ -413,8 +416,8 @@ const UNDERSTAND: CatalogueGroup = {
         plate(
           "/demo/pose/figure.jpg",
           "A pose map of a standing figure, a different subject from the room",
-          933,
-          1400,
+          1024,
+          1024,
           "pose — figure"
         ),
       ],

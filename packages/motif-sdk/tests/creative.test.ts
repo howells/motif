@@ -12,7 +12,7 @@ import {
 import { GENERATION_MODELS } from "../src/models";
 
 const INTERIOR_CLAUSE =
-  "Interior photograph shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, slightly imperfect and lived-in rather than showroom-perfect, photographic realism. No text, no logos, no people";
+  "Interior photograph in the register of House & Garden and Kinfolk, shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, lived-in rather than showroom-perfect, soft natural daylight, shot on film with fine grain. No text, no logos, no people";
 const OVERCAST_CLAUSE =
   "overcast afternoon with rain on a tall window, soft even grey light";
 

@@ -1,4 +1,5 @@
 import { Field } from "@/components/site/catalogue-fields";
+import { ChapterHead } from "@/components/site/chapter";
 import type { CatalogueEntry, CatalogueGroup } from "@/lib/site/catalogue";
 import { CATALOGUE } from "@/lib/site/catalogue";
 
@@ -32,11 +33,7 @@ function Group({ group }: { readonly group: CatalogueGroup }) {
   }
   return (
     <div>
-      <div className="site-band-chapter">
-        <h2 className="type-title site-chapter-name">{group.name}</h2>
-        <p className="type-body site-chapter-standfirst">{group.body}</p>
-        <p className="type-small site-chapter-count font-mono">{group.count}</p>
-      </div>
+      <ChapterHead body={group.body} count={group.count} title={group.name} />
       {bands}
     </div>
   );

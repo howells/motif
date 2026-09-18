@@ -20,13 +20,13 @@ export const STILL_LIFE = plate(
 );
 
 export const LOOKS: readonly Plate[] = [
-  STILL_LIFE,
   plate(
-    "/demo/looks/object.jpg",
-    "One object in one colour on a clean ground",
-    1024,
-    1024
+    "/demo/looks/editorial.jpg",
+    "Pigment jars and folded cloth on a scrubbed wooden table in daylight",
+    1800,
+    1800
   ),
+  STILL_LIFE,
   plate(
     "/demo/looks/interior.jpg",
     "A bright collected room that feels lived in",
@@ -34,10 +34,22 @@ export const LOOKS: readonly Plate[] = [
     768
   ),
   plate(
-    "/demo/looks/editorial.jpg",
-    "Pigment jars and folded cloth on a scrubbed wooden table in daylight",
-    1800,
-    1800
+    "/demo/looks/architectural.jpg",
+    "A restored country house in pale lime render with sash windows, seen across a clipped lawn between pleached limes and yew",
+    1650,
+    2048
+  ),
+  plate(
+    "/demo/looks/portrait.jpg",
+    "A woman in a plain linen shirt, hair tied back, against a plaster wall in soft evening light",
+    2048,
+    2048
+  ),
+  plate(
+    "/demo/looks/object.jpg",
+    "One object in one colour on a clean ground",
+    1024,
+    1024
   ),
   plate(
     "/demo/looks/surface.jpg",
@@ -46,10 +58,16 @@ export const LOOKS: readonly Plate[] = [
     1024
   ),
   plate(
-    "/demo/looks/portrait.jpg",
-    "A natural, unposed documentary portrait",
-    1400,
-    1400
+    "/demo/looks/abstract.jpg",
+    "Two long gestures in oatmeal and putty over a pale vertical band on coarse linen, one charcoal mark low right",
+    2048,
+    1374
+  ),
+  plate(
+    "/demo/looks/illustration.jpg",
+    "A stoneware jug with an olive branch and two shallow bowls on a table by a tall window, drawn in line and gouache",
+    1024,
+    1024
   ),
 ];
 

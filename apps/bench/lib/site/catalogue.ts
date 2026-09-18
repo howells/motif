@@ -29,10 +29,14 @@ export interface LedgerRow {
  * as a relight. Series is a carousel of its six images, not a `series show`
  * specimen: the specimen text beside the pictures added nothing the rail
  * doesn't already say. Studio is a specimen of the real Studio home menu,
- * set as type rather than screenshotted. */
+ * set as type rather than screenshotted. Upscale and restore are details
+ * rather than matched pairs: two squares at the same size hide the very
+ * difference they are there to show, so both files are drawn at one
+ * magnification and clipped to the same region instead. */
 export type CatalogueTreatment =
   | "ask"
   | "carousel"
+  | "detail"
   | "held"
   | "ledger"
   | "lifted"
@@ -51,6 +55,9 @@ export type CatalogueTreatment =
 export interface CatalogueEntry {
   readonly answer?: string;
   readonly duration?: string;
+  /** Where in both files the detail panes are centred, as fractions of the
+   * file's own width and height. */
+  readonly focus?: { readonly x: number; readonly y: number };
   /** Caps a held frame near native size, for detail crops that would only
    * blur blown up to the field width. */
   readonly frameCap?: number;
@@ -58,6 +65,9 @@ export interface CatalogueEntry {
   readonly id: string;
   readonly legend?: string;
   readonly ledger?: readonly LedgerRow[];
+  /** The result caption is a command rather than a sentence, so it is set in
+   * mono. */
+  readonly mono?: boolean;
   readonly plain?: boolean;
   readonly question?: string;
   readonly result?: Plate;
@@ -68,6 +78,10 @@ export interface CatalogueEntry {
   readonly usage: string;
   readonly verb: string;
   readonly video?: string;
+  /** How wide each file is drawn inside a detail pane, in CSS pixels. Both
+   * panes use the same number, which is what makes the magnification the
+   * same and the difference the command's. */
+  readonly zoom?: number;
 }
 
 export interface CatalogueGroup {

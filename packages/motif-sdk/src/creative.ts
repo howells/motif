@@ -120,7 +120,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: true,
       aspect: "1:1",
       clause:
-        "Editorial still life on a warm bone plaster ground, chalky unglazed surfaces, a long soft shadow, generous empty space, shot on film with fine grain. No text, no logos, no people",
+        "Editorial still life in the register of Aesop and Kinfolk, on a warm bone plaster ground, chalky unglazed surfaces in muted mineral colour, a long soft shadow, generous empty space, shot on film with fine grain, restrained and materially rich. No text, no logos, no people",
       description:
         "Objects and products on a plaster ground, for product and editorial still life.",
       id: "still-life",
@@ -131,7 +131,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: true,
       aspect: "3:2",
       clause:
-        "Interior photograph shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, slightly imperfect and lived-in rather than showroom-perfect, photographic realism. No text, no logos, no people",
+        "Interior photograph in the register of House & Garden and Kinfolk, shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, lived-in rather than showroom-perfect, soft natural daylight, shot on film with fine grain. No text, no logos, no people",
       description:
         "Bright, collected rooms that feel lived in, for interior scenes.",
       id: "interior",
@@ -142,7 +142,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: true,
       aspect: "4:5",
       clause:
-        "Architectural photograph of the building from outside at editorial distance, its setting included, honest materials meeting precise detailing, plausible daylight and long shadow, generous negative space, shot on film with fine grain. No text, no logos, no people",
+        "Architectural photograph in the register of House & Garden and Kinfolk, a considered house seen from outside at editorial distance with its garden and setting, pale render, stone or timber meeting precise detailing, clipped planting, soft warm daylight and long shadow, generous negative space, immaculate and calm, shot on film with fine grain. No text, no logos, no people",
       description:
         "Buildings and their settings from outside, for architecture, property and place.",
       id: "architectural",
@@ -153,7 +153,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: true,
       aspect: "1:1",
       clause:
-        "Editorial documentary portrait, muted warm palette, waist-up, unposed, plain clothing with no logos. No text",
+        "Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text",
       description:
         "Natural, unposed documentary portraits of people. Pair with a mood for the light.",
       id: "portrait",
@@ -164,7 +164,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: false,
       aspect: "1:1",
       clause:
-        "A single matte object centred with generous empty space, soft diffused studio light, minimal and quiet, one committed colour. No text, no logos, no people",
+        "A single matte object centred with generous empty space, soft diffused studio light, minimal and quiet in the register of Aesop, one committed muted mineral colour on a plain ground. No text, no logos, no people",
       description:
         "One object in one colour on a clean ground, for icons and simple product shots.",
       id: "object",
@@ -175,7 +175,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: false,
       aspect: "1:1",
       clause:
-        "Straight-on orthographic photograph of the surface filling the entire frame edge to edge, even shadowless studio light, crisp macro texture, colour-accurate. No text, no logos",
+        "Straight-on orthographic photograph of the surface filling the entire frame edge to edge, even shadowless studio light, crisp macro texture, colour-accurate and quietly material. No text, no logos",
       description:
         "Flat, edge-to-edge surface photographs, for textures, backgrounds and material swatches.",
       id: "surface",
@@ -197,7 +197,7 @@ export const CREATIVE_TAXONOMY = {
       acceptsMood: false,
       aspect: "1:1",
       clause:
-        "Stylised editorial illustration, colour laid as flat planes, fine hand-drawn line with a gentle gouache wash, clearly a drawing rather than a photograph. No text, no logos",
+        "Stylised editorial illustration in the register of Kinfolk, colour laid as flat planes in a warm muted palette of ivory, putty, sage and charcoal, fine hand-drawn line with a gentle gouache wash, generous empty space, clearly a drawing rather than a photograph. No text, no logos",
       description:
         "Line and gouache illustration of any subject, for drawn editorial imagery.",
       experimental: true,

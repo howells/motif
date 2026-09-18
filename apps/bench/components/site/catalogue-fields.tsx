@@ -1,3 +1,6 @@
+import Image from "next/image";
+import type { CSSProperties, ReactNode } from "react";
+
 import {
   FieldCarousel,
   SourceAndTakes,
@@ -6,9 +9,18 @@ import { MotionClip } from "@/components/site/catalogue-clip";
 import { HeldCompare } from "@/components/site/catalogue-compare";
 import { Cover, Note, Still } from "@/components/site/catalogue-still";
 import { StudioField } from "@/components/site/catalogue-studio";
-import type { CatalogueEntry, LedgerRow, Plate } from "@/lib/site/catalogue";
+import type {
+  CatalogueEntry,
+  CatalogueTreatment,
+  LedgerRow,
+  Plate,
+} from "@/lib/site/catalogue";
 
 const FIELD_SIZES = "(max-width: 61.999rem) 92vw, 1048px";
+/** Both detail panes are the same square, whatever the files behind them. */
+const DETAIL_PANE: CSSProperties & { "--cover": string } = {
+  "--cover": "480px",
+};
 const HALF_SIZES = "(max-width: 61.999rem) 46vw, 480px";
 
 function Caption({
@@ -43,13 +55,7 @@ function PairField({
 }) {
   return (
     <div className="site-pair">
-      <div
-        className={
-          plain === true
-            ? "site-pair-source site-pair-source-plain"
-            : "site-pair-source"
-        }
-      >
+      <div className="site-pair-source">
         <Still picture={source} sizes={HALF_SIZES} />
         <Caption text={source.caption} />
       </div>
@@ -58,6 +64,70 @@ function PairField({
         <Caption text={result.caption} />
         <Caption mono text={legend} />
       </div>
+    </div>
+  );
+}
+
+/** Two files, the same region of each at the same magnification, so the
+ * difference between them is the difference the command made. Each pane
+ * renders its file at `zoom` CSS pixels wide, clipped to a square, with the
+ * `focus` point at the pane's centre. Two squares at the same size would
+ * show a small file and a large one as the same picture. */
+function DetailField({
+  focus,
+  mono,
+  result,
+  source,
+  zoom,
+}: {
+  readonly focus: { readonly x: number; readonly y: number };
+  readonly mono?: boolean;
+  readonly result: Plate;
+  readonly source: Plate;
+  readonly zoom: number;
+}) {
+  return (
+    <div className="site-matched">
+      <DetailPane focus={focus} ink={false} picture={source} zoom={zoom} />
+      <DetailPane focus={focus} ink mono={mono} picture={result} zoom={zoom} />
+    </div>
+  );
+}
+
+function DetailPane({
+  focus,
+  ink,
+  mono,
+  picture,
+  zoom,
+}: {
+  readonly focus: { readonly x: number; readonly y: number };
+  readonly ink: boolean;
+  readonly mono?: boolean;
+  readonly picture: Plate;
+  readonly zoom: number;
+}) {
+  const height = (zoom * picture.height) / picture.width;
+  return (
+    <div>
+      <div className="site-cover" style={DETAIL_PANE}>
+        <Image
+          alt={picture.alt}
+          height={picture.height}
+          sizes={`${String(zoom)}px`}
+          src={picture.src}
+          style={{
+            height,
+            left: `calc(50% - ${String(focus.x * zoom)}px)`,
+            maxWidth: "none",
+            position: "absolute",
+            top: `calc(50% - ${String(focus.y * height)}px)`,
+            width: zoom,
+          }}
+          width={picture.width}
+        />
+      </div>
+      <Caption ink={ink} mono={mono} text={picture.caption} />
     </div>
   );
 }
@@ -73,11 +143,11 @@ function MatchedPair({
     <div className="site-matched">
       <div>
         <Cover picture={source} size={480} sizes="480px" />
-        <Caption mono text={source.caption} />
+        <Caption text={source.caption} />
       </div>
       <div>
         <Cover picture={result} size={480} sizes="480px" />
-        <Caption ink mono text={result.caption} />
+        <Caption ink text={result.caption} />
       </div>
     </div>
   );
@@ -88,7 +158,7 @@ function RepeatField({ result }: { readonly result: Plate }) {
     <div className="site-repeat">
       <div>
         <Cover picture={result} size={240} sizes="240px" />
-        <Note>{result.caption ?? "the tile"}</Note>
+        <Caption text={result.caption} />
       </div>
       <div
         aria-hidden
@@ -105,7 +175,7 @@ function SetField({ frames }: { readonly frames: readonly Plate[] }) {
     items.push(
       <div key={frame.src}>
         <Cover picture={frame} size={318} sizes="318px" />
-        <Caption mono text={frame.caption} />
+        <Caption text={frame.caption} />
       </div>
     );
   }
@@ -134,7 +204,7 @@ function StackField({
     <div className="site-stack">
       <div className="site-stack-flat">
         <Still picture={source} sizes={FIELD_SIZES} />
-        <Note>{source.caption ?? "the flattened picture"}</Note>
+        <Caption text={source.caption} />
       </div>
       <div className="site-stack-layers">{layers}</div>
     </div>
@@ -281,71 +351,59 @@ function SinglePlate({ result }: { readonly result: Plate }) {
   );
 }
 
-function renderField(entry: CatalogueEntry) {
-  switch (entry.treatment) {
-    case "carousel": {
-      return (
-        <FieldCarousel
-          captioned={entry.id === "map" || entry.id === "material"}
-          frames={entry.frames ?? []}
-          id={`carousel-${entry.id}`}
-        />
-      );
-    }
-    case "takes": {
-      return <TakesField entry={entry} />;
-    }
-    case "set": {
-      return <SetField frames={entry.frames ?? []} />;
-    }
-    case "plate": {
-      return <PlateField entry={entry} />;
-    }
-    case "motion": {
-      return <MotionField entry={entry} />;
-    }
-    case "repeat": {
-      return <RepeatOf entry={entry} />;
-    }
-    case "pair": {
-      return <PairOf entry={entry} />;
-    }
-    case "held": {
-      return <HeldOf entry={entry} />;
-    }
-    case "matched": {
-      return <MatchedOf entry={entry} />;
-    }
-    case "stack": {
-      return <StackOf entry={entry} />;
-    }
-    case "lifted": {
-      return <LiftedOf entry={entry} />;
-    }
-    case "trio": {
-      return <TrioOf entry={entry} />;
-    }
-    case "ask": {
-      return <AskOf entry={entry} />;
-    }
-    case "specimen": {
-      return (
-        <SpecimenField result={entry.result} specimen={entry.specimen ?? []} />
-      );
-    }
-    case "studio": {
-      return <StudioField />;
-    }
-    case "ledger": {
-      return <LedgerField rows={entry.ledger ?? []} />;
-    }
-    default: {
-      const missed: never = entry.treatment;
-      void missed;
-      return null;
-    }
-  }
+function CarouselOf({ entry }: { readonly entry: CatalogueEntry }) {
+  return (
+    <FieldCarousel
+      captioned={entry.id === "map" || entry.id === "material"}
+      frames={entry.frames ?? []}
+      id={`carousel-${entry.id}`}
+    />
+  );
 }
+
+function SetOf({ entry }: { readonly entry: CatalogueEntry }) {
+  return <SetField frames={entry.frames ?? []} />;
+}
+
+function SpecimenOf({ entry }: { readonly entry: CatalogueEntry }) {
+  return (
+    <SpecimenField result={entry.result} specimen={entry.specimen ?? []} />
+  );
+}
+
+function StudioOf() {
+  return <StudioField />;
+}
+
+function LedgerOf({ entry }: { readonly entry: CatalogueEntry }) {
+  return <LedgerField rows={entry.ledger ?? []} />;
+}
+
+/** One component per treatment, so a new treatment is a new row here rather
+ * than another branch. The record is keyed by the union, so a treatment added
+ * to `CatalogueTreatment` and not to this table fails the typecheck. */
+const FIELDS: Record<
+  CatalogueTreatment,
+  (props: { readonly entry: CatalogueEntry }) => ReactNode
+> = {
+  ask: AskOf,
+  carousel: CarouselOf,
+  detail: DetailOf,
+  held: HeldOf,
+  ledger: LedgerOf,
+  lifted: LiftedOf,
+  matched: MatchedOf,
+  motion: MotionField,
+  pair: PairOf,
+  plate: PlateField,
+  repeat: RepeatOf,
+  set: SetOf,
+  specimen: SpecimenOf,
+  stack: StackOf,
+  studio: StudioOf,
+  takes: TakesField,
+  trio: TrioOf,
+};
 
 function TakesField({ entry }: { readonly entry: CatalogueEntry }) {
   const source = entry.source;
@@ -423,7 +481,14 @@ function HeldOf({ entry }: { readonly entry: CatalogueEntry }) {
   if (source === undefined) {
     return null;
   }
-  return <HeldCompare cap={entry.frameCap} result={result} source={source} />;
+  return (
+    <HeldCompare
+      cap={entry.frameCap}
+      mono={entry.mono}
+      result={result}
+      source={source}
+    />
+  );
 }
 
 function MatchedOf({ entry }: { readonly entry: CatalogueEntry }) {
@@ -436,6 +501,30 @@ function MatchedOf({ entry }: { readonly entry: CatalogueEntry }) {
     return null;
   }
   return <MatchedPair result={result} source={source} />;
+}
+
+function DetailOf({ entry }: { readonly entry: CatalogueEntry }) {
+  const result = entry.result;
+  const source = entry.source;
+  const focus = entry.focus;
+  if (result === undefined) {
+    return null;
+  }
+  if (source === undefined) {
+    return null;
+  }
+  if (focus === undefined) {
+    return null;
+  }
+  return (
+    <DetailField
+      focus={focus}
+      mono={entry.mono}
+      result={result}
+      source={source}
+      zoom={entry.zoom ?? 1024}
+    />
+  );
 }
 
 function StackOf({ entry }: { readonly entry: CatalogueEntry }) {
@@ -465,11 +554,11 @@ function TrioOf({ entry }: { readonly entry: CatalogueEntry }) {
     cells.push(
       <div key={frame.src}>
         <Still picture={frame} sizes="(min-width: 64rem) 300px, 90vw" />
-        {index === frames.length - 1 ? (
-          <Caption ink mono text={frame.caption} />
-        ) : (
-          <Caption mono text={frame.caption} />
-        )}
+        <Caption
+          ink={index === frames.length - 1}
+          mono={frame.caption?.startsWith("--") === true}
+          text={frame.caption}
+        />
       </div>
     );
   }
@@ -493,5 +582,6 @@ function AskOf({ entry }: { readonly entry: CatalogueEntry }) {
 }
 
 export function Field({ entry }: { readonly entry: CatalogueEntry }) {
-  return renderField(entry);
+  const Treatment = FIELDS[entry.treatment];
+  return <Treatment entry={entry} />;
 }

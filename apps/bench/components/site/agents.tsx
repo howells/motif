@@ -6,18 +6,18 @@ import { AGENT_EXAMPLES } from "@/lib/site/content";
  * copied from the terminal rather than written for the page. */
 export function Agents() {
   return (
-    <section className="site-chapter site-gutter">
+    <section>
       <ChapterHead
         body="Every command answers --format json, prices a run with --dry-run and fails with a coded error."
         id="agents"
         title="For agents"
       />
 
-      <div className="grid gap-10 pt-16 md:grid-cols-3 md:gap-6">
+      <div className="site-gutter grid gap-10 pt-16 md:grid-cols-3 md:gap-6">
         {AGENT_EXAMPLES.map((example) => (
           <div className="flex min-w-0 flex-col gap-4" key={example.label}>
             <Label>{example.label}</Label>
-            <div className="flex min-h-0 items-baseline gap-2 md:min-h-10">
+            <div className="flex min-h-0 items-baseline gap-2 md:min-h-12">
               <span
                 aria-hidden="true"
                 className="type-small font-mono select-none"

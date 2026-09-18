@@ -13,10 +13,14 @@ import type { Plate } from "@/lib/site/catalogue";
  * near an asset's native size where blowing it up would only blur it. */
 export function HeldCompare({
   cap,
+  mono,
   result,
   source,
 }: {
   readonly cap?: number;
+  /** The result's caption is the command that made it, so it is set in mono
+   * while the source's stays a sentence. */
+  readonly mono?: boolean;
   readonly result: Plate;
   readonly source: Plate;
 }) {
@@ -93,9 +97,18 @@ export function HeldCompare({
         >
           {source.caption ?? "the source"}
         </p>
-        <p className="type-small" style={{ color: "var(--ink)" }}>
-          {result.caption ?? "the result"}
-        </p>
+        {mono === true ? (
+          <code
+            className="type-small font-mono"
+            style={{ color: "var(--ink)" }}
+          >
+            {result.caption ?? "the result"}
+          </code>
+        ) : (
+          <p className="type-small" style={{ color: "var(--ink)" }}>
+            {result.caption ?? "the result"}
+          </p>
+        )}
       </div>
     </div>
   );
