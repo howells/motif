@@ -304,3 +304,63 @@
   cursor: default;
   opacity: 0.4;
 }
+
+/* ── The catalogue ────────────────────────────────────────────────────
+   A mount rather than a crop. Every other picture on the page fills its box;
+   a catalogue plate is a reproduction of what a command returned, and a crop
+   is a different picture, so these sit whole on the surface tone. Where a
+   command has a before and an after the two share one mount, divided by a
+   rule of paper, which reads as one plate rather than two pictures that
+   happen to be next to each other. */
+.site-mount {
+  /* 2:1, so a pair's two cells are square. That is the ratio that wastes the
+     least mount across the set: a square result fills its cell exactly, and a
+     16:9 one is held by its width either way, so a taller mount would only
+     add band above and below it. */
+  aspect-ratio: 2 / 1;
+  background: var(--ground);
+  display: grid;
+  gap: 1px;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  /* `minmax(0, 1fr)` rather than the implicit `auto`: an auto row is sized by
+     its content, and a 2048px picture inside it would win against the box's
+     own ratio. This makes the row exactly the mount's height and lets the
+     picture letterbox inside it. */
+  grid-auto-rows: minmax(0, 1fr);
+}
+
+/* Two mounts share a row from 62rem up, so above that they hold the ratio
+   exactly and the captions under them line up: a flex item's automatic
+   minimum size is its content's, and a specimen taller than the box would
+   otherwise push one mount out of step with its neighbour. Below 62rem there
+   is one mount per row and nothing to line up with, so a specimen that needs
+   more room takes it rather than being clipped. */
+@media (width >= 62rem) {
+  .site-mount {
+    min-block-size: 0;
+  }
+}
+
+.site-mount-cell {
+  background: var(--surface);
+  /* Grid columns are `1fr`, which floors at the content's own width unless
+     this says otherwise; without it a wide picture pushes its neighbour
+     narrow. */
+  min-block-size: 0;
+  min-inline-size: 0;
+  overflow: clip;
+  position: relative;
+}
+
+/* Taken out of flow, for the same reason `.site-plate img` is: left in flow,
+   a picture whose file is larger than its cell fights the cell for the height
+   and Next warns that one axis has been sized without the other. */
+.site-mount-cell img,
+.site-mount-cell video {
+  block-size: 100%;
+  inline-size: 100%;
+  inset: 0;
+  object-fit: contain;
+  position: absolute;
+}

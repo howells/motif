@@ -1,5 +1,7 @@
 import { TASKS } from "@howells/motif-sdk";
 
+import { CATALOGUE } from "@/lib/site/catalogue";
+
 /** The content of the public page, drawn from the Paper file "Motif".
  *
  * Copy lives here rather than in the components so the page reads as one
@@ -142,107 +144,6 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
     },
   },
 ];
-
-/** The index: every command, in the three groups the page uses throughout. */
-export const COMMAND_GROUPS = [
-  {
-    commands: [
-      { summary: "Make an image from a prompt", verb: "generate" },
-      { summary: "Variations of an image", verb: "vary" },
-      { summary: "A consistent set from a theme", verb: "series run" },
-      { summary: "A captioned contact sheet", verb: "sheet" },
-      { summary: "Turn an image into a video", verb: "animate" },
-      { summary: "A seamlessly tiling texture", verb: "tile" },
-      { summary: "A textured 3D mesh", verb: "mesh" },
-    ],
-    name: "Make",
-  },
-  {
-    commands: [
-      { summary: "Remove something, fill the gap", verb: "erase" },
-      { summary: "Remove the background", verb: "cutout" },
-      { summary: "Extend to a new aspect ratio", verb: "reframe" },
-      { summary: "Make it larger", verb: "upscale" },
-      { summary: "Fix noise, blur, damage or colour", verb: "restore" },
-      { summary: "Relight a photo", verb: "relight" },
-      { summary: "Redraw in a reference's style", verb: "restyle" },
-      { summary: "Dress a person in a garment", verb: "try-on" },
-      { summary: "Split into transparent layers", verb: "layers" },
-      { summary: "Trace to a clean SVG", verb: "vectorize" },
-    ],
-    name: "Edit",
-  },
-  {
-    commands: [
-      { summary: "Mask a named thing", verb: "segment" },
-      { summary: "Caption, count, find or ask", verb: "ask" },
-      { summary: "Depth, edge, normal or pose", verb: "map" },
-      { summary: "PBR maps from a photo", verb: "material" },
-    ],
-    name: "Understand",
-  },
-] as const;
-
-/** Three commands shown working, at the size the result deserves. */
-export const DEMO_ROWS = [
-  {
-    body: "A celadon vase made straight onto a transparent background, with no cut-out step.",
-    command: 'motif "a ceramic vase with a pale celadon glaze" --transparent',
-    id: "generate",
-    label: "motif generate",
-    plates: [
-      {
-        alt: "A pale celadon vase on a transparent background",
-        height: 1024,
-        src: "/demo/vase/transparent.png",
-        width: 1024,
-      },
-    ],
-    title: "Make an image from a prompt",
-  },
-  {
-    body: "Three more takes of the same vase. No prompt needed: the picture is the instruction.",
-    command: "motif vary vase.jpg -n 3",
-    id: "vary",
-    label: "motif vary",
-    plates: [
-      {
-        alt: "A cream ceramic vase on a linen cloth, first variation",
-        height: 2048,
-        src: "/demo/vary/vary-1.png",
-        width: 2048,
-      },
-      {
-        alt: "The same vase, second variation",
-        height: 2048,
-        src: "/demo/vary/vary-2.png",
-        width: 2048,
-      },
-      {
-        alt: "The same vase, third variation",
-        height: 2048,
-        src: "/demo/vary/vary-3.png",
-        width: 2048,
-      },
-    ],
-    title: "Variations of an image",
-  },
-] as const;
-
-/** The tile row is its own shape: one plate beside the same file repeating, so
- * the joins can be inspected rather than described. */
-export const TILE_ROW = {
-  body: "The tile on the left, the same file repeated nine times on the right. The joins do not show.",
-  command: 'motif tile "Cotswold dry stone wall with lichen"',
-  label: "motif tile",
-  plate: {
-    alt: "A Cotswold dry stone wall with lichen, generated as a seamless tile",
-    height: 1024,
-    src: "/demo/tile/wall.jpg",
-    width: 1024,
-  },
-  title: "A seamlessly tiling texture",
-} as const;
 
 export const LOOKS = [
   {
@@ -443,9 +344,15 @@ export interface MatrixRow {
   readonly verb: string;
 }
 
+/** The matrix says what each row does in the catalogue's words, so the two
+ * halves of the page cannot describe the same command differently. The
+ * catalogue writes a summary as a sentence; a table cell does not want the
+ * full stop. */
 const SUMMARIES = new Map(
-  COMMAND_GROUPS.flatMap((group) =>
-    group.commands.map((command) => [command.verb, command.summary] as const)
+  CATALOGUE.flatMap((group) =>
+    group.entries.map(
+      (entry) => [entry.verb, entry.summary.replace(/\.$/u, "")] as const
+    )
   )
 );
 
