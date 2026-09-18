@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 
+import "@blossom-carousel/react/style.css";
 import "./globals.css";
 
 /** Inter as a *variable* font, deliberately: the house theme sets body text

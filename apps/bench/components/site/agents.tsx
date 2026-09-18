@@ -13,16 +13,25 @@ export function Agents() {
         title="For agents"
       />
 
-      <div className="grid gap-6 pt-16 md:grid-cols-3">
+      <div className="grid gap-10 pt-16 md:grid-cols-3 md:gap-6">
         {AGENT_EXAMPLES.map((example) => (
-          <div className="flex min-w-0 flex-col gap-3" key={example.label}>
+          <div className="flex min-w-0 flex-col gap-4" key={example.label}>
             <Label>{example.label}</Label>
-            <code
-              className="type-small font-mono break-words"
-              style={{ color: "var(--ink)" }}
-            >
-              {example.command}
-            </code>
+            <div className="flex min-h-0 items-baseline gap-2 md:min-h-10">
+              <span
+                aria-hidden="true"
+                className="type-small font-mono select-none"
+                style={{ color: "var(--faint)" }}
+              >
+                ›
+              </span>
+              <code
+                className="type-small font-mono break-words"
+                style={{ color: "var(--ink)" }}
+              >
+                {example.command}
+              </code>
+            </div>
             <pre
               className="type-small m-0 p-4 font-mono break-words whitespace-pre-wrap"
               style={{ background: "var(--surface)", color: "var(--muted)" }}

@@ -1,5 +1,5 @@
 /* The public page at `/`, drawn from the Paper file "Motif".
-   https://app.paper.design/file/01M2NF0PQEPFE3X84ZYDG4K4KT/1-0
+   https://app.paper.design/file/01M2NF0PQEPFE3X84ZYDG4K4KT/p-2-0
 
    The bench app at /bench owns the tokens in globals.css: a near-achromatic
    dark built for judging image colour. This page is a different job — an
@@ -55,14 +55,17 @@
    another family.
 
        display   72px   Faculty Glyphic 400 — the wordmark, and only it
-       title     28px   Faculty Glyphic 400 — chapter heads and row titles
-       body      14px   Inter 400
+       title     28px   Faculty Glyphic 400 — chapter heads, and only them
+       body      14px   Inter 400 — command names, standfirsts, sentences
        small     13px   Inter 400, or the same in mono
 
-   A chapter head and a row title share the title size. What separates them is
-   the 96px of air a chapter opens with and the standfirst set against it,
-   which is the principle globals.css already states for the bench app:
-   hierarchy comes from spacing rather than from another step on the ladder.
+   Three levels, three sizes: the wordmark, the chapters, the commands. A
+   chapter head carries a standfirst and a count beside it and twice a band's
+   air above it; a command name is a sentence-case line with its mono usage
+   directly under it. That size step — 28px chapters over 14px commands — is
+   the whole hierarchy, which is the principle globals.css already states
+   for the bench app: levels read from scale and spacing rather than from
+   another step on the ladder.
 
    Quieter than the Paper boards drew them. The boards set every serif heading
    at 120px, which made them the loudest thing on a page whose subject is the
@@ -100,7 +103,7 @@
 .type-body {
   font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.375rem;
+  line-height: 1.4375rem;
 }
 
 /* The workhorse — labels, captions, table cells, controls — and, with
@@ -212,7 +215,7 @@
 
 .site-tab::after {
   background: var(--ink);
-  block-size: 2px;
+  block-size: 1px;
   content: "";
   inset-block-end: 0;
   inset-inline: 0;
@@ -233,11 +236,68 @@
   color: var(--ink);
 }
 
-/* Motion is confined to the two places where something genuinely changes
-   under the pointer: the plate cross-fade and the compare swap. */
+/* Motion is confined to the three places where something genuinely changes:
+   the plate cross-fade, the compare swap, and the hero command crossfade
+   (opacity only, 180ms — the dock's tallest cell holds the height, so a step
+   change never moves anything). */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .site-fade {
     animation: site-fade 320ms ease-out;
+  }
+}
+
+/* The hero command dock: six commands stacked on one grid area, the active
+   cell fading in while the old one fades out. Visibility flips on a delay so
+   a leaving cell stops exposing itself only after it has faded. */
+.site-step-commands-rail {
+  display: none;
+}
+
+.site-step-commands-block {
+  display: grid;
+}
+
+@media (width >= 48rem) {
+  .site-step-commands-rail {
+    display: grid;
+    padding-top: 1.5rem;
+  }
+
+  .site-step-commands-block {
+    display: none;
+  }
+}
+
+.site-step-commands-rail > div,
+.site-step-commands-block > div {
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  transition:
+    opacity 180ms var(--ease-out),
+    visibility 0s 180ms;
+  visibility: hidden;
+}
+
+.site-step-commands-rail > div.is-active,
+.site-step-commands-block > div.is-active {
+  opacity: 1;
+  transition:
+    opacity 180ms var(--ease-out),
+    visibility 0s 0s;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-step-commands-rail > div,
+  .site-step-commands-rail > div.is-active,
+  .site-step-commands-block > div,
+  .site-step-commands-block > div.is-active {
+    transition: none;
   }
 }
 
@@ -251,14 +311,16 @@
   }
 }
 
-/* The hero's dwell timer, drawn as a rule that fills under the command. */
+/* The hero's dwell indicator: a 1px ink fill growing left to right along its
+   rule track. transform, not width — the bar runs for seven seconds and must
+   never cost layout per frame. */
 @keyframes hero-progress {
   from {
-    width: 0;
+    transform: scaleX(0);
   }
 
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
 }
 
@@ -288,79 +350,567 @@
   }
 }
 
-.site-strip-row {
-  transition: transform 400ms ease;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .site-strip-row {
-    transition: none;
-  }
-}
-
-/* A step that can run out of road: the strip's controls at either end. */
-.site-step:disabled {
-  color: var(--faint);
-  cursor: default;
-  opacity: 0.4;
-}
-
 /* ── The catalogue ────────────────────────────────────────────────────
-   A mount rather than a crop. Every other picture on the page fills its box;
-   a catalogue plate is a reproduction of what a command returned, and a crop
-   is a different picture, so these sit whole on the surface tone. Where a
-   command has a before and an after the two share one mount, divided by a
-   rule of paper, which reads as one plate rather than two pictures that
-   happen to be next to each other. */
-.site-mount {
-  /* 2:1, so a pair's two cells are square. That is the ratio that wastes the
-     least mount across the set: a square result fills its cell exactly, and a
-     16:9 one is held by its width either way, so a taller mount would only
-     add band above and below it. */
-  aspect-ratio: 2 / 1;
-  background: var(--ground);
-  display: grid;
-  gap: 1px;
-  grid-auto-columns: 1fr;
-  grid-auto-flow: column;
-  /* `minmax(0, 1fr)` rather than the implicit `auto`: an auto row is sized by
-     its content, and a 2048px picture inside it would win against the box's
-     own ratio. This makes the row exactly the mount's height and lets the
-     picture letterbox inside it. */
-  grid-auto-rows: minmax(0, 1fr);
+   One full-width band per command. A 264px rail on the left; the field to
+   its right runs off the page. Hairline above each band, no boxes. */
+
+.site-band {
+  align-items: flex-start;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 64px;
+  padding: 56px 0 64px var(--gutter);
 }
 
-/* Two mounts share a row from 62rem up, so above that they hold the ratio
-   exactly and the captions under them line up: a flex item's automatic
-   minimum size is its content's, and a specimen taller than the box would
-   otherwise push one mount out of step with its neighbour. Below 62rem there
-   is one mount per row and nothing to line up with, so a specimen that needs
-   more room takes it rather than being clipped. */
-@media (width >= 62rem) {
-  .site-mount {
-    min-block-size: 0;
+.site-rail {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 264px;
+}
+
+.site-rail-usage {
+  color: var(--faint);
+  padding-top: 12px;
+  white-space: nowrap;
+}
+
+.site-rail-summary {
+  color: var(--muted);
+  padding-top: 18px;
+}
+
+.site-field {
+  flex: 1;
+  min-width: 0;
+  overflow: clip;
+}
+
+.site-band-chapter {
+  align-items: baseline;
+  /* A chapter opens with twice a band's air above it, and carries a
+     standfirst and a count beside its name — that air and that furniture
+     are the level, not a heavier rule. Every rule on the page is the same
+     1px hairline; the one ink the page spends on lines marks a position
+     (the selected tab, the carousel fill), never a boundary. */
+  border-top: 1px solid var(--rule);
+  display: flex;
+  gap: 64px;
+  padding: 112px var(--gutter) 64px;
+}
+
+.site-chapter-name {
+  flex-shrink: 0;
+  width: 264px;
+}
+
+.site-chapter-standfirst {
+  color: var(--muted);
+  flex: 1;
+  max-width: 620px;
+  min-width: 0;
+}
+
+.site-chapter-count {
+  color: var(--faint);
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+
+@media (width < 62rem) {
+  .site-band {
+    flex-direction: column;
+    gap: 20px;
+    padding: 40px 20px 48px;
+  }
+
+  .site-rail {
+    width: 100%;
+  }
+
+  .site-rail-usage {
+    white-space: pre-wrap;
+  }
+
+  .site-band-chapter {
+    flex-direction: column;
+    gap: 16px;
+    padding: 64px 20px 32px;
+  }
+
+  .site-chapter-name,
+  .site-chapter-count {
+    width: auto;
+  }
+
+  .site-chapter-count {
+    margin-inline-start: 0;
   }
 }
 
-.site-mount-cell {
-  background: var(--surface);
-  /* Grid columns are `1fr`, which floors at the content's own width unless
-     this says otherwise; without it a wide picture pushes its neighbour
-     narrow. */
-  min-block-size: 0;
-  min-inline-size: 0;
+/* Pictures in the field sit at the shape of their files, except where a
+   treatment crops them to a square (carousel, matched pair, the tile). */
+.site-field img,
+.site-field video {
+  display: block;
+  max-width: 100%;
+}
+
+.site-still-plain {
+  background: none;
+}
+
+.site-cover {
+  flex-shrink: 0;
   overflow: clip;
   position: relative;
 }
 
-/* Taken out of flow, for the same reason `.site-plate img` is: left in flow,
-   a picture whose file is larger than its cell fights the cell for the height
-   and Next warns that one axis has been sized without the other. */
-.site-mount-cell img,
-.site-mount-cell video {
-  block-size: 100%;
-  inline-size: 100%;
+.site-cover img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.site-carousel [blossom-carousel] {
+  max-inline-size: none;
+  scroll-snap-type: x mandatory;
+}
+
+.site-carousel-slide {
+  flex-shrink: 0;
+  margin-inline-end: 14px;
+  scroll-snap-align: start;
+}
+
+.site-carousel-slide .type-small {
+  background: var(--ground);
+}
+
+.site-carousel-controls {
+  align-items: center;
+  display: flex;
+  gap: 22px;
+  padding-top: 22px;
+}
+
+.site-progress {
+  background: var(--rule);
+  flex-shrink: 0;
+  height: 1px;
+  position: relative;
+  width: min(420px, 40vw);
+}
+
+.site-progress-fill {
+  background: var(--ink);
+  height: 1px;
+}
+
+.site-hit {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  width: 44px;
+}
+
+.site-hit[disabled] {
+  color: var(--faint);
+}
+
+.site-takes {
+  align-items: flex-start;
+  display: flex;
+  gap: 40px;
+  overflow: clip;
+}
+
+.site-takes-source {
+  flex-shrink: 0;
+  padding-top: 88px;
+  width: 212px;
+}
+
+/* Source-and-takes stacks the source row over full-width controls, so the
+   progress rule starts at the field's left edge like every plain carousel. */
+.site-takes-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.site-takes > .site-carousel {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-set {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.site-pair {
+  align-items: flex-start;
+  display: flex;
+  gap: 48px;
+}
+
+.site-pair-source {
+  flex-shrink: 0;
+  width: min(268px, 32%);
+}
+
+.site-pair-source-plain {
+  padding-top: 86px;
+}
+
+.site-pair-result {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-matched {
+  display: flex;
+  gap: 24px;
+}
+
+.site-repeat {
+  align-items: flex-start;
+  display: flex;
+  gap: 40px;
+  overflow: clip;
+}
+
+.site-repeat-field {
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  flex-shrink: 0;
+  height: 480px;
+  width: 768px;
+}
+
+/* The layers band: the flattened picture beside its planes, fanned with
+   heavy overlaps and a small downhill drift so the transparent stack reads
+   as depth. DOM order is back-to-front, so no z-index is needed. */
+.site-stack {
+  align-items: flex-start;
+  display: flex;
+  gap: 24px;
+}
+
+.site-stack-flat {
+  flex: 1.25;
+  min-width: 0;
+}
+
+.site-stack-layers {
+  flex: 0.85;
+  min-width: 0;
+}
+
+.site-stack-layer + .site-stack-layer {
+  margin-top: -68%;
+}
+
+.site-stack-layers > :nth-child(2) {
+  margin-left: 5%;
+}
+
+.site-stack-layers > :nth-child(3) {
+  margin-left: 10%;
+}
+
+.site-stack-mount {
+  background: var(--surface);
+  flex-shrink: 0;
+  padding: 12px;
+  width: 296px;
+}
+
+.site-lifted {
+  display: flex;
+  gap: 24px;
+}
+
+.site-trio {
+  display: flex;
+  gap: 24px;
+}
+
+.site-trio > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-lifted > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-ask {
+  align-items: flex-start;
+  display: flex;
+  gap: 48px;
+}
+
+/* The photograph keeps a reading measure so the exchange beside it sits high
+   on the band and reads as the output, rather than sliding below the fold. */
+.site-ask-photo {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 620px;
+}
+
+.site-ask-exchange {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-top: 16px;
+}
+
+.site-specimen-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 48px;
+}
+
+.site-specimen-lines {
+  flex: 1;
+  min-width: 0;
+}
+
+/* The plate beside a readout keeps its 320px measure: a bare image in a flex
+   row refuses to shrink past its intrinsic width and squeezes the lines into
+   a strip. */
+.site-specimen-plate {
+  flex-shrink: 0;
+  max-width: 100%;
+  width: 320px;
+}
+
+.site-specimen-plate img {
+  height: auto;
+  width: 100%;
+}
+
+/* The Studio home menu, set as type: a quiet surface holds the four rows,
+ * each a selector mark, a mono label at the TUI's own 14ch measure, and the
+ * description. Rows wrap on narrow screens so the description drops beneath
+ * its label instead of squeezing beside it. */
+.site-studio {
+  background: var(--surface);
+  padding: 28px clamp(20px, 4vw, 56px);
+}
+
+.site-studio-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-studio-row {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+}
+
+.site-studio-mark {
+  color: var(--ink);
+  flex-shrink: 0;
+  width: 1.4em;
+}
+
+.site-studio-row code {
+  flex-shrink: 0;
+  min-width: 14ch;
+}
+
+.site-ledger-head,
+.site-ledger-row {
+  align-items: baseline;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  gap: 24px;
+}
+
+.site-ledger-head {
+  color: var(--faint);
+  padding-bottom: 10px;
+  padding-top: 34px;
+}
+
+.site-ledger-row {
+  padding-block: 14px;
+}
+
+.site-ledger-head > :first-child,
+.site-ledger-row > :first-child {
+  flex-shrink: 0;
+  width: 92px;
+}
+
+.site-ledger-head > :nth-child(2),
+.site-ledger-row > :nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-ledger-head > :nth-child(3),
+.site-ledger-row > :nth-child(3) {
+  flex-shrink: 0;
+  width: 150px;
+}
+
+.site-ledger-cost {
+  flex-shrink: 0;
+  text-align: end;
+  width: 76px;
+}
+
+.site-held-frame {
+  overflow: clip;
+  position: relative;
+}
+
+.site-held-layer {
   inset: 0;
-  object-fit: contain;
   position: absolute;
+}
+
+.site-held-layer img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.site-held-rule {
+  background: var(--ground);
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  width: 2px;
+}
+
+.site-held-knob {
+  align-self: center;
+  background: var(--ground);
+  border: 1px solid var(--ink);
+  flex-shrink: 0;
+  height: 56px;
+  width: 8px;
+}
+
+.site-held-input {
+  cursor: ew-resize;
+  height: 100%;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.site-held-captions {
+  display: flex;
+  padding-top: 12px;
+}
+
+.site-clip {
+  overflow: clip;
+}
+
+.site-clip-video {
+  cursor: pointer;
+  height: auto;
+  max-width: none;
+  width: 1180px;
+}
+
+.site-clip-input {
+  cursor: pointer;
+  height: 22px;
+  inset: -10px 0;
+  margin: 0;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+}
+
+@media (width < 62rem) {
+  .site-takes {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .site-takes-source {
+    padding-top: 0;
+    width: 212px;
+  }
+
+  .site-pair,
+  .site-matched,
+  .site-stack,
+  .site-lifted,
+  .site-trio,
+  .site-ask,
+  .site-specimen-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .site-pair-source,
+  .site-pair-source-plain {
+    padding-top: 0;
+    width: 100%;
+  }
+
+  .site-stack-flat {
+    padding-top: 0;
+  }
+
+  .site-stack-layers {
+    width: 100%;
+  }
+
+  .site-ask-exchange {
+    padding-top: 0;
+  }
+
+  .site-clip-video {
+    width: 100%;
+  }
+
+  .site-ledger-head,
+  .site-ledger-row {
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .site-ledger-head > :first-child,
+  .site-ledger-row > :first-child,
+  .site-ledger-head > :nth-child(3),
+  .site-ledger-row > :nth-child(3),
+  .site-ledger-cost {
+    width: auto;
+  }
+
+  .site-ledger-head > :nth-child(2),
+  .site-ledger-row > :nth-child(2) {
+    flex: 1 1 100%;
+  }
 }

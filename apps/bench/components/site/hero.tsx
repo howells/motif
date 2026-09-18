@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 import { Plate } from "@/components/site/plate";
 import { HERO_STEPS, SITE } from "@/lib/site/content";
@@ -30,44 +30,79 @@ function useReducedMotion() {
   );
 }
 
-/** The command the selected step runs, with the dwell timer drawn under it.
+/** The selected step's command, in a dock whose cells stack on one grid area.
  *
- * The boards set this directly beneath the step it belongs to, so the two read
- * as one thing. The list below it moves down while a step is selected, which
- * is what the boards draw. */
-function StepCommand({
-  command,
+ * Every step's command is mounted and the tallest cell sets the dock's
+ * height, so swapping steps crossfades text without moving the list, the
+ * dock or the picture beside it. Inactive cells are hidden from AT; they
+ * hold no focusables. The dwell indicator is back as a whisper: a 1px rule
+ * track under every command (so the dock's height never depends on which
+ * step is selected) with a 1px ink fill that grows while the sequence runs
+ * — the same ink-on-rule position marker as the carousel progress. When the
+ * sequence has stopped the track sits empty rather than frozen mid-fill: no
+ * progress exists any more, and an empty track says exactly that. The phone
+ * dock is the bare chip the 390 board draws. */
+function StepCommands({
+  active,
   running,
-  stepId,
+  variant,
 }: {
-  readonly command: string;
+  readonly active: string;
   readonly running: boolean;
-  readonly stepId: string;
+  readonly variant: "block" | "rail";
 }) {
   return (
-    <div className="hidden md:block">
-      <code
-        className="type-small block max-w-[380px] font-mono whitespace-pre-wrap"
-        style={{ color: "var(--muted)" }}
-      >
-        {command}
-      </code>
-      <div
-        className="mt-2.5 h-px max-w-[380px]"
-        style={{ background: "var(--rule)" }}
-      >
-        <div
-          className="h-px"
-          key={running ? stepId : "still"}
-          style={{
-            animation: running
-              ? `hero-progress ${DWELL_MS}ms linear`
-              : undefined,
-            background: "var(--faint)",
-            width: running ? 0 : "40%",
-          }}
-        />
-      </div>
+    <div
+      className={
+        variant === "rail"
+          ? "site-step-commands-rail"
+          : "site-step-commands-block"
+      }
+    >
+      {HERO_STEPS.map((item) => {
+        const selected = item.id === active;
+        return (
+          <div
+            aria-hidden={selected ? undefined : true}
+            className={selected ? "is-active" : undefined}
+            key={item.id}
+          >
+            {variant === "rail" ? (
+              <>
+                <code
+                  className="type-small block max-w-[380px] font-mono whitespace-pre-wrap"
+                  style={{ color: "var(--faint)" }}
+                >
+                  {item.command}
+                </code>
+                <div
+                  aria-hidden="true"
+                  className="mt-2.5 h-px max-w-[380px]"
+                  style={{ background: "var(--rule)" }}
+                >
+                  {selected && running ? (
+                    <div
+                      className="h-px origin-left"
+                      key={item.id}
+                      style={{
+                        animation: `hero-progress ${DWELL_MS}ms linear`,
+                        background: "var(--ink)",
+                      }}
+                    />
+                  ) : null}
+                </div>
+              </>
+            ) : (
+              <code
+                className="site-command type-small block font-mono whitespace-pre-wrap"
+                style={{ color: "var(--ink)" }}
+              >
+                {item.command}
+              </code>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -113,7 +148,7 @@ export function Hero() {
   }
 
   return (
-    <section className="site-gutter site-bleed flex flex-col pt-11 md:flex-row md:items-start md:gap-12">
+    <section className="site-gutter site-bleed flex flex-col pt-11 pb-14 md:flex-row md:items-start md:gap-12 md:pb-16">
       <div className="flex flex-col pt-1 md:w-[400px] md:shrink-0">
         <h1 className="type-display">{SITE.name}</h1>
         <p className="type-body max-w-[380px] pt-7">{SITE.standfirst}</p>
@@ -130,30 +165,24 @@ export function Hero() {
           role="tablist"
         >
           {HERO_STEPS.map((item, position) => (
-            <Fragment key={item.id}>
-              <button
-                aria-controls="hero-plate"
-                aria-selected={position === index}
-                className="site-tab site-step type-body shrink-0 md:self-start"
-                onClick={() => {
-                  choose(position);
-                }}
-                role="tab"
-                type="button"
-              >
-                <span className="md:hidden">{item.short}</span>
-                <span className="hidden md:inline">{item.label}</span>
-              </button>
-              {position === index ? (
-                <StepCommand
-                  command={item.command}
-                  running={running}
-                  stepId={item.id}
-                />
-              ) : null}
-            </Fragment>
+            <button
+              aria-controls="hero-plate"
+              aria-selected={position === index}
+              className="site-tab site-step type-body shrink-0 md:self-start"
+              key={item.id}
+              onClick={() => {
+                choose(position);
+              }}
+              role="tab"
+              type="button"
+            >
+              <span className="md:hidden">{item.short}</span>
+              <span className="hidden md:inline">{item.label}</span>
+            </button>
           ))}
         </div>
+
+        <StepCommands active={step.id} running={running} variant="rail" />
       </div>
 
       <div
@@ -192,13 +221,9 @@ export function Hero() {
         </div>
 
         {/* On a phone the command sits in a block under the picture, where the
-            390 board puts it. */}
-        <code
-          className="site-command type-small block font-mono whitespace-pre-wrap md:hidden"
-          style={{ color: "var(--ink)" }}
-        >
-          {step.command}
-        </code>
+            390 board puts it. Same stacked dock as the desktop rail, so the
+            caption below never moves either. */}
+        <StepCommands active={step.id} running={running} variant="block" />
 
         <p className="type-small" style={{ color: "var(--muted)" }}>
           {step.caption}

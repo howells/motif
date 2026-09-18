@@ -1,0 +1,110 @@
+import type { CatalogueGroup } from "@/lib/site/catalogue";
+import { SERIES, STILL_LIFE } from "@/lib/site/catalogue-plates";
+
+export const TOOL: CatalogueGroup = {
+  body: "These manage your work rather than an image. Their result is text, so the page shows the text.",
+  count: "Six commands",
+  name: "The tool itself",
+  entries: [
+    {
+      id: "series",
+      frames: SERIES,
+      summary: "A reusable style and references.",
+      treatment: "carousel",
+      usage: "motif series <subcommand>",
+      verb: "series",
+    },
+    {
+      id: "studio",
+      summary: "The interactive terminal Studio.",
+      treatment: "studio",
+      usage: "motif studio",
+      verb: "studio",
+    },
+    {
+      id: "last",
+      result: STILL_LIFE,
+      specimen: [
+        "{",
+        '  "id": "7f2a1c",',
+        '  "prompt": "a stone vase on a linen cloth",',
+        '  "model": "flux2-pro",',
+        '  "output": "still-life.jpg",',
+        '  "cost": 0.03',
+        "}",
+      ],
+      summary: "Show the last generation.",
+      treatment: "specimen",
+      usage: "motif --last",
+      verb: "--last",
+    },
+    {
+      id: "history",
+      ledger: [
+        {
+          cost: "$0.03",
+          id: "7f2a1c",
+          model: "flux2-pro",
+          prompt: "a stone vase on a linen cloth",
+        },
+        {
+          cost: "$0.60",
+          id: "7f2a1b",
+          model: "banana",
+          prompt: "the same vase, four takes",
+        },
+        {
+          cost: "$0.03",
+          id: "7f2a19",
+          model: "seedream4",
+          prompt: "an apothecary shelf, morning light",
+        },
+        {
+          cost: "$0.04",
+          id: "7f2a14",
+          model: "qwen3",
+          prompt: "erase the label text",
+        },
+        {
+          cost: "$0.01",
+          id: "7f2a11",
+          model: "flux2-turbo",
+          prompt: "a seamless limestone wall",
+        },
+      ],
+      summary: "List past generations and spend.",
+      treatment: "ledger",
+      usage: "motif --history",
+      verb: "--history",
+    },
+    {
+      id: "describe",
+      specimen: [
+        "tasks",
+        "commands",
+        "enums",
+        "errors",
+        "global_flags",
+        "input_modes",
+        "security_posture",
+      ],
+      summary: "Print the CLI schema as JSON.",
+      treatment: "specimen",
+      usage: "motif --describe [command]",
+      verb: "--describe",
+    },
+    {
+      id: "errors",
+      specimen: [
+        "MISSING_API_KEY",
+        "INVALID_OUTPUT_PATH",
+        "NO_MODEL_AVAILABLE",
+        "… 22 in all",
+      ],
+      summary: "List error codes and how to recover.",
+      treatment: "specimen",
+      usage: "motif --describe errors",
+      verb: "--describe errors",
+    },
+  ],
+};

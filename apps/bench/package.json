@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@blossom-carousel/react": "^1.5.2",
     "@howells/motif-sdk": "workspace:*",
     "@motif/bench-core": "workspace:*",
     "@motif/bench-db": "workspace:*",

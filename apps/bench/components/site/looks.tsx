@@ -1,55 +1,25 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { BlossomCarousel } from "@blossom-carousel/react";
 
+import { onTrackKeyDown, useCarousel } from "@/components/site/carousel-shared";
+import { CarouselControls } from "@/components/site/catalogue-carousel";
 import { ChapterHead } from "@/components/site/chapter";
 import { Plate } from "@/components/site/plate";
 import { LOOKS } from "@/lib/site/content";
 
-/** How far a press of one of the strip's controls moves it: roughly a card,
- * so a press always changes what is fully in view. */
-const STEP = 460;
-
 /** Three looks, at the sizes the board draws them.
  *
  * The strip keeps its left gutter and runs off the right edge, so the third
- * card is cut and the row reads as continuing. The controls move the row
- * rather than scrolling it, which is what keeps it reachable: a scrolling
- * region has to be focusable in its own right, and the only way to do that is
- * to put a tab stop on a piece of layout. Moving it means the two buttons are
- * the whole mechanism, and they are ordinary buttons.
- *
- * Below the strip's breakpoint the cards stack at their own proportions,
- * where nothing is cut and nothing needs moving. */
+ * card is cut and the row reads as continuing. Blossom drives the row and the
+ * catalogue's own chrome sits under it — the progress rule, the mono counter
+ * and the two arrows — so this reads as the same system as every catalogue
+ * carousel rather than new furniture. Nothing advances on its own; the arrows
+ * move back and forward, and the track takes arrow keys. */
 export function Looks() {
-  const row = useRef<HTMLDivElement | null>(null);
-  const [offset, setOffset] = useState(0);
-  const [limit, setLimit] = useState(0);
-
-  /* The listener is built inside the effect so it has one identity for the
-     life of the component: a handler rebuilt each render would re-subscribe
-     on every render. */
-  useEffect(() => {
-    const node = row.current;
-    const frame = node?.parentElement;
-    const measure = () => {
-      if (!node || !frame) {
-        return;
-      }
-      setLimit(Math.max(0, node.scrollWidth - frame.clientWidth));
-    };
-    measure();
-    globalThis.addEventListener("resize", measure);
-    return () => {
-      globalThis.removeEventListener("resize", measure);
-    };
-  }, []);
-
-  function move(direction: 1 | -1) {
-    setOffset((current) =>
-      Math.min(limit, Math.max(0, current + direction * STEP))
-    );
-  }
+  const { index, onScroll, ratio } = useCarousel();
+  const id = "carousel-looks";
+  const total = LOOKS.length;
 
   return (
     <section className="site-chapter">
@@ -58,71 +28,56 @@ export function Looks() {
           body="Add one to any prompt with --look. A look sets the medium, the finish and the framing."
           id="looks"
           title="Looks"
-        >
-          <span className="hidden gap-5 pt-4 md:flex">
-            <button
-              aria-label="Back through the looks"
-              className="site-step type-small"
-              disabled={offset <= 0}
-              onClick={() => {
-                move(-1);
-              }}
-              type="button"
-            >
-              Back
-            </button>
-            <button
-              aria-label="Forward through the looks"
-              className="site-step type-small"
-              disabled={offset >= limit}
-              onClick={() => {
-                move(1);
-              }}
-              type="button"
-            >
-              Forward
-            </button>
-          </span>
-        </ChapterHead>
+        />
       </div>
 
-      <div className="site-strip pt-20">
-        <div
-          className="site-strip-row flex flex-col gap-10 md:flex-row md:gap-6"
-          ref={row}
-          style={{ transform: `translateX(${-offset}px)` }}
+      <div className="site-strip site-carousel pt-20" data-carousel="">
+        <BlossomCarousel
+          aria-label="Looks"
+          as="section"
+          className="site-carousel-track"
+          id={id}
+          onKeyDown={onTrackKeyDown}
+          onScroll={onScroll}
+          tabIndex={0}
         >
-          {LOOKS.map((look) => (
-            <figure
-              className="m-0 flex shrink-0 flex-col gap-3"
+          {LOOKS.map((look, slide) => (
+            <div
+              aria-hidden={index === slide + 1 ? undefined : true}
+              className="site-carousel-slide"
+              data-blossom-slide=""
               key={look.flag}
               style={{ maxWidth: "100%", width: `${look.width}px` }}
             >
-              <Plate
-                ratio={look.ratio}
-                sizes="(max-width: 767px) 100vw, 840px"
-                source={look.plate}
-              />
-              <figcaption className="flex flex-col gap-1.5">
-                <span className="flex flex-wrap items-baseline gap-3">
-                  <span className="type-title">{look.name}</span>
+              <figure
+                className="m-0 flex shrink-0 flex-col gap-3"
+                style={{ maxWidth: "100%", width: `${look.width}px` }}
+              >
+                <Plate
+                  eager={slide === 0}
+                  ratio={look.ratio}
+                  sizes="(max-width: 767px) 100vw, 840px"
+                  source={look.plate}
+                />
+                <figcaption className="flex flex-col gap-1.5">
                   <code
                     className="type-small font-mono"
                     style={{ color: "var(--faint)" }}
                   >
                     {look.flag}
                   </code>
-                </span>
-                <span
-                  className="type-small max-w-[560px]"
-                  style={{ color: "var(--muted)" }}
-                >
-                  {look.body}
-                </span>
-              </figcaption>
-            </figure>
+                  <span
+                    className="type-small max-w-[560px]"
+                    style={{ color: "var(--muted)" }}
+                  >
+                    {look.body}
+                  </span>
+                </figcaption>
+              </figure>
+            </div>
           ))}
-        </div>
+        </BlossomCarousel>
+        <CarouselControls id={id} index={index} ratio={ratio} total={total} />
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import { TASKS } from "@howells/motif-sdk";
 
 import { CATALOGUE } from "@/lib/site/catalogue";
+import { LOOKS as LOOK_PLATES } from "@/lib/site/catalogue-plates";
 
 /** The content of the public page, drawn from the Paper file "Motif".
  *
@@ -145,47 +146,43 @@ export const HERO_STEPS: readonly [HeroStep, ...HeroStep[]] = [
   },
 ];
 
+/** Looks that have an accepted plate on disk, in `apps/cli/AGENTS.md` table
+ * order. Bodies are that table's "What it's for" sentences verbatim. The
+ * lookup throws at build time if an image ever goes missing. `architectural`,
+ * `abstract` and `illustration` ship in the CLI but are omitted here until
+ * Daniel supplies plates — generated candidates were rejected. */
+function lookPlate(id: string) {
+  const found = LOOK_PLATES.find(
+    (item) => item.src === `/demo/looks/${id}.jpg`
+  );
+  if (found === undefined) {
+    throw new Error(`missing look plate ${id}`);
+  }
+  return found;
+}
+
+function lookSlide(id: string, body: string, width: number) {
+  return {
+    body,
+    flag: `--look ${id}`,
+    plate: lookPlate(id),
+    ratio: `${width} / 560`,
+    width,
+  };
+}
+
 export const LOOKS = [
-  {
-    body: "Daylight, restrained palette, space around the subject.",
-    flag: "--look editorial",
-    name: "Quiet editorial",
-    plate: {
-      alt: "Pigment jars and folded cloth on a scrubbed wooden table in daylight",
-      height: 1800,
-      src: "/demo/looks/editorial.jpg",
-      width: 1800,
-    },
-    ratio: "840 / 560",
-    width: 840,
-  },
-  {
-    body: "Pencil under flat washes, the drawing still showing through.",
-    flag: "--look drawing",
-    name: "Palette drawing",
-    plate: {
-      alt: "A watercolour and pencil drawing of a dark green kitchen",
-      height: 1024,
-      src: "/demo/looks/drawing.jpg",
-      width: 1024,
-    },
-    ratio: "420 / 560",
-    width: 420,
-  },
-  {
-    body: "Printed paper that has been handled: foxing, wear, a used press.",
-    flag: "--look ephemera",
-    name: "Period ephemera",
-    plate: {
-      alt: "An aged printed poster with foxing and worn edges",
-      height: 1024,
-      src: "/demo/looks/ephemera.jpg",
-      width: 768,
-    },
-    ratio: "400 / 560",
-    width: 400,
-  },
-] as const;
+  lookSlide("editorial", "Quiet, materially rich editorial photography", 560),
+  lookSlide("still-life", "Objects and products on a plaster ground", 560),
+  lookSlide("interior", "Bright, collected rooms that feel lived in", 740),
+  lookSlide("portrait", "Natural, unposed documentary portraits", 560),
+  lookSlide("object", "One object in one colour on a clean ground", 560),
+  lookSlide(
+    "surface",
+    "Flat, edge-to-edge surface photographs for textures and swatches",
+    560
+  ),
+];
 
 /** One kitchen, one prompt, one seed. Only `--mood` changes between plates. */
 export const MOODS = [
@@ -252,7 +249,7 @@ export const MOODS = [
 ] as const;
 
 export const MOOD_COMMAND =
-  'motif "a family kitchen with a scrubbed oak table" --look lived-in --mood {mood} --seed 4217';
+  'motif "a family kitchen with a scrubbed oak table" --look interior --mood {mood} --seed 4217';
 
 /** The try-on comparison. The result is what you see; the source is underneath
  * it, and holding the source thumbnail brings it up full size. */
@@ -271,15 +268,15 @@ export const COMPARE = {
   },
   result: {
     alt: "A person in a plaster-walled room wearing the rust chore jacket",
-    height: 1400,
-    src: "/demo/try-on/figure.jpg",
-    width: 939,
+    height: 2048,
+    src: "/demo/try-on/dressed.png",
+    width: 2048,
   },
   source: {
-    alt: "The same person in the same room, in the cream outfit they arrived in",
-    height: 1400,
-    src: "/demo/sources/figure.jpg",
-    width: 939,
+    alt: "The same person in the same room, in the white t-shirt and linen trousers they arrived in",
+    height: 2048,
+    src: "/demo/try-on/person.jpg",
+    width: 2048,
   },
   title: "Hold to compare",
 } as const;

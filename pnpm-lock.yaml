@@ -35,6 +35,9 @@ importers:
 
   apps/bench:
     dependencies:
+      '@blossom-carousel/react':
+        specifier: ^1.5.2
+        version: 1.5.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@howells/motif-sdk':
         specifier: workspace:*
         version: link:../../packages/motif-sdk
@@ -683,9 +686,22 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
+  '@blossom-carousel/core@1.1.8':
+    resolution: {integrity: sha512-f3/7jS/Ga63N0X7goVkPs0KafSe463y9w4+zE9ZyacjMCT0VSpAQuCQrOpyfyDJ23EONPHgpEyHtscHoRbtGTg==}
+
+  '@blossom-carousel/react@1.5.2':
+    resolution: {integrity: sha512-RhEZpxLmNtjTycieq1cR4E6Ko/iT2Oq2HLSmUu4ZCDeLypjn+I5egRDaf+ZDEZB8114DuB51YuD053wF6S57Ng==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@bramus/style-observer@2.0.2':
+    resolution: {integrity: sha512-oRKamZ9Z637pAZgNGJIbNGiFoYQSeA47PpU4K8hXZq9lQcPu35BCqMG9d9J/ab2CB/0XlXq6ToMnVhHF8mLNqg==}
+    engines: {node: '>=12'}
 
   '@clack/core@1.4.3':
     resolution: {integrity: sha512-/kr3UWNtdJfxZtPgDqUOmG2pvwlmcLGheex5yiZKdwbzZJxhV+HMNR9QNmyY5cGwTNV6LrR7Jtp+KjhUAP1qBQ==}
@@ -8233,10 +8249,22 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
+  '@blossom-carousel/core@1.1.8':
+    dependencies:
+      '@bramus/style-observer': 2.0.2
+
+  '@blossom-carousel/react@1.5.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+    dependencies:
+      '@blossom-carousel/core': 1.1.8
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
   '@bramus/specificity@2.4.2':
     dependencies:
       css-tree: 3.2.1
     optional: true
+
+  '@bramus/style-observer@2.0.2': {}
 
   '@clack/core@1.4.3':
     dependencies:
