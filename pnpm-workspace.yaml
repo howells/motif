@@ -9,7 +9,7 @@ catalog:
   "@ai-sdk/replicate": "^3.0.8"
   "@blossom-carousel/react": "^1.5.2"
   "@howells/envy": "^0.3.7"
-  "@howells/husky": "^0.2.3"
+  "@howells/husky": "^0.2.5"
   "@howells/lint": "^3.3.4"
   "@howells/mastra": "0.1.2"
   "@howells/neon": "0.1.1"
