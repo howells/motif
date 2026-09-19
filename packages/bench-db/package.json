@@ -11,21 +11,21 @@
     "db:push": "drizzle-kit push --config=drizzle.config.ts",
     "lint": "howells-check src",
     "lint:fix": "howells-fix src",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@howells/neon": "0.1.1",
+    "@howells/neon": "catalog:",
     "@motif/bench-env": "workspace:*",
-    "@neondatabase/serverless": "^1.1.0",
-    "drizzle-orm": "1.0.0-rc.4"
+    "@neondatabase/serverless": "catalog:",
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
-    "@howells/lint": "^3.3.4",
-    "@howells/typescript-config": "^0.1.6",
-    "@types/node": "^26.1.1",
-    "drizzle-kit": "1.0.0-rc.4",
-    "typescript": "7.0.2",
-    "vitest": "^4.1.10"
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
+    "@types/node": "catalog:",
+    "drizzle-kit": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

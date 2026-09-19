@@ -39,35 +39,35 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "tsx src/index.ts",
     "build": "tsup src/index.ts --format esm --target node22",
+    "dev": "tsx src/index.ts",
     "lint": "howells-check .",
     "lint:fix": "howells-fix .",
-    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepack": "pnpm build"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@howells/motif-sdk": "workspace:*",
-    "chalk": "^5.3.0",
-    "commander": "^15.0.0",
-    "ink": "^7.1.0",
-    "ink-text-input": "^6.0.0",
-    "ora": "^9.4.1",
-    "react": "^19.2.7",
-    "sharp": "0.35.3",
-    "zod": "^4.6.5"
+    "chalk": "catalog:",
+    "commander": "catalog:",
+    "ink": "catalog:",
+    "ink-text-input": "catalog:",
+    "ora": "catalog:",
+    "react": "catalog:",
+    "sharp": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@howells/lint": "^3.3.4",
-    "@howells/typescript-config": "^0.1.6",
-    "@types/node": "^26.1.1",
-    "@types/react": "^19.2.17",
-    "react-devtools-core": "^7.0.1",
-    "tsup": "^8.0.0",
-    "tsx": "^4.23.0",
-    "typescript": "7.0.2",
-    "vitest": "^4.1.10"
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "react-devtools-core": "catalog:",
+    "tsup": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

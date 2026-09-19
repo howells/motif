@@ -14,15 +14,15 @@
     "lint": {
       "cache": false
     },
-    "typecheck": {
-      "dependsOn": ["^build"],
+    "lint:fix": {
       "cache": false
     },
     "test": {
       "dependsOn": ["build", "^build"],
       "cache": false
     },
-    "clean": {
+    "typecheck": {
+      "dependsOn": ["^build"],
       "cache": false
     }
   },

@@ -46,30 +46,30 @@
     "dev": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\" && tsdown --watch",
     "lint": "howells-check .",
     "lint:fix": "howells-fix .",
-    "typecheck": "tsc --noEmit",
+    "prepack": "pnpm build",
     "test": "vitest run",
-    "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepack": "pnpm build"
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/fal": "^3.0.8",
-    "@ai-sdk/google": "^4.0.12",
-    "@ai-sdk/openai": "^4.0.11",
-    "@ai-sdk/replicate": "^3.0.8",
-    "@howells/envy": "^0.3.7",
-    "ai": "^7.0.22",
-    "neverthrow": "^8.2.0",
-    "zod": "^4.6.5"
+    "@ai-sdk/fal": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@ai-sdk/replicate": "catalog:",
+    "@howells/envy": "catalog:",
+    "ai": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@howells/lint": "^3.3.4",
-    "@howells/typescript-config": "^0.1.6",
-    "@types/node": "^26.1.1",
-    "@vitest/coverage-v8": "^4.1.10",
-    "tsdown": "^0.23.0",
-    "typescript": "7.0.2",
-    "vitest": "^4.1.10"
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   },
   "engines": {
     "node": ">=22.12.0"

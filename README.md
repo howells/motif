@@ -212,7 +212,7 @@ Motif reads `~/.motif/config.json`, then `.motifrc` in the project. `FAL_KEY` in
 git clone https://github.com/howells/motif.git
 cd motif
 pnpm install
-pnpm check    # build, typecheck, lint, test
+pnpm build && pnpm typecheck && pnpm lint && pnpm test
 ```
 
 ## License

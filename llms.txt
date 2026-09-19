@@ -63,4 +63,4 @@ Rules for agents: `--dry-run` first, `--no-open` and `--fields` in a pipeline, p
 ## Packages and tests
 
 - [CLI package](./apps/cli) - `@howells/motif-cli`, the `motif` binary and terminal Studio.
-- Checks run locally, not in CI: `pnpm check` builds, typechecks, lints and runs the tests.
+- Checks run locally, not in CI: `pnpm build`, `pnpm typecheck`, `pnpm lint`, `pnpm test`.

@@ -3,29 +3,25 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "turbo run dev --filter=@howells/motif-cli",
-    "dev:cli": "turbo run dev --filter=@howells/motif-cli",
     "build": "turbo run build",
+    "dev": "turbo run dev --filter=@howells/motif-cli",
+    "eval:routing": "node apps/cli/evals/routing/run.ts",
     "lint": "turbo run lint && howells-workspace-check",
-    "typecheck": "turbo run typecheck",
+    "lint:fix": "turbo run lint:fix",
+    "prepare": "howells-husky",
+    "prepush": "pnpm typecheck && pnpm lint",
     "test": "turbo run test",
     "test:fal-canary": "RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.ts",
-    "eval:routing": "node apps/cli/evals/routing/run.ts",
-    "prepare": "howells-husky",
-    "knip": "knip",
-    "clean": "turbo clean",
-    "check": "pnpm build && pnpm typecheck && pnpm lint && pnpm test",
-    "check:affected": "turbo run build lint typecheck test --affected"
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
-    "@howells/husky": "^0.2.3",
-    "@howells/lint": "^3.3.4",
-    "@howells/typescript-config": "^0.1.6",
-    "husky": "^9.1.7",
-    "knip": "^6.26.0",
-    "lint-staged": "^17.0.8",
-    "turbo": "2.10.4",
-    "typescript": "7.0.2"
+    "@howells/husky": "catalog:",
+    "@howells/lint": "catalog:",
+    "@howells/typescript-config": "catalog:",
+    "husky": "catalog:",
+    "lint-staged": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
   },
   "lint-staged": {
     "*.{js,ts,jsx,tsx,json,jsonc,css,md,mdx}": "howells-oxfmt --write"

@@ -15,7 +15,7 @@ Ask first before installing dependencies, publishing, changing package names, ve
 ## Commands
 
 ```bash
-pnpm check                                    # build, typecheck, lint, test
+pnpm build && pnpm typecheck && pnpm lint && pnpm test
 pnpm --filter @howells/motif-sdk test         # focused, run this first
 RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.ts
 ```

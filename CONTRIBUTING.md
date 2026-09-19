@@ -23,8 +23,8 @@ packages/
 ```bash
 pnpm build
 pnpm typecheck
+pnpm lint
 pnpm test
-pnpm check
 ```
 
 Packages use strict `files` allowlists. Do not add local environment files, generated images, coverage output, or build cache directories to published artifacts. Inspect what a package would ship with:
@@ -38,7 +38,7 @@ pnpm --filter @howells/motif-sdk pack --dry-run
 
 Nothing runs in CI. Releases are published from a local machine with npm logged in (`npm whoami`) or a token in the environment.
 
-Bump the version in the package's `package.json`, merge to `main`, run `pnpm check`, then pack with pnpm and publish with npm. The SDK goes first, because the CLI resolves a real published SDK version:
+Bump the version in the package's `package.json`, merge to `main`, run `pnpm build && pnpm typecheck && pnpm lint && pnpm test`, then pack with pnpm and publish with npm. The SDK goes first, because the CLI resolves a real published SDK version:
 
 ```bash
 pnpm --filter @howells/motif-sdk pack --pack-destination /tmp
