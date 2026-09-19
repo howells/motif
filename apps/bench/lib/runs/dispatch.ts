@@ -15,7 +15,7 @@
  *
  * Nothing here calls `waitUntil`. On Vercel the instance can be frozen the
  * moment the response is sent, which is why a real sweep is a
- * long-lived-process job — see `docs/arc/handoff.md`.
+ * long-lived-process job run locally — see Linear MOT-68.
  */
 import { runWithConcurrency } from "./pool";
 

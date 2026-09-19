@@ -4,7 +4,18 @@
  *
  * This layer is additive: it sits alongside the fal-specific `FalClient`
  * surface and reuses the SDK's Result convention (`Result<T, MotifError>` — no
- * thrown exceptions). See docs/design/provider-agnostic-image-layer.md.
+ * thrown exceptions).
+ *
+ * The adapter contract every provider here implements: a thin wrapper over its
+ * `@ai-sdk/*` image model, a tier-to-model map, per-model `providerOptions`
+ * overrides for endpoint quirks, and a cost function that prefers provider
+ * metadata and falls back to the static table. Adding a provider is a registry
+ * entry, never new call-site code.
+ *
+ * This subpath (`@howells/motif-sdk/image`) is ESM-only on purpose: `ai@7` has
+ * no CJS export, and the core `.` entry keeps its dual CJS and ESM build so
+ * existing CJS consumers are unaffected. It collapses back into the core only
+ * at a 1.0 breaking release. Roadmap and open risks are on Linear MOT-24.
  */
 
 import type { Result } from "neverthrow";

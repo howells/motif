@@ -25,7 +25,7 @@ export const OPENAI_API_KEY_ENV = "OPENAI_API_KEY";
  * and size — this is a documented approximation for the common case.
  * Source: https://platform.openai.com/docs/pricing (image generation)
  * Sanity anchor: the Phase 0 benchmark measured gpt-image direct at $0.042
- * (vs $0.133 via fal — see docs/design/provider-agnostic-image-layer.md §10).
+ * (vs $0.133 via fal — full data and methodology on Linear MOT-23).
  *
  * GPT Image 2.5 is token-priced, with no published per-image estimate. Leave
  * these models absent so cost remains unknown unless supplied by the provider.

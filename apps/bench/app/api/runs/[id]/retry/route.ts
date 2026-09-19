@@ -6,8 +6,9 @@ import { jsonError, jsonOk, jsonValidationError } from "@/lib/api-response";
  *
  * Deliberately *not* modelled as "started: true" like `POST /judge` was.
  * That endpoint reported success while doing nothing, twice, for two
- * different reasons (`docs/arc/handoff.md`, trap 3: "a 200 response does not
- * mean the work happened"). This one answers with the count it actually
+ * different reasons: an unlinked `sharp` import, then an idempotence guard.
+ * A 200 response does not mean the work happened. This one answers with the
+ * count it actually
  * dispatched and, when it dispatched none, the reason from `retry.ts`'s
  * closed refusal set — so a caller can always tell "retried 3" from
  * "retried 0 because the cap is spent" without reading telemetry.

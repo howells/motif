@@ -1,6 +1,6 @@
 # Routing eval
 
-Measures whether an agent that has only what Motif ships picks the right `motif` command for a plain request. It's the exit check for the surface plan (`docs/surface/plan.md`, SURF-18).
+Measures whether an agent that has only what Motif ships picks the right `motif` command for a plain request. It's the exit check for the agent-surface work tracked on Linear MOT-43.
 
 For each case the model gets:
 
