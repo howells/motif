@@ -24,7 +24,7 @@ The canary spends credits and is opt-in. For a docs-only change, run `git diff -
 
 ## Driving the CLI
 
-Generations cost real money, roughly $0.003 to $0.30 an image and five to ten times that for video. `motif --describe tasks --format json` is the live command surface and `motif --describe <task> --format json` covers one Task. Always `--dry-run` first, `--no-open` in a pipeline, `--fields` to keep output small, and let Motif choose the Model rather than hardcoding a Model or taxonomy id. Removed verbs (`--rmbg`, `--up`, `--vary`, `--video`, `enhance`, `tool`) exit `2` with `REMOVED_COMMAND`, output paths must stay inside the git root or `INVALID_OUTPUT_PATH` fails the run, and exit codes are semantic: `2` bad input, `3` auth, `4` not found, `5` upstream fal failure. Parse JSON, never the human format.
+Generations cost real money, roughly $0.003 to $0.30 an image and five to ten times that for video. `motif --describe tasks --format json` is the live command surface and `motif --describe <task> --format json` covers one Task. Always `--dry-run` first, `--no-open` in a pipeline, `--fields` to keep output small, and let Motif choose the Model rather than hardcoding one. Exit codes are semantic (`2` bad input, `3` auth, `4` not found, `5` upstream fal failure) and removed verbs exit `2` with `REMOVED_COMMAND`. Parse JSON, never the human format.
 
 ## More
 
