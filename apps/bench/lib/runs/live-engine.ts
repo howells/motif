@@ -293,24 +293,42 @@ const buildLiveAttempt = async (
 };
 
 // ---------------------------------------------------------------------------
-// buildJudgment — real vision judge via fal's any-llm/vision endpoint
+// buildJudgment — real vision judge via fal's openrouter/router/vision endpoint
 // ---------------------------------------------------------------------------
 
 /** `GOOGLE_GENERATIVE_AI_API_KEY` does not exist anywhere on this machine or
- * in `.env` (team lead's brief), so the judge is routed through fal's
- * provider-agnostic `any-llm/vision` endpoint instead — same `FAL_KEY` the
- * generation client already requires, no second provider credential. Cheapest
- * capable option of the verified-working model ids (`google/gemini-2.5-flash`,
- * `google/gemini-2.5-pro`, `anthropic/claude-haiku-4.5`,
- * `anthropic/claude-3-haiku`, `openai/gpt-4o` are the alternatives) — a
- * single named constant so swapping tiers later is a one-line change. */
-export const FAL_JUDGE_MODEL_ID = "google/gemini-2.5-flash-lite";
+ * in `.env` (team lead's brief), so the judge is routed through fal instead —
+ * same `FAL_KEY` the generation client already requires, no second provider
+ * credential. Originally `fal-ai/any-llm/vision`, moved to
+ * `openrouter/router/vision` (see `FAL_ROUTER_VISION_URL`) because
+ * `any-llm/vision`'s model enum has no Gemini 3 entry and OpenRouter retires
+ * Gemini 2.5 on 2026-10-20 — the router endpoint takes any OpenRouter model
+ * id, including Gemini 3.
+ *
+ * Picked by measurement, not taste: of the absolute-judge arms swept live
+ * against a real 21-image bench run (`google/gemini-2.5-flash-lite`
+ * baseline, `google/gemini-3.1-flash-lite`, `google/gemini-3.5-flash-lite`),
+ * `gemini-3.1-flash-lite` gave the most distinct verdicts across the sweep
+ * at flash-lite cost and latency, with zero errors and no `reasoning` flag
+ * required. See the Linear issue for the full measurement table. */
+export const FAL_JUDGE_MODEL_ID = "google/gemini-3.1-flash-lite";
 
-/** Verified live against a real image (team lead's brief): returns
- * `200 { output: "<string>", reasoning, partial, error }`. Takes `image_url`,
- * not bytes — the CDN upload below is what turns a local `Buffer` into a URL
- * this endpoint can fetch. */
-const FAL_VISION_JUDGE_URL = "https://fal.run/fal-ai/any-llm/vision";
+/** OpenRouter's Gemini 3.5 models 400 with "Reasoning is mandatory for this
+ * endpoint and cannot be disabled" unless `reasoning: true` is sent; earlier
+ * tiers (2.5, 3.1) accept the field but burn hundreds of extra completion
+ * tokens on a reasoning trace nothing here reads, so it is only sent for a
+ * model that requires it. `FAL_JUDGE_MODEL_ID` does not, hence `false` here. */
+export const FAL_JUDGE_MODEL_REASONING = false;
+
+/** `openrouter/router/vision` — verified live: takes `{ model, prompt,
+ * image_urls: string[], system_prompt?, max_tokens?, temperature?,
+ * reasoning? }` and returns `200 { output: "<string>", usage: {
+ * prompt_tokens, completion_tokens, cost } }`, no `error`/`partial` fields.
+ * `image_urls` is always an array here, even for a single image — the router
+ * has no singular `image_url` field (unlike the old `any-llm/vision`). Takes
+ * URLs, not bytes — the CDN upload below is what turns a local `Buffer` into
+ * a URL this endpoint can fetch. */
+const FAL_ROUTER_VISION_URL = "https://fal.run/openrouter/router/vision";
 
 /** Generous relative to a single vision-classification call — this is a
  * judge request, not a generation, so it does not need
@@ -352,43 +370,47 @@ export const bufferFromFilePartData = (
 };
 
 interface FalVisionJudgeRequestBody {
-  readonly image_url: string;
+  readonly image_urls: readonly [string];
   readonly model: string;
   readonly prompt: string;
+  readonly reasoning?: boolean;
 }
 
-/** The exact request body sent to `FAL_VISION_JUDGE_URL` — split out so a
- * test can assert its shape (the verified contract, and the base64/data-URI
- * rule: `image_url` is a fal CDN URL, never inlined image bytes) without
- * making a network call. */
+/** The exact request body sent to `FAL_ROUTER_VISION_URL` for the absolute
+ * judge — split out so a test can assert its shape (the verified contract,
+ * and the base64/data-URI rule: `image_urls` carries a fal CDN URL, never
+ * inlined image bytes) without making a network call. `reasoning` is present
+ * only when `FAL_JUDGE_MODEL_REASONING` is true — `openrouter/router/vision`
+ * 400s some models if it is sent `false` explicitly, so absence, not
+ * `false`, is how "not required" is expressed. */
 export const buildFalVisionRequestBody = (
   prompt: string,
   imageUrl: string
-): FalVisionJudgeRequestBody => ({
-  image_url: imageUrl,
-  model: FAL_JUDGE_MODEL_ID,
-  prompt,
-});
+): FalVisionJudgeRequestBody =>
+  FAL_JUDGE_MODEL_REASONING
+    ? {
+        image_urls: [imageUrl],
+        model: FAL_JUDGE_MODEL_ID,
+        prompt,
+        reasoning: true,
+      }
+    : { image_urls: [imageUrl], model: FAL_JUDGE_MODEL_ID, prompt };
 
-/** Loose-parses `any-llm/vision`'s response: a truthy `error` or a missing/
- * blank `output` both fail closed into a thrown error, which `judgeSample`
+/** Loose-parses `openrouter/router/vision`'s response: a missing/blank
+ * `output` fails closed into a thrown error, which `judgeSample`
  * (`@motif/bench-core/judge`) catches and turns into `{ status:
  * "inconclusive", errorCode: "JUDGE_UNAVAILABLE" }` — a dead judge must never
- * fail the run. Split out so a test can cover all three branches without a
+ * fail the run. Unlike the retired `any-llm/vision` endpoint, a successful
+ * `200` here carries no `error`/`partial` field to check — failure is
+ * reported as a non-2xx HTTP status instead (see `buildFalJudgeModelClient`'s
+ * `response.ok` check). Split out so a test can cover both branches without a
  * network call. */
 export const parseFalVisionOutput = (data: unknown): string => {
   if (typeof data !== "object" || data === null) {
     throw new Error("fal vision judge returned a non-object response");
   }
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- narrowed by the object/null check directly above; both reads below go through explicit typeof/truthiness checks that treat the value as unknown regardless
+  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- narrowed by the object/null check directly above; the read below goes through an explicit typeof check that treats the value as unknown regardless
   const record = data as Record<string, unknown>;
-  if (
-    record.error !== undefined &&
-    record.error !== null &&
-    record.error !== false
-  ) {
-    throw new Error("fal vision judge reported an error");
-  }
   if (typeof record.output !== "string" || record.output.trim() === "") {
     throw new Error("fal vision judge response missing a string output");
   }
@@ -489,7 +511,7 @@ export const buildFalJudgeModelClient = (apiKey: string): JudgeModelClient => ({
       bufferFromFilePartData(imagePart.data)
     );
 
-    const response = await fetch(FAL_VISION_JUDGE_URL, {
+    const response = await fetch(FAL_ROUTER_VISION_URL, {
       body: JSON.stringify(buildFalVisionRequestBody(prompt, imageUrl)),
       headers: {
         Authorization: `Key ${apiKey}`,
@@ -509,11 +531,13 @@ export const buildFalJudgeModelClient = (apiKey: string): JudgeModelClient => ({
 
 /** `costMicros` is `null`, always: `JudgeModelClient.generateJudgeText`
  * (`bench-core/judge`'s contract, not changeable here) returns only the
- * judge's text, and fal's `any-llm/vision` response carries no billing field
- * to capture even if the seam allowed it through — the same situation
- * `buildLiveAttempt`'s `costRefinedMicros` comment describes for generation.
- * `null` stays distinct from `0` (`BRIEF.md` rule 9): this is genuinely
- * unknown, not free. */
+ * judge's text. `openrouter/router/vision` *does* report a per-call cost
+ * (`usage.cost` in its response — unlike the retired `any-llm/vision`, which
+ * reported nothing), but that seam has no field to carry it through, and
+ * widening `JudgeModelClient`/`PairJudgeModelClient` across `bench-core` to
+ * add one is out of scope here — the same situation `buildLiveAttempt`'s
+ * `costRefinedMicros` comment describes for generation. `null` stays
+ * distinct from `0` (`BRIEF.md` rule 9): this is unwired, not free. */
 const INCONCLUSIVE_NO_IMAGE: EngineJudgment = {
   costMicros: null,
   critique: null,
@@ -557,49 +581,85 @@ const buildLiveJudgment = async (
 };
 
 // ---------------------------------------------------------------------------
-// Comparative judging — pairwise A/B over the same any-llm/vision endpoint
+// Comparative judging — pairwise A/B over the same openrouter/router/vision endpoint
 // ---------------------------------------------------------------------------
 
 /** The comparative pass judges **72 pairs** for a 24-model sweep where the
- * absolute pass judged 24 images, so the model tier is a deliberate,
- * separately-named choice rather than a reuse of `FAL_JUDGE_MODEL_ID`: the
- * whole point of comparing is discrimination, and `-lite` is the tier that
- * produced the 14-way tie this exists to fix (`@motif/bench-core/rank-judge`'s
- * header). `google/gemini-2.5-flash` — one tier up, still a flash model. */
-export const FAL_RANK_JUDGE_MODEL_ID = "google/gemini-2.5-flash";
+ * absolute pass judged 24 images, so the model tier was originally a
+ * deliberate, separately-named choice rather than a reuse of
+ * `FAL_JUDGE_MODEL_ID` — see `@motif/bench-core/rank-judge`'s header for why
+ * `-lite` was avoided for the *absolute* judge at the time. That reasoning
+ * does not automatically transfer to a forced-choice pairwise call, and the
+ * live measurement below shows it doesn't: `-lite` is what won here too.
+ *
+ * Moved off `google/gemini-2.5-flash` for the same reason as the absolute
+ * judge (`FAL_JUDGE_MODEL_ID`'s comment): OpenRouter retires Gemini 2.5 on
+ * 2026-10-20. Picked by measurement, and the obvious pick was wrong: swept
+ * live against 20 pairs from a real 21-image bench run (`gemini-2.5-flash`
+ * baseline, `gemini-3.5-flash-lite`, `gemini-3.5-flash`, each pair judged
+ * twice with A/B swapped), `gemini-3.5-flash` scored *higher* raw agreement
+ * with the 2.5-flash baseline (0.80 vs 0.70) — but the baseline picks
+ * whichever image is listed first 80% of the time (16/20 unswapped calls),
+ * and `gemini-3.5-flash` matches that same position-A rate almost exactly
+ * (also 16/20), which is what that "agreement" mostly is: two judges sharing
+ * the same position bias, not two judges agreeing about image quality.
+ * `gemini-3.5-flash-lite` shows the *least* position bias of the three
+ * (14/20 position-A, vs 16/20 for the other two) and the *best*
+ * self-consistency under an A/B swap (0.50 vs 0.45 for `gemini-3.5-flash`
+ * and 0.40 for the baseline) — the harder-to-game signal, since a judge that
+ * flips its verdict when the same two images swap position is failing on
+ * its own terms, independent of any baseline. It is also ~13x cheaper and
+ * ~5x lower p50 latency than `gemini-3.5-flash` (see the Linear issue for
+ * the full measurement table), so on every axis but the confounded one,
+ * `-lite` won. */
+export const FAL_RANK_JUDGE_MODEL_ID = "google/gemini-3.5-flash-lite";
+
+/** See `FAL_JUDGE_MODEL_REASONING`'s comment — Gemini 3.5 models require
+ * `reasoning: true` on `openrouter/router/vision` or the request 400s.
+ * `FAL_RANK_JUDGE_MODEL_ID` is a 3.5 model, hence `true` here. */
+export const FAL_RANK_JUDGE_MODEL_REASONING = true;
 
 interface FalVisionPairRequestBody {
-  readonly image_urls: readonly string[];
+  readonly image_urls: readonly [string, string];
   readonly model: string;
   readonly prompt: string;
+  readonly reasoning?: boolean;
 }
 
-/** `fal-ai/any-llm/vision` accepts `image_urls` (plural) as well as the
- * singular `image_url` — verified directly against the live endpoint (a
- * two-URL request was accepted and failed only on fetching the placeholder
- * URLs used to probe it). That is what makes one comparative judgment a
- * single provider call carrying both images: no compositing step, no second
- * request, no new dependency.
+/** `openrouter/router/vision` takes `image_urls` (plural, always an array —
+ * see `FAL_ROUTER_VISION_URL`'s comment). That is what makes one comparative
+ * judgment a single provider call carrying both images: no compositing step,
+ * no second request, no new dependency.
  *
  * Order is the contract the prompt describes: the first URL is image "A",
  * the second is image "B" (`buildPairJudgePrompt`). Both are fal CDN URLs —
- * never inlined image bytes, never a `data:` URI (`BRIEF.md` rule 1). Split
- * out so a test can assert the shape without a network call. */
+ * never inlined image bytes, never a `data:` URI (`BRIEF.md` rule 1).
+ * `reasoning` follows `buildFalVisionRequestBody`'s rule: present only when
+ * `FAL_RANK_JUDGE_MODEL_REASONING` is true, never sent as an explicit
+ * `false`. Split out so a test can assert the shape without a network call. */
 export const buildFalVisionPairRequestBody = (
   prompt: string,
   imageUrlA: string,
   imageUrlB: string
-): FalVisionPairRequestBody => ({
-  image_urls: [imageUrlA, imageUrlB],
-  model: FAL_RANK_JUDGE_MODEL_ID,
-  prompt,
-});
+): FalVisionPairRequestBody =>
+  FAL_RANK_JUDGE_MODEL_REASONING
+    ? {
+        image_urls: [imageUrlA, imageUrlB],
+        model: FAL_RANK_JUDGE_MODEL_ID,
+        prompt,
+        reasoning: true,
+      }
+    : {
+        image_urls: [imageUrlA, imageUrlB],
+        model: FAL_RANK_JUDGE_MODEL_ID,
+        prompt,
+      };
 
 export const buildFalPairJudgeModelClient = (
   apiKey: string
 ): PairJudgeModelClient => ({
   generatePairJudgeText: async ({ imageUrlA, imageUrlB, prompt, signal }) => {
-    const response = await fetch(FAL_VISION_JUDGE_URL, {
+    const response = await fetch(FAL_ROUTER_VISION_URL, {
       body: JSON.stringify(
         buildFalVisionPairRequestBody(prompt, imageUrlA, imageUrlB)
       ),
@@ -677,7 +737,7 @@ const buildLiveComparativeJudge = (apiKey: string): ComparativeJudge => ({
 /** Constructs the live `RunEngine`. Throws synchronously — before any
  * network call, before any file is touched — when the live credentials are
  * absent: neither generation nor judging can exist without `FAL_KEY`, now
- * that the judge is routed through fal's `any-llm/vision`. `repository.ts`
+ * that the judge is routed through fal's `openrouter/router/vision`. `repository.ts`
  * is the only caller, and only when `getLiveCredentials()` already
  * resolved — so this throw is a belt-and-braces guard, not a code path. */
 export const createLiveEngine = (envInput?: NodeJS.ProcessEnv): RunEngine => {

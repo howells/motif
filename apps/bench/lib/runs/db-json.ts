@@ -124,12 +124,12 @@ export const fromLevelsJson = (
  *
  * | column          | carries                                                |
  * |-----------------|--------------------------------------------------------|
- * | `judge_model`   | the vision model id (`google/gemini-2.5-flash`)         |
+ * | `judge_model`   | the vision model id (`google/gemini-3.5-flash-lite`, via fal's `openrouter/router/vision` — see `live-engine.ts`'s `FAL_RANK_JUDGE_MODEL_ID`) |
  * | `rubric_id`     | `RANK_RUBRIC_ID` — distinct from `ROOM_RUBRIC_ID`, so a rank row and an absolute row for the same sample coexist under the `(sample, judge, rubric, version)` unique key instead of overwriting each other |
  * | `overall`       | the Bradley-Terry `rankScore` (`doublePrecision`, nullable — `null` for a sample with zero completed comparisons, never a fabricated 0) |
  * | `levels`        | this sample's pair outcomes plus its standings          |
  * | `status`        | `scored` once a rank score exists, `inconclusive` when the sample completed no comparison |
- * | `cost_micros`   | `null` — fal's `any-llm/vision` reports no billing field |
+ * | `cost_micros`   | `null` — `openrouter/router/vision` reports a per-call cost, but nothing on this seam carries it through yet (see `live-engine.ts`'s `costMicros` comment above `INCONCLUSIVE_NO_IMAGE`) |
  *
  * `levels` is CHECK-constrained to a JSON *object* and is read back through
  * `LevelsJsonSchema` (`Record<string, string>`), so every value written here

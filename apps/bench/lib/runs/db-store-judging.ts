@@ -415,8 +415,9 @@ const runComparativePass = async (
       return db
         .insert(benchJudgments)
         .values({
-          // fal's `any-llm/vision` reports no billing field, so this stays
-          // `null` — unknown cost, not free cost (`BRIEF.md` rule 9).
+          // `openrouter/router/vision` reports a per-call cost, but nothing
+          // on this seam carries it through yet (`live-engine.ts`), so this
+          // stays `null` — unknown cost, not free cost (`BRIEF.md` rule 9).
           costMicros: null,
           critique,
           id: randomUUID(),

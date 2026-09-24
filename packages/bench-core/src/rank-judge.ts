@@ -6,13 +6,18 @@
  * ## Why this exists
  *
  * Absolute scoring saturates. Measured on a real 20-judgment sweep
- * (`google/gemini-2.5-flash-lite` on fal `any-llm/vision`): **5 distinct
+ * (`google/gemini-2.5-flash-lite` on fal's now-retired `any-llm/vision`,
+ * historical — the live engine has since moved to `openrouter/router/vision`
+ * and a Gemini 3 model, `live-engine.ts`'s `FAL_JUDGE_MODEL_ID`): **5 distinct
  * verdicts, 14 models byte-identical** — same `overall` of 3.78, same
  * six-criterion level map. "Best quality" was a coin toss inside a 14-way
  * tie, and "Best value" inherited the noise because it divides by quality. A
  * judge shown one image is answering "is this good?", and for modern
  * image models the honest answer is almost always yes. Asking "which of
  * these two is better?" discriminates exactly where absolute scoring cannot.
+ * The same saturation was reconfirmed live against the newer models
+ * (`live-engine.ts`'s judge-model comments carry the current numbers), so
+ * this module's reason for existing is unchanged.
  *
  * `judge.ts` stays and is still the right tool for a run with fewer than two
  * completed samples — there is nothing to compare against, so a comparative

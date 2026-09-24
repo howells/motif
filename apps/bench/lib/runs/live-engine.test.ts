@@ -21,7 +21,9 @@ import {
   createFalGenerationClient,
   createLiveEngine,
   FAL_JUDGE_MODEL_ID,
+  FAL_JUDGE_MODEL_REASONING,
   FAL_RANK_JUDGE_MODEL_ID,
+  FAL_RANK_JUDGE_MODEL_REASONING,
   JUDGE_IMAGE_JPEG_QUALITY,
   JUDGE_IMAGE_LONG_EDGE,
   LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS,
@@ -140,20 +142,29 @@ describe("bufferFromFilePartData — the base64/data-URI rule, narrowing side", 
   });
 });
 
-describe("buildFalVisionRequestBody — the verified fal any-llm/vision contract", () => {
-  it("matches the exact shape confirmed live: prompt, image_url, model", () => {
+describe("buildFalVisionRequestBody — the verified fal openrouter/router/vision contract", () => {
+  it("matches the exact shape confirmed live: prompt, image_urls (singleton), model", () => {
     const body = buildFalVisionRequestBody(
       "judge this room image",
       "https://fal.media/files/panda/judge-sample.png"
     );
     expect(body).toStrictEqual({
-      image_url: "https://fal.media/files/panda/judge-sample.png",
+      image_urls: ["https://fal.media/files/panda/judge-sample.png"],
       model: FAL_JUDGE_MODEL_ID,
       prompt: "judge this room image",
     });
   });
 
-  it("never embeds a base64 string or a data: URI — image_url is always a fal CDN URL", () => {
+  it("omits reasoning — FAL_JUDGE_MODEL_ID does not require it", () => {
+    expect(FAL_JUDGE_MODEL_REASONING).toBe(false);
+    const body = buildFalVisionRequestBody(
+      "judge this room image",
+      "https://fal.media/files/panda/judge-sample.png"
+    );
+    expect(body).not.toHaveProperty("reasoning");
+  });
+
+  it("never embeds a base64 string or a data: URI — image_urls carries only a fal CDN URL", () => {
     const body = buildFalVisionRequestBody(
       "judge this room image",
       "https://fal.media/files/panda/judge-sample.png"
@@ -170,19 +181,13 @@ describe(parseFalVisionOutput, () => {
   });
 
   it("throws when output is missing", () => {
-    expect(() =>
-      parseFalVisionOutput({ reasoning: "no output field" })
-    ).toThrow(/output/iu);
+    expect(() => parseFalVisionOutput({ usage: { cost: 0.0001 } })).toThrow(
+      /output/iu
+    );
   });
 
   it("throws when output is blank", () => {
     expect(() => parseFalVisionOutput({ output: "   " })).toThrow(/output/iu);
-  });
-
-  it("throws when fal reports a truthy error", () => {
-    expect(() =>
-      parseFalVisionOutput({ error: "model unavailable", output: "" })
-    ).toThrow(/error/iu);
   });
 
   it("throws on a non-object response", () => {
@@ -290,7 +295,7 @@ describe("buildFalJudgeModelClient — full flow, network stubbed", () => {
     if (typeof url !== "string") {
       throw new TypeError("expected the vision judge call to use a string URL");
     }
-    expect(url).toBe("https://fal.run/fal-ai/any-llm/vision");
+    expect(url).toBe("https://fal.run/openrouter/router/vision");
     const body = requestInit?.body;
     if (typeof body !== "string") {
       throw new TypeError("expected a JSON string request body");
@@ -326,9 +331,18 @@ describe(buildFalVisionPairRequestBody, () => {
     expect(body.model).toBe(FAL_RANK_JUDGE_MODEL_ID);
   });
 
-  it("uses a stronger judge tier than the absolute pass", () => {
-    expect(FAL_RANK_JUDGE_MODEL_ID).toBe("google/gemini-2.5-flash");
+  it("is a distinct, separately-measured model choice from the absolute pass", () => {
     expect(FAL_RANK_JUDGE_MODEL_ID).not.toBe(FAL_JUDGE_MODEL_ID);
+  });
+
+  it("sends reasoning: true — FAL_RANK_JUDGE_MODEL_ID is a Gemini 3.5 model that requires it", () => {
+    expect(FAL_RANK_JUDGE_MODEL_REASONING).toBe(true);
+    const body = buildFalVisionPairRequestBody(
+      "compare these",
+      PAIR_URL_A,
+      PAIR_URL_B
+    );
+    expect(body.reasoning).toBe(true);
   });
 
   it("never inlines image bytes as base64 or a data URI", () => {
@@ -368,7 +382,7 @@ describe("buildFalPairJudgeModelClient — full flow, network stubbed", () => {
     expect(fetchSpy).toHaveBeenCalledOnce();
 
     const [url, requestInit] = fetchSpy.mock.calls[0] ?? [];
-    expect(url).toBe("https://fal.run/fal-ai/any-llm/vision");
+    expect(url).toBe("https://fal.run/openrouter/router/vision");
     const body = requestInit?.body;
     if (typeof body !== "string") {
       throw new TypeError("expected a JSON string request body");
