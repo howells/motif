@@ -35,11 +35,20 @@ export const GOOGLE_API_KEY_ENV = "GOOGLE_GENERATIVE_AI_API_KEY";
  *     (`MODELS.gemini3`/`MODELS.banana` in ../models) — fal adds overhead.
  *   - `gemini-3.1-flash-image-preview`: flash-tier image output; priced with the
  *     2.5 flash-image line (≈ $0.039/image) pending a distinct published rate.
+ *   - `gemini-3.1-flash-image`, `gemini-3-pro-image`: the released versions of
+ *     the two previews above, which Google lists as shut down on 2026-06-25.
+ *     3.1-flash-image is $0.067/image at 1K; 3-pro-image is $0.134 at 1K/2K,
+ *     the same as the preview.
+ *   - `gemini-3.1-flash-lite-image`: ≈ $0.0336/image at 1K.
+ *     Source: https://ai.google.dev/gemini-api/docs/pricing (2026-09-24)
  */
 export const GOOGLE_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
   "gemini-2.5-flash-image": 0.039,
   "gemini-3.1-flash-image-preview": 0.039,
   "gemini-3-pro-image-preview": 0.134,
+  "gemini-3.1-flash-image": 0.067,
+  "gemini-3-pro-image": 0.134,
+  "gemini-3.1-flash-lite-image": 0.0336,
 };
 
 /**

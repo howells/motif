@@ -11,7 +11,7 @@
  * import { createMotifImage } from "@howells/motif-sdk/image";
  *
  * const img = createMotifImage({ defaultProvider: "google" });
- * const r = await img.generate({ model: "gemini-3.1-flash-image-preview", prompt: "a bare concrete wall" });
+ * const r = await img.generate({ model: "gemini-3.1-flash-image", prompt: "a bare concrete wall" });
  * if (r.isOk()) console.log(r.value.images[0].mediaType, r.value.cost);
  * ```
  */
