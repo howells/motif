@@ -24,7 +24,7 @@ import type { Result } from "neverthrow";
 import { falHttpError, isFalAccountLocked } from "../errors";
 import { MotifError } from "../server";
 import type { FalFetch } from "../types";
-import { costForImages } from "./cost";
+import { costForCalls } from "./cost";
 import type { MotifImageDeps } from "./deps";
 import { getProviderAdapter } from "./provider";
 import type {
@@ -344,10 +344,10 @@ function toMotifImageResult(
     base64: file.base64,
     mediaType: file.mediaType,
   }));
-  const cost = costForImages(
+  const cost = costForCalls(
     provider,
     model,
-    result.providerMetadata,
+    result.calls.map((call) => call.providerMetadata),
     images.length
   );
   const requestId = extractRequestId(result);
@@ -388,11 +388,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /** Look for a provider correlation id in providerMetadata, then response headers. */
 function extractRequestId(result: GenerateImageResult): string | undefined {
-  const fromMetadata = requestIdFromMetadata(result.providerMetadata);
-  if (fromMetadata !== undefined) {
-    return fromMetadata;
+  for (const call of result.calls) {
+    const fromMetadata = requestIdFromMetadata(call.providerMetadata);
+    if (fromMetadata !== undefined) {
+      return fromMetadata;
+    }
   }
-  for (const response of result.responses) {
+  for (const { response } of result.calls) {
     const { headers } = response;
     if (headers) {
       const id =

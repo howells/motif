@@ -1,4 +1,8 @@
-import type { GenerateImageResult, ImageModel } from "ai";
+import type {
+  GenerateImageResult,
+  ImageModel,
+  ImageModelProviderMetadata,
+} from "ai";
 import { describe, expect, it } from "vitest";
 
 import type { MotifImageDeps } from "../src/image/deps";
@@ -75,23 +79,37 @@ function fakeImageModel(
   };
 }
 
+/** Per-call provider metadata and response headers for a fake result. */
+interface FakeCall {
+  providerMetadata?: ImageModelProviderMetadata;
+  headers?: Record<string, string>;
+}
+
 /** Build a typed `GenerateImageResult` for fake `generateImage` injections. */
 function fakeResult(
-  overrides: Partial<GenerateImageResult> = {}
+  overrides: Partial<GenerateImageResult> = {},
+  call: FakeCall = {}
 ): GenerateImageResult {
   const file = {
     base64: "AAAA",
     uint8Array: new Uint8Array([1, 2, 3]),
     mediaType: "image/png",
   };
+  const response = {
+    timestamp: new Date(0),
+    modelId: "fake",
+    headers: call.headers,
+  };
+  const providerMetadata = call.providerMetadata ?? {};
+  // The AI SDK still returns its deprecated aggregate fields; built untyped so
+  // the fake stays a complete `GenerateImageResult` without reading them.
+  const aggregate = { responses: [response], providerMetadata };
   return {
     image: file,
     images: [file],
+    calls: [{ images: [file], providerMetadata, response, warnings: [] }],
     warnings: [],
-    responses: [
-      { timestamp: new Date(0), modelId: "fake", headers: undefined },
-    ],
-    providerMetadata: {},
+    ...aggregate,
     usage: {
       inputTokens: undefined,
       outputTokens: undefined,
@@ -131,9 +149,14 @@ describe("createMotifImage.generate", () => {
         resolveModel: () => fakeImageModel(),
         generateImage: async () => {
           await Promise.resolve();
-          return fakeResult({
-            providerMetadata: { google: { images: [], requestId: "req_123" } },
-          });
+          return fakeResult(
+            {},
+            {
+              providerMetadata: {
+                google: { images: [], requestId: "req_123" },
+              },
+            }
+          );
         },
       }
     );
@@ -182,9 +205,10 @@ describe("createMotifImage.generate", () => {
         resolveModel: () => fakeImageModel(),
         generateImage: async () => {
           await Promise.resolve();
-          return fakeResult({
-            providerMetadata: { google: { images: [], cost: 0.5 } },
-          });
+          return fakeResult(
+            {},
+            { providerMetadata: { google: { images: [], cost: 0.5 } } }
+          );
         },
       }
     );
@@ -356,16 +380,10 @@ describe("createMotifImage.generate", () => {
         resolveModel: () => fakeImageModel(),
         generateImage: async () => {
           await Promise.resolve();
-          return fakeResult({
-            providerMetadata: {},
-            responses: [
-              {
-                timestamp: new Date(0),
-                modelId: "fake",
-                headers: { "x-goog-request-id": "goog_req_9" },
-              },
-            ],
-          });
+          return fakeResult(
+            {},
+            { headers: { "x-goog-request-id": "goog_req_9" } }
+          );
         },
       }
     );

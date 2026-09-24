@@ -11,6 +11,10 @@
 - The flat looks that refuse a mood are now `object`, `surface`, `abstract` and `illustration`. `illustration` carries `experimental: true`; no other look does.
 - Every look's Model can now edit, so vary honours all nine. `resolveTask` still falls back to the ranking for a Look whose Model a Task doesn't offer; no look reaches that branch today.
 
+### Patch Changes
+
+- Dependencies updated to latest, including `ai` 7.0.113 and the `@ai-sdk/*` providers. Image cost and request id are read from each model call (`result.calls`) instead of the aggregate fields the AI SDK has deprecated; provider-reported costs across calls are summed.
+
 ## 4.0.0
 
 Released alongside `@howells/motif-cli` 3.0.0: "tasks replace models" (ADR 0001, MOT-63). Callers name a Task and Motif chooses the Model.

@@ -71,12 +71,32 @@ export function costForImages(
   providerMetadata: unknown,
   imageCount: number
 ): ImageCost {
+  return costForCalls(provider, modelId, [providerMetadata], imageCount);
+}
+
+/**
+ * Cost across every underlying model call of one generation. Provider-metadata
+ * costs from the calls that report one are summed; otherwise the static table
+ * (× image count), then unknown.
+ */
+export function costForCalls(
+  provider: ImageProviderId,
+  modelId: string,
+  callMetadata: readonly unknown[],
+  imageCount: number
+): ImageCost {
   // Cost contract: a provider-metadata cost is returned AS-IS. It MUST be the
   // call total (already across all `n` images), NOT a per-image figure — unlike
   // the static table below, which is per-image and multiplied by the image
   // count. No adapter populates `providerMetadata.cost` today; any adapter that
   // starts doing so must honor this "call total, already ×n" contract.
-  const metaCost = costFromProviderMetadata(providerMetadata);
+  let metaCost: number | undefined;
+  for (const providerMetadata of callMetadata) {
+    const callCost = costFromProviderMetadata(providerMetadata);
+    if (callCost !== undefined) {
+      metaCost = (metaCost ?? 0) + callCost;
+    }
+  }
   if (metaCost !== undefined) {
     return { usd: roundUsd(metaCost), source: "provider-metadata" };
   }
