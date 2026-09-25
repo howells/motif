@@ -129,6 +129,14 @@ More in [apps/cli/docs/series.md](apps/cli/docs/series.md).
 
 ## Scripts and agents
 
+Install the [Motif agent skill](skills/motif/SKILL.md) for task selection, dry runs, paid-call approval and structured output:
+
+```bash
+npx skills add howells/motif --skill motif
+```
+
+Add `--global` to make it available across projects. The skill uses the Motif CLI, installed separately with `npm install -g @howells/motif-cli`.
+
 When stdout isn't a terminal, Motif writes JSON. Useful flags everywhere: `--dry-run`, `--format json|ndjson|human`, `--fields`, `--no-open`.
 
 ```bash
