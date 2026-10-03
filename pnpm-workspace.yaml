@@ -4,7 +4,6 @@ packages:
 
 catalog:
   "@ai-sdk/fal": "^3.0.48"
-  "@ai-sdk/google": "^4.0.79"
   "@ai-sdk/openai": "^4.0.74"
   "@ai-sdk/replicate": "^3.0.48"
   "@blossom-carousel/react": "^1.5.2"

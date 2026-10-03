@@ -296,10 +296,8 @@ const buildLiveAttempt = async (
 // buildJudgment — real vision judge via fal's openrouter/router/vision endpoint
 // ---------------------------------------------------------------------------
 
-/** `GOOGLE_GENERATIVE_AI_API_KEY` does not exist anywhere on this machine or
- * in `.env` (team lead's brief), so the judge is routed through fal instead —
- * same `FAL_KEY` the generation client already requires, no second provider
- * credential. Originally `fal-ai/any-llm/vision`, moved to
+/** The judge is routed through fal — the same `FAL_KEY` the generation client
+ * already requires, no second provider credential. Originally `fal-ai/any-llm/vision`, moved to
  * `openrouter/router/vision` (see `FAL_ROUTER_VISION_URL`) because
  * `any-llm/vision`'s model enum has no Gemini 3 entry and OpenRouter retires
  * Gemini 2.5 on 2026-10-20 — the router endpoint takes any OpenRouter model

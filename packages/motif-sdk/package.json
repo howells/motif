@@ -54,7 +54,6 @@
   },
   "dependencies": {
     "@ai-sdk/fal": "catalog:",
-    "@ai-sdk/google": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "@ai-sdk/replicate": "catalog:",
     "@howells/envy": "catalog:",

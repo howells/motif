@@ -170,10 +170,10 @@ export default {
         "packages/motif-sdk/src/env.ts",
         // Provider-agnostic image layer's per-provider adapters each resolve
         // their own API key env var as their env-access boundary
-        // (GOOGLE_GENERATIVE_AI_API_KEY / OPENAI_API_KEY / REPLICATE_API_TOKEN /
+        // (OPENROUTER_API_KEY / OPENAI_API_KEY / REPLICATE_API_TOKEN /
         // FAL_KEY).
-        "packages/motif-sdk/src/image/google.ts",
         "packages/motif-sdk/src/image/openai.ts",
+        "packages/motif-sdk/src/image/openrouter.ts",
         "packages/motif-sdk/src/image/replicate.ts",
         "packages/motif-sdk/src/image/fal.ts",
         "apps/cli/src/utils/image.ts",

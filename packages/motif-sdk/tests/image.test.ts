@@ -54,7 +54,7 @@ function fakeImageModel(
 ): ImageModel {
   return {
     specificationVersion: "v4",
-    provider: "google",
+    provider: "openrouter",
     modelId: "fake",
     maxImagesPerCall: 4,
     async doGenerate(options: DoGenerateOptions) {
@@ -122,7 +122,7 @@ function fakeResult(
 describe("createMotifImage.generate", () => {
   it("resolves ok against a fake ImageModel via the real generateImage seam", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel() }
     );
 
@@ -135,7 +135,7 @@ describe("createMotifImage.generate", () => {
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
       expect(result.value.images[0]?.uint8Array.length).toBeGreaterThan(0);
-      expect(result.value.provider).toBe("google");
+      expect(result.value.provider).toBe("openrouter");
       expect(result.value.model).toBe("gemini-3.1-flash-image-preview");
       expect(result.value.cost.source).toBe("table");
       expect(result.value.cost.usd).toBeGreaterThan(0);
@@ -153,7 +153,7 @@ describe("createMotifImage.generate", () => {
             {},
             {
               providerMetadata: {
-                google: { images: [], requestId: "req_123" },
+                openrouter: { images: [], requestId: "req_123" },
               },
             }
           );
@@ -191,7 +191,7 @@ describe("createMotifImage.generate", () => {
 
     expect(result.isOk()).toBe(true);
     expect(seen).toStrictEqual([
-      { provider: "google", modelId: "custom-model-x" },
+      { provider: "openrouter", modelId: "custom-model-x" },
     ]);
     if (result.isOk()) {
       expect(result.value.model).toBe("custom-model-x");
@@ -207,7 +207,7 @@ describe("createMotifImage.generate", () => {
           await Promise.resolve();
           return fakeResult(
             {},
-            { providerMetadata: { google: { images: [], cost: 0.5 } } }
+            { providerMetadata: { openrouter: { images: [], cost: 0.5 } } }
           );
         },
       }
@@ -227,7 +227,7 @@ describe("createMotifImage.generate", () => {
 
   it("returns Result.err when the model throws — no exception escapes", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel({ throwErr: true }) }
     );
 
@@ -243,13 +243,13 @@ describe("createMotifImage.generate", () => {
   });
 
   it("propagates a missing-key error as Result.err via the real adapter", async () => {
-    // No apiKey in config and no env key — the google adapter throws, which must
+    // No apiKey in config and no env key — the openrouter adapter throws, which must
     // be captured as a Result.err rather than escaping.
-    const previous = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
-    delete process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+    const previous = process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
     try {
       const img = createMotifImage(
-        { defaultProvider: "google" },
+        { defaultProvider: "openrouter" },
         {
           generateImage: async () => {
             await Promise.resolve();
@@ -264,11 +264,11 @@ describe("createMotifImage.generate", () => {
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error).toBeInstanceOf(MotifError);
-        expect(result.error.message).toContain("GOOGLE_GENERATIVE_AI_API_KEY");
+        expect(result.error.message).toContain("OPENROUTER_API_KEY");
       }
     } finally {
       if (previous !== undefined) {
-        process.env.GOOGLE_GENERATIVE_AI_API_KEY = previous;
+        process.env.OPENROUTER_API_KEY = previous;
       }
     }
   });
@@ -276,7 +276,7 @@ describe("createMotifImage.generate", () => {
   it("passes the generate prompt string down to the model's doGenerate", async () => {
     let captured: DoGenerateOptions | undefined;
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       {
         resolveModel: () =>
           fakeImageModel({
@@ -338,7 +338,7 @@ describe("createMotifImage.generate", () => {
       size: "512x512",
       seed: 42,
       signal: controller.signal,
-      providerOptions: { google: { style: "vivid" } },
+      providerOptions: { openrouter: { style: "vivid" } },
     });
 
     expect(result.isOk()).toBe(true);
@@ -346,7 +346,9 @@ describe("createMotifImage.generate", () => {
     expect(call?.size).toBe("512x512");
     expect(call?.seed).toBe(42);
     expect(call?.abortSignal).toBe(controller.signal);
-    expect(call?.providerOptions).toStrictEqual({ google: { style: "vivid" } });
+    expect(call?.providerOptions).toStrictEqual({
+      openrouter: { style: "vivid" },
+    });
   });
 
   it("forwards aspectRatio to generateImage", async () => {
@@ -450,7 +452,7 @@ describe("createMotifImage.generate", () => {
 
   it("omits the warnings field when the provider returns none", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel() }
     );
 
@@ -467,14 +469,14 @@ describe("createMotifImage.generate", () => {
 
   it("returns Result.err when providerOptions carries a bigint (non-JSON)", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel() }
     );
 
     const result = await img.generate({
       prompt: "x",
       model: "gemini-2.5-flash-image",
-      providerOptions: { google: { big: 10n } },
+      providerOptions: { openrouter: { big: 10n } },
     });
 
     expect(result.isErr()).toBe(true);
@@ -486,14 +488,14 @@ describe("createMotifImage.generate", () => {
 
   it("returns Result.err when providerOptions carries a function (non-JSON)", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel() }
     );
 
     const result = await img.generate({
       prompt: "x",
       model: "gemini-2.5-flash-image",
-      providerOptions: { google: { cb: () => 1 } },
+      providerOptions: { openrouter: { cb: () => 1 } },
     });
 
     expect(result.isErr()).toBe(true);
@@ -504,7 +506,7 @@ describe("createMotifImage.generate", () => {
 
   it("lifts an AI-SDK APICallError statusCode onto MotifError.status", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       {
         resolveModel: () => fakeImageModel(),
         generateImage: async () => {
@@ -530,7 +532,7 @@ describe("createMotifImage.generate", () => {
 
   it("maps a plain Error (no statusCode) to status 0", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       {
         resolveModel: () => fakeImageModel(),
         generateImage: async () => {
@@ -618,7 +620,7 @@ describe("createMotifImage.edit", () => {
 
   it("resolves ok end-to-end through the real generateImage seam", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel() }
     );
 
@@ -631,7 +633,7 @@ describe("createMotifImage.edit", () => {
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.images).toHaveLength(1);
-      expect(result.value.provider).toBe("google");
+      expect(result.value.provider).toBe("openrouter");
     }
   });
 
@@ -642,7 +644,7 @@ describe("createMotifImage.edit", () => {
 
     let captured: DoGenerateOptions | undefined;
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       {
         resolveModel: () =>
           fakeImageModel({
@@ -683,7 +685,7 @@ describe("createMotifImage.edit", () => {
 
   it("returns Result.err when the model throws in edit()", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel({ throwErr: true }) }
     );
 
@@ -917,7 +919,7 @@ interface CountingState {
 function countingImageModel(state: CountingState): ImageModel {
   return {
     specificationVersion: "v4",
-    provider: "google",
+    provider: "openrouter",
     modelId: "fake",
     maxImagesPerCall: 4,
     async doGenerate(options: DoGenerateOptions) {
@@ -975,7 +977,7 @@ describe("createMotifImage.bestOfN", () => {
   it("generates n candidates and lets a judge pick the winner", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1009,7 +1011,7 @@ describe("createMotifImage.bestOfN", () => {
   it("defaults chosenIndex to 0 when no judge is given", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1030,7 +1032,7 @@ describe("createMotifImage.bestOfN", () => {
   it("routes an images-bearing request through the edit path", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1057,7 +1059,7 @@ describe("createMotifImage.bestOfN", () => {
   it("passes a distinct seed (seed + index) to each candidate", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1078,7 +1080,7 @@ describe("createMotifImage.bestOfN", () => {
   it("judges among the successes when some candidates fail", async () => {
     const state = newCountingState({ throwOnCall: 2 });
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1103,7 +1105,7 @@ describe("createMotifImage.bestOfN", () => {
 
   it("returns Result.err when every candidate fails", async () => {
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => fakeImageModel({ throwErr: true }) }
     );
 
@@ -1122,7 +1124,7 @@ describe("createMotifImage.bestOfN", () => {
   it("returns Result.err when the judge throws", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1145,7 +1147,7 @@ describe("createMotifImage.bestOfN", () => {
   it("returns Result.err when the judge picks an out-of-range index", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1166,7 +1168,7 @@ describe("createMotifImage.bestOfN", () => {
   it("returns Result.err for a non-positive n", async () => {
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1188,7 +1190,7 @@ describe("createMotifImage.bestOfN", () => {
     const controller = new AbortController();
     const state = newCountingState();
     const img = createMotifImage(
-      { google: { apiKey: "test-key" } },
+      { openrouter: { apiKey: "test-key" } },
       { resolveModel: () => countingImageModel(state) }
     );
 
@@ -1209,7 +1211,7 @@ describe("createMotifImage.bestOfN", () => {
 
 describe("image provider registry", () => {
   it("contains all four providers, each keyed by its own id", () => {
-    const ids: ImageProviderId[] = ["google", "openai", "replicate", "fal"];
+    const ids: ImageProviderId[] = ["openrouter", "openai", "replicate", "fal"];
     for (const id of ids) {
       const adapter = PROVIDERS[id];
       expect(adapter, `missing adapter for ${id}`).toBeDefined();
@@ -1218,7 +1220,7 @@ describe("image provider registry", () => {
       expect(adapter?.apiKeyEnv).toBeTypeOf("string");
     }
     expect(Object.keys(PROVIDERS).sort()).toStrictEqual(
-      ["fal", "google", "openai", "replicate"].sort()
+      ["fal", "openrouter", "openai", "replicate"].sort()
     );
   });
 });

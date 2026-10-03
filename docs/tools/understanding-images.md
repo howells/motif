@@ -79,9 +79,10 @@ That writes `segment/image.jpg` and `segment/masks.png` and costs $0.005. The im
 import { readFile } from "node:fs/promises";
 import { createMotifImage } from "@howells/motif-sdk/image";
 
-const img = createMotifImage({ defaultProvider: "google" });
+const img = createMotifImage({ defaultProvider: "openai" });
 
 const result = await img.edit({
+  model: "gpt-image-2.5-flare",
   images: [await readFile("source-apothecary.jpg")],
   mask: await readFile("segment/masks.png"),
   instruction: "make the bowl matte black stoneware",
@@ -93,7 +94,7 @@ if (result.isOk()) {
 }
 ```
 
-`edit()` takes the mask as bytes, a base64 string, a `data:` URL, or a remote URL. When you pass several images the mask applies to `images[0]`.
+`edit()` takes the mask as bytes (OpenAI only: the OpenRouter provider has no mask input and fails the call), a base64 string, a `data:` URL, or a remote URL. When you pass several images the mask applies to `images[0]`.
 
 On the CLI, `--mask <path>` on `erase` and `relight` takes a local mask file, and `motif "make the bowl black" -e photo.jpg --mask mask.png` sends one to a generate Model that can take it.
 

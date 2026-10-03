@@ -25,11 +25,11 @@ import type { FalFetch } from "../types";
 
 /**
  * Image provider id. All four Phase 1b adapters are implemented
- * (`google`, `openai`, `replicate`, `fal`); the type keeps an open union tail so
+ * (`openrouter`, `openai`, `replicate`, `fal`); the type keeps an open union tail so
  * further adapters can slot in without a breaking type change.
  */
 export type ImageProviderId =
-  | "google"
+  | "openrouter"
   | "openai"
   | "replicate"
   | "fal"
@@ -53,10 +53,10 @@ export interface ImageCost {
  * credential `apiToken`, not `apiKey`.
  */
 export interface MotifImageConfig {
-  /** Provider used when a call does not specify one. Defaults to `google`. */
+  /** Provider used when a call does not specify one. Defaults to `openrouter`. */
   defaultProvider?: ImageProviderId;
-  /** Google provider overrides. `apiKey` falls back to `GOOGLE_GENERATIVE_AI_API_KEY`. */
-  google?: {
+  /** OpenRouter provider overrides. `apiKey` falls back to `OPENROUTER_API_KEY`. */
+  openrouter?: {
     apiKey?: string;
   };
   /** OpenAI provider overrides. `apiKey` falls back to `OPENAI_API_KEY`. */

@@ -4,13 +4,13 @@
  * ESM-only subpath export, built on the Vercel AI SDK image interface
  * (`generateImage`, `@ai-sdk/*`). The caller names the provider and model;
  * reuses the SDK's Result convention (`Result<T, MotifError>` — no
- * thrown exceptions). Google (Gemini) is the only provider in Phase 1a.
+ * thrown exceptions). Gemini is reached through OpenRouter.
  *
  * @example
  * ```ts
  * import { createMotifImage } from "@howells/motif-sdk/image";
  *
- * const img = createMotifImage({ defaultProvider: "google" });
+ * const img = createMotifImage({ defaultProvider: "openrouter" });
  * const r = await img.generate({ model: "gemini-3.1-flash-image", prompt: "a bare concrete wall" });
  * if (r.isOk()) console.log(r.value.images[0].mediaType, r.value.cost);
  * ```
@@ -53,7 +53,7 @@ export type {
   MotifImageFile,
   MotifImageResult,
 } from "./types";
-export { GOOGLE_API_KEY_ENV } from "./google";
+export { OPENROUTER_API_KEY_ENV } from "./openrouter";
 export { OPENAI_API_KEY_ENV } from "./openai";
 export { REPLICATE_API_KEY_ENV } from "./replicate";
 export { FAL_API_KEY_ENV } from "./fal";
@@ -62,7 +62,7 @@ export type { ImageProviderAdapter } from "./provider";
 export { providerPricePerImageUsd } from "./cost";
 export { costForImages, costFromProviderMetadata } from "./cost";
 
-const DEFAULT_PROVIDER: ImageProviderId = "google";
+const DEFAULT_PROVIDER: ImageProviderId = "openrouter";
 
 /**
  * Create a provider-agnostic image client.
@@ -86,8 +86,8 @@ export function createMotifImage(
     // Normalize each provider's config field to a single key string for the
     // adapter. Replicate names its credential `apiToken`, not `apiKey`.
     switch (provider) {
-      case "google": {
-        return config.google?.apiKey;
+      case "openrouter": {
+        return config.openrouter?.apiKey;
       }
       case "openai": {
         return config.openai?.apiKey;

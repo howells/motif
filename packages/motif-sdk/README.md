@@ -10,7 +10,7 @@ npm install @howells/motif-sdk
 
 ## Run a Task
 
-The Task client, `createMotif`, is the fal surface: name a Task and, optionally, a Tier, and Motif chooses the Model, builds its request and runs it on fal. `createMotifImage` (`@howells/motif-sdk/image`) is the provider-agnostic generate/edit layer across google, openai, replicate, and fal. See [Image Layer](#image-layer-howellsmotif-sdkimage) below.
+The Task client, `createMotif`, is the fal surface: name a Task and, optionally, a Tier, and Motif chooses the Model, builds its request and runs it on fal. `createMotifImage` (`@howells/motif-sdk/image`) is the provider-agnostic generate/edit layer across openrouter, openai, replicate, and fal. See [Image Layer](#image-layer-howellsmotif-sdkimage) below.
 
 ```ts
 import { createMotif } from "@howells/motif-sdk";
@@ -55,7 +55,7 @@ if (plan.isOk()) {
 
 - `createMotif` - the Task client: one function per Task plus `run`, `plan`, `upload` and `deletePayloads`.
 - `TASKS`, `TASK_IDS`, `TIERS`, `resolveTask`, `modelProfile`, `tierChangesChoice` - the Task registry and Model resolution.
-- `createMotifImage` (`@howells/motif-sdk/image`) - provider-agnostic generate/edit/best-of-N across google, openai, replicate, and fal.
+- `createMotifImage` (`@howells/motif-sdk/image`) - provider-agnostic generate/edit/best-of-N across openrouter, openai, replicate, and fal.
 - `ASPECT_RATIOS`, `RESOLUTIONS`, `FORMAT_PRESETS` - shared sizing metadata.
 - `LOOKS`, `CREATIVE_TAXONOMY`, `enrichPrompt`, `validateCreativeDirection` - house looks and moods.
 - `formatCost`, `sumCosts` - cost formatting and totals.
@@ -79,7 +79,7 @@ npm install @howells/motif-sdk
 ```ts
 import { createMotifImage } from "@howells/motif-sdk/image";
 
-const img = createMotifImage({ defaultProvider: "google" });
+const img = createMotifImage({ defaultProvider: "openrouter" });
 
 // text -> image
 const generated = await img.generate({
@@ -88,12 +88,11 @@ const generated = await img.generate({
   aspectRatio: "1:1",
 });
 
-// multi-image edit (images + instruction, optional mask -> image out)
+// multi-image edit (images + instruction -> image out; masks need the openai provider)
 const edited = await img.edit({
   model: "gemini-3.1-flash-image-preview",
   images: [roomBytes, tileBytes],
   instruction: "Apply the oak texture from image 2 onto the wall in image 1.",
-  mask: surfaceMaskBytes,
 });
 
 if (edited.isOk()) {
@@ -110,7 +109,7 @@ Four providers are implemented, each reading its own API key from the environmen
 
 | Provider | Env var | Notes |
 | --- | --- | --- |
-| `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | Default provider; Gemini gen + edit |
+| `openrouter` | `OPENROUTER_API_KEY` | Default provider; Gemini gen + edit through OpenRouter (`google/*`), no masks |
 | `openai` | `OPENAI_API_KEY` | GPT Image 2.5 Flare and Sunburst |
 | `replicate` | `REPLICATE_API_TOKEN` | flux-1.1-pro-ultra |
 | `fal` | `FAL_KEY` | fal-hosted adapter |

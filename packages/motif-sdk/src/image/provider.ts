@@ -1,7 +1,7 @@
 /**
  * Provider registry for the image layer.
  *
- * Each provider (google, openai, replicate, fal) contributes exactly one
+ * Each provider (openrouter, openai, replicate, fal) contributes exactly one
  * {@link ImageProviderAdapter}. The dispatch functions in `index.ts` and the
  * cost lookup in `cost.ts` read the registry by id, so adding a provider is a
  * single registry entry — not new branches spread across generate/edit/cost.
@@ -12,8 +12,8 @@ import type { ImageModel } from "ai";
 import { MotifError } from "../server";
 import type { FalFetch } from "../types";
 import { falAdapter } from "./fal";
-import { googleAdapter } from "./google";
 import { openaiAdapter } from "./openai";
+import { openrouterAdapter } from "./openrouter";
 import { replicateAdapter } from "./replicate";
 import type { ImageProviderId } from "./types";
 
@@ -58,7 +58,7 @@ export interface ImageProviderAdapter {
  * goes through {@link getProviderAdapter}.
  */
 export const PROVIDERS: Record<ImageProviderId, ImageProviderAdapter> = {
-  google: googleAdapter,
+  openrouter: openrouterAdapter,
   openai: openaiAdapter,
   replicate: replicateAdapter,
   fal: falAdapter,
