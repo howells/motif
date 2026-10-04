@@ -51,9 +51,40 @@ if (plan.isOk()) {
 }
 ```
 
+## Stream a Task
+
+`stream(task, input, options?)` opens a direct inference stream on the resolved route. Streaming is explicitly supported for GPT Image 2, GPT Image 1.5 and FLUX.2 Dev, including their edit routes. Other routes return `STREAMING_UNSUPPORTED` before any provider request; Motif never substitutes another model or retries a stream.
+
+```ts
+const controller = new AbortController();
+const opened = await motif.stream(
+  "generate",
+  {
+    model: "gpt2",
+    prompt: "editorial product photo",
+    references: ["https://example.com/reference.png"],
+  },
+  { signal: controller.signal, timeout: 300_000 }
+);
+
+if (opened.isErr()) throw opened.error;
+for await (const result of opened.value.events) {
+  if (result.isErr()) throw result.error;
+  const event = result.value;
+  if (event.type === "images") render(event.files);
+  if (event.type === "progress") showProgress(event.progress, event.message);
+}
+```
+
+Events use `images`, `progress` or `provider` types. Images carry the same `TaskFile` URL shape as ordinary Task outputs, including data URIs. Progress fractions are normalised only when explicitly between zero and one. The raw provider payload remains available as `raw` or `data`, and SSE event/id metadata is preserved. Preview images depend on the model; an images event is not labelled preview or final, and transport EOF does not prove generation success.
+
+The handle exposes `plan`, optional `requestId` and `abort()`. Consume its events once. Abort, iterator exit and the overall deadline close local consumption; this does not guarantee cancellation of provider work or a refund. There is no queue submission, reconnection or retry. `plan()` remains a normal execution plan, so its `queued` flag describes `run()`, not `stream()`.
+
+For a local checkout, `node packages/motif-sdk/examples/stream.mjs --dry-run` prints the resolved request without a provider call. Running it without `--dry-run` spends provider credits; it requires `FAL_KEY` and a built SDK. The runner is a repository example, not a packaged public API.
+
 ## Main Exports
 
-- `createMotif` - the Task client: one function per Task plus `run`, `plan`, `upload` and `deletePayloads`.
+- `createMotif` - the Task client: one function per Task plus `run`, `stream`, `plan`, `upload` and `deletePayloads`.
 - `TASKS`, `TASK_IDS`, `TIERS`, `resolveTask`, `modelProfile`, `tierChangesChoice` - the Task registry and Model resolution.
 - `createMotifImage` (`@howells/motif-sdk/image`) - provider-agnostic generate/edit/best-of-N across openrouter, openai, replicate, and fal.
 - `ASPECT_RATIOS`, `RESOLUTIONS`, `FORMAT_PRESETS` - shared sizing metadata.
@@ -64,7 +95,7 @@ if (plan.isOk()) {
 
 ## Common Types
 
-- `MotifClient`, `MotifClientConfig`, `TaskInput`, `TaskOutput`, `TaskPlan`, `TaskFile`
+- `MotifClient`, `MotifClientConfig`, `TaskInput`, `TaskOutput`, `TaskPlan`, `TaskFile`, `TaskStream`, `TaskStreamEvent`, `TaskStreamOptions`
 - `TaskId`, `Tier`, `TaskDefinition`, `RankedModel`, `TaskRequest`, `TaskResolution`, `ModelProfile`
 - `AspectRatio`, `Resolution`, `CustomImageSize`, `ImageSizeBounds`, `MotifError`
 

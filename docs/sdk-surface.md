@@ -10,6 +10,12 @@ Task data: `TASKS` (summary, notFor, modes and ranked Models with Tiers per Task
 
 `@howells/motif-sdk/image` is an ESM-only subpath. Its `createMotifImage(config?)` carries provider requests (`generate()`, `edit()`) over openrouter, openai, replicate and fal with per-call cost tracking, and chooses no Models.
 
+## Streaming
+
+`stream(task, input, { signal?, timeout? })` returns a `Result<TaskStream, MotifError>`. The handle contains the resolved `plan`, an optional `requestId`, `abort()` and a single-use async iterable of per-event Results. Events normalise images into `TaskFile[]` and explicit progress into fractions, while preserving provider payloads and SSE metadata. Unknown payloads remain provider events; Motif does not infer preview/final semantics or success from EOF. See the SDK README for consumption.
+
+Streaming capability lives in model metadata for GPT Image 2, GPT Image 1.5 and FLUX.2 Dev generation/edit routes. The ordinary planner's `queued` flag applies to `run()`. Streaming validates the resolved route before direct inference I/O; unsupported routes fail explicitly, without model substitution. It uses the same keys, normalised request body and configured fetch seam, but never queues, retries or reconnects. Connection failures are returned initially; transport or provider event failures emit one error Result and close. Abort, early iterator exit and timeout close local consumption, not guaranteed provider execution. Events are bounded and are never accumulated into an image history.
+
 ## Keys
 
 `FAL_KEY` is the primary public variable, used by `createMotif` and the CLI. The CLI can also read `apiKey` from `~/.motif/config.json`; environment values win.

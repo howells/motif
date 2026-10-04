@@ -35,6 +35,8 @@ import {
 import type { OutputLabels } from "./task-output";
 import { planTask } from "./task-plan";
 import type { PlanContext } from "./task-plan";
+import { streamTask } from "./task-stream";
+import type { TaskStream, TaskStreamOptions } from "./task-stream";
 import type { TaskId, Tier } from "./tasks";
 import { measuredToolCost } from "./tool-cost";
 import type { OutputDimensions, ResolvedCost, SourceVideo } from "./tool-cost";
@@ -46,6 +48,12 @@ import type {
   ImageOutputFormat,
   Resolution,
 } from "./types";
+
+export type {
+  TaskStream,
+  TaskStreamOptions,
+  TaskStreamEvent,
+} from "./task-stream";
 
 export type { FalFetch } from "./types";
 
@@ -174,6 +182,11 @@ export interface MotifClient {
     task: TaskId,
     input: TaskInput
   ) => Promise<Result<TaskOutput, MotifError>>;
+  stream: (
+    task: TaskId,
+    input: TaskInput,
+    options?: TaskStreamOptions
+  ) => Promise<Result<TaskStream, MotifError>>;
   animate: TaskFunction;
   ask: TaskFunction;
   cutout: TaskFunction;
@@ -434,6 +447,26 @@ async function openAiOutput(
   });
 }
 
+function taskStreamer(
+  config: MotifClientConfig,
+  plan: MotifClient["plan"],
+  context: () => PlanContext
+): MotifClient["stream"] {
+  return async (task, input, options = {}) => {
+    const planned = plan(task, input);
+    if (planned.isErr()) {
+      return err(planned.error);
+    }
+    return await streamTask(
+      planned.value,
+      context().falKey,
+      config.fetch ?? (async (url, init) => await globalThis.fetch(url, init)),
+      input.ephemeral === true,
+      { timeout: config.timeout, ...options }
+    );
+  };
+}
+
 /** Create the Task client. Keys fall back to FAL_KEY and OPENAI_API_KEY. */
 export function createMotif(config: MotifClientConfig = {}): MotifClient {
   function context(): PlanContext {
@@ -546,6 +579,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     },
     plan,
     run,
+    stream: taskStreamer(config, plan, context),
     async upload(bytes, contentType, fileName) {
       const client = falClient();
       return client.isErr()

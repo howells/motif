@@ -101,6 +101,9 @@ export {
   type TaskInput,
   type TaskOutput,
   type TaskPlan,
+  type TaskStream,
+  type TaskStreamEvent,
+  type TaskStreamOptions,
 } from "./task-client";
 
 // ─── Types ───────────────────────────────────────────────────────

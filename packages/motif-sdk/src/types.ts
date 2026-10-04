@@ -123,6 +123,8 @@ export interface ModelConfig {
    * named presets are sent. Only meaningful with `sizeMode: "image_size_enum"`.
    */
   customImageSize?: ImageSizeBounds;
+  /** Explicit fal streaming support for generation and edit routes. */
+  streaming?: { generation: boolean; edit: boolean };
   editEndpoint?: string;
   editImagesField?: "image_urls" | "image_url";
   endpoint: string;
