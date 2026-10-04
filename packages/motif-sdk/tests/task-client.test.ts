@@ -281,6 +281,20 @@ describe("createMotif plan", () => {
     expect(plan.body.image_urls).toStrictEqual([IMAGE, reference]);
   });
 
+  it("queues a generation only when the caller asks for progress", () => {
+    const input = { model: "banana", prompt: "a room", references: [IMAGE] };
+
+    expect(planned("generate", input).queued).toBe(false);
+    expect(
+      planned("generate", {
+        ...input,
+        onProgress: () => {
+          /* Progress is not read when planning. */
+        },
+      }).queued
+    ).toBe(true);
+  });
+
   it("sends a plain erase's prompt", () => {
     const plan = planned("erase", { image: IMAGE, prompt: "the car" });
 

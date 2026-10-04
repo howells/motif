@@ -32,6 +32,8 @@ console.log(result.value.model, result.value.files[0]?.url, result.value.cost);
 
 Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` and does not throw for fal request failures; check `isErr()` / `isOk()`.
 
+Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"in_progress"`, then `"completed"`. Passing it sends the run through fal's queue, since only the queue reports state. Models without streaming report state, not a percentage.
+
 ## Plan Without Calling fal
 
 `plan(task, input, { dryRun: true })` resolves the Model and returns the endpoint, body and projected cost with no I/O and no key.

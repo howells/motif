@@ -122,6 +122,11 @@ export interface TaskInput {
   params?: Readonly<Record<string, unknown>>;
   /** Ask fal not to store IO payloads. */
   ephemeral?: boolean;
+  /**
+   * Called on each poll of fal's queue with its status ("queued",
+   * "in_progress", "completed") and, while queued, the place in line. Passing
+   * it runs a fal generation through the queue, since only the queue reports.
+   */
   onProgress?: (status: string, queuePosition?: number) => void;
 }
 

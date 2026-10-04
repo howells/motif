@@ -452,7 +452,8 @@ function generationPlan(
     prompt:
       typeof built.body.prompt === "string" ? built.body.prompt : undefined,
     provider: "fal",
-    queued: config.useQueue === true,
+    // Asking for progress queues the request: only fal's queue reports state.
+    queued: config.useQueue === true || input.onProgress !== undefined,
   });
 }
 
