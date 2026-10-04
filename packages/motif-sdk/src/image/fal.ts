@@ -116,6 +116,24 @@ export function resolveModel(
   return createFal({ apiKey: key, ...toProviderFetch(fetch) }).image(modelId);
 }
 
+/**
+ * How a registered fal edit endpoint takes its input images, from the
+ * registry's `editImagesField` (default `image_urls`). `@ai-sdk/fal` sends only
+ * the first image as `image_url` unless told otherwise, which list-only
+ * endpoints reject and which silently drops every reference after the first.
+ * Undefined for an endpoint the registry does not list as an edit route.
+ */
+export function falEditImagesField(
+  modelId: string
+): "image_urls" | "image_url" | undefined {
+  const config = Object.values(MODELS).find(
+    (entry) => entry.editEndpoint === modelId
+  );
+  return config === undefined
+    ? undefined
+    : (config.editImagesField ?? "image_urls");
+}
+
 /** The fal provider adapter registered in the provider registry. */
 export const falAdapter: ImageProviderAdapter = {
   id: "fal",

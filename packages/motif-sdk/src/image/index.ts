@@ -26,6 +26,7 @@ import { MotifError } from "../server";
 import type { FalFetch } from "../types";
 import { costForCalls } from "./cost";
 import type { MotifImageDeps } from "./deps";
+import { falEditImagesField } from "./fal";
 import { getProviderAdapter } from "./provider";
 import type {
   BestOfNOptions,
@@ -144,6 +145,25 @@ export function createMotifImage(
     opts: EditImageOptions
   ): Promise<Result<MotifImageResult, MotifError>> {
     const provider = resolveProvider(opts.provider);
+    const imagesField =
+      provider === "fal" ? falEditImagesField(opts.model) : undefined;
+    if (imagesField === "image_url" && opts.images.length > 1) {
+      return err(
+        new MotifError(
+          `${opts.model} takes one input image; ${opts.images.length} were given`,
+          0
+        )
+      );
+    }
+    // A list endpoint gets every image, unless the caller chose otherwise.
+    const providerOptions =
+      imagesField === "image_urls" &&
+      opts.providerOptions?.fal?.useMultipleImages === undefined
+        ? {
+            ...opts.providerOptions,
+            fal: { ...opts.providerOptions?.fal, useMultipleImages: true },
+          }
+        : opts.providerOptions;
     try {
       const modelId = opts.model;
       const model = resolveModelFn(
@@ -166,9 +186,9 @@ export function createMotifImage(
           : { maxRetries: config.maxRetries }),
         ...(opts.signal === undefined ? {} : { abortSignal: opts.signal }),
         ...(opts.headers === undefined ? {} : { headers: opts.headers }),
-        ...(opts.providerOptions === undefined
+        ...(providerOptions === undefined
           ? {}
-          : { providerOptions: toProviderOptions(opts.providerOptions) }),
+          : { providerOptions: toProviderOptions(providerOptions) }),
       });
       return ok(toMotifImageResult(result, provider, modelId));
     } catch (error) {

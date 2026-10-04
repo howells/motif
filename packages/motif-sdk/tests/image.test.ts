@@ -683,6 +683,49 @@ describe("createMotifImage.edit", () => {
     }
   });
 
+  it("sends every image to a fal list endpoint as image_urls", async () => {
+    let lastCall: GenerateImageArgs | undefined;
+    const img = createMotifImage(
+      { fal: { apiKey: "test-key" } },
+      {
+        resolveModel: () => fakeImageModel(),
+        generateImage: async (options) => {
+          await Promise.resolve();
+          lastCall = options;
+          return fakeResult();
+        },
+      }
+    );
+
+    const result = await img.edit({
+      provider: "fal",
+      model: "openai/gpt-image-2/edit",
+      images: [new Uint8Array([1]), new Uint8Array([2])],
+      instruction: "lay image 2 on the wall in image 1",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(lastCall?.providerOptions?.fal).toStrictEqual({
+      useMultipleImages: true,
+    });
+  });
+
+  it("refuses several images for a single-image fal endpoint", async () => {
+    const img = createMotifImage(
+      { fal: { apiKey: "test-key" } },
+      { resolveModel: () => fakeImageModel() }
+    );
+
+    const result = await img.edit({
+      provider: "fal",
+      model: "microsoft/mai-image-2.5-pro/edit",
+      images: [new Uint8Array([1]), new Uint8Array([2])],
+      instruction: "lay image 2 on the wall in image 1",
+    });
+
+    expect(result.isErr()).toBe(true);
+  });
+
   it("returns Result.err when the model throws in edit()", async () => {
     const img = createMotifImage(
       { openrouter: { apiKey: "test-key" } },
