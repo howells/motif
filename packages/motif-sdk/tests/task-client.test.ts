@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { queueAppPath } from "../src/fal-parse";
 import { createMotif, NO_MODEL_AVAILABLE, TASK_IDS } from "../src/index";
 import type {
   FalFetch,
@@ -1150,9 +1151,33 @@ describe("createMotif run", () => {
 
     const output = result._unsafeUnwrap();
     expect(calls.some((call) => call.method === "POST")).toBe(false);
-    expect(calls[0]?.url).toContain(`${endpoint}/requests/req-held/status`);
+    expect(calls[0]?.url).toContain(
+      `${queueAppPath(endpoint)}/requests/req-held/status`
+    );
     expect(output.files).toStrictEqual([{ key: "image", url: restored }]);
     expect(output.requestId).toBe("req-held");
+  }, 10_000);
+
+  it("resumes an edit run at its app's queue path, not the edit route", async () => {
+    // fal reads `fal-ai/nano-banana-pro/edit` back at `fal-ai/nano-banana-pro`;
+    // the full route answers 405 (measured against fal, 2026-10-05).
+    const { calls, fetch } = fakeFetch((call) => {
+      if (call.url.includes("/status")) {
+        return { data: { status: "COMPLETED" } };
+      }
+      return { data: { images: [{ url: "https://fal.media/files/b.png" }] } };
+    });
+    const result = await client(fetch).resume(
+      "generate",
+      { model: "banana", prompt: "a flat lay", references: [IMAGE] },
+      "req-edit"
+    );
+
+    expect(result.isOk()).toBe(true);
+    expect(calls.map((call) => call.url)).toStrictEqual([
+      "https://queue.fal.run/fal-ai/nano-banana-pro/requests/req-edit/status?logs=1",
+      "https://queue.fal.run/fal-ai/nano-banana-pro/requests/req-edit",
+    ]);
   }, 10_000);
 
   it("runs a queued tool through submit, status and result", async () => {

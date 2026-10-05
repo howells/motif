@@ -79,6 +79,17 @@ export function endpointFromQueueUrl(
   }
 }
 
+/**
+ * The queue path a submitted run is read back from: fal's app id, its owner and
+ * app, without any route below it. `fal-ai/nano-banana-pro/edit` is submitted
+ * there but read at `fal-ai/nano-banana-pro/requests/<id>`; the full path
+ * answers 405. A live submit learns this from `response_url`; a resume has
+ * only the id, so it derives it.
+ */
+export function queueAppPath(endpoint: string): string {
+  return endpoint.split("/").slice(0, 2).join("/");
+}
+
 export function parseQueueSubmission(data: unknown): QueueSubmission {
   if (!isRecord(data)) {
     return { requestId: "" };

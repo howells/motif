@@ -17,6 +17,7 @@ import type { Result } from "neverthrow";
 
 import { getFalKeyFromEnv, getOpenAiKeyFromEnv } from "./env";
 import { MotifError } from "./errors";
+import { queueAppPath } from "./fal-parse";
 import { createMotifImage } from "./image/index";
 import type { ChosenBy, TaskEnvironment } from "./resolve";
 import { FalClient } from "./server";
@@ -599,7 +600,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     }
     const result = await awaitQueuedRequest(
       falRequestExecutor(client.value),
-      { endpoint: chosen.endpoint, requestId },
+      { endpoint: queueAppPath(chosen.endpoint), requestId },
       input.onProgress
     );
     return result.map((value) => falOutput(chosen, value));
