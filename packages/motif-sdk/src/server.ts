@@ -585,7 +585,7 @@ export class FalClient {
    */
   async runToolQueued(
     options: ToolRunOptions,
-    onProgress?: (status: string, queuePosition?: number) => void
+    onProgress?: (status: JobStatus["status"], queuePosition?: number) => void
   ): Promise<Result<ToolResponse, MotifError>> {
     return await execRunToolQueued(this.toolExecutor, options, onProgress);
   }

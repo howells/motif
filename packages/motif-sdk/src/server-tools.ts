@@ -176,7 +176,7 @@ export async function getToolResult(
 export async function runRequestQueued(
   exec: FalRequestExecutor,
   prepared: PreparedFalRequest,
-  onProgress?: (status: string, queuePosition?: number) => void
+  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void
 ): Promise<Result<FalRequestResult, MotifError>> {
   const job = await submitRequest(exec, prepared);
   if (job.isErr()) {
@@ -240,7 +240,7 @@ export async function submitTool(
 export async function runToolQueued(
   exec: FalRequestExecutor,
   options: ToolRunOptions,
-  onProgress?: (status: string, queuePosition?: number) => void
+  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void
 ): Promise<Result<ToolResponse, MotifError>> {
   const request = buildToolRequest(options);
   if (request.isErr()) {

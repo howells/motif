@@ -1,6 +1,6 @@
 {
   "name": "@howells/motif-sdk",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Node SDK for Motif: image, video and 3D Tasks on fal.ai, with Motif choosing the Model.",
   "keywords": [
     "fal",

@@ -46,6 +46,7 @@ import type {
   CustomImageSize,
   FalFetch,
   ImageOutputFormat,
+  JobStatus,
   Resolution,
 } from "./types";
 
@@ -124,10 +125,10 @@ export interface TaskInput {
   ephemeral?: boolean;
   /**
    * Called on each poll of fal's queue with its status ("queued",
-   * "in_progress", "completed") and, while queued, the place in line. Passing
+   * "processing", "completed", "failed") and, while queued, the place in line. Passing
    * it runs a fal generation through the queue, since only the queue reports.
    */
-  onProgress?: (status: string, queuePosition?: number) => void;
+  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void;
 }
 
 export interface TaskFile {
