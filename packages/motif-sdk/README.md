@@ -34,6 +34,8 @@ Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` a
 
 Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"processing"`, then `"completed"` (or `"failed"`). Passing it sends the run through fal's queue, since only the queue reports state. Models without streaming report state, not a percentage.
 
+Pass `onSubmitted(requestId)` to hear the request id the moment fal's queue accepts the run, before any wait. Keep it: after a restart, `motif.resume(task, input, requestId)` waits for that same job and returns its output, submitting nothing and so paying nothing twice. Passing `onSubmitted` also queues the run.
+
 ## Plan Without Calling fal
 
 `plan(task, input, { dryRun: true })` resolves the Model and returns the endpoint, body and projected cost with no I/O and no key.

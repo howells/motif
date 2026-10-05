@@ -172,19 +172,14 @@ export async function getToolResult(
   return ok(isRecord(data) ? data : {});
 }
 
-/** Submit a prepared request, poll it to completion and fetch the result. */
-export async function runRequestQueued(
+/** Poll a submitted job to completion and fetch its result. Submits nothing. */
+export async function awaitQueuedRequest(
   exec: FalRequestExecutor,
-  prepared: PreparedFalRequest,
+  job: QueuedToolJob,
   onProgress?: (status: JobStatus["status"], queuePosition?: number) => void
 ): Promise<Result<FalRequestResult, MotifError>> {
-  const job = await submitRequest(exec, prepared);
-  if (job.isErr()) {
-    return err(job.error);
-  }
-
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
-    const status = await checkToolStatus(exec, job.value);
+    const status = await checkToolStatus(exec, job);
     if (status.isErr()) {
       return err(status.error);
     }
@@ -192,13 +187,13 @@ export async function runRequestQueued(
     onProgress?.(status.value.status, status.value.queuePosition);
 
     if (status.value.status === "completed") {
-      const result = await getToolResult(exec, job.value);
-      return result.map((data) => ({ data, requestId: job.value.requestId }));
+      const result = await getToolResult(exec, job);
+      return result.map((data) => ({ data, requestId: job.requestId }));
     }
 
     if (status.value.status === "failed") {
       const message = status.value.error ?? "Queued run failed";
-      return err(new MotifError(message, 0, undefined, job.value.requestId));
+      return err(new MotifError(message, 0, undefined, job.requestId));
     }
 
     await new Promise((resolve) => {
@@ -207,8 +202,27 @@ export async function runRequestQueued(
   }
 
   return err(
-    new MotifError("Queued run timed out", 0, undefined, job.value.requestId)
+    new MotifError("Queued run timed out", 0, undefined, job.requestId)
   );
+}
+
+/**
+ * Submit a prepared request, poll it to completion and fetch the result.
+ * `onSubmitted` hears the request id as soon as fal accepts the job, before
+ * any wait, so a caller can keep it and resume the same job later.
+ */
+export async function runRequestQueued(
+  exec: FalRequestExecutor,
+  prepared: PreparedFalRequest,
+  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void,
+  onSubmitted?: (requestId: string) => void
+): Promise<Result<FalRequestResult, MotifError>> {
+  const job = await submitRequest(exec, prepared);
+  if (job.isErr()) {
+    return err(job.error);
+  }
+  onSubmitted?.(job.value.requestId);
+  return await awaitQueuedRequest(exec, job.value, onProgress);
 }
 
 /** Body of `FalClient.runTool`. */

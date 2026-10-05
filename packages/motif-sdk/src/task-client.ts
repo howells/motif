@@ -21,6 +21,7 @@ import { createMotifImage } from "./image/index";
 import type { ChosenBy, TaskEnvironment } from "./resolve";
 import { FalClient } from "./server";
 import {
+  awaitQueuedRequest,
   falRequestExecutor,
   runRequest,
   runRequestQueued,
@@ -129,6 +130,12 @@ export interface TaskInput {
    * it runs a fal generation through the queue, since only the queue reports.
    */
   onProgress?: (status: JobStatus["status"], queuePosition?: number) => void;
+  /**
+   * Called once, as soon as fal's queue accepts the run, with its request id
+   * and before any wait. Keep it to `resume` the same job after a restart
+   * rather than submitting, and paying for, a second. Passing it queues the run.
+   */
+  onSubmitted?: (requestId: string) => void;
 }
 
 export interface TaskFile {
@@ -219,6 +226,16 @@ export interface MotifClient {
     fileName?: string
   ) => Promise<Result<string, MotifError>>;
   deletePayloads: (requestId: string) => Promise<Result<void, MotifError>>;
+  /**
+   * Read a queued run already submitted, by the request id `onSubmitted` gave:
+   * wait for it and return its output, submitting nothing. Pass the same task
+   * and input the run was made with, so the endpoint and costing match.
+   */
+  resume: (
+    task: TaskId,
+    input: TaskInput,
+    requestId: string
+  ) => Promise<Result<TaskOutput, MotifError>>;
 }
 
 const MISSING_API_KEY = "MISSING_API_KEY";
@@ -548,8 +565,43 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     };
     const executor = falRequestExecutor(client.value);
     const result = chosen.queued
-      ? await runRequestQueued(executor, prepared, input.onProgress)
+      ? await runRequestQueued(
+          executor,
+          prepared,
+          input.onProgress,
+          input.onSubmitted
+        )
       : await runRequest(executor, prepared);
+    return result.map((value) => falOutput(chosen, value));
+  }
+
+  async function resume(
+    task: TaskId,
+    input: TaskInput,
+    requestId: string
+  ): Promise<Result<TaskOutput, MotifError>> {
+    const planned = plan(task, input);
+    if (planned.isErr()) {
+      return err(planned.error);
+    }
+    const chosen = planned.value;
+    if (chosen.provider !== "fal") {
+      return err(
+        new MotifError(
+          `Only a fal run can be resumed; ${chosen.model} runs on ${chosen.provider}.`,
+          0
+        )
+      );
+    }
+    const client = falClient();
+    if (client.isErr()) {
+      return err(client.error);
+    }
+    const result = await awaitQueuedRequest(
+      falRequestExecutor(client.value),
+      { endpoint: chosen.endpoint, requestId },
+      input.onProgress
+    );
     return result.map((value) => falOutput(chosen, value));
   }
 
@@ -584,6 +636,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
         : await client.value.deletePayloads(requestId);
     },
     plan,
+    resume,
     run,
     stream: taskStreamer(config, plan, context),
     async upload(bytes, contentType, fileName) {

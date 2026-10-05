@@ -1095,6 +1095,66 @@ describe("createMotif run", () => {
     expect(output.requestId).toBe("req-sync");
   });
 
+  it("hands back the request id as soon as the queue accepts the run", async () => {
+    const endpoint = FAL_TOOLS["topaz-restore"].endpoint;
+    const events: string[] = [];
+    const { fetch } = fakeFetch((call) => {
+      if (call.method === "POST") {
+        events.push("submit");
+        return {
+          data: {
+            request_id: "req-early",
+            response_url: `https://queue.fal.run/${endpoint}/requests/req-early`,
+          },
+        };
+      }
+      if (call.url.includes("/status")) {
+        events.push("status");
+        return { data: { status: "COMPLETED" } };
+      }
+      return {
+        data: {
+          image: { height: 10, url: "https://fal.media/r.png", width: 10 },
+        },
+      };
+    });
+    const result = await client(fetch).restore({
+      image: IMAGE,
+      onSubmitted: (requestId) => {
+        events.push(`submitted ${requestId}`);
+      },
+    });
+
+    expect(result._unsafeUnwrap().requestId).toBe("req-early");
+    expect(events.slice(0, 3)).toStrictEqual([
+      "submit",
+      "submitted req-early",
+      "status",
+    ]);
+  }, 10_000);
+
+  it("resumes a submitted run by its id without submitting again", async () => {
+    const endpoint = FAL_TOOLS["topaz-restore"].endpoint;
+    const restored = "https://fal.media/files/resumed.png";
+    const { calls, fetch } = fakeFetch((call) => {
+      if (call.url.includes("/status")) {
+        return { data: { status: "COMPLETED" } };
+      }
+      return { data: { image: { height: 10, url: restored, width: 10 } } };
+    });
+    const result = await client(fetch).resume(
+      "restore",
+      { image: IMAGE },
+      "req-held"
+    );
+
+    const output = result._unsafeUnwrap();
+    expect(calls.some((call) => call.method === "POST")).toBe(false);
+    expect(calls[0]?.url).toContain(`${endpoint}/requests/req-held/status`);
+    expect(output.files).toStrictEqual([{ key: "image", url: restored }]);
+    expect(output.requestId).toBe("req-held");
+  }, 10_000);
+
   it("runs a queued tool through submit, status and result", async () => {
     const endpoint = FAL_TOOLS["topaz-restore"].endpoint;
     const restored = "https://fal.media/files/restored.png";
