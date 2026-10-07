@@ -172,13 +172,13 @@ describe("edit prices", () => {
     expect(plan.cost.usd).toBeCloseTo(0.08 + 0.02);
   });
 
-  it("projects Nano Banana 2 Lite at about $0.048", () => {
+  it("keeps token-billed Nano Banana 2 Lite's total cost unknown", () => {
     const plan = planned("generate", {
       model: "banana2-lite",
       prompt: "a red chair",
     });
 
-    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.048 });
+    expect(plan.cost).toStrictEqual({ basis: "unknown", usd: null });
   });
 });
 

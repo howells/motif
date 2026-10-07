@@ -24,7 +24,7 @@ Task options any capable Model can honour: `-a/--aspect` or a preset (`--og`, `-
 
 Instead: a specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).
 
-Flags: `--prompt <text>` (default: the source's prompt), `-n/--num`, `--look`, `--mood`, `--no-mood`, `--tier`, `-m`, `--param`, `--seed`. The image falls back to the last generation. vary reuses the Model that made the image while Motif still offers it; otherwise it chooses one the way generate would, from the Models that can edit.
+Flags: `--prompt <text>` (default: the source's prompt), `-n/--num`, `--look`, `--mood`, `--no-mood`, `--tier`, `-m`, `--param`, `--seed`. The image falls back to the last generation. vary reuses the Model that made the image while that Model can still edit, including retained predecessors; otherwise it chooses from the editing ranking.
 
 ```bash
 motif vary hero.png -n 4 --dry-run
@@ -33,7 +33,7 @@ motif vary hero.png --prompt "the same room at night" --dry-run
 
 ## Tiers
 
-`--tier fast|balanced|quality` moves Motif's choice along the generate ranking. The default is `balanced`. `fast` picks cheap, quick Models (under about $0.04 an image); `quality` picks the best-ranked ones, which cost more and are often much slower.
+`--tier fast|balanced|quality` moves Motif's choice along the generation or editing ranking. The default is `balanced`. `fast` picks efficient Models and inexpensive drafts; `quality` picks the best-ranked ones, which cost more and are often much slower. Nano Banana 2.1's balanced placement uses preliminary Arena evidence.
 
 A look carries its own Model, so `--tier` has no effect when `--look` is set. The order is `-m`, then the look's Model, then a pinned Model in config (`tasks.generate.model`), then the ranking at the chosen Tier.
 
@@ -43,9 +43,13 @@ A look carries its own Model, so `--tier` has no effect when `--look` is set. Th
 
 | Tier | Models |
 | --- | --- |
-| quality | `gpt2`, `banana2`, `gpt`, `sunburst`, `gemini3`, `mai-image-2.5-pro`, `seedream5`, `flux2-max` |
-| balanced | `banana` (the default), `ideogram3-transparent` (only for `--transparent`), `flare`, `banana2-lite`, `qwen3`, `seedream4`, `flux2-flex`, `ideogram4`, `grok-image`, `recraft4`, `flux2-pro`, `seedream45`, `grok-image-2`, `recraft41` |
-| fast | `flux2-turbo`, `flux2-dev`, `flux-fast`, `seedream5-lite`, `gemini`, `qwen`, `ideogram`, `recraft`, `flux` |
+| quality | `sunburst` (max), `flare` (max), `gpt2`, `gpt`, `mai-image-2.5-pro`, `seedream5` |
+| balanced | `banana21` (the default), `grok-image-2`, `banana2`, `mai-image-2.5`, `banana`, `qwen3`, `flux2-flex`, `flux2-pro`, `ideogram4`, `recraft41`, `ideogram3-transparent` (only for `--transparent`) |
+| fast | `banana2-lite`, `grok-image`, `seedream5-lite`, `flux2-turbo` |
+
+Editing has its own order: MAI 2.5 precedes Grok Image 2, and Seedream 5 Pro precedes GPT Image 1.5. A generation with `-e` uses that editing order. Sunburst and Flare default to the benchmarked `max` quality; lower settings remain available through `--param quality=high`.
+
+Older Models are absent from the curated list but remain usable through explicit overrides, pins and existing Looks: `gemini`, `gemini3`, `seedream4`, `seedream45`, `flux2-max`, `flux2-dev`, `flux`, `flux-fast`, `recraft`, `recraft4`, `ideogram`, `qwen`.
 
 Prices are in the [cost reference](costs.md#generate-and-vary). Read the live list from `motif --describe generate --format json`.
 
@@ -53,8 +57,10 @@ Prices are in the [cost reference](costs.md#generate-and-vary). Read the live li
 
 Options only one Model understands (Recraft styles, FLUX steps, Ideogram's rendering speed, web search) go through `--param key=value`, which needs `-m`. Values parse as JSON where they can.
 
+Nano Banana 2.1 supports 1K, 2K and 4K output and up to 14 references, with no 0.5K output. Omit `thinking_level` to use fal's `medium` default, or set it with `-m banana21 --param thinking_level=medium`. Its token-billed cost is `null` in a dry run.
+
 ```bash
-motif "a jazz night poster" -m ideogram --param style=DESIGN --dry-run
+motif "a jazz night poster" -m ideogram4 --param rendering_speed=QUALITY --dry-run
 motif "an editorial portrait" -m flux2-flex --param num_inference_steps=40 --dry-run
 ```
 
@@ -91,7 +97,7 @@ Flag values override stdin values for the same field. The schema:
 {
   "prompt": "string (required)",
   "tier": "fast | balanced | quality",
-  "model": "flare | sunburst | gpt2 | gpt | banana2 | banana | gemini | gemini3 | seedream4 | seedream45 | seedream5 | seedream5-lite | flux2-max | flux2-pro | flux2-flex | flux2-dev | flux2-turbo | flux | flux-fast | recraft | recraft4 | ideogram | ideogram4 | grok-image | grok-image-2 | qwen | qwen3 | mai-image-2.5-pro | banana2-lite | ideogram3-transparent | recraft41",
+  "model": "curated Model id from --describe generate, or a retained predecessor id",
   "aspect": "auto | 1:1 | 4:3 | 3:4 | 16:9 | 9:16 | 3:2 | 2:3 | 4:5 | 5:4 | 21:9 | 4:1 | 1:4 | 8:1 | 1:8",
   "resolution": "0.5K | 1K | 2K | 4K",
   "numImages": 1,
@@ -108,7 +114,7 @@ Flag values override stdin values for the same field. The schema:
 
 ## Transparency
 
-`--transparent` narrows the choice to Models that return alpha. At `balanced` and `fast` that is `ideogram3-transparent`, which runs on fal and needs no extra key. At `quality` it is `gpt2`, which runs through OpenAI (`gpt-image-2`) because fal's GPT Image 2 endpoint hasn't been confirmed to return alpha. That route needs `OPENAI_API_KEY`; without it the run fails with `MISSING_API_KEY` (exit `3`) and `details.envVar`. The dry run shows `provider: "openai"`. OpenAI prices by tokens, so `cost` is `null`. A request OpenAI can't carry, such as one with `--seed`, falls back to `ideogram3-transparent`; with `-m gpt2` it fails with `NO_MODEL_AVAILABLE` and `blockedBy: "seed"` instead. `-m gpt --transparent` stays on fal.
+`--transparent` narrows the choice to Models that return alpha. At `balanced` and `fast`, `ideogram3-transparent` runs on fal and needs no extra key. At `quality`, Sunburst runs on fal at `max` quality with token-billed cost (`null` before the call). Explicit `-m gpt2 --transparent` still uses OpenAI because fal's GPT Image 2 alpha output has not been confirmed; that route needs `OPENAI_API_KEY` and shows `provider: "openai"` in the dry run. `-m gpt --transparent` stays on fal.
 
 Every `--transparent` run reads the saved PNG back. With no alpha channel or no fully transparent pixel it fails with `TRANSPARENCY_MISSING` (status `502`, exit `5`, retriable): nothing is reported as a success or recorded in history, and the file stays on disk (`details.paths`).
 

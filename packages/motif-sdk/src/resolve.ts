@@ -19,7 +19,7 @@
  */
 
 import { getLook } from "./creative";
-import { MODELS } from "./models";
+import { LEGACY_GENERATION_MODELS, MODELS } from "./models";
 import type {
   Capability,
   RankedFrom,
@@ -461,9 +461,11 @@ function resolveFixed(
   const { chosenBy, model } = fixed;
   const tier = request.tier ?? DEFAULT_TIER;
   const entries: readonly RankedModel[] = TASKS[task].models;
-  const entry = entries.find(
-    (candidate) => candidate.model === model && candidate.mode === request.mode
-  );
+  const entry =
+    entries.find(
+      (candidate) =>
+        candidate.model === model && candidate.mode === request.mode
+    ) ?? legacyEntry(task, model, request.mode, tier);
   const profile = modelProfile(model);
   if (entry === undefined || profile === undefined) {
     const servesTask = entries.some((candidate) => candidate.model === model);
@@ -491,6 +493,24 @@ function resolveFixed(
     `${model} (${chosenBy}) ${describeBlock(result.blockedBy, result.missingKey, result.missingInput)}.`,
     result.missingKey
   );
+}
+
+/** Old pins and tuned Looks remain usable without recommending predecessors. */
+function legacyEntry(
+  task: TaskId,
+  model: string,
+  mode: string | undefined,
+  tier: Tier
+): RankedModel | undefined {
+  if (
+    mode !== undefined ||
+    (task !== "generate" && task !== "vary") ||
+    !LEGACY_GENERATION_MODELS.some((id) => id === model) ||
+    (task === "vary" && MODELS[model]?.supportsEdit !== true)
+  ) {
+    return undefined;
+  }
+  return { model, tier };
 }
 
 function unknownForMode(
@@ -543,7 +563,11 @@ function resolveRanked(
   const qualifying = new Map<Tier, string>();
   let firstBlock: Extract<Check, { ok: false }> | undefined;
   let keyBlock: string | undefined;
-  const definition: TaskDefinition = TASKS[task];
+  // Generation with References is image editing, so use the editing evidence.
+  const definition: TaskDefinition =
+    task === "generate" && (request.references ?? 0) > 0
+      ? TASKS.vary
+      : TASKS[task];
   for (const entry of definition.models) {
     if (entry.mode !== request.mode) {
       continue;

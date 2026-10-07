@@ -421,7 +421,7 @@ export function buildGenerateBody(options: GenerateOptions): {
   }
 
   if (config.supportsQuality === true) {
-    body.quality = quality ?? "high";
+    body.quality = quality ?? config.defaultQuality ?? "high";
   }
 
   if (config.supportsBackground === true && background) {

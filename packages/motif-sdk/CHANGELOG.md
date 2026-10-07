@@ -1,6 +1,17 @@
 # @howells/motif-sdk
 
-## Unreleased
+## 5.2.0
+
+Released alongside `@howells/motif-cli` 3.1.0, the first CLI release on the 5.x SDK.
+
+### Minor Changes
+
+- Refresh image curation from the 7 October 2026 Artificial Analysis v2 snapshot and Arena's 6 October results. Generation now recommends 21 Models: add Nano Banana 2.1 (`banana21`) and MAI Image 2.5 (`mai-image-2.5`), and archive 12 predecessors from automatic selection while retaining explicit Models, pins, history reuse and existing Looks.
+- Use separate generation and editing rankings. Generation with References follows the editing order. Quality starts with Sunburst at the benchmarked `max` setting, balanced starts with Nano Banana 2.1 on preliminary Arena evidence, and fast starts with Banana Lite for generation or Grok for editing. Flare also defaults to `max`; explicit quality overrides remain available.
+- Enable Banana Lite's verified edit route. Nano Banana 2.1 supports 14 References and 1K/2K/4K output, with no 0.5K output. Token-billed Banana 2.1, Lite and MAI 2.5 plans report unknown total costs.
+- Refresh leaderboard metadata and remove stale or unverified family scores. The [curation audit](https://github.com/howells/motif/blob/main/docs/research/image-model-curation-2026-10-07.md) records all rankings, specialist exceptions and provider coverage gaps.
+
+## 5.0.0 to 5.1.1
 
 ### Major Changes
 

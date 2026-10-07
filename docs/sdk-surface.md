@@ -8,6 +8,8 @@ Dependencies flow toward `packages/motif-sdk`. Never import CLI, local history o
 
 Task data: `TASKS` (summary, notFor, modes and ranked Models with Tiers per Task), `TASK_IDS`, `TIERS`, and `resolveTask`, the pure function that chooses a Model. `FalClient`, `MODELS`, `FAL_TOOLS` and the other model-keyed exports are no longer exported.
 
+Generation and editing use separate curated rankings. `generate` with References uses the editing order exposed by `TASKS.vary`. The current defaults are Sunburst at `max` for quality, Nano Banana 2.1 for balanced, and Banana Lite for fast generation or Grok for fast editing. Existing Looks, explicit Models and pins take precedence; retained predecessor routes remain usable without appearing in curated recommendations. See the [curation audit](research/image-model-curation-2026-10-07.md) for the evidence and specialist exceptions. Token-billed Task costs are `{ usd: null, basis: "unknown" }` before a run.
+
 `@howells/motif-sdk/image` is an ESM-only subpath. Its `createMotifImage(config?)` carries provider requests (`generate()`, `edit()`) over openrouter, openai, replicate and fal with per-call cost tracking, and chooses no Models.
 
 ## Streaming
@@ -24,4 +26,4 @@ Streaming capability lives in model metadata for GPT Image 2, GPT Image 1.5 and 
 
 ## Discovery
 
-`README.md`, `llms.txt`, `apps/cli/docs/`, `docs/security.md`, and `docs/surface/`, which is historical and predates Tasks replacing models.
+`README.md`, `llms.txt`, the package READMEs, `apps/cli/docs/`, `docs/security.md`, and `docs/research/`.

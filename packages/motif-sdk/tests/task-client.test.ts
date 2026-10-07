@@ -701,7 +701,7 @@ describe("createMotif plan", () => {
       num_images: 1,
       prompt: "a red chair",
     });
-    expect(plan.cost).toStrictEqual({ basis: "projected", usd: 0.048 });
+    expect(plan.cost).toStrictEqual({ basis: "unknown", usd: null });
   });
 
   it("generates on Recraft V4.1 with an image_size", () => {

@@ -8,7 +8,7 @@
   <code>npm install -g @howells/motif-cli</code> · <code>npm install @howells/motif-sdk</code>
 </p>
 
-Motif is a CLI and a Node SDK for image work on fal.ai. You say what you want done (erase this, upscale that, relight it) and Motif chooses the Model that does it best at the Tier you ask for. Every call can be priced with a dry run before it spends anything.
+Motif is a CLI and a Node SDK for image work on fal.ai. You say what you want done (erase this, upscale that, relight it) and Motif chooses from a curated set of Models at the Tier you ask for. A dry run shows the request and its available cost estimate before you spend. Unavailable token-billed totals are reported as unknown.
 
 ## Quick start
 
@@ -72,11 +72,11 @@ Motif never reads the prompt to choose, so the same command picks the same Model
 Let Motif choose unless you have a reason not to. To run a specific Model, name it with `-m`. Options only that Model understands go through `--param key=value`, which needs `-m`.
 
 ```bash
-motif "a jazz night poster" -m ideogram --param style=DESIGN --dry-run
+motif "a jazz night poster" -m ideogram4 --param rendering_speed=QUALITY --dry-run
 motif "a ceramic vase in window light" -m flare --param quality=xhigh --dry-run
 ```
 
-The generate default is `banana` (Nano Banana Pro). Override Models by Tier are listed in [generate and vary](apps/cli/docs/generate.md#override-models) and priced in the [cost reference](apps/cli/docs/costs.md). JSON output always records the Model that ran, as `model`, with `chosenBy` saying why.
+Motif curates 21 generation Models, including specialists for typography, transparency, control and inexpensive drafts. The generate default is `banana21` (Nano Banana 2.1). `quality` starts with GPT Image 2.5 Sunburst at `max`; `fast` starts with Nano Banana 2 Lite. Generation and editing have separate rankings; fast editing starts with Grok. The rankings are refreshed from [current benchmark evidence](docs/research/image-model-curation-2026-10-07.md), with Banana 2.1's placement based on preliminary Arena results. Override Models by Tier are listed in [generate and vary](apps/cli/docs/generate.md#override-models) and priced in the [cost reference](apps/cli/docs/costs.md). JSON output always records the Model that ran, as `model`, with `chosenBy` saying why.
 
 ## Looks and moods
 
@@ -212,7 +212,7 @@ Motif reads `~/.motif/config.json`, then `.motifrc` in the project. `FAL_KEY` in
 
 `tasks.<task>.model` pins a Model for one Task, so a ranking change in a new release doesn't change its results. A config written before Tasks is migrated when read: `defaultModel` becomes `tasks.generate.model`, `upscaler` becomes `tasks.upscale.model` and `backgroundRemover` becomes `tasks.cutout.model` (unless they held the old shipped defaults).
 
-`--transparent` at the quality Tier runs through OpenAI and needs `OPENAI_API_KEY`. History is kept in `~/.motif/history.json` (the last 100 generations). See [security notes](docs/security.md).
+`--transparent` at the quality Tier uses Sunburst on fal. Explicit `-m gpt2 --transparent` runs through OpenAI and needs `OPENAI_API_KEY`. History is kept in `~/.motif/history.json` (the last 100 generations). See [security notes](docs/security.md).
 
 ## Development
 

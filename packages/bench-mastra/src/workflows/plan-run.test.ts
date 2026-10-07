@@ -29,7 +29,7 @@ const baseSpec: BenchRunSpec = {
   concurrency: 1,
   isMock: true,
   maxEstimatedCostUsd: 1,
-  models: ["flux-fast", "grok-image"],
+  models: ["flux2-turbo", "grok-image"],
   outputFormat: null,
   prompt: "a cat wearing sunglasses",
   resolution: "1K",
@@ -53,8 +53,8 @@ describe("planRunStep", () => {
     expect(result.result).toHaveLength(4);
     expect(result.result.map((item) => [item.alias, item.sampleIndex])).toEqual(
       [
-        ["flux-fast", 0],
-        ["flux-fast", 1],
+        ["flux2-turbo", 0],
+        ["flux2-turbo", 1],
         ["grok-image", 0],
         ["grok-image", 1],
       ]
@@ -90,9 +90,8 @@ describe("planRunStep", () => {
     const deadlines = new Set(result.result.map((item) => item.deadlineAt));
     expect(deadlines.size).toBe(1);
 
-    // flux-fast has no benchmark.speed.p95Seconds (BRIEF.md verified ground
-    // truth) — it is one of the 12/23 models that fall back to the explicit
-    // floor, which therefore drives the shared run deadline here.
+    // FLUX.2 Turbo has no measured p95 latency, so the timeout floor
+    // drives the shared run deadline here.
     const [deadlineAt] = deadlines;
     expect(deadlineAt).toBeGreaterThanOrEqual(
       Date.now() + TIMEOUT_FLOOR_MS - 1000

@@ -1,6 +1,7 @@
 import type { ModelConfig } from "./types";
 
-const AA_IMAGE_LEADERBOARD_SNAPSHOT = "2026-08-23";
+// AA v2 uses a new Elo scale; these scores are not comparable to the August snapshot.
+const AA_IMAGE_LEADERBOARD_SNAPSHOT = "2026-10-07";
 const AA_IMAGE_SOURCES = [
   "https://artificialanalysis.ai/image/leaderboard/text-to-image",
   "https://artificialanalysis.ai/image/leaderboard/editing",
@@ -16,6 +17,22 @@ export const MODELS: Record<string, ModelConfig> = {
   // ─── Generation Models ────────────────────────────────────────
 
   flare: {
+    benchmark: {
+      artificialAnalysis: {
+        editing: {
+          elo: 1163,
+          rank: 2,
+        },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 1191,
+          rank: 2,
+        },
+      },
+      useCase: "Frontier generation and editing, evaluated at max quality",
+    },
+    defaultQuality: "max",
     customImageSize: {
       maxEdge: 3840,
       maxPixels: 8_294_400,
@@ -46,6 +63,22 @@ export const MODELS: Record<string, ModelConfig> = {
     useQueue: true,
   },
   sunburst: {
+    benchmark: {
+      artificialAnalysis: {
+        editing: {
+          elo: 1183,
+          rank: 1,
+        },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 1198,
+          rank: 1,
+        },
+      },
+      useCase: "Frontier generation and editing, evaluated at max quality",
+    },
+    defaultQuality: "max",
     customImageSize: {
       maxEdge: 3840,
       maxPixels: 8_294_400,
@@ -78,10 +111,16 @@ export const MODELS: Record<string, ModelConfig> = {
   gpt2: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1256, rank: 3 },
+        editing: {
+          elo: 1125,
+          rank: 5,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1369, rank: 1 },
+        textToImage: {
+          elo: 1172,
+          rank: 3,
+        },
       },
       speed: {
         medianSeconds: 200.7,
@@ -89,7 +128,7 @@ export const MODELS: Record<string, ModelConfig> = {
         source: "artificial-analysis-models",
       },
       tiers: { price: "ultra", quality: "frontier", speed: "very_slow" },
-      useCase: "Highest-ranked text-to-image quality and transparent PNGs",
+      useCase: "Established frontier generation and transparent PNGs",
     },
     customImageSize: {
       maxEdge: 3840,
@@ -139,10 +178,16 @@ export const MODELS: Record<string, ModelConfig> = {
   gpt: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1250, rank: 5 },
+        editing: {
+          elo: 1103,
+          rank: 12,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1310, rank: 4 },
+        textToImage: {
+          elo: 1107,
+          rank: 8,
+        },
       },
       speed: {
         medianSeconds: 34.6,
@@ -150,7 +195,7 @@ export const MODELS: Record<string, ModelConfig> = {
         source: "artificial-analysis-models",
       },
       tiers: { price: "ultra", quality: "frontier", speed: "slow" },
-      useCase: "Best OpenAI edit quality with transparent PNG support",
+      useCase: "Established OpenAI editor with transparent PNG support",
     },
     editEndpoint: "fal-ai/gpt-image-1.5/edit",
     endpoint: "fal-ai/gpt-image-1.5",
@@ -180,16 +225,103 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsSyncMode: true,
     type: "generation",
   },
+  banana21: {
+    benchmark: {
+      useCase:
+        "Efficient generation and reference editing; Arena #5 generation / #6 editing, preliminary 2026-10-06",
+    },
+    editEndpoint: "google/nano-banana-2.1/edit",
+    endpoint: "google/nano-banana-2.1",
+    maxReferenceImages: 14,
+    name: "Nano Banana 2.1",
+    pricePerImageUsd: null,
+    pricing:
+      "Token-based: input $1.764/M, text/thinking output $8.823/M, image output $35.294/M; ~ $0.040 / $0.059 / $0.134 at 1K / 2K / 4K plus variable usage",
+    sizeMode: "aspect_ratio",
+    supportedAspects: [
+      "auto",
+      "21:9",
+      "16:9",
+      "3:2",
+      "4:3",
+      "5:4",
+      "1:1",
+      "4:5",
+      "3:4",
+      "2:3",
+      "9:16",
+      "4:1",
+      "1:4",
+      "8:1",
+      "1:8",
+    ],
+    supportedResolutions: ["1K", "2K", "4K"],
+    supportsAspect: true,
+    supportsEdit: true,
+    supportsLimitGenerations: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: true,
+    supportsSafetyTolerance: true,
+    supportsSeed: true,
+    supportsSyncMode: true,
+    supportsThinkingLevel: true,
+    supportsWebSearch: true,
+    type: "generation",
+  },
+  "mai-image-2.5": {
+    benchmark: {
+      artificialAnalysis: {
+        editing: { elo: 1114, rank: 7 },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: { elo: 1104, rank: 10 },
+      },
+      useCase:
+        "Strong single-reference editing at a lower price than MAI 2.5 Pro",
+    },
+    editEndpoint: "microsoft/mai-image-2.5/edit",
+    endpoint: "microsoft/mai-image-2.5",
+    maxReferenceImages: 1,
+    name: "MAI Image 2.5",
+    pricePerImageUsd: null,
+    pricing:
+      "Token-based: text input $5/M, image input $8/M; ~$0.05 image output plus input",
+    sizeMode: "aspect_ratio",
+    supportedAspects: [
+      "auto",
+      "1:1",
+      "4:3",
+      "3:4",
+      "16:9",
+      "9:16",
+      "3:2",
+      "2:3",
+    ],
+    supportsAspect: true,
+    supportsEdit: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: false,
+    supportsSyncMode: true,
+    type: "generation",
+  },
   banana2: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1249, rank: 7 },
+        editing: {
+          elo: 1110,
+          rank: 9,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1320, rank: 3 },
+        textToImage: {
+          elo: 1126,
+          rank: 6,
+        },
       },
       tiers: { price: "premium", quality: "frontier", speed: "unknown" },
-      useCase: "Best balance of quality, edit support, web search, and cost",
+      useCase: "Previous-generation Gemini workhorse; retains 0.5K output",
     },
     editEndpoint: "fal-ai/nano-banana-2/edit",
     endpoint: "fal-ai/nano-banana-2",
@@ -224,10 +356,16 @@ export const MODELS: Record<string, ModelConfig> = {
   banana: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1245, rank: 9 },
+        editing: {
+          elo: 1101,
+          rank: 13,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1297, rank: 6 },
+        textToImage: {
+          elo: 1102,
+          rank: 11,
+        },
       },
       speed: {
         medianSeconds: 19.2,
@@ -284,9 +422,16 @@ export const MODELS: Record<string, ModelConfig> = {
   gemini: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1180, rank: 29 },
+        editing: {
+          elo: 987,
+          rank: 50,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 985,
+          rank: 60,
+        },
       },
     },
     editEndpoint: "fal-ai/gemini-25-flash-image/edit",
@@ -329,14 +474,6 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
   gemini3: {
-    benchmark: {
-      artificialAnalysis: {
-        editing: { elo: 1245, rank: 9 },
-        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
-        sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1297, rank: 6 },
-      },
-    },
     editEndpoint: "fal-ai/gemini-3-pro-image-preview/edit",
     endpoint: "fal-ai/gemini-3-pro-image-preview",
     falPricing: {
@@ -382,10 +519,16 @@ export const MODELS: Record<string, ModelConfig> = {
   seedream4: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1185, rank: 28 },
+        editing: {
+          elo: 1015,
+          rank: 36,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1226, rank: 16 },
+        textToImage: {
+          elo: 1030,
+          rank: 21,
+        },
       },
       speed: {
         medianSeconds: 14.3,
@@ -393,7 +536,7 @@ export const MODELS: Record<string, ModelConfig> = {
         source: "artificial-analysis-models",
       },
       tiers: { price: "budget", quality: "best", speed: "balanced" },
-      useCase: "High-ranked budget generation and large multi-reference edits",
+      useCase: "Legacy budget generation and large multi-reference edits",
     },
     customImageSize: { maxPixels: 16_777_216, minPixels: 921_600 },
     editEndpoint: "fal-ai/bytedance/seedream/v4/edit",
@@ -423,10 +566,16 @@ export const MODELS: Record<string, ModelConfig> = {
   seedream45: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1186, rank: 26 },
+        editing: {
+          elo: 1037,
+          rank: 32,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1203, rank: 32 },
+        textToImage: {
+          elo: 1022,
+          rank: 26,
+        },
       },
       speed: {
         medianSeconds: 18.2,
@@ -464,10 +613,16 @@ export const MODELS: Record<string, ModelConfig> = {
   seedream5: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1248, rank: 8 },
+        editing: {
+          elo: 1108,
+          rank: 11,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1279, rank: 10 },
+        textToImage: {
+          elo: 1081,
+          rank: 15,
+        },
       },
     },
     customImageSize: {
@@ -503,9 +658,16 @@ export const MODELS: Record<string, ModelConfig> = {
   "seedream5-lite": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1169, rank: 32 },
+        editing: {
+          elo: 1057,
+          rank: 24,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 1012,
+          rank: 36,
+        },
       },
     },
     customImageSize: { maxPixels: 16_777_216, minPixels: 3_686_400 },
@@ -537,10 +699,16 @@ export const MODELS: Record<string, ModelConfig> = {
   "flux2-max": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1201, rank: 19 },
+        editing: {
+          elo: 997,
+          rank: 49,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1225, rank: 17 },
+        textToImage: {
+          elo: 1020,
+          rank: 28,
+        },
       },
       speed: {
         medianSeconds: 31.6,
@@ -586,10 +754,16 @@ export const MODELS: Record<string, ModelConfig> = {
   "flux2-pro": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1170, rank: 31 },
+        editing: {
+          elo: 1007,
+          rank: 41,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1207, rank: 30 },
+        textToImage: {
+          elo: 1004,
+          rank: 41,
+        },
       },
       speed: {
         medianSeconds: 16.1,
@@ -635,9 +809,16 @@ export const MODELS: Record<string, ModelConfig> = {
   "flux2-flex": {
     benchmark: {
       artificialAnalysis: {
+        editing: {
+          elo: 1007,
+          rank: 42,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1223, rank: 18 },
+        textToImage: {
+          elo: 1027,
+          rank: 22,
+        },
       },
       speed: {
         medianSeconds: 15.3,
@@ -686,8 +867,16 @@ export const MODELS: Record<string, ModelConfig> = {
   "flux2-dev": {
     benchmark: {
       artificialAnalysis: {
+        editing: {
+          elo: 1000,
+          rank: 45,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 1000,
+          rank: 42,
+        },
       },
       speed: {
         medianSeconds: 4.6,
@@ -837,17 +1026,8 @@ export const MODELS: Record<string, ModelConfig> = {
   },
   reve: {
     benchmark: {
-      artificialAnalysis: {
-        // #2 on both boards. fal lists Reve as unlisted (not deprecated) and Motif ranks it
-        // in no Task; the top editor, MAI-Image-2.5-Pro, is `mai-image-2.5-pro`.
-        editing: { elo: 1263, rank: 2 },
-        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
-        sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1322, rank: 2 },
-      },
       tiers: { price: "premium", quality: "frontier", speed: "unknown" },
-      useCase:
-        "Highest-ranked editor reachable on fal; strong prompt adherence and text rendering",
+      useCase: "Historical Reve route; not currently verified on fal",
     },
     editEndpoint: "fal-ai/reve/edit",
     endpoint: "fal-ai/reve/text-to-image",
@@ -883,7 +1063,10 @@ export const MODELS: Record<string, ModelConfig> = {
       artificialAnalysis: {
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1215, rank: 25 },
+        textToImage: {
+          elo: 984,
+          rank: 62,
+        },
       },
     },
     customImageSize: {},
@@ -942,7 +1125,10 @@ export const MODELS: Record<string, ModelConfig> = {
       artificialAnalysis: {
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1220, rank: 19 },
+        textToImage: {
+          elo: 1004,
+          rank: 40,
+        },
       },
     },
     customImageSize: { maxEdge: 3840, minEdge: 512, multipleOf: 16 },
@@ -978,10 +1164,16 @@ export const MODELS: Record<string, ModelConfig> = {
   "grok-image": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1214, rank: 16 },
+        editing: {
+          elo: 1073,
+          rank: 19,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1216, rank: 23 },
+        textToImage: {
+          elo: 1019,
+          rank: 30,
+        },
       },
       speed: {
         medianSeconds: 5.1,
@@ -1024,6 +1216,10 @@ export const MODELS: Record<string, ModelConfig> = {
       artificialAnalysis: {
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 890,
+          rank: 106,
+        },
       },
       speed: {
         medianSeconds: 23.3,
@@ -1060,13 +1256,19 @@ export const MODELS: Record<string, ModelConfig> = {
   qwen3: {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1218, rank: 15 },
+        editing: {
+          elo: 1056,
+          rank: 25,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1272, rank: 11 },
+        textToImage: {
+          elo: 1075,
+          rank: 16,
+        },
       },
       tiers: { price: "budget", quality: "better", speed: "unknown" },
-      useCase: "Strong quality per dollar - 11th on text-to-image at $30/1k",
+      useCase: "Strong generation with negative-prompt and seed controls",
     },
     customImageSize: { maxPixels: 4_194_304, minPixels: 262_144 },
     endpoint: "alibaba/qwen-image-3/text-to-image",
@@ -1098,12 +1300,19 @@ export const MODELS: Record<string, ModelConfig> = {
   "mai-image-2.5-pro": {
     benchmark: {
       artificialAnalysis: {
-        editing: { elo: 1272, rank: 1 },
+        editing: {
+          elo: 1110,
+          rank: 10,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1293, rank: 7 },
+        textToImage: {
+          elo: 1100,
+          rank: 12,
+        },
       },
-      useCase: "Highest-ranked image editor, single reference image",
+      useCase:
+        "Strong single-reference editor; MAI 2.5 ranks higher on the current editing board",
     },
     editEndpoint: "microsoft/mai-image-2.5-pro/edit",
     editImagesField: "image_url",
@@ -1147,21 +1356,29 @@ export const MODELS: Record<string, ModelConfig> = {
   "banana2-lite": {
     benchmark: {
       artificialAnalysis: {
+        editing: {
+          elo: 1046,
+          rank: 26,
+        },
         snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
         sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: { elo: 1289, rank: 8 },
+        textToImage: {
+          elo: 1095,
+          rank: 13,
+        },
       },
     },
+    editEndpoint: "google/nano-banana-2-lite/edit",
+    maxReferenceImages: 14,
     endpoint: "google/nano-banana-2-lite",
     name: "Nano Banana 2 Lite",
-    // fal lists no edit endpoint for it; `/edit` answers a schema but is unlisted and unpriced.
-    // Projected: a 1K image is 1,290 output tokens at $37.50/M, about $0.048.
+    // Token-billed; input and thinking prevent a fixed per-image estimate.
     pricing:
-      "Token-based: text $0.3125/M input, $1.875/M output; image $0.3125/M input, $37.50/M output; fixed 1K output (~$0.048)",
-    pricePerImageUsd: 0.048,
+      "Token-based: text $0.3125/M input, $1.875/M output; image $0.3125/M input, $37.50/M output; fixed 1K output (~$0.042 image output, plus input/thinking)",
+    pricePerImageUsd: null,
     sizeMode: "aspect_ratio",
     supportsAspect: true,
-    supportsEdit: false,
+    supportsEdit: true,
     supportsLimitGenerations: true,
     supportsNumImages: true,
     supportsOutputFormat: true,
@@ -1236,6 +1453,16 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
   },
   "grok-image-2": {
+    benchmark: {
+      artificialAnalysis: {
+        editing: { elo: 1110, rank: 8 },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: { elo: 1156, rank: 4 },
+      },
+      useCase:
+        "Strong generation and editing with predictable per-image billing",
+    },
     editEndpoint: "xai/grok-imagine-image/v2.0/edit",
     endpoint: "xai/grok-imagine-image/v2.0/text-to-image",
     falPricing: {
@@ -1336,38 +1563,45 @@ export const MODELS: Record<string, ModelConfig> = {
   },
 };
 
+/** Curated generation choices; predecessor routes are explicit-only. */
 export const GENERATION_MODELS = [
-  "flare",
   "sunburst",
+  "flare",
   "gpt2",
   "gpt",
+  "banana21",
   "banana2",
   "banana",
+  "mai-image-2.5",
+  "mai-image-2.5-pro",
+  "seedream5",
+  "qwen3",
+  "banana2-lite",
+  "grok-image-2",
+  "grok-image",
+  "flux2-flex",
+  "flux2-pro",
+  "flux2-turbo",
+  "seedream5-lite",
+  "ideogram4",
+  "ideogram3-transparent",
+  "recraft41",
+] as const;
+
+/** Retained for old pins, explicit overrides and tuned Looks, never auto-selected. */
+export const LEGACY_GENERATION_MODELS = [
   "gemini",
   "gemini3",
   "seedream4",
   "seedream45",
-  "seedream5",
-  "seedream5-lite",
   "flux2-max",
-  "flux2-pro",
-  "flux2-flex",
   "flux2-dev",
-  "flux2-turbo",
   "flux",
   "flux-fast",
   "recraft",
   "recraft4",
   "ideogram",
-  "ideogram4",
-  "grok-image",
-  "grok-image-2",
   "qwen",
-  "qwen3",
-  "mai-image-2.5-pro",
-  "banana2-lite",
-  "ideogram3-transparent",
-  "recraft41",
 ] as const;
 
 /** Models whose fal endpoints support image editing (vary/edit flows). */
@@ -1379,7 +1613,9 @@ export const UTILITY_MODELS = ["clarity", "crystal", "rmbg", "bria"] as const;
 
 export const VIDEO_MODELS = ["kling", "kling-turbo"] as const;
 
-export type GenerationModelName = (typeof GENERATION_MODELS)[number];
+export type GenerationModelName =
+  | (typeof GENERATION_MODELS)[number]
+  | (typeof LEGACY_GENERATION_MODELS)[number];
 
 /** Recraft v3 style presets. Pass as the `style` field in GenerateOptions. */
 export const RECRAFT_STYLES = [

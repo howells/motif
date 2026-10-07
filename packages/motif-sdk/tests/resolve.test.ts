@@ -21,16 +21,16 @@ describe("resolveTask ranking", () => {
   it("takes the first Model of the asked-for Tier", () => {
     expect(resolveTask("generate", { tier: "balanced" }, fal)).toMatchObject({
       chosenBy: "ranking",
-      model: "banana",
+      model: "banana21",
       ok: true,
       tier: "balanced",
     });
     expect(resolveTask("generate", { tier: "fast" }, fal)).toMatchObject({
-      model: "flux2-turbo",
+      model: "banana2-lite",
       tier: "fast",
     });
     expect(resolveTask("generate", { tier: "quality" }, fal)).toMatchObject({
-      model: "gpt2",
+      model: "sunburst",
       tier: "quality",
     });
   });
@@ -38,20 +38,20 @@ describe("resolveTask ranking", () => {
   it("skips a Model whose transparency key is missing", () => {
     expect(
       resolveTask("generate", { tier: "quality", transparent: true }, fal)
-    ).toMatchObject({ model: "gpt", ok: true });
+    ).toMatchObject({ model: "sunburst", ok: true });
     expect(
       resolveTask(
         "generate",
         { tier: "quality", transparent: true },
         falAndOpenAi
       )
-    ).toMatchObject({ model: "gpt2", ok: true });
+    ).toMatchObject({ model: "sunburst", ok: true });
   });
 
   it("honours the reference count a Model accepts", () => {
     expect(
       resolveTask("generate", { references: 14, tier: "balanced" }, fal)
-    ).toMatchObject({ model: "banana", ok: true });
+    ).toMatchObject({ model: "banana21", ok: true });
     expect(
       resolveTask("generate", { references: 20, tier: "balanced" }, fal)
     ).toMatchObject({
@@ -72,6 +72,53 @@ describe("resolveTask ranking", () => {
     if (result.ok) {
       expect(MODELS[result.model]?.supportsMaskImage).toBe(true);
     }
+  });
+});
+
+describe("curated generation and editing", () => {
+  it("uses the editing order for a generation with References", () => {
+    // Nano Banana 2.1 drops 0.5K, so that request retains the capable predecessor.
+    expect(resolveTask("generate", { resolution: "0.5K" }, fal)).toMatchObject({
+      ok: true,
+      model: "banana2",
+    });
+    expect(
+      resolveTask("vary", { source: "image", tier: "fast" }, fal)
+    ).toMatchObject({
+      ok: true,
+      model: "grok-image",
+    });
+    expect(
+      resolveTask("generate", { references: 1, tier: "fast" }, fal)
+    ).toMatchObject({
+      ok: true,
+      model: "grok-image",
+    });
+  });
+
+  it("keeps archived edit pins and respects the new Model limits", () => {
+    expect(
+      resolveTask(
+        "vary",
+        { source: "image" },
+        {
+          keys: ["FAL_KEY"],
+          pins: { vary: "seedream45" },
+        }
+      )
+    ).toMatchObject({ ok: true, model: "seedream45", chosenBy: "pin" });
+    expect(
+      resolveTask("generate", { model: "banana21", resolution: "0.5K" }, fal)
+    ).toMatchObject({
+      ok: false,
+      blockedBy: "resolution",
+    });
+    expect(
+      resolveTask("generate", { model: "banana21", references: 15 }, fal)
+    ).toMatchObject({
+      ok: false,
+      blockedBy: "references",
+    });
   });
 });
 

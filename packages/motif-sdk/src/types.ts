@@ -160,6 +160,8 @@ export interface ModelConfig {
   supportsOutputFormat?: boolean;
   supportedOutputFormats?: readonly ImageOutputFormat[];
   supportsQuality?: boolean;
+  /** Default matching the quality variant used in this Model's ranking. */
+  defaultQuality?: ImageQuality;
   supportedQualities?: readonly ImageQuality[];
   supportsRaw?: boolean;
   supportsRenderingSpeed?: boolean;

@@ -32,6 +32,22 @@ console.log(result.value.model, result.value.files[0]?.url, result.value.cost);
 
 Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` and does not throw for fal request failures; check `isErr()` / `isOk()`.
 
+## Curated Models and Tiers
+
+The Task client curates 21 generation Models, with separate rankings for generation and editing. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. A generation with `references` uses the editing ranking.
+
+| Tier                 | Generation default | Editing default   |
+| -------------------- | ------------------ | ----------------- |
+| `quality`            | Sunburst at `max`  | Sunburst at `max` |
+| `balanced` (default) | Nano Banana 2.1    | Nano Banana 2.1   |
+| `fast`               | Nano Banana 2 Lite | Grok              |
+
+These are the first choices when the request's capabilities and available keys permit them. Explicit Models, Looks and pins take precedence. Selected specialists remain for typography, transparency, control and inexpensive drafts. Archived predecessors remain available through explicit Models, pins and existing Looks, including `flux2-dev` for streaming.
+
+Nano Banana 2.1 (`banana21`) supports up to 14 References and 1K/2K/4K output, with no 0.5K output. Its balanced placement uses preliminary Arena evidence. Sunburst and Flare default to the benchmarked `max` quality on fal; `params: { quality: "high" }` with an explicit `model` overrides it. The direct provider image layer described below has its own adapter capabilities and chooses no Model.
+
+Token-billed Task plans, including Sunburst, Flare, Nano Banana 2.1, Banana Lite and MAI 2.5, report `cost: { usd: null, basis: "unknown" }`; a published representative price is not an exact total. The [curation audit](https://github.com/howells/motif/blob/main/docs/research/image-model-curation-2026-10-07.md) records the current rankings, specialist roles and provider coverage gaps.
+
 Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"processing"`, then `"completed"` (or `"failed"`). Passing it sends the run through fal's queue, since only the queue reports state. Models without streaming report state, not a percentage.
 
 Pass `onSubmitted(requestId)` to hear the request id the moment fal's queue accepts the run, before any wait. Keep it: after a restart, `motif.resume(task, input, requestId)` waits for that same job and returns its output, submitting nothing and so paying nothing twice. Passing `onSubmitted` also queues the run.

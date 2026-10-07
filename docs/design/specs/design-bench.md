@@ -1,5 +1,7 @@
 # Design spec — Motif Bench
 
+Historical design specification. Model names, counts and price examples reflect the original design snapshot. Current model choices come from the SDK registry; see the [curation audit](../../research/image-model-curation-2026-10-07.md).
+
 **Surface:** `apps/bench` · **Type:** app UI, developer tool · **Stack:** Next 16, React 19, Tailwind v4, shadcn/ui (new-york)
 
 **Inherits:** the Patternmode house theme (`~/Sites/patternmode`). This app should feel like it belongs beside the user's other work, not like a separate product.
@@ -35,29 +37,29 @@ So: **house theme for all chrome, neutral dark plate for the contact sheet and l
 ```css
 @theme {
   /* ── Inherited from Patternmode (exact) ───────────────────────── */
-  --color-background:   oklch(0.9875 0.0026 106.4); /* #fbfbf9 warm paper */
-  --color-surface:      oklch(1.0000 0.0000 90);    /* #ffffff panels */
-  --color-surface-soft: oklch(0.9698 0.0054 95.1);  /* #f6f5f1 inset rows */
-  --color-ink:          oklch(0.2300 0.0038 106.7); /* #1d1d1b */
-  --color-muted:        oklch(0.5617 0.0123 95.3);  /* #77756d secondary */
-  --color-border:       oklch(0.9099 0.0071 88.6);  /* #e3e1dc */
-  --color-border-soft:  oklch(0.9432 0.0070 88.6);  /* #eeece7 interior rules */
-  --color-accent:       oklch(0.4380 0.0563 166.3); /* #315c4b forest */
-  --color-accent-soft:  oklch(0.9308 0.0133 159.9); /* #e1ebe5 */
+  --color-background: oklch(0.9875 0.0026 106.4); /* #fbfbf9 warm paper */
+  --color-surface: oklch(1 0 90); /* #ffffff panels */
+  --color-surface-soft: oklch(0.9698 0.0054 95.1); /* #f6f5f1 inset rows */
+  --color-ink: oklch(0.23 0.0038 106.7); /* #1d1d1b */
+  --color-muted: oklch(0.5617 0.0123 95.3); /* #77756d secondary */
+  --color-border: oklch(0.9099 0.0071 88.6); /* #e3e1dc */
+  --color-border-soft: oklch(0.9432 0.007 88.6); /* #eeece7 interior rules */
+  --color-accent: oklch(0.438 0.0563 166.3); /* #315c4b forest */
+  --color-accent-soft: oklch(0.9308 0.0133 159.9); /* #e1ebe5 */
 
   /* ── Bench-only: the image plate ──────────────────────────────── */
-  --color-plate:        oklch(0.2450 0.0020 106);   /* neutral, near-achromatic */
-  --color-plate-edge:   oklch(0.3200 0.0020 106);   /* gutter between frames */
-  --color-plate-ink:    oklch(0.9200 0.0020 106);   /* annotation on plate */
-  --color-plate-muted:  oklch(0.6600 0.0020 106);
+  --color-plate: oklch(0.245 0.002 106); /* neutral, near-achromatic */
+  --color-plate-edge: oklch(0.32 0.002 106); /* gutter between frames */
+  --color-plate-ink: oklch(0.92 0.002 106); /* annotation on plate */
+  --color-plate-muted: oklch(0.66 0.002 106);
 
   /* ── Semantic ─────────────────────────────────────────────────── */
-  --color-ok:   oklch(0.4380 0.0563 166.3);         /* completed — reuse accent */
-  --color-warn: oklch(0.5900 0.1000 75);            /* partial, contended, inconclusive */
-  --color-bad:  oklch(0.5100 0.1600 27);            /* failed */
+  --color-ok: oklch(0.438 0.0563 166.3); /* completed — reuse accent */
+  --color-warn: oklch(0.59 0.1 75); /* partial, contended, inconclusive */
+  --color-bad: oklch(0.51 0.16 27); /* failed */
 
   --radius: 8px;
-  --radius-frame: 0px;  /* image frames never round */
+  --radius-frame: 0px; /* image frames never round */
 }
 ```
 

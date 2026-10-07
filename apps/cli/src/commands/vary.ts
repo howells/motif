@@ -2,7 +2,7 @@
  * `motif vary [image]`: variations of an image, through the vary Task.
  *
  * The source is the given image, else the last generation. When the source
- * came from a generation whose Model vary still ranks, and the caller named
+ * came from a generation whose Model vary still supports, and the caller named
  * neither a Model nor a Look, that Model is reused so variations keep its
  * character.
  */
@@ -22,6 +22,7 @@ import { parseIntegerOption, validateOutputPath } from "../utils/input";
 import { imageSource } from "../utils/motif-client";
 import { emitError } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
+import { resolveTaskModel } from "../utils/task-model";
 import { hasText } from "../utils/text";
 import { runGeneration } from "./generate";
 import {
@@ -105,7 +106,12 @@ async function vary(
     common.model === undefined &&
     creative?.look === undefined &&
     generation !== undefined &&
-    TASKS.vary.models.some((entry) => entry.model === generation.model);
+    resolveTaskModel(
+      "vary",
+      { model: generation.model, references: 1, source: "image" },
+      config,
+      { dryRun: true }
+    ).ok;
 
   const input: TaskInput = {
     ...common,

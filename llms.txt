@@ -1,6 +1,6 @@
 # Motif
 
-> CLI and Node SDK for image and video work on fal.ai, organised by Task. The caller names the job (erase, upscale, relight) and a Tier (fast, balanced, quality); Motif chooses the Model and can price every call with a dry run before it spends anything.
+> CLI and Node SDK for image and video work on fal.ai, organised by Task. The caller names the job (erase, upscale, relight) and a Tier (fast, balanced, quality); Motif chooses a curated Model. A dry run shows the request and its available cost estimate before you spend; unavailable token-billed totals are reported as unknown.
 
 ## Start here
 
@@ -33,9 +33,16 @@ One verb per Task. `motif --describe tasks --format json` maps task words to ver
 - `motif mesh [image]` - a textured 3D mesh (`--rig`, `--objects`, `--body`).
 - `motif try-on [image] --garment <image>` - dress a person in a garment.
 - `motif animate "prompt" [image]` - turn an image into a video.
-- `motif sheet <images...>`, `motif series run "theme"`, `motif series <subcommand>`, `motif studio` - contact sheets, themed sets, reusable styles, the terminal app. These choose no Model.
+- `motif sheet <images...>`, `motif series run "theme"`, `motif series <subcommand>`, `motif studio` - contact sheets, themed sets, reusable styles, the terminal app. Series generations and Studio use the Task rankings; local contact sheets make no Model call.
 
-Rules for agents: `--dry-run` first, `--no-open` and `--fields` in a pipeline, parse JSON not human output. Let Motif choose the Model; `--tier` trades cost for quality and `-m <model>` overrides the choice, with `--param key=value` for Model-only fields. `cost: null` means unknown until the call returns, not free. `--rmbg`, `--up`, `--vary`, `--video`, `enhance` and `tool` exit `2` with `REMOVED_COMMAND` naming the verb.
+Rules for agents: `--dry-run` first, `--no-open` and `--fields` in a pipeline, parse JSON not human output. Let Motif choose the Model; `--tier` trades cost for quality and `-m <model>` overrides the choice, with `--param key=value` for Model-only fields. `cost: null` means an unknown total, not free. `--rmbg`, `--up`, `--vary`, `--video`, `enhance` and `tool` exit `2` with `REMOVED_COMMAND` naming the verb.
+
+## Current image curation
+
+Motif recommends 21 generation Models. Balanced starts with Nano Banana 2.1 (`banana21`), quality with Sunburst at `max`, and fast generation with Nano Banana 2 Lite. Editing has its own order; fast editing starts with Grok. Generation with `-e` uses that editing order. Explicit Models, existing Looks and pins keep their choices, including retained predecessor routes.
+
+- [Curation audit](./docs/research/image-model-curation-2026-10-07.md) - current generation/editing rankings, preliminary evidence for Banana 2.1, specialist roles and provider coverage gaps.
+- [Nano Banana 2.1](./docs/research/nano-banana-refresh-2026-10-07.md) - capabilities, request differences and token billing.
 
 ## CLI reference
 

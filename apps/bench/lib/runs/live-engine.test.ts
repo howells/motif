@@ -56,9 +56,8 @@ describe(timeoutMsForAlias, () => {
   });
 
   it("falls back to the named floor for a model with no published p95Seconds", () => {
-    // flux-fast: one of the 12 of 23 models with no benchmark.speed.p95Seconds
-    // (docs/arc/bench/BRIEF.md, "verified ground truth").
-    expect(timeoutMsForAlias("flux-fast")).toBe(
+    // FLUX.2 Turbo has no measured benchmark.speed.p95Seconds.
+    expect(timeoutMsForAlias("flux2-turbo")).toBe(
       Math.round(LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS * 1.5 * 1000)
     );
   });

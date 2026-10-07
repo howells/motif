@@ -8,7 +8,7 @@ export function Agents() {
   return (
     <section>
       <ChapterHead
-        body="Every command answers --format json, prices a run with --dry-run and fails with a coded error."
+        body="Use --format json for structured output, --dry-run to preview a model request and its available cost estimate, and coded errors to decide what to do next."
         id="agents"
         title="For agents"
       />

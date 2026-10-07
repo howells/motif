@@ -35,7 +35,8 @@ Motif is a public creative automation interface for fal.ai media endpoints, with
 - A **Reference** can be reused by many **Series Runs** in the same **Series**.
 - Every **Task** ranks its **Models**. Motif uses the highest-ranked **Model** that can do what the request asks for (transparency, several references, the ratio, a video input) at the chosen **Tier**; the prompt never affects the choice.
 - An explicit **Model** overrides the ranking, and a **Look**'s **Model** comes before the **Task**'s ranking, so a **Tier** has no effect on a **Look**.
-- vary reuses the **Model** of the image it varies while Motif still offers that **Model**; otherwise it chooses one as a new generation would.
+- Generation without **References** uses the generation ranking; generation with **References** and vary use the separate editing ranking.
+- vary reuses the **Model** of the image it varies while that **Model** can still edit, including retained predecessors; otherwise it chooses from the editing ranking.
 - A **Task** takes an image, and a video too where a video **Model** exists; the input narrows which **Models** qualify.
 - The CLI exposes each **Task** as one verb; flags only adjust a **Task**.
 - generate takes zero or more **References** and no **Source**; every other **Task** changes one **Source** and may take **References**.

@@ -1,6 +1,6 @@
 // The Task registry is data, so the only thing a test can hold is its shape: every ranked Model
-// is a Model the SDK knows, no Task ranks the same Model twice, and `vary` stays the edit-capable
-// slice of `generate` rather than drifting into a second hand-maintained list.
+// is a Model the SDK knows, no Task ranks the same Model twice, and generation and editing
+// curate the same eligible Models while ordering them by their own evidence.
 
 import { describe, expect, it } from "vitest";
 
@@ -95,11 +95,13 @@ describe(TASKS, () => {
     expect(Number.isNaN(Date.parse(definition.rankedAt))).toBe(false);
   });
 
-  it("ranks vary as generate filtered to edit-capable Models", () => {
-    expect(TASKS.vary.models).toStrictEqual(
-      TASKS.generate.models.filter(
-        ({ model }) => MODELS[model]?.supportsEdit === true
-      )
+  it("offers vary the same edit-capable choices as generate", () => {
+    expect(
+      [...TASKS.vary.models].sort((a, b) => a.model.localeCompare(b.model))
+    ).toStrictEqual(
+      TASKS.generate.models
+        .filter(({ model }) => MODELS[model]?.supportsEdit === true)
+        .sort((a, b) => a.model.localeCompare(b.model))
     );
   });
 });

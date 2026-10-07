@@ -17,17 +17,24 @@ import type { MotifConfig } from "../src/utils/config";
  * successful (billed) generation into a failure exit 5.
  */
 
-/** Answer every fal request with one generated image at `url`. */
+/** Answer queue submission, status and result with one generated image. */
 function stubFal(url: string): void {
   vi.stubGlobal(
     "fetch",
-    vi.fn(
-      async () =>
-        new Response(JSON.stringify({ images: [{ url }] }), {
-          headers: { "content-type": "application/json" },
-          status: 200,
-        })
-    )
+    vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+      const requestUrl =
+        input instanceof Request ? input.url : input.toString();
+      const body =
+        init?.method === "POST"
+          ? { request_id: "save-test-request" }
+          : requestUrl.includes("/status")
+            ? { status: "COMPLETED" }
+            : { images: [{ url }] };
+      return new Response(JSON.stringify(body), {
+        headers: { "content-type": "application/json" },
+        status: 200,
+      });
+    })
   );
 }
 

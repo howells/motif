@@ -17,8 +17,6 @@
  * names none. A Model can appear once per mode.
  */
 
-import { MODELS } from "./models";
-
 export const TIERS = ["fast", "balanced", "quality"] as const;
 
 /** How far a Task trades cost and speed for quality. */
@@ -83,43 +81,56 @@ export interface TaskDefinition {
 
 const HAND_RANKED_AT = "2026-09-16";
 
+// AA v2 snapshots and Arena's preliminary Nano Banana 2.1 result are documented
+// in docs/research/image-model-curation-2026-10-07.md. No prompt-based routing.
+const IMAGE_RANKED_AT = "2026-10-07";
+
 const GENERATION_MODELS_RANKED: readonly RankedModel[] = [
-  { model: "gpt2", tier: "quality" },
-  { model: "banana2", tier: "quality" },
-  { model: "gpt", tier: "quality" },
   { model: "sunburst", tier: "quality" },
-  { model: "gemini3", tier: "quality" },
+  { model: "flare", tier: "quality" },
+  { model: "gpt2", tier: "quality" },
+  { model: "gpt", tier: "quality" },
   { model: "mai-image-2.5-pro", tier: "quality" },
   { model: "seedream5", tier: "quality" },
-  { model: "flux2-max", tier: "quality" },
+  { model: "banana21", tier: "balanced" },
+  { model: "grok-image-2", tier: "balanced" },
+  { model: "banana2", tier: "balanced" },
+  { model: "mai-image-2.5", tier: "balanced" },
   { model: "banana", tier: "balanced" },
+  { model: "qwen3", tier: "balanced" },
+  { model: "flux2-flex", tier: "balanced" },
+  { model: "flux2-pro", tier: "balanced" },
+  { model: "ideogram4", tier: "balanced" },
+  { model: "recraft41", tier: "balanced" },
   {
     model: "ideogram3-transparent",
     requires: ["transparency"],
     supports: ["transparency"],
     tier: "balanced",
   },
-  { model: "flare", tier: "balanced" },
-  { model: "banana2-lite", tier: "balanced" },
-  { model: "qwen3", tier: "balanced" },
-  { model: "seedream4", tier: "balanced" },
-  { model: "flux2-flex", tier: "balanced" },
-  { model: "ideogram4", tier: "balanced" },
-  { model: "grok-image", tier: "balanced" },
-  { model: "recraft4", tier: "balanced" },
-  { model: "flux2-pro", tier: "balanced" },
-  { model: "seedream45", tier: "balanced" },
-  { model: "grok-image-2", tier: "balanced" },
-  { model: "recraft41", tier: "balanced" },
-  { model: "flux2-turbo", tier: "fast" },
-  { model: "flux2-dev", tier: "fast" },
-  { model: "flux-fast", tier: "fast" },
+  { model: "banana2-lite", tier: "fast" },
+  { model: "grok-image", tier: "fast" },
   { model: "seedream5-lite", tier: "fast" },
-  { model: "gemini", tier: "fast" },
-  { model: "qwen", tier: "fast" },
-  { model: "ideogram", tier: "fast" },
-  { model: "recraft", tier: "fast" },
-  { model: "flux", tier: "fast" },
+  { model: "flux2-turbo", tier: "fast" },
+];
+
+const EDITING_MODELS_RANKED: readonly RankedModel[] = [
+  { model: "sunburst", tier: "quality" },
+  { model: "flare", tier: "quality" },
+  { model: "gpt2", tier: "quality" },
+  { model: "mai-image-2.5-pro", tier: "quality" },
+  { model: "seedream5", tier: "quality" },
+  { model: "gpt", tier: "quality" },
+  { model: "banana21", tier: "balanced" },
+  { model: "mai-image-2.5", tier: "balanced" },
+  { model: "grok-image-2", tier: "balanced" },
+  { model: "banana2", tier: "balanced" },
+  { model: "banana", tier: "balanced" },
+  { model: "flux2-pro", tier: "balanced" },
+  { model: "flux2-flex", tier: "balanced" },
+  { model: "grok-image", tier: "fast" },
+  { model: "seedream5-lite", tier: "fast" },
+  { model: "banana2-lite", tier: "fast" },
 ];
 
 /** Every Task with a Model. A Task is absent here until it has at least one Model. */
@@ -225,11 +236,11 @@ export const TASKS = {
   },
   generate: {
     basis:
-      "Hand-ranked. Tiers set by fal price per image (quality ≥ $0.07, balanced $0.02-$0.15 with edit quality, fast ≤ $0.04); order within a tier by Artificial Analysis text-to-image Elo, snapshot 2026-08-23, unranked models last. banana leads balanced because it is the house default the looks are tuned on. Ideogram V3 Transparent follows it but is chosen only for a transparent request, so transparency needs no OpenAI key at balanced; token-metered Nano Banana 2 Lite sits in balanced by its Elo.",
+      "Curated from Artificial Analysis v2, captured 2026-10-07, and Arena 2026-10-06. Sunburst and Flare lead quality at the benchmarked max setting. Nano Banana 2.1 leads balanced on preliminary Arena evidence and lower representative cost; Grok Image 2 and MAI 2.5 are established alternatives. Fast keeps Nano Banana 2 Lite, budget Grok and Seedream 5 Lite, and FLUX.2 Turbo. Design, transparency and tuned Look routes are capability exceptions. Generation with References uses the separate editing ranking. Older routes are explicit/pin/Look-only.",
     models: GENERATION_MODELS_RANKED,
     notFor:
       "Variations of an image you already have (vary), or a consistent set of images (series run).",
-    rankedAt: HAND_RANKED_AT,
+    rankedAt: IMAGE_RANKED_AT,
     rankedFrom: "hand",
     summary:
       "Make an image from a prompt, or change an image you pass as a reference.",
@@ -506,13 +517,11 @@ export const TASKS = {
   },
   vary: {
     basis:
-      "The generate ranking, filtered to Models that can edit. vary reuses the Model of the image it varies while Motif still offers it.",
-    models: GENERATION_MODELS_RANKED.filter(
-      ({ model }) => MODELS[model]?.supportsEdit === true
-    ),
+      "Curated from Artificial Analysis v2 editing, captured 2026-10-07, and preliminary Arena 2026-10-06 evidence for Nano Banana 2.1. Editing order differs from generation: MAI 2.5 outranks Grok Image 2, and Seedream 5 Pro outranks GPT Image 1.5. Sunburst and Flare use max quality. vary reuses a previously chosen Model when explicitly supplied, including retained legacy routes.",
+    models: EDITING_MODELS_RANKED,
     notFor:
       "A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).",
-    rankedAt: HAND_RANKED_AT,
+    rankedAt: IMAGE_RANKED_AT,
     rankedFrom: "hand",
     summary: "Make variations of an image you already have.",
   },

@@ -18,7 +18,7 @@ const baseSpec: BenchRunSpec = {
   concurrency: 1,
   isMock: true,
   maxEstimatedCostUsd: 1,
-  models: ["flux-fast", "grok-image"],
+  models: ["flux2-turbo", "grok-image"],
   outputFormat: null,
   prompt: "a cat wearing sunglasses",
   resolution: "1K",
@@ -55,7 +55,7 @@ describe("benchmarkRunWorkflow (default mock executors)", () => {
     expect(result.result.status).toBe("completed");
     expect(result.result.isMock).toBe(true);
     expect(result.result.models.map((model) => model.modelAlias)).toEqual([
-      "flux-fast",
+      "flux2-turbo",
       "grok-image",
     ]);
     for (const model of result.result.models) {
@@ -99,7 +99,7 @@ describe("benchmarkRunWorkflow (default mock executors)", () => {
     await run.start({
       inputData: {
         ...baseSpec,
-        models: ["flux-fast", "grok-image"],
+        models: ["flux2-turbo", "grok-image"],
         samplesPerModel: 2,
       },
     });
@@ -143,7 +143,7 @@ describe("benchmarkRunWorkflow (default mock executors)", () => {
       inputData: {
         ...baseSpec,
         concurrency: 2,
-        models: ["flux-fast", "grok-image"],
+        models: ["flux2-turbo", "grok-image"],
         samplesPerModel: 2,
       },
     });
@@ -170,7 +170,7 @@ describe("benchmarkRunWorkflow (default mock executors)", () => {
 
     const run = await workflow.createRun();
     const result = await run.start({
-      inputData: { ...baseSpec, models: ["flux-fast"] },
+      inputData: { ...baseSpec, models: ["flux2-turbo"] },
     });
 
     // The WORKFLOW itself never throws — only the run's own business outcome
@@ -199,7 +199,7 @@ describe("runOneModel (timeout path)", () => {
     });
 
     const alignment = alignParams(
-      "flux-fast",
+      "flux2-turbo",
       {
         aspect: "1:1",
         outputFormat: null,
@@ -212,14 +212,14 @@ describe("runOneModel (timeout path)", () => {
     expect(alignment.ok).toBe(true);
 
     const workItem: ModelWorkItem = {
-      alias: "flux-fast",
+      alias: "flux2-turbo",
       alignment,
       costBasis: "images",
       costEstimatedMicros: 1000,
       deadlineAt: Date.now() + 15,
-      endpoint: "fal-ai/flux-fast",
+      endpoint: "fal-ai/flux-2/turbo",
       executionOrdinal: 0,
-      modelName: "Flux Fast",
+      modelName: "FLUX.2 Turbo",
       runId: "timeout-test",
       sampleIndex: 0,
       timeoutFallbackMs: 15,

@@ -35,11 +35,11 @@ export interface HeroStep {
 
 export const SITE = {
   description:
-    "One command line over every image model. Name the job; Motif picks the model, prices the run before it spends and hands back the file.",
+    "One command line for curated image models. Name the job; Motif chooses the model, shows the plan before you spend and hands back the file.",
   install: "npm install -g @howells/motif-cli",
   name: "Motif",
   standfirst:
-    "One command line over every image model. You name the job; Motif picks the model, prices the run before it spends and hands back the file. It runs on fal today, and the same commands will carry other providers.",
+    "One command line for curated image models. You name the job and choose speed, balance or quality; Motif picks the model and hands back the file. Preview the request and its available cost estimate before you spend. It runs on fal today.",
 } as const;
 
 export const MASTHEAD_LINKS = [
@@ -423,8 +423,8 @@ export function matrixRows(): readonly MatrixRow[] {
 }
 
 export const MATRIX = {
-  body: "Every command runs on fal today, choosing from the number of models shown. Underneath the commands, the SDK can call four providers itself, for making and editing an image, so a prompt can go to Google, OpenAI or Replicate instead.",
+  body: `Motif curates ${TASKS.generate.models.length} generation models, with separate rankings for making and editing images. Balanced starts with Nano Banana 2.1; quality uses Sunburst at max; fast uses Banana Lite for generation and Grok for editing. The table shows each job's choices, including specialists for text, transparency and control.`,
   footnote:
-    "Make, edit means the SDK calls that provider directly, with that provider's own key, and only for those two jobs. Transparent output already works this way, running on OpenAI rather than fal. Everything else goes through fal, which hosts models from Google, OpenAI, ByteDance, Ideogram, Topaz and others under one key.",
+    "The rankings are reviewed against current benchmarks; existing Looks and model pins keep their choices across a refresh. Make, edit means the SDK can call Google, OpenAI, Replicate or fal directly with that provider's key. Explicit GPT Image 2 transparent output uses OpenAI; other CLI routes use fal. Token-billed models show an unknown total before the run.",
   title: "What runs where",
 } as const;

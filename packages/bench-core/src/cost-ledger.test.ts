@@ -20,22 +20,22 @@ describe(usdToMicros, () => {
 
 describe(estimateWorstCaseMicros, () => {
   it("sums per-model cost × samplesPerModel in integer micros", () => {
-    // flux-fast ($0.003) + grok-image ($0.02) — BRIEF.md's cheapest smoke pair.
+    // flux2-turbo ($0.008) + grok-image ($0.02) — curated inexpensive smoke pair.
     const totalMicros = estimateWorstCaseMicros({
-      models: ["flux-fast", "grok-image"],
+      models: ["flux2-turbo", "grok-image"],
       samplesPerModel: 1,
     });
-    expect(totalMicros).toBe(usdToMicros(0.003) + usdToMicros(0.02));
+    expect(totalMicros).toBe(usdToMicros(0.008) + usdToMicros(0.02));
     expect(Number.isInteger(totalMicros)).toBeTruthy();
   });
 
   it("scales linearly with samplesPerModel", () => {
     const one = estimateWorstCaseMicros({
-      models: ["flux-fast"],
+      models: ["flux2-turbo"],
       samplesPerModel: 1,
     });
     const three = estimateWorstCaseMicros({
-      models: ["flux-fast"],
+      models: ["flux2-turbo"],
       samplesPerModel: 3,
     });
     expect(three).toBe(one * 3);
@@ -55,10 +55,10 @@ describe(estimateWorstCaseMicros, () => {
 describe(assertWithinCostCap, () => {
   it("returns the worst-case total when under the cap", () => {
     const worstCaseMicros = assertWithinCostCap(
-      { models: ["flux-fast"], samplesPerModel: 1 },
+      { models: ["flux2-turbo"], samplesPerModel: 1 },
       1
     );
-    expect(worstCaseMicros).toBe(usdToMicros(0.003));
+    expect(worstCaseMicros).toBe(usdToMicros(0.008));
   });
 
   it("throws CostCapExceededError before any provider work when over the cap", () => {

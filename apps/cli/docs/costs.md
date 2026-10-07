@@ -18,37 +18,29 @@ vary offers the Models marked edit.
 
 | Model | Tier | Price | Notes |
 | --- | --- | --- | --- |
-| `gpt2` | quality | $0.211 | Edit. Very slow. Transparency runs through OpenAI, cost unknown |
-| `banana2` | quality | $0.08 | Edit. $0.06 / $0.08 / $0.12 / $0.16 at 0.5K / 1K / 2K / 4K |
-| `gpt` | quality | $0.133 | Edit. Transparency on fal |
-| `sunburst` | quality | Metered | Edit. GPT Image 2.5 Sunburst, token-billed, 16 references |
-| `gemini3` | quality | $0.15 | Edit. $0.30 at 4K |
+| `sunburst` | quality | Metered | Edit. Default quality is `max`, matching the benchmark variant; 16 references, masks, transparency |
+| `flare` | quality | Metered | Edit. Default quality is `max`; 16 references, masks, transparency |
+| `gpt2` | quality | ~$0.211 | Edit. Token-billed representative estimate; explicit transparency uses OpenAI, cost unknown |
+| `gpt` | quality | ~$0.133 | Edit. Token input additional; transparency on fal |
 | `mai-image-2.5-pro` | quality | ~$0.17 | Edit. One reference; edits ~$0.18-$0.27 |
 | `seedream5` | quality | $0.0675 / $0.135 | Edit. $0.135 above 1536² |
-| `flux2-max` | quality | $0.07/MP | Edit |
-| `banana` | balanced | $0.15 | Edit. The default. 14 references, $0.30 at 4K |
-| `ideogram3-transparent` | balanced | $0.06 | Always transparent, chosen only for `--transparent` |
-| `flare` | balanced | Metered | Edit. GPT Image 2.5 Flare, token-billed, 16 references |
-| `banana2-lite` | balanced | Metered | Token-billed, fixed 1K output (~$0.048), no edits |
-| `qwen3` | balanced | $0.04 | $0.075 at 2K |
-| `seedream4` | balanced | $0.03 | Edit |
-| `flux2-flex` | balanced | $0.05/MP | Edit. Guidance and step controls through `--param` |
-| `ideogram4` | balanced | $0.03 | Per-MP by rendering speed: $0.03 / $0.06 / $0.10 |
-| `grok-image` | balanced | $0.02 | Edit |
-| `recraft4` | balanced | $0.04 | Design generation |
-| `flux2-pro` | balanced | $0.03/MP | Edit |
-| `seedream45` | balanced | $0.04 | Edit |
-| `grok-image-2` | balanced | $0.06 | Edit. $0.08 at 2K; edits add $0.01 per input image |
+| `banana21` | balanced | Metered | The default. Edit, 14 references, 1K/2K/4K. Representative generation ~$0.040/$0.059/$0.134; input/thinking/search usage varies |
+| `grok-image-2` | balanced | $0.06 (1K) / $0.08 (2K) | Edit adds $0.01 per input image |
+| `banana2` | balanced | $0.06/$0.08/$0.12/$0.16 | Edit. 0.5K/1K/2K/4K; search +$0.015, high thinking +$0.002 |
+| `mai-image-2.5` | balanced | Metered | Edit. One reference; image output ~$0.05 plus input |
+| `banana` | balanced | $0.15 / $0.30 (4K) | Edit. Pro; 14 references, search +$0.015 |
+| `qwen3` | balanced | $0.04 (1K) / $0.075 (2K) | Generation with negative-prompt and seed controls |
+| `flux2-flex` | balanced | $0.05/MP input and output | Edit. Guidance and step controls; rounded up to whole MP |
+| `flux2-pro` | balanced | $0.03 first MP +$0.015 extra input/output MP | Edit. Retained for tuned Looks; rounded up to whole MP |
+| `ideogram4` | balanced | $0.0075/$0.015/$0.025 per MP | TURBO/BALANCED/QUALITY. Design/text specialist |
 | `recraft41` | balanced | $0.035 | Design generation |
-| `flux2-turbo` | fast | $0.008/MP |  |
-| `flux2-dev` | fast | $0.00167/sec | Edit. ~$0.012 an image |
-| `flux-fast` | fast | $0.003 | Cheapest draft |
-| `seedream5-lite` | fast | $0.035 | Edit |
-| `gemini` | fast | $0.04 | Edit |
-| `qwen` | fast | $0.02/MP |  |
-| `ideogram` | fast | $0.03 | Strong text rendering |
-| `recraft` | fast | $0.04 | Design and vector-friendly styles |
-| `flux` | fast | $0.06 | Edit. FLUX Pro Ultra |
+| `ideogram3-transparent` | balanced | $0.06 | Always transparent; chosen only for `--transparent` |
+| `banana2-lite` | fast | Metered | Fixed 1K; image output ~$0.042 plus input/thinking. Edit, with weaker sequential-edit evidence |
+| `grok-image` | fast | $0.02 | Edit. Budget alternative |
+| `seedream5-lite` | fast | $0.035 | Edit. Budget alternative |
+| `flux2-turbo` | fast | $0.008/MP | Inexpensive draft generation |
+
+The curated Models are ranked from separate generation and editing evidence. Retained predecessors still work through explicit overrides, pins and Looks; they are not chosen automatically. `null` for a metered Model means the total bill is unknown, even when a representative example price is published.
 
 ## animate
 

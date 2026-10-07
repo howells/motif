@@ -51,6 +51,51 @@ describe(buildGenerateBody, () => {
     }
   );
 
+  it.each(["flare", "sunburst"])(
+    "uses the benchmarked max default for %s, with an explicit override",
+    (model) => {
+      expect(
+        buildGenerateBody({ model, prompt: "A poster" }).body.quality
+      ).toBe("max");
+      expect(
+        buildGenerateBody({ model, prompt: "A poster", quality: "high" }).body
+          .quality
+      ).toBe("high");
+    }
+  );
+
+  it("routes Nano Banana 2.1 references and MAI 2.5's single-image edit", () => {
+    const reference = "https://example.com/reference.png";
+    const banana = buildGenerateBody({
+      model: "banana21",
+      prompt: "A poster",
+      editImageUrls: [reference],
+      resolution: "4K",
+      aspect: "8:1",
+    });
+    expect(banana.endpoint).toBe("google/nano-banana-2.1/edit");
+    expect(banana.body).toMatchObject({
+      image_urls: [reference],
+      resolution: "4K",
+      aspect_ratio: "8:1",
+    });
+    expect(estimateCost("banana21", "4K")).toBeNull();
+    const mai = buildGenerateBody({
+      model: "mai-image-2.5",
+      prompt: "A poster",
+      editImageUrls: [reference],
+    });
+    expect(mai.endpoint).toBe("microsoft/mai-image-2.5/edit");
+    expect(mai.body.image_urls).toEqual([reference]);
+    expect(() =>
+      buildGenerateBody({
+        model: "mai-image-2.5",
+        prompt: "A poster",
+        editImageUrls: [reference, reference],
+      })
+    ).toThrow("at most 1 reference");
+  });
+
   it("rejects 2.5-only quality on older GPT models", () => {
     expect(() =>
       buildGenerateBody({

@@ -30,15 +30,15 @@ const minimalPngBytes = (width: number, height: number): Buffer => {
 };
 
 const alignmentFor = (
-  alias: GenerationModelName = "flux-fast"
+  alias: GenerationModelName = "flux2-turbo"
 ): AlignmentOk => ({
   alias,
   autoSet: [],
   body: { prompt: "a red balloon" },
   coerced: [],
   dropped: [],
-  endpoint: "fal-ai/flux/schnell",
-  modelName: "FLUX Schnell",
+  endpoint: "fal-ai/flux-2/turbo",
+  modelName: "FLUX.2 Turbo",
   ok: true,
   options: { model: alias, prompt: "a red balloon" } satisfies GenerateOptions,
   seedSent: null,

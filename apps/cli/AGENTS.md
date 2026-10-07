@@ -239,7 +239,7 @@ Each flag overrides the matching key in the stdin `creative` object. Only the fi
 
 An unknown id fails before any fal request with a structured `INVALID_OPTION` error (exit `2`) whose details include the field and the available ids for that field. `--describe generate` lists every id with its label, sentence, and for looks the `defaultAspect` and `defaultModel`.
 
-`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. vary reuses the Model that made its image while Motif still offers it; otherwise it chooses from the generate ranking's Models that can edit. A Series can pin a look and mood when it's created (see [Series](docs/series.md)). A Series' free-text `--style <prompt>` is separate from looks. A Model's own style setting is an override like any other: `-m ideogram --param style=DESIGN`.
+`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. vary reuses the Model that made its image while that Model can still edit, including retained predecessors; otherwise it chooses from the separate editing ranking. Generation with `-e` also uses the editing ranking. A Series can pin a look and mood when it's created (see [Series](docs/series.md)). A Series' free-text `--style <prompt>` is separate from looks. A Model's own style setting is an override like any other: `-m ideogram4 --param rendering_speed=QUALITY`.
 
 ## Task Verbs
 
@@ -304,7 +304,7 @@ All API response data is sanitized before output to defend against prompt inject
 | Variable | Required | Description |
 | --- | --- | --- |
 | `FAL_KEY` | Yes, except for dry runs | fal.ai API key. Also configurable in `~/.motif/config.json` |
-| `OPENAI_API_KEY` | Only for `--transparent` at the quality Tier | The transparency route for `gpt2` runs through OpenAI |
+| `OPENAI_API_KEY` | Only for explicit `-m gpt2 --transparent` | The transparency route for `gpt2` runs through OpenAI |
 
 ## Auth
 

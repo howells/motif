@@ -119,7 +119,7 @@ export type AlignmentResult = AlignmentFailed | AlignmentOk;
  * incomparable (a param starts/stops being sent, a coercion changes). Feeds
  * `cohortHash`, so old runs stop being averaged with new ones.
  */
-export const ALIGNMENT_SCHEMA_VERSION = 1;
+export const ALIGNMENT_SCHEMA_VERSION = 2;
 
 /**
  * Resolve a canonical spec into one model's concrete fal request.
@@ -252,14 +252,13 @@ export function alignParams(
   }
 
   // ── Params the SDK sets for us ────────────────────────────────────────────
-  // We never pass `quality`; buildGenerateBody forces "high" wherever the flag
-  // is set. Recorded because it is a real difference between models — the ones
-  // with a quality dial are being benchmarked at their top setting.
+  // We never pass `quality`; buildGenerateBody uses the registry's default.
+  // Record it so max-quality GPT 2.5 results cannot be mixed with old high runs.
   if (config.supportsQuality === true) {
     autoSet.push({
       param: "quality",
-      reason: "buildGenerateBody defaults quality to high where supported",
-      value: "high",
+      reason: "buildGenerateBody sets the Model's default quality",
+      value: config.defaultQuality ?? "high",
     });
   }
 

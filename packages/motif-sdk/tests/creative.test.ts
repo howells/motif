@@ -9,7 +9,7 @@ import {
   LOOKS,
   validateCreativeDirection,
 } from "../src/index";
-import { GENERATION_MODELS } from "../src/models";
+import { GENERATION_MODELS, LEGACY_GENERATION_MODELS } from "../src/models";
 
 const INTERIOR_CLAUSE =
   "Interior photograph in the register of House & Garden and Kinfolk, shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, lived-in rather than showroom-perfect, soft natural daylight, shot on film with fine grain. No text, no logos, no people";
@@ -157,7 +157,9 @@ describe("house looks", () => {
 
   it("defaults every look to a real generation model and aspect ratio", () => {
     for (const look of LOOKS) {
-      expect(GENERATION_MODELS).toContain(look.model);
+      expect([...GENERATION_MODELS, ...LEGACY_GENERATION_MODELS]).toContain(
+        look.model
+      );
       expect(ASPECT_RATIOS).toContain(look.aspect);
     }
   });

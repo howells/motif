@@ -1,6 +1,6 @@
 # @howells/motif-cli
 
-Images and video through fal.ai, by task. Say what you want done and Motif chooses the Model that does it best at the Tier you ask for. Every call can be priced with a dry run before it spends anything.
+Images and video through fal.ai, by task. Say what you want done and Motif chooses from a curated set of Models at the Tier you ask for. A dry run shows the request and its available cost estimate before you spend. Unavailable token-billed totals are reported as unknown.
 
 ## Install
 
@@ -20,6 +20,8 @@ motif upscale lamp-erase.png --scale 2                   # make it larger
 ```
 
 `--tier fast|balanced|quality` moves the choice; the default is `balanced`. Run `motif` with no arguments for help, and `motif <verb> --help` for one Task.
+
+Generation starts with Nano Banana 2.1 at `balanced`, Sunburst at `max` at `quality`, and Nano Banana 2 Lite at `fast`. Editing has a separate ranking; fast editing starts with Grok. See [generate and vary](docs/generate.md) for the curated list, capability specialists and retained predecessor routes. Looks and pinned Models keep their own choices.
 
 ## For agents
 
