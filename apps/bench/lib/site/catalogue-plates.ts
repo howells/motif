@@ -110,6 +110,46 @@ export const SERIES: readonly Plate[] = [
   ),
 ];
 
+/** A Series built from one reference: the apothecary shelf, then four new
+ * subjects from `motif series gen` that keep its shelf, light and glass. */
+export const SERIES_FROM_REFERENCE: readonly Plate[] = [
+  plate(
+    "/demo/sources/apothecary.jpg",
+    "Three amber glass bottles and a white bowl on a stone shelf, the Series' style reference",
+    1400,
+    781,
+    "The reference"
+  ),
+  plate(
+    "/demo/series-gen/01.jpg",
+    "A brass mortar and pestle beside amber bottles on the same stone shelf",
+    1024,
+    1024,
+    "A brass mortar and pestle"
+  ),
+  plate(
+    "/demo/series-gen/02.jpg",
+    "A beeswax candle in a stoneware holder beside amber bottles on the same shelf",
+    1024,
+    1024,
+    "A beeswax candle"
+  ),
+  plate(
+    "/demo/series-gen/03.jpg",
+    "A glass jar of dried lavender beside amber bottles on the same shelf",
+    1024,
+    1024,
+    "Dried lavender"
+  ),
+  plate(
+    "/demo/series-gen/04.jpg",
+    "A folded stack of linen cloths tied with string on the same stone shelf",
+    1024,
+    1024,
+    "Folded linen"
+  ),
+];
+
 export const VASE = plate(
   "/demo/vase/vase.jpg",
   "A cream ceramic vase on a linen cloth by a window",

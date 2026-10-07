@@ -354,7 +354,9 @@ function SinglePlate({ result }: { readonly result: Plate }) {
 function CarouselOf({ entry }: { readonly entry: CatalogueEntry }) {
   return (
     <FieldCarousel
-      captioned={entry.id === "map" || entry.id === "material"}
+      captioned={
+        entry.id === "map" || entry.id === "material" || entry.id === "series"
+      }
       frames={entry.frames ?? []}
       id={`carousel-${entry.id}`}
     />

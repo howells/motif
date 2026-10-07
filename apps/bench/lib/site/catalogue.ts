@@ -26,9 +26,9 @@ export interface LedgerRow {
  * 16:9 bench with its square extension, so the new canvas reads at a glance.
  * Relight is a specimen, not a pair: no same-scene relight asset exists, so
  * the band shows the two real invocations instead of a regeneration passing
- * as a relight. Series is a carousel of its six images, not a `series show`
- * specimen: the specimen text beside the pictures added nothing the rail
- * doesn't already say. Studio is a specimen of the real Studio home menu,
+ * as a relight. Series is a carousel of its reference and the images made
+ * from it, not a `series show` specimen and not `series run`'s pottery set:
+ * what a Series adds over a run is the reference the later images keep. Studio is a specimen of the real Studio home menu,
  * set as type rather than screenshotted. Upscale and restore are details
  * rather than matched pairs: two squares at the same size hide the very
  * difference they are there to show, so both files are drawn at one

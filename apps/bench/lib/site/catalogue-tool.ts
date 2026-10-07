@@ -1,5 +1,5 @@
 import type { CatalogueGroup } from "@/lib/site/catalogue";
-import { SERIES, STILL_LIFE } from "@/lib/site/catalogue-plates";
+import { SERIES_FROM_REFERENCE, STILL_LIFE } from "@/lib/site/catalogue-plates";
 
 export const TOOL: CatalogueGroup = {
   body: "These manage your work rather than a picture.",
@@ -8,7 +8,7 @@ export const TOOL: CatalogueGroup = {
   entries: [
     {
       id: "series",
-      frames: SERIES,
+      frames: SERIES_FROM_REFERENCE,
       summary: "A reusable style and references.",
       treatment: "carousel",
       usage: "motif series <subcommand>",
