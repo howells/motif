@@ -113,14 +113,14 @@ const MAKE: CatalogueGroup = {
         "The same person as a textured 3D mesh, rigged and standing on transparency",
         512,
         512,
-        "the mesh, rigged"
+        "The mesh, rigged"
       ),
       source: plate(
         "/demo/sources/figure.jpg",
         "A person in a cream shirt and trousers in a plaster-walled room",
         939,
         1400,
-        "the photograph"
+        "The photograph"
       ),
       summary: "A textured 3D mesh, rigged with --rig.",
       treatment: "pair",
@@ -142,14 +142,14 @@ const EDIT: CatalogueGroup = {
         "The same label with the printing gone and the paper texture carried through",
         1400,
         756,
-        "erased"
+        "Erased"
       ),
       source: plate(
         "/demo/sources/label.jpg",
         "A torn paper label on a plaster wall reading Salvage and Co, botanical extract number four",
         1400,
         781,
-        "the source"
+        "The source"
       ),
       summary: "Remove something, fill the gap.",
       treatment: "held",
@@ -178,14 +178,14 @@ const EDIT: CatalogueGroup = {
         "The same bench and vases with new canvas above and below, now square",
         1400,
         1400,
-        "1400 × 1400, extended"
+        "Extended to 1400 × 1400 with --square"
       ),
       source: plate(
         "/demo/sources/interior.jpg",
         "A wooden bench with a folded throw and two vases against a sunlit wall",
         1400,
         781,
-        "1400 × 781, the source"
+        "The source, 1400 × 781"
       ),
       summary: "Extend to a new aspect ratio.",
       treatment: "pair",
@@ -231,7 +231,7 @@ const EDIT: CatalogueGroup = {
         "A celadon jug and a linen cloth on a plaster shelf, softened until the crackle and the plaster texture are gone",
         1024,
         1024,
-        "softened"
+        "The source, softened"
       ),
       summary: "Fix noise, blur, damage, colour.",
       treatment: "detail",
@@ -254,7 +254,7 @@ const EDIT: CatalogueGroup = {
         "A country kitchen in flat neutral daylight, the source for the relight",
         2048,
         2048,
-        "the source kitchen"
+        "The source kitchen"
       ),
       summary: "Relight to a described light or a mood.",
       treatment: "held",
@@ -283,7 +283,7 @@ const EDIT: CatalogueGroup = {
           "A woman in a white t-shirt and linen trousers in a plain studio room, the try-on subject",
           2048,
           2048,
-          "the person"
+          "The person"
         ),
         plate(
           "/demo/try-on/garment.jpg",
@@ -297,7 +297,7 @@ const EDIT: CatalogueGroup = {
           "The same woman in the same room, now wearing the rust chore jacket",
           2048,
           2048,
-          "wearing it"
+          "Wearing it"
         ),
       ],
       summary: "Dress a person in a garment.",
@@ -397,28 +397,28 @@ const UNDERSTAND: CatalogueGroup = {
           "A wooden bench with a folded throw and two vases against a sunlit wall",
           1400,
           781,
-          "the photograph"
+          "The photograph"
         ),
         plate(
           "/demo/depth/interior.jpg",
           "A depth map of the same room: the bench pale, the wall behind it black",
           1400,
           781,
-          "depth"
+          "Depth"
         ),
         plate(
           "/demo/lineart/vessel.jpg",
           "A line drawing of a vessel, a different subject from the room",
           1400,
           1400,
-          "line — vessel"
+          "Lines, from a vessel"
         ),
         plate(
           "/demo/pose/figure.jpg",
           "A pose map of a standing figure, a different subject from the room",
           1024,
           1024,
-          "pose — figure"
+          "Pose, from a figure"
         ),
       ],
       id: "map",
@@ -434,28 +434,28 @@ const UNDERSTAND: CatalogueGroup = {
           "A photograph of folded cream cotton, lit from the side",
           1400,
           1400,
-          "the photograph"
+          "The photograph"
         ),
         plate(
           "/demo/materials/basecolor.jpg",
           "The base colour map of the same cloth",
           1400,
           1400,
-          "base colour"
+          "Base colour"
         ),
         plate(
           "/demo/materials/normal.jpg",
           "The normal map of the same cloth, its weave and folds read as surface direction",
           1400,
           1400,
-          "normal"
+          "Normal"
         ),
         plate(
           "/demo/materials/roughness.jpg",
           "The roughness map of the same cloth",
           1400,
           1400,
-          "roughness"
+          "Roughness"
         ),
       ],
       id: "material",

@@ -22,7 +22,7 @@ export function Compare() {
   const shown = held ? COMPARE.source : COMPARE.result;
 
   return (
-    <section>
+    <section className="pb-16">
       <ChapterHead body={COMPARE.body} id="compare" title={COMPARE.title} />
 
       <div className="site-gutter">

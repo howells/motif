@@ -102,7 +102,10 @@ export function MotionClip({
             value={current}
           />
         </label>
-        <p className="type-small font-mono" style={{ color: "var(--faint)" }}>
+        <p
+          className="type-small tabular-nums"
+          style={{ color: "var(--faint)" }}
+        >
           {`${formatTime(current)} / ${duration}`}
         </p>
       </div>

@@ -65,7 +65,7 @@ export function Moods() {
   }
 
   return (
-    <section>
+    <section className="pb-16">
       <ChapterHead
         body="One kitchen, one prompt, one seed. Only the light changes."
         id="moods"

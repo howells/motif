@@ -50,7 +50,7 @@ export function Matrix() {
   const rows = matrixRows();
 
   return (
-    <section>
+    <section className="pb-16">
       <ChapterHead body={MATRIX.body} id="providers" title={MATRIX.title} />
 
       <div className="site-gutter">
@@ -79,13 +79,14 @@ export function Matrix() {
                 <th
                   className="type-small pb-3.5 text-start min-[62rem]:w-55"
                   scope="col"
+                  style={{ color: "var(--faint)" }}
                 >
                   fal
                 </th>
                 <th
                   className="type-small pb-3.5 text-start min-[62rem]:w-45"
                   scope="col"
-                  style={{ color: "var(--muted)" }}
+                  style={{ color: "var(--faint)" }}
                 >
                   Direct
                 </th>

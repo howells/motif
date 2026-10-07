@@ -101,7 +101,7 @@ export function CarouselControls({
           style={{ width: `${String(ratio * 100)}%` }}
         />
       </div>
-      <p className="type-small font-mono" style={{ color: "var(--faint)" }}>
+      <p className="type-small tabular-nums" style={{ color: "var(--faint)" }}>
         {`${pad(index)} / ${pad(total)}`}
       </p>
       <BlossomPrev aria-label="Previous" className="site-hit" for={id}>
@@ -171,7 +171,7 @@ export function SourceAndTakes({
       <div className="site-takes">
         <div className="site-takes-source">
           <Cover picture={source} size={318} sizes="318px" />
-          <Note>{source.caption ?? "the source"}</Note>
+          <Note>{source.caption ?? "The source"}</Note>
         </div>
         <CarouselTrack
           current={index}

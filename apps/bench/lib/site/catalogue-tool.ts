@@ -2,7 +2,7 @@ import type { CatalogueGroup } from "@/lib/site/catalogue";
 import { SERIES, STILL_LIFE } from "@/lib/site/catalogue-plates";
 
 export const TOOL: CatalogueGroup = {
-  body: "These manage your work rather than an image. Their result is text, so the page shows the text.",
+  body: "These manage your work rather than a picture.",
   count: "Six commands",
   name: "The tool itself",
   entries: [

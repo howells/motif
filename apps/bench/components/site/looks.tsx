@@ -22,7 +22,7 @@ export function Looks() {
   const total = LOOKS.length;
 
   return (
-    <section>
+    <section className="pb-16">
       <ChapterHead
         body="Add one to any prompt with --look. A look sets the medium, the finish and the framing."
         id="looks"

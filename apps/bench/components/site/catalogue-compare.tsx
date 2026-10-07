@@ -95,18 +95,18 @@ export function HeldCompare({
           className="type-small"
           style={{ color: "var(--faint)", width: `${String(split)}%` }}
         >
-          {source.caption ?? "the source"}
+          {source.caption ?? "The source"}
         </p>
         {mono === true ? (
           <code
             className="type-small font-mono"
             style={{ color: "var(--ink)" }}
           >
-            {result.caption ?? "the result"}
+            {result.caption ?? "The result"}
           </code>
         ) : (
           <p className="type-small" style={{ color: "var(--ink)" }}>
-            {result.caption ?? "the result"}
+            {result.caption ?? "The result"}
           </p>
         )}
       </div>

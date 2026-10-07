@@ -39,7 +39,7 @@ export const SITE = {
   install: "npm install -g @howells/motif-cli",
   name: "Motif",
   standfirst:
-    "One command line for curated image models. You name the job and choose speed, balance or quality; Motif picks the model and hands back the file. Preview the request and its available cost estimate before you spend. It runs on fal today.",
+    "One command line for curated image models. Name the job and choose speed, balance or quality; Motif picks the model and hands back the file. A dry run shows the model, and the price where it's known, before you spend. It runs on fal today.",
 } as const;
 
 export const MASTHEAD_LINKS = [
@@ -294,7 +294,7 @@ export const COMPARE = {
    * replaces them while the source is held. */
   garmentLabel: "--garment",
   heldCaption: "The source, while you hold.",
-  sourceLabel: "before",
+  sourceLabel: "Before",
   garment: {
     alt: "A rust-coloured chore jacket photographed flat",
     height: 1000,
@@ -320,7 +320,7 @@ export const AGENT_EXAMPLES = [
   {
     label: "Price it before it spends",
     command: 'motif erase "the bottle" shelf.jpg --dry-run',
-    output: '{"cost":0.024,"costBasis":"projected","valid":true}',
+    output: '{"cost":0.024,\n "costBasis":"projected",\n "valid":true}',
   },
   {
     label: "Wrong verb, exit 2",
@@ -331,7 +331,7 @@ export const AGENT_EXAMPLES = [
     label: "Every command, as JSON",
     command: "motif --describe tasks --format json",
     output:
-      '{"task":"erase","summary":"Remove something\nand fill the gap",\n"tiers":["fast","balanced","quality"]}',
+      '{"task":"erase",\n "summary":"Remove something and fill the gap",\n "tiers":["fast","balanced","quality"]}',
   },
 ] as const;
 

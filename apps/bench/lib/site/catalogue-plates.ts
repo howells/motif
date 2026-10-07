@@ -115,7 +115,7 @@ export const VASE = plate(
   "A cream ceramic vase on a linen cloth by a window",
   1000,
   1000,
-  "the source"
+  "The source"
 );
 
 export const INTERIOR = plate(
@@ -130,5 +130,5 @@ export const APOTHECARY = plate(
   "Three amber glass bottles and a white bowl on a stone shelf in raking daylight",
   1400,
   781,
-  "the photograph"
+  "The photograph"
 );

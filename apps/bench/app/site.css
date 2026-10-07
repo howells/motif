@@ -416,7 +416,7 @@
   .site-band {
     flex-direction: column;
     gap: 20px;
-    padding: 40px 20px 48px;
+    padding: 40px var(--gutter) 48px;
   }
 
   .site-rail {
@@ -442,7 +442,7 @@
     align-items: stretch;
     flex-direction: column;
     gap: 16px;
-    padding: 64px 20px 32px;
+    padding: 64px var(--gutter) 32px;
   }
 
   .site-chapter-name,

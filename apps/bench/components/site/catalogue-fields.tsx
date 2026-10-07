@@ -224,7 +224,7 @@ function LiftedField({
     <div className="site-lifted">
       <div>
         <Still picture={source} sizes="512px" />
-        <Note>{source.caption ?? "the photograph"}</Note>
+        <Note>{source.caption ?? "The photograph"}</Note>
       </div>
       <div>
         <div className={plain === true ? undefined : "site-stack-mount"}>
