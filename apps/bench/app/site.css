@@ -167,18 +167,21 @@
    size. Display scale belongs to the wordmark alone, and at 72px an answer
    would cover the shelf it is counting. Set in ink like everything else: the
    plates it lies on are daylit and pale, and paper-coloured type disappeared
-   into them. */
+   into them. It hangs from the top-left, on bare wall: along the bottom it
+   ran through the bottles and the shelf edge. Measured against the shelf,
+   ink there holds 5.2:1 on average and 4.0:1 at worst. The right of the wall
+   is lighter but bleeds off the window on desktop. */
 .site-answer {
   color: var(--ink);
-  inset-block-end: 1.5rem;
-  inset-inline: 1.5rem;
+  inset-block-start: 1.25rem;
+  inset-inline-start: 1.5rem;
   position: absolute;
 }
 
 @media (width >= 48rem) {
   .site-answer {
-    inset-block-end: 2.5rem;
-    inset-inline: 2.5rem;
+    inset-block-start: 2rem;
+    inset-inline-start: 2.5rem;
   }
 }
 
