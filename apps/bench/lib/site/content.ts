@@ -44,8 +44,6 @@ export const SITE = {
     "One command line for curated image models. Name the job and choose speed, balance or quality; Motif picks the model and hands back the file. A dry run shows the model, and the price where it's known, before you spend. It runs on",
   provider: { href: "https://fal.ai", label: "fal" },
   standfirstClose: "today.",
-  /** The share card's one line. */
-  tagline: "One command line for curated image models.",
   title: "Motif - one command line for curated image models",
   /** The canonical address. The site answers on other aliases too; search
    * engines and share cards are pointed here. */

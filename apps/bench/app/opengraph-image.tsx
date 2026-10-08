@@ -18,7 +18,7 @@ const PHOTO_WIDTH = 740;
  * the bottles and the bowl in frame with wall to the right of them. */
 const PHOTO_LEFT = 0.38;
 
-/** The share card is the hero, cut down: the wordmark, one line and the
+/** The share card is the hero, cut down: the wordmark, the address and the
  * shelf the hero opens on, on the same paper. Next prerenders it at build, so
  * the files are read from disk rather than fetched. Satori reads TTF but not
  * woff2, which is why the two faces are vendored in `assets/fonts`. Each
@@ -67,23 +67,15 @@ async function OpenGraphImage() {
         <div
           style={{
             fontFamily: "Faculty Glyphic",
-            fontSize: 132,
+            fontSize: 84,
             letterSpacing: "-0.01em",
             lineHeight: 1,
           }}
         >
           {SITE.name}
         </div>
-        <div
-          style={{
-            color: "#5f5c5a",
-            fontFamily: "Inter",
-            fontSize: 28,
-            lineHeight: 1.35,
-            width: 320,
-          }}
-        >
-          {SITE.tagline}
+        <div style={{ color: "#5f5c5a", fontFamily: "Inter", fontSize: 20 }}>
+          {new URL(SITE.url).host}
         </div>
       </div>
       <div
