@@ -151,7 +151,18 @@ export function Hero() {
     <section className="site-gutter site-bleed flex flex-col pt-11 pb-14 md:flex-row md:items-start md:gap-12 md:pb-16">
       <div className="flex flex-col pt-1 md:w-[400px] md:shrink-0">
         <h1 className="type-display">{SITE.name}</h1>
-        <p className="type-body max-w-[380px] pt-7">{SITE.standfirst}</p>
+        <p className="type-body max-w-[380px] pt-7">
+          {SITE.standfirst}{" "}
+          <a
+            className="underline decoration-(--faint) decoration-1 underline-offset-3 hover:decoration-current"
+            href={SITE.provider.href}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            {SITE.provider.label}
+          </a>{" "}
+          {SITE.standfirstClose}
+        </p>
         <code
           className="type-small pt-4 font-mono md:hidden"
           style={{ color: "var(--faint)" }}

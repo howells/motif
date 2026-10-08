@@ -38,8 +38,18 @@ export const SITE = {
     "One command line for curated image models. Name the job; Motif chooses the model, shows the plan before you spend and hands back the file.",
   install: "npm install -g @howells/motif-cli",
   name: "Motif",
+  /** Ends on the provider, which the hero sets as a link: plenty of readers
+   * have never heard of fal. */
   standfirst:
-    "One command line for curated image models. Name the job and choose speed, balance or quality; Motif picks the model and hands back the file. A dry run shows the model, and the price where it's known, before you spend. It runs on fal today.",
+    "One command line for curated image models. Name the job and choose speed, balance or quality; Motif picks the model and hands back the file. A dry run shows the model, and the price where it's known, before you spend. It runs on",
+  provider: { href: "https://fal.ai", label: "fal" },
+  standfirstClose: "today.",
+  /** The share card's one line. */
+  tagline: "One command line for curated image models.",
+  title: "Motif - one command line for curated image models",
+  /** The canonical address. The site answers on other aliases too; search
+   * engines and share cards are pointed here. */
+  url: "https://motif.danielhowells.com",
 } as const;
 
 export const MASTHEAD_LINKS = [

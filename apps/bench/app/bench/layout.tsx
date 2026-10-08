@@ -7,6 +7,7 @@ import { QueryProvider } from "@/lib/query-provider";
 
 export const metadata: Metadata = {
   description: "Motif image-model benchmark harness.",
+  robots: { follow: false, index: false },
   title: "Motif Bench",
 };
 

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 
+import { SITE } from "@/lib/site/content";
+
 import "@blossom-carousel/react/style.css";
 import "./globals.css";
 
@@ -16,8 +18,12 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+/** Every relative URL in the metadata below this segment, the share card's
+ * included, resolves against the canonical address. */
 export const metadata: Metadata = {
-  title: "Motif",
+  applicationName: SITE.name,
+  metadataBase: new URL(SITE.url),
+  title: SITE.name,
 };
 
 /** The document and the theme, nothing else. The bench's shell and its
