@@ -1,6 +1,6 @@
 # Series
 
-Series keep a visual style and generate several images that look like they belong together. Part of the [CLI agent guide](../AGENTS.md). The domain terms (Series, Series Run, Reference, Theme, Scene Prompt) are defined in [CONTEXT.md](../../../CONTEXT.md).
+Series keep a visual style and generate several images that look like they belong together. Part of the [CLI agent guide](../AGENTS.md). The domain terms (Series, Series Run, Reference, Theme, Scene Prompt) are defined in [CONTEXT.md](https://linear.app/howells/document/motif-project-documentation-8f35c5aa5226).
 
 ## Quick start
 

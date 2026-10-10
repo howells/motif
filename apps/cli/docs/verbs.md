@@ -32,7 +32,7 @@ Instead: the whole background (cutout), or extending the canvas (reframe).
 | `--text` | Remove all rendered text |
 | `--with <fill>` | With `--mask`, fill the region with something described in words |
 
-`--tier quality` runs an eraser that also removes the object's shadow and reflections, at about ten times the price. See [repair and restore](../../../docs/tools/repair-and-restore.md).
+`--tier quality` runs an eraser that also removes the object's shadow and reflections, at about ten times the price. See [repair and restore](https://linear.app/howells/document/motif-project-documentation-33-ee2214477b2a).
 
 ```bash
 motif erase "the parked car" street.jpg --dry-run
@@ -229,7 +229,7 @@ Instead: masks of a named thing (segment), or PBR material maps (material).
 | `--pose`     | Body, hand and face pose skeletons                     |
 | `--segments` | A segmentation map                                     |
 
-See [preprocessors](../../../docs/tools/preprocessors.md) for which map suits which job.
+See [preprocessors](https://linear.app/howells/document/motif-project-documentation-33-ee2214477b2a) for which map suits which job.
 
 ```bash
 motif map room.jpg -o depth.png --dry-run

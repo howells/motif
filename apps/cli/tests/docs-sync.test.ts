@@ -11,7 +11,6 @@ const testDir = import.meta.dirname;
 const repoRoot = resolve(testDir, "../../..");
 
 const cliAgentsPath = resolve(testDir, "../AGENTS.md");
-const readmePath = resolve(repoRoot, "README.md");
 const cliCostsPath = resolve(repoRoot, "apps/cli/docs/costs.md");
 const cliGeneratePath = resolve(repoRoot, "apps/cli/docs/generate.md");
 const cliErrorsPath = resolve(repoRoot, "apps/cli/docs/errors.md");
@@ -52,8 +51,8 @@ describe("docs sync", () => {
     }
   });
 
-  it("documents every look and mood id in the CLI agent guide and README", () => {
-    for (const path of [cliAgentsPath, readmePath]) {
+  it("documents every look and mood id in the published CLI agent guide", () => {
+    for (const path of [cliAgentsPath]) {
       const doc = read(path);
       for (const field of CREATIVE_FIELDS) {
         for (const option of CREATIVE_TAXONOMY[field]) {
@@ -79,10 +78,7 @@ describe("docs sync", () => {
   });
 
   it("mentions creative direction in the user-facing docs", () => {
-    const docs: [string, string][] = [
-      ["README.md", readmePath],
-      ["apps/cli/AGENTS.md", cliAgentsPath],
-    ];
+    const docs: [string, string][] = [["apps/cli/AGENTS.md", cliAgentsPath]];
     for (const [label, path] of docs) {
       expect(
         read(path).toLowerCase(),
