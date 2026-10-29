@@ -141,12 +141,12 @@ describe(TASKS, () => {
       balanced: [
         "grok-image-2",
         "banana21",
-        "krea3",
         "mai-image-2.5",
         "muse-image",
         "grok-image-quality",
         "banana",
         "banana2",
+        "krea3",
         "qwen3",
         "flux2-pro",
         "flux2-flex",

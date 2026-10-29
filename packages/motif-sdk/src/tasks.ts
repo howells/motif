@@ -127,12 +127,12 @@ const EDITING_MODELS_RANKED: readonly RankedModel[] = [
   { model: "mai-image-2.5-pro", tier: "quality" },
   { model: "grok-image-2", tier: "balanced" },
   { model: "banana21", tier: "balanced" },
-  { model: "krea3", tier: "balanced" },
   { model: "mai-image-2.5", tier: "balanced" },
   { model: "muse-image", tier: "balanced" },
   { model: "grok-image-quality", tier: "balanced" },
   { model: "banana", tier: "balanced" },
   { model: "banana2", tier: "balanced" },
+  { model: "krea3", tier: "balanced" },
   { model: "qwen3", tier: "balanced" },
   { model: "flux2-pro", tier: "balanced" },
   { model: "flux2-flex", tier: "balanced" },
@@ -525,7 +525,7 @@ export const TASKS = {
   },
   vary: {
     basis:
-      "Order follows Arena image edit, single image (https://arena.ai/leaderboard/image/image-edit/single-image), read 2026-10-29 (MOT-72). Editing order differs from generation: Grok Image 2 leads balanced, ahead of Nano Banana 2.1 and Krea 3, and Seedream 5 Pro outranks GPT Image 1.5. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Sunburst and Flare use max quality. vary reuses a previously chosen Model when explicitly supplied, including retained legacy routes.",
+      "Order follows Arena image edit, single image (https://arena.ai/leaderboard/image/image-edit/single-image), read 2026-10-29 (MOT-72). Editing order differs from generation: Grok Image 2 leads balanced, ahead of Nano Banana 2.1, and Seedream 5 Pro outranks GPT Image 1.5. Arena scores Krea 3 only at its Ultra setting, which costs $0.27 to $0.35 an edit and ignores the requested size, so krea3, which runs fal's default setting, is ranked as unscored. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Sunburst and Flare use max quality. vary reuses a previously chosen Model when explicitly supplied, including retained legacy routes.",
     models: EDITING_MODELS_RANKED,
     notFor:
       "A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).",

@@ -1552,7 +1552,7 @@ export const MODELS: Record<string, ModelConfig> = {
   krea3: {
     benchmark: {
       useCase:
-        "Reference editing with prompt planning; Arena Krea 3 Ultra #8 editing, preliminary 2026-10-29. Motif sends fal's defaults (berry, medium reasoning), not Ultra",
+        "Reference editing with prompt planning. Motif sends fal's defaults (berry, medium reasoning), which Arena has not scored; Arena's 1411 editing score (2026-10-29) is for Ultra, available with --param reasoning_level=ultra",
     },
     // fal: max 3200 per side, 4,220,160 pixels, multiples of 16, at least 256.
     customImageSize: {
