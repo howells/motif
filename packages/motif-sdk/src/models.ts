@@ -12,6 +12,8 @@ const FAL_PRICING_CHECKED_JUL_2026 = "2026-07-11";
 const FAL_PRICING_CHECKED_AUG_2026 = "2026-08-23";
 // MOT-59 additions and endpoint moves: verified against fal model pages and OpenAPI.
 const FAL_PRICING_CHECKED_SEP_2026 = "2026-09-16";
+// MOT-72 additions: verified against fal's pricing API, model pages and OpenAPI.
+const FAL_PRICING_CHECKED_OCT_2026 = "2026-10-29";
 
 export const MODELS: Record<string, ModelConfig> = {
   // ─── Generation Models ────────────────────────────────────────
@@ -1271,6 +1273,7 @@ export const MODELS: Record<string, ModelConfig> = {
       useCase: "Strong generation with negative-prompt and seed controls",
     },
     customImageSize: { maxPixels: 4_194_304, minPixels: 262_144 },
+    editEndpoint: "alibaba/qwen-image-3/edit",
     endpoint: "alibaba/qwen-image-3/text-to-image",
     falPricing: {
       checkedAt: FAL_PRICING_CHECKED_SEP_2026,
@@ -1281,13 +1284,16 @@ export const MODELS: Record<string, ModelConfig> = {
       unit: "images",
       unitPrice: 0.04,
     },
+    // fal's edit schema: "Reference images for editing (1-3 images required)."
+    maxReferenceImages: 3,
     name: "Qwen Image 3",
     pricePerImageUsd: 0.04,
-    // Motif sends a 1K image_size; 2K output costs $0.075.
+    // Motif sends a 1K image_size; 2K output costs $0.075. The edit route
+    // (alibaba/qwen-image-3/edit) bills the same per generated image.
     pricing: "$0.04 (1K) / $0.075 (2K)",
     sizeMode: "image_size_enum",
     supportsAspect: true,
-    supportsEdit: false,
+    supportsEdit: true,
     supportsNegativePrompt: true,
     supportsNumImages: true,
     supportsOutputFormat: true,
@@ -1493,6 +1499,138 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsSyncMode: true,
     type: "generation",
   },
+  "muse-image": {
+    benchmark: {
+      useCase:
+        "Low-cost generation and multi-reference editing; Arena #8 generation / #10 editing, 2026-10-29",
+    },
+    editEndpoint: "meta/muse-image/edit",
+    endpoint: "meta/muse-image/text-to-image",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_OCT_2026,
+      currency: "USD",
+      endpointId: "meta/muse-image/text-to-image",
+      estimatedCostPerImageUsd: 0.01,
+      source: "fal-pricing-api",
+      unit: "images",
+      unitPrice: 0.01,
+    },
+    // fal's edit schema: "Provide between 1 and 10 HTTP(S) or data URLs."
+    maxReferenceImages: 10,
+    name: "Meta Muse Image",
+    // The edit route bills the same $0.01 per image.
+    pricePerImageUsd: 0.01,
+    pricing: "$0.01",
+    sizeMode: "aspect_ratio",
+    // fal takes any "width:height" ratio from 1:16 to 16:1, rendered at about
+    // 2.5 megapixels, and omitting it lets Muse choose. "auto" is not a ratio,
+    // so it is left out; every other Motif ratio is inside the range.
+    supportedAspects: [
+      "1:1",
+      "4:3",
+      "3:4",
+      "16:9",
+      "9:16",
+      "3:2",
+      "2:3",
+      "4:5",
+      "5:4",
+      "21:9",
+      "4:1",
+      "1:4",
+      "8:1",
+      "1:8",
+    ],
+    supportsAspect: true,
+    supportsEdit: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: false,
+    supportsSyncMode: true,
+    type: "generation",
+  },
+  krea3: {
+    benchmark: {
+      useCase:
+        "Reference editing with prompt planning; Arena Krea 3 Ultra #8 editing, preliminary 2026-10-29. Motif sends fal's defaults (berry, medium reasoning), not Ultra",
+    },
+    // fal: max 3200 per side, 4,220,160 pixels, multiples of 16, at least 256.
+    customImageSize: {
+      maxEdge: 3200,
+      maxPixels: 4_220_160,
+      minEdge: 256,
+      multipleOf: 16,
+    },
+    editEndpoint: "krea/v3/edit",
+    endpoint: "krea/v3/text-to-image",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_OCT_2026,
+      currency: "USD",
+      endpointId: "krea/v3/text-to-image",
+      estimatedCostPerImageUsd: 0.025,
+      source: "fal-pricing-api",
+      unit: "megapixels",
+      unitPrice: 0.025,
+    },
+    // fal's edit schema: "Reference images to edit or combine (1-8)."
+    maxReferenceImages: 8,
+    name: "Krea 3",
+    // $0.025 per megapixel of output; an edit also bills each reference, and
+    // reasoning_level "high" adds a flat $0.125. "ultra" (edit only) is a flat
+    // $0.27 for one reference, up to $0.35 for four.
+    pricePerImageUsd: 0.025,
+    pricing: "$0.025/MP (edits also bill each reference)",
+    sizeMode: "image_size_enum",
+    supportedOutputFormats: ["png", "jpeg"],
+    supportsAspect: true,
+    supportsEdit: true,
+    // Only the berry variant, fal's default, reads the negative prompt.
+    supportsNegativePrompt: true,
+    supportsNumImages: false,
+    supportsOutputFormat: true,
+    supportsResolution: false,
+    supportsSafetyChecker: true,
+    supportsSeed: true,
+    supportsSyncMode: true,
+    type: "generation",
+  },
+  "grok-image-quality": {
+    benchmark: {
+      useCase:
+        "Detailed generation and editing with stronger text rendering; Arena #11 editing, 2026-10-29",
+    },
+    editEndpoint: "xai/grok-imagine-image/quality/edit",
+    endpoint: "xai/grok-imagine-image/quality/text-to-image",
+    falPricing: {
+      checkedAt: FAL_PRICING_CHECKED_OCT_2026,
+      currency: "USD",
+      endpointId: "xai/grok-imagine-image/quality/text-to-image",
+      estimatedCostPerImageUsd: 0.05,
+      source: "fal-pricing-api",
+      unit: "images",
+      unitPrice: 0.05,
+    },
+    // fal's edit schema: "A maximum of 3 images are supported."
+    maxReferenceImages: 3,
+    name: "Grok Imagine Image Quality",
+    // fal's model pages quote $0.05 at 1K and $0.07 at 2K; Motif sends 2K
+    // unless asked. Edits add $0.01 per input image.
+    pricePerImageUsd: 0.05,
+    pricing: "$0.05 (1K) / $0.07 (2K)",
+    sizeMode: "aspect_ratio",
+    // From fal's enums on xai/grok-imagine-image/quality; only /edit takes auto.
+    // fal also takes 2:1, 20:9, 19.5:9, 9:19.5, 9:20 and 1:2, which Motif's
+    // AspectRatio does not name.
+    supportedAspects: ["16:9", "4:3", "3:2", "1:1", "2:3", "3:4", "9:16"],
+    supportedResolutions: ["1K", "2K"],
+    supportsAspect: true,
+    supportsEdit: true,
+    supportsNumImages: true,
+    supportsOutputFormat: true,
+    supportsResolution: true,
+    supportsSyncMode: true,
+    type: "generation",
+  },
 
   // ─── Video Models ─────────────────────────────────────────────
 
@@ -1578,7 +1716,10 @@ export const GENERATION_MODELS = [
   "qwen3",
   "banana2-lite",
   "grok-image-2",
+  "grok-image-quality",
   "grok-image",
+  "muse-image",
+  "krea3",
   "flux2-flex",
   "flux2-pro",
   "flux2-turbo",

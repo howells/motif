@@ -43,11 +43,11 @@ A look carries its own Model, so `--tier` has no effect when `--look` is set. Th
 
 | Tier | Models |
 | --- | --- |
-| quality | `sunburst` (max), `flare` (max), `gpt2`, `gpt`, `mai-image-2.5-pro`, `seedream5` |
-| balanced | `banana21` (the default), `grok-image-2`, `banana2`, `mai-image-2.5`, `banana`, `qwen3`, `flux2-flex`, `flux2-pro`, `ideogram4`, `recraft41`, `ideogram3-transparent` (only for `--transparent`) |
+| quality | `sunburst` (max), `flare` (max), `gpt2`, `seedream5`, `gpt`, `mai-image-2.5-pro` |
+| balanced | `banana21` (the default), `grok-image-2`, `muse-image`, `banana2`, `qwen3`, `mai-image-2.5`, `banana`, `ideogram4`, `flux2-flex`, `recraft41`, `flux2-pro`, `krea3`, `grok-image-quality`, `ideogram3-transparent` (only for `--transparent`) |
 | fast | `banana2-lite`, `grok-image`, `seedream5-lite`, `flux2-turbo` |
 
-Editing has its own order: MAI 2.5 precedes Grok Image 2, and Seedream 5 Pro precedes GPT Image 1.5. A generation with `-e` uses that editing order. Sunburst and Flare default to the benchmarked `max` quality; lower settings remain available through `--param quality=high`.
+Both orders follow Arena, read 29 October 2026. Editing has its own order: balanced starts with `grok-image-2`, then `banana21` and `krea3`, and fast starts with `grok-image`. A generation with `-e` uses that editing order. Sunburst and Flare default to the benchmarked `max` quality; lower settings remain available through `--param quality=high`.
 
 Older Models are absent from the curated list but remain usable through explicit overrides, pins and existing Looks: `gemini`, `gemini3`, `seedream4`, `seedream45`, `flux2-max`, `flux2-dev`, `flux`, `flux-fast`, `recraft`, `recraft4`, `ideogram`, `qwen`.
 

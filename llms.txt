@@ -39,7 +39,7 @@ Rules for agents: `--dry-run` first, `--no-open` and `--fields` in a pipeline, p
 
 ## Current image curation
 
-Motif recommends 21 generation Models. Balanced starts with Nano Banana 2.1 (`banana21`), quality with Sunburst at `max`, and fast generation with Nano Banana 2 Lite. Editing has its own order; fast editing starts with Grok. Generation with `-e` uses that editing order. Explicit Models, existing Looks and pins keep their choices, including retained predecessor routes.
+Motif recommends 24 generation Models, ordered by Arena (read 29 October 2026). Balanced starts with Nano Banana 2.1 (`banana21`), quality with Sunburst at `max`, and fast generation with Nano Banana 2 Lite. Editing has its own order; balanced editing starts with Grok Image 2 (`grok-image-2`) and fast editing with Grok. Generation with `-e` uses that editing order. Explicit Models, existing Looks and pins keep their choices, including retained predecessor routes.
 
 - [Curation audit](./docs/research/image-model-curation-2026-10-07.md) - current generation/editing rankings, preliminary evidence for Banana 2.1, specialist roles and provider coverage gaps.
 - [Nano Banana 2.1](./docs/research/nano-banana-refresh-2026-10-07.md) - capabilities, request differences and token billing.

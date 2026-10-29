@@ -96,6 +96,34 @@ describe("curated generation and editing", () => {
     });
   });
 
+  it("starts editing at Grok Image 2 in the balanced Tier, from Arena 2026-10-29", () => {
+    expect(
+      resolveTask("vary", { source: "image", tier: "balanced" }, fal)
+    ).toMatchObject({ chosenBy: "ranking", model: "grok-image-2", ok: true });
+    expect(
+      resolveTask("generate", { references: 1, tier: "balanced" }, fal)
+    ).toMatchObject({ model: "grok-image-2", ok: true });
+    expect(
+      resolveTask("vary", { source: "image", tier: "quality" }, fal)
+    ).toMatchObject({ model: "sunburst", ok: true });
+    expect(
+      resolveTask("vary", { source: "image", tier: "fast" }, fal)
+    ).toMatchObject({ model: "grok-image", ok: true });
+  });
+
+  it.each(["muse-image", "krea3", "grok-image-quality", "qwen3"])(
+    "accepts %s by name for generation and for editing",
+    (model) => {
+      expect(resolveTask("generate", { model }, fal)).toMatchObject({
+        model,
+        ok: true,
+      });
+      expect(
+        resolveTask("vary", { model, source: "image" }, fal)
+      ).toMatchObject({ model, ok: true });
+    }
+  );
+
   it("keeps archived edit pins and respects the new Model limits", () => {
     expect(
       resolveTask(

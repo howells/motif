@@ -88,6 +88,10 @@ const FAL_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
   "xai/grok-imagine-image": MODELS["grok-image"]?.pricePerImageUsd ?? 0.02, // MODELS["grok-image"]
   "xai/grok-imagine-image/v2.0/text-to-image":
     MODELS["grok-image-2"]?.pricePerImageUsd ?? 0.06, // MODELS["grok-image-2"]
+  "xai/grok-imagine-image/quality/text-to-image":
+    MODELS["grok-image-quality"]?.pricePerImageUsd ?? 0.05, // MODELS["grok-image-quality"]
+  "meta/muse-image/text-to-image":
+    MODELS["muse-image"]?.pricePerImageUsd ?? 0.01, // MODELS["muse-image"]
   "microsoft/mai-image-2.5-pro":
     MODELS["mai-image-2.5-pro"]?.pricePerImageUsd ?? 0.17, // MODELS["mai-image-2.5-pro"]
   "fal-ai/ideogram/v3/generate-transparent":

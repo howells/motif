@@ -34,12 +34,12 @@ Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` a
 
 ## Curated Models and Tiers
 
-The Task client curates 21 generation Models, with separate rankings for generation and editing. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. A generation with `references` uses the editing ranking.
+The Task client curates 24 generation Models, with separate rankings for generation and editing. Both follow Arena, read 29 October 2026. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. A generation with `references` uses the editing ranking.
 
 | Tier                 | Generation default | Editing default   |
 | -------------------- | ------------------ | ----------------- |
 | `quality`            | Sunburst at `max`  | Sunburst at `max` |
-| `balanced` (default) | Nano Banana 2.1    | Nano Banana 2.1   |
+| `balanced` (default) | Nano Banana 2.1    | Grok Image 2      |
 | `fast`               | Nano Banana 2 Lite | Grok              |
 
 These are the first choices when the request's capabilities and available keys permit them. Explicit Models, Looks and pins take precedence. Selected specialists remain for typography, transparency, control and inexpensive drafts. Archived predecessors remain available through explicit Models, pins and existing Looks, including `flux2-dev` for streaming.

@@ -569,6 +569,136 @@ describe(buildGenerateBody, () => {
   });
 });
 
+describe("MOT-72 routes", () => {
+  it("sends Muse Image a free aspect ratio and up to ten References", () => {
+    const generated = buildGenerateBody({
+      aspect: "16:9",
+      model: "muse-image",
+      prompt: "A plaster wall",
+    });
+    expect(generated.endpoint).toBe("meta/muse-image/text-to-image");
+    expect(generated.body).toMatchObject({ aspect_ratio: "16:9" });
+    expect(generated.body).not.toHaveProperty("resolution");
+    const urls = Array.from(
+      { length: 10 },
+      (_, index) => `https://example.com/${index}.png`
+    );
+    const edited = buildGenerateBody({
+      editImageUrls: urls,
+      model: "muse-image",
+      prompt: "Match the first",
+    });
+    expect(edited.endpoint).toBe("meta/muse-image/edit");
+    expect(edited.body).toMatchObject({ image_urls: urls });
+    expect(() =>
+      buildGenerateBody({
+        editImageUrls: [...urls, "https://example.com/10.png"],
+        model: "muse-image",
+        prompt: "Too many",
+      })
+    ).toThrow("at most 10 reference images");
+    expect(() =>
+      buildGenerateBody({ aspect: "auto", model: "muse-image", prompt: "x" })
+    ).toThrow("aspect must be one of");
+  });
+
+  it("sends Krea 3 an exact image size and fal's own defaults", () => {
+    const generated = buildGenerateBody({
+      aspect: "21:9",
+      model: "krea3",
+      prompt: "A brick arch",
+    });
+    expect(generated.endpoint).toBe("krea/v3/text-to-image");
+    expect(generated.body.image_size).toStrictEqual({
+      height: 432,
+      width: 1008,
+    });
+    // Ultra reasoning ignores image_size and costs a flat $0.27 or more, so
+    // Motif leaves model and reasoning_level at fal's defaults.
+    expect(generated.body).not.toHaveProperty("reasoning_level");
+    expect(generated.body).not.toHaveProperty("model");
+    expect(generated.body).not.toHaveProperty("num_images");
+    const edited = buildGenerateBody({
+      editImageUrls: ["https://example.com/a.png"],
+      model: "krea3",
+      prompt: "Make it dusk",
+    });
+    expect(edited.endpoint).toBe("krea/v3/edit");
+    expect(edited.body.image_urls).toStrictEqual(["https://example.com/a.png"]);
+    expect(() =>
+      buildGenerateBody({ model: "krea3", numImages: 2, prompt: "x" })
+    ).toThrow("Krea 3 does not support numImages");
+    expect(() =>
+      buildGenerateBody({
+        editImageUrls: Array.from(
+          { length: 9 },
+          (_, index) => `https://example.com/${index}.png`
+        ),
+        model: "krea3",
+        prompt: "x",
+      })
+    ).toThrow("at most 8 reference images");
+  });
+
+  it("routes Qwen Image 3 edits to its edit endpoint with up to three References", () => {
+    const edited = buildGenerateBody({
+      editImageUrls: ["https://example.com/a.png", "https://example.com/b.png"],
+      model: "qwen3",
+      prompt: "Swap the tile",
+    });
+    expect(edited.endpoint).toBe("alibaba/qwen-image-3/edit");
+    expect(edited.body.image_urls).toHaveLength(2);
+    expect(() =>
+      buildGenerateBody({
+        editImageUrls: Array.from(
+          { length: 4 },
+          (_, index) => `https://example.com/${index}.png`
+        ),
+        model: "qwen3",
+        prompt: "x",
+      })
+    ).toThrow("at most 3 reference images");
+  });
+
+  it("sends Grok Imagine Image Quality a lowercase resolution", () => {
+    const generated = buildGenerateBody({
+      model: "grok-image-quality",
+      prompt: "A terrazzo floor",
+      resolution: "2K",
+    });
+    expect(generated.endpoint).toBe(
+      "xai/grok-imagine-image/quality/text-to-image"
+    );
+    expect(generated.body).toMatchObject({
+      aspect_ratio: "1:1",
+      resolution: "2k",
+    });
+    const edited = buildGenerateBody({
+      editImageUrls: ["https://example.com/a.png"],
+      model: "grok-image-quality",
+      prompt: "Make it matte",
+      resolution: "1K",
+    });
+    expect(edited.endpoint).toBe("xai/grok-imagine-image/quality/edit");
+    expect(edited.body).toMatchObject({ resolution: "1k" });
+    expect(() =>
+      buildGenerateBody({
+        model: "grok-image-quality",
+        prompt: "x",
+        resolution: "4K",
+      })
+    ).toThrow("resolution must be one of");
+  });
+
+  it("prices the new routes from fal", () => {
+    expect(estimateCost("muse-image", "2K", 3)).toBeCloseTo(0.03);
+    expect(estimateCost("grok-image-quality", "1K")).toBeCloseTo(0.05);
+    expect(estimateCost("grok-image-quality", "2K")).toBeCloseTo(0.07);
+    // An edit adds $0.01 for each input image.
+    expect(estimateCost("grok-image-quality", "2K", 1, 2)).toBeCloseTo(0.09);
+  });
+});
+
 describe(estimateCost, () => {
   it("uses registry fal pricing for newly added image models", () => {
     expect(estimateCost("seedream4", "2K", 3)).toBeCloseTo(0.09);

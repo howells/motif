@@ -24,6 +24,12 @@ export function estimateCost(
     const perImage = resolution === "2K" || resolution === "4K" ? 0.08 : 0.06;
     return perImage * numImages + 0.01 * editImages;
   }
+  if (model === "grok-image-quality") {
+    // fal tiers Grok Imagine Image Quality: 1K $0.05, 2K $0.07, and an edit
+    // adds $0.01 per input image.
+    const perImage = resolution === "2K" || resolution === "4K" ? 0.07 : 0.05;
+    return perImage * numImages + 0.01 * editImages;
+  }
   if (configuredPrice !== undefined) {
     if ((model === "banana" || model === "gemini3") && resolution === "4K") {
       return configuredPrice * 2 * numImages;

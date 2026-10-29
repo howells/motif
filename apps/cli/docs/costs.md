@@ -21,26 +21,29 @@ vary offers the Models marked edit.
 | `sunburst` | quality | Metered | Edit. Default quality is `max`, matching the benchmark variant; 16 references, masks, transparency |
 | `flare` | quality | Metered | Edit. Default quality is `max`; 16 references, masks, transparency |
 | `gpt2` | quality | ~$0.211 | Edit. Token-billed representative estimate; explicit transparency uses OpenAI, cost unknown |
+| `seedream5` | quality | $0.0675 / $0.135 | Edit. $0.135 above 1536² |
 | `gpt` | quality | ~$0.133 | Edit. Token input additional; transparency on fal |
 | `mai-image-2.5-pro` | quality | ~$0.17 | Edit. One reference; edits ~$0.18-$0.27 |
-| `seedream5` | quality | $0.0675 / $0.135 | Edit. $0.135 above 1536² |
 | `banana21` | balanced | Metered | The default. Edit, 14 references, 1K/2K/4K. Representative generation ~$0.040/$0.059/$0.134; input/thinking/search usage varies |
 | `grok-image-2` | balanced | $0.06 (1K) / $0.08 (2K) | Edit adds $0.01 per input image |
+| `muse-image` | balanced | $0.01 | Edit. 10 references; any aspect from 1:16 to 16:1 at about 2.5 MP |
 | `banana2` | balanced | $0.06/$0.08/$0.12/$0.16 | Edit. 0.5K/1K/2K/4K; search +$0.015, high thinking +$0.002 |
+| `qwen3` | balanced | $0.04 (1K) / $0.075 (2K) | Edit, 3 references. Negative-prompt and seed controls |
 | `mai-image-2.5` | balanced | Metered | Edit. One reference; image output ~$0.05 plus input |
 | `banana` | balanced | $0.15 / $0.30 (4K) | Edit. Pro; 14 references, search +$0.015 |
-| `qwen3` | balanced | $0.04 (1K) / $0.075 (2K) | Generation with negative-prompt and seed controls |
-| `flux2-flex` | balanced | $0.05/MP input and output | Edit. Guidance and step controls; rounded up to whole MP |
-| `flux2-pro` | balanced | $0.03 first MP +$0.015 extra input/output MP | Edit. Retained for tuned Looks; rounded up to whole MP |
 | `ideogram4` | balanced | $0.0075/$0.015/$0.025 per MP | TURBO/BALANCED/QUALITY. Design/text specialist |
+| `flux2-flex` | balanced | $0.05/MP input and output | Edit. Guidance and step controls; rounded up to whole MP |
 | `recraft41` | balanced | $0.035 | Design generation |
+| `flux2-pro` | balanced | $0.03 first MP +$0.015 extra input/output MP | Edit. Retained for tuned Looks; rounded up to whole MP |
+| `krea3` | balanced | $0.025/MP | Edit. 8 references, each billed as megapixels; fal defaults (berry, medium reasoning); no `num_images`; `--param reasoning_level=high` adds $0.125, `ultra` (edit only) is a flat $0.27-$0.35 and ignores the size |
+| `grok-image-quality` | balanced | $0.05 (1K) / $0.07 (2K) | Edit adds $0.01 per input image; 3 references |
 | `ideogram3-transparent` | balanced | $0.06 | Always transparent; chosen only for `--transparent` |
 | `banana2-lite` | fast | Metered | Fixed 1K; image output ~$0.042 plus input/thinking. Edit, with weaker sequential-edit evidence |
 | `grok-image` | fast | $0.02 | Edit. Budget alternative |
 | `seedream5-lite` | fast | $0.035 | Edit. Budget alternative |
 | `flux2-turbo` | fast | $0.008/MP | Inexpensive draft generation |
 
-The curated Models are ranked from separate generation and editing evidence. Retained predecessors still work through explicit overrides, pins and Looks; they are not chosen automatically. `null` for a metered Model means the total bill is unknown, even when a representative example price is published.
+The curated Models are ordered by Arena (read 29 October 2026), with separate generation and editing boards. Retained predecessors still work through explicit overrides, pins and Looks; they are not chosen automatically. `null` for a metered Model means the total bill is unknown, even when a representative example price is published.
 
 ## animate
 

@@ -38,12 +38,12 @@ describe("routes", () => {
     );
   });
 
-  it("the budgeted curated sweep estimates $1.1795 for one sample per Model", () => {
+  it("the budgeted curated sweep estimates $1.2645 for one sample per Model", () => {
     const totalUsd = BENCH_ROUTES.reduce(
       (sum, route) => sum + route.pricing.estimatedCostUsd,
       0
     );
-    expect(totalUsd).toBeCloseTo(1.1795, 4);
+    expect(totalUsd).toBeCloseTo(1.2645, 4);
   });
 
   it("carries observedAt/sourceUrl provenance derived from falPricing, never invented", () => {
@@ -55,11 +55,11 @@ describe("routes", () => {
     }
   });
 
-  it("flags ten curated budgeted Models with no measured p95 latency", () => {
+  it("flags thirteen curated budgeted Models with no measured p95 latency", () => {
     const missing = BENCH_ROUTES.filter(
       (route) => route.speedP95Seconds === null
     );
-    expect(missing).toHaveLength(10);
+    expect(missing).toHaveLength(13);
   });
 
   it("flags gpt2 as the only queue-polled model", () => {

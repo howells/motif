@@ -11,12 +11,24 @@ import type {
   TaskId,
   TaskMode,
 } from "../src/tasks";
-import { TASK_IDS, TASKS } from "../src/tasks";
+import { TASK_IDS, TASKS, TIERS } from "../src/tasks";
 import { isFalToolId } from "../src/tools";
 
 const entries: readonly (readonly [TaskId, TaskDefinition])[] = TASK_IDS.map(
   (task) => [task, TASKS[task]] as const
 );
+
+/** A Task's Model ids best first, grouped by Tier. */
+function byTier(task: "generate" | "vary") {
+  return Object.fromEntries(
+    TIERS.map((tier) => [
+      tier,
+      TASKS[task].models
+        .filter((entry) => entry.tier === tier)
+        .map(({ model }) => model),
+    ])
+  );
+}
 
 describe(TASKS, () => {
   it("matches TASK_IDS", () => {
@@ -93,6 +105,62 @@ describe(TASKS, () => {
     expect(definition.rankedFrom).toBe("hand");
     expect(definition.rankedAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(Number.isNaN(Date.parse(definition.rankedAt))).toBe(false);
+  });
+
+  it("orders the image rankings by Arena, read 2026-10-29 (MOT-72)", () => {
+    expect(TASKS.generate.rankedAt).toBe("2026-10-29");
+    expect(TASKS.vary.rankedAt).toBe("2026-10-29");
+    expect(byTier("generate")).toStrictEqual({
+      balanced: [
+        "banana21",
+        "grok-image-2",
+        "muse-image",
+        "banana2",
+        "qwen3",
+        "mai-image-2.5",
+        "banana",
+        "ideogram4",
+        "flux2-flex",
+        "recraft41",
+        "flux2-pro",
+        "krea3",
+        "grok-image-quality",
+        "ideogram3-transparent",
+      ],
+      fast: ["banana2-lite", "grok-image", "seedream5-lite", "flux2-turbo"],
+      quality: [
+        "sunburst",
+        "flare",
+        "gpt2",
+        "seedream5",
+        "gpt",
+        "mai-image-2.5-pro",
+      ],
+    });
+    expect(byTier("vary")).toStrictEqual({
+      balanced: [
+        "grok-image-2",
+        "banana21",
+        "krea3",
+        "mai-image-2.5",
+        "muse-image",
+        "grok-image-quality",
+        "banana",
+        "banana2",
+        "qwen3",
+        "flux2-pro",
+        "flux2-flex",
+      ],
+      fast: ["grok-image", "banana2-lite", "seedream5-lite"],
+      quality: [
+        "sunburst",
+        "flare",
+        "gpt2",
+        "seedream5",
+        "gpt",
+        "mai-image-2.5-pro",
+      ],
+    });
   });
 
   it("offers vary the same edit-capable choices as generate", () => {

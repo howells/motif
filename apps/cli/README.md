@@ -21,7 +21,7 @@ motif upscale lamp-erase.png --scale 2                   # make it larger
 
 `--tier fast|balanced|quality` moves the choice; the default is `balanced`. Run `motif` with no arguments for help, and `motif <verb> --help` for one Task.
 
-Generation starts with Nano Banana 2.1 at `balanced`, Sunburst at `max` at `quality`, and Nano Banana 2 Lite at `fast`. Editing has a separate ranking; fast editing starts with Grok. See [generate and vary](docs/generate.md) for the curated list, capability specialists and retained predecessor routes. Looks and pinned Models keep their own choices.
+Generation starts with Nano Banana 2.1 at `balanced`, Sunburst at `max` at `quality`, and Nano Banana 2 Lite at `fast`. Editing has a separate ranking; balanced editing starts with Grok Image 2 and fast editing with Grok. See [generate and vary](docs/generate.md) for the curated list, capability specialists and retained predecessor routes. Looks and pinned Models keep their own choices.
 
 ## For agents
 
