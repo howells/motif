@@ -61,3 +61,15 @@ catalog:
   "typescript": "7.0.2"
   "vitest": "^5.0.1"
   "zod": "^4.6.5"
+
+# Local Vercel builds also need the Linux runtime's native dependencies.
+supportedArchitectures:
+  cpu:
+    - current
+    - arm64
+  libc:
+    - current
+    - glibc
+  os:
+    - current
+    - linux
