@@ -61,6 +61,7 @@ import type { ReconcileSampleInput } from "./deadline";
 import { dispatchSamples } from "./dispatch";
 import { elapsedMsFor } from "./elapsed";
 import type { RunEngine } from "./engine";
+import { assertHostedExecutionFits } from "./execution-budget";
 import { assertRunWithinCostCap, hashUnit, usdMicros } from "./mock-engine";
 import type {
   JudgmentRecord,
@@ -336,6 +337,12 @@ export const createRun = async (
   engine: RunEngine
 ): Promise<{ runId: string }> => {
   assertRunWithinCostCap(spec);
+  assertHostedExecutionFits(
+    spec.models.flatMap((alias) =>
+      Array.from({ length: spec.samplesPerModel }, () => alias)
+    ),
+    spec.concurrency
+  );
 
   const db = await getDb();
   const runId = randomUUID();

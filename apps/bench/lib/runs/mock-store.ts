@@ -21,7 +21,9 @@ import {
   routeFor,
 } from "@motif/bench-core";
 
+import { dispatchSamples } from "./dispatch";
 import { elapsedMsFor } from "./elapsed";
+import { assertHostedExecutionFits } from "./execution-budget";
 import {
   assertRunWithinCostCap,
   buildSyntheticAttempt,
@@ -30,7 +32,6 @@ import {
   simulatedDelayMs,
   usdMicros,
 } from "./mock-engine";
-import { runWithConcurrency } from "./pool";
 import { planRetry } from "./retry";
 import type { RetryResult } from "./retry";
 import type {
@@ -360,8 +361,8 @@ const sleep = async (ms: number): Promise<void> => {
   });
 };
 
-/** The mock counterpart of `db-store.ts`'s `dispatchRun`: same pool, same
- * limit, same fire-and-forget contract to the caller. The synthetic delay
+/** The mock counterpart of the DB dispatch: same pool, concurrency and
+ * response lifetime. The synthetic delay
  * moved inside the lane, so it now models generation *time* rather than a
  * scheduling offset — at `concurrency: 1` the delays run back to back
  * instead of overlapping.
@@ -374,15 +375,10 @@ const dispatchMockSamples = (
   concurrency: number,
   runId: string
 ): void => {
-  void runWithConcurrency(planned, {
-    limit: concurrency,
-    onError: (error, sample) => {
-      console.error(
-        `[bench mock-store] settleSample threw for sample ${sample.id}`,
-        error
-      );
-    },
-    worker: async (sample) => {
+  dispatchSamples(
+    planned,
+    concurrency,
+    async (sample) => {
       const row = store.samples.get(sample.id);
       if (row) {
         row.startedAt = new Date();
@@ -391,7 +387,8 @@ const dispatchMockSamples = (
       await sleep(simulatedDelayMs(sample.key, sample.speedP95Seconds));
       settleSample(sample.id, runId);
     },
-  });
+    "mock-store"
+  );
 };
 
 /** Builds every (model, sample) row up front (status `pending`), then works
@@ -407,6 +404,12 @@ const dispatchMockSamples = (
  * has. */
 export const createRun = (spec: RunSpecInput): CreateRunResult => {
   assertRunWithinCostCap(spec);
+  assertHostedExecutionFits(
+    spec.models.flatMap((alias) =>
+      Array.from({ length: spec.samplesPerModel }, () => alias)
+    ),
+    spec.concurrency
+  );
 
   const runId = randomUUID();
   const now = new Date();
@@ -630,6 +633,14 @@ export const retrySamples = (
   if (plan.refusal !== null) {
     return { refusal: plan.refusal, retried: 0 };
   }
+
+  const retryIds = new Set(plan.sampleIds);
+  assertHostedExecutionFits(
+    samples.flatMap((sample) =>
+      retryIds.has(sample.id) ? [sample.modelAlias] : []
+    ),
+    run.concurrency
+  );
 
   const now = new Date();
   const planned: PlannedMockSample[] = [];

@@ -11,7 +11,21 @@
  * mode impossible to misconfigure independently of the credentials it needs.
  */
 import { loadWorkspaceDotenv } from "./dotenv";
-import { parseServerEnv } from "./schema";
+import { envSchema, parseServerEnv } from "./schema";
+
+const environmentSource = (input?: NodeJS.ProcessEnv): NodeJS.ProcessEnv => {
+  if (input !== undefined) {
+    return input;
+  }
+  loadWorkspaceDotenv();
+  // oxlint-disable-next-line no-restricted-properties -- raw source stays inside this env boundary; exported accessors validate the fields they consume
+  return process.env;
+};
+
+/** Platform metadata is independent of whether live credentials are present. */
+export const isVercelRuntime = (input?: NodeJS.ProcessEnv): boolean =>
+  envSchema.definition.system.VERCEL.parse(environmentSource(input).VERCEL) ===
+  "1";
 
 export interface LiveCredentials {
   readonly databaseUrl: string;
@@ -28,12 +42,7 @@ export interface LiveCredentials {
  * would silently turn a live run into a mock one over a storage credential.
  */
 export const getBlobToken = (input?: NodeJS.ProcessEnv): string | null => {
-  let source = input;
-  if (source === undefined) {
-    loadWorkspaceDotenv();
-    // oxlint-disable-next-line no-restricted-properties -- this module IS an env-boundary entrypoint of the env package itself (same standing as ./server.ts); everything it returns has passed the schema
-    source = process.env;
-  }
+  const source = environmentSource(input);
   try {
     return parseServerEnv(source).BLOB_READ_WRITE_TOKEN ?? null;
   } catch {
@@ -51,12 +60,7 @@ export const getLiveCredentials = (
 ): LiveCredentials | null => {
   // An explicit input is taken verbatim (tests hand in a constructed env);
   // only the real-process path loads the workspace .env first.
-  let source = input;
-  if (source === undefined) {
-    loadWorkspaceDotenv();
-    // oxlint-disable-next-line no-restricted-properties -- this module IS an env-boundary entrypoint of the env package itself (same standing as ./server.ts); everything it returns has passed the schema
-    source = process.env;
-  }
+  const source = environmentSource(input);
   try {
     const env = parseServerEnv(source);
     return { databaseUrl: env.DATABASE_URL, falKey: env.FAL_KEY };

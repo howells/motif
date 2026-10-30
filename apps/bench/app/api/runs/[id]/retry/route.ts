@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, jsonValidationError } from "@/lib/api-response";
+import { HostedRunTooLongError } from "@/lib/runs/execution-budget";
 /**
  * Re-runs the failed part of a finished run. A 24-model sweep that loses
  * three samples to provider rate limiting is not a run worth paying for
@@ -21,6 +22,7 @@ import { RETRY_REFUSAL_MESSAGE } from "@/lib/runs/retry";
 import { RetryRunInputSchema } from "@/lib/runs/validation";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function POST(
   request: Request,
@@ -43,7 +45,15 @@ export async function POST(
     return jsonValidationError(parsed.error);
   }
 
-  const result = await retrySamples(id, parsed.data.sampleIds);
+  let result;
+  try {
+    result = await retrySamples(id, parsed.data.sampleIds);
+  } catch (error) {
+    if (error instanceof HostedRunTooLongError) {
+      return jsonError(409, "HOSTED_RUN_TOO_LONG", error.message);
+    }
+    throw error;
+  }
   if (result === null) {
     return jsonError(404, "RUN_NOT_FOUND", `No run with id "${id}".`);
   }

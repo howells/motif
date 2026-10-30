@@ -33,6 +33,7 @@ import {
 import { computeRunDeadlineMs } from "./deadline";
 import { dispatchSamples } from "./dispatch";
 import type { RunEngine } from "./engine";
+import { assertHostedExecutionFits } from "./execution-budget";
 import { planRetry } from "./retry";
 import type { RetryResult } from "./retry";
 import { RUN_STATUSES, SAMPLE_STATUSES } from "./types";
@@ -158,6 +159,10 @@ export const retrySamples = async (
 
   const retryIds = new Set(plan.sampleIds);
   const retryRows = sampleRows.filter((row) => retryIds.has(row.id));
+  assertHostedExecutionFits(
+    retryRows.map((row) => row.modelAlias),
+    run.concurrency
+  );
   // Budgeted over the retried samples only — a three-sample retry does not
   // deserve a twenty-four-sample deadline.
   const deadlineMs = computeRunDeadlineMs(

@@ -1,45 +1,27 @@
-/**
- * The fire-and-forget half of starting a run: hand every planned sample to a
- * settle function under the run's `concurrency` limit, and return at once —
- * the caller is an HTTP handler that must answer with a run id, not wait out
- * a ten-minute sweep.
- *
- * The settle function is injected rather than imported, so this module
- * depends on nothing in `db-store.ts` and both that file and its retry split
- * can call it without an import cycle.
- *
- * Used by `createRun` and by the retry path, and it matters most to the
- * second: the samples being retried are overwhelmingly the ones fal rate
- * limited, so re-dispatching all of them at once recreates exactly the
- * condition that failed them.
- *
- * Nothing here calls `waitUntil`. On Vercel the instance can be frozen the
- * moment the response is sent, which is why a real sweep is a
- * long-lived-process job run locally — see Linear MOT-68.
- */
+import { after } from "next/server";
+
 import { runWithConcurrency } from "./pool";
 
-/** One detached task for the whole dispatch, not one per sample: the pool's
- * own `onError` is what keeps a failed sample from stranding the ones queued
- * behind it, so there is nothing left for a per-sample wrapper to catch. */
-export const dispatchSamples = (
-  sampleIds: readonly string[],
+/** Retain the whole pool, including settlement and finalisation, in Next's
+ * response lifetime. `after` uses the host's waitUntil on Vercel; its route
+ * duration still bounds execution, so hosted admission is checked separately. */
+export const dispatchSamples = <T>(
+  samples: readonly T[],
   concurrency: number,
-  settle: (sampleId: string) => Promise<void>,
+  settle: (sample: T) => Promise<void>,
   label: string
 ): void => {
-  void (async () => {
-    await runWithConcurrency(sampleIds, {
+  after(async () => {
+    await runWithConcurrency(samples, {
       limit: concurrency,
-      onError: (error, sampleId) => {
+      onError: (error, sample) => {
         console.error(
-          `[bench ${label}] settle threw for sample ${sampleId} — the samples behind it continue`,
+          `[bench ${label}] settle threw — the samples behind it continue`,
+          sample,
           error
         );
       },
-      worker: async (sampleId) => {
-        await settle(sampleId);
-      },
+      worker: settle,
     });
-  })();
+  });
 };

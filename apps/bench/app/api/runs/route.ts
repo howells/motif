@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, jsonValidationError } from "@/lib/api-response";
+import { HostedRunTooLongError } from "@/lib/runs/execution-budget";
 /**
  * `GET` — run history for `/`. `POST` — creates and starts a run, returning
  * its id immediately (`startAsync` shape, `docs/arc/bench/BRIEF.md`: "No
@@ -15,6 +16,7 @@ import {
 import { RunSpecInputSchema } from "@/lib/runs/validation";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 export async function GET() {
   return jsonOk({ runs: await listRuns() });
@@ -37,6 +39,9 @@ export async function POST(request: Request) {
     const { runId } = await createRun(parsed.data);
     return jsonOk({ runId }, { status: 201 });
   } catch (error) {
+    if (error instanceof HostedRunTooLongError) {
+      return jsonError(422, "HOSTED_RUN_TOO_LONG", error.message);
+    }
     if (error instanceof CostCapExceededError) {
       return jsonError(
         400,
