@@ -1,57 +1,17 @@
-import { jsonError, jsonOk, jsonValidationError } from "@/lib/api-response";
-import { HostedRunTooLongError } from "@/lib/runs/execution-budget";
 /**
- * `GET` — run history for `/`. `POST` — creates and starts a run, returning
- * its id immediately (`startAsync` shape, `docs/arc/bench/BRIEF.md`: "No
- * SSE... the run is started ... and the results page polls"). `force-dynamic`:
- * this is the DB-backed (in this phase, mock-store-backed) list/create
- * endpoint and must never be statically cached.
+ * `GET` — the owner's past Bench runs. `POST` is closed: starting a run
+ * spends from the shared fal key, and that now happens only through Compare
+ * in the App, where each run is held against the monthly cap first.
  */
-import {
-  CostCapExceededError,
-  createRun,
-  listRuns,
-  MissingPricingError,
-} from "@/lib/runs/repository";
-import { RunSpecInputSchema } from "@/lib/runs/validation";
+import { benchRetired, ownerOnly } from "@/lib/app/http/legacy";
+import { listRunsResponse } from "@/lib/runs/handlers";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 300;
 
-export async function GET() {
-  return jsonOk({ runs: await listRuns() });
+export async function GET(request: Request): Promise<Response> {
+  return (await ownerOnly(request)) ?? (await listRunsResponse());
 }
 
-export async function POST(request: Request) {
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return jsonError(400, "INVALID_JSON", "Request body must be JSON.");
-  }
-
-  const parsed = RunSpecInputSchema.safeParse(body);
-  if (!parsed.success) {
-    return jsonValidationError(parsed.error);
-  }
-
-  try {
-    const { runId } = await createRun(parsed.data);
-    return jsonOk({ runId }, { status: 201 });
-  } catch (error) {
-    if (error instanceof HostedRunTooLongError) {
-      return jsonError(422, "HOSTED_RUN_TOO_LONG", error.message);
-    }
-    if (error instanceof CostCapExceededError) {
-      return jsonError(
-        400,
-        "COST_CAP_EXCEEDED",
-        `Projected cost exceeds the ~$${parsed.data.maxEstimatedCostUsd.toFixed(2)} cap you confirmed.`
-      );
-    }
-    if (error instanceof MissingPricingError) {
-      return jsonError(400, "UNKNOWN_MODEL", error.message);
-    }
-    throw error;
-  }
+export async function POST(): Promise<Response> {
+  return benchRetired();
 }

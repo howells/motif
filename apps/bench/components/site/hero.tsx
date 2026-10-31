@@ -150,7 +150,7 @@ export function Hero() {
   return (
     <section className="site-gutter site-bleed flex flex-col pt-11 pb-14 md:flex-row md:items-start md:gap-12 md:pb-16">
       <div className="flex flex-col pt-1 md:w-[400px] md:shrink-0">
-        <h1 className="type-display">{SITE.name}</h1>
+        <h1 className="type-display md:sr-only">{SITE.name}</h1>
         <p className="type-body max-w-[380px] pt-7">
           {SITE.standfirst}{" "}
           <a

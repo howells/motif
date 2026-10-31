@@ -67,6 +67,13 @@ export const envSchema = defineEnv({
     DATABASE_URL: z.url(),
     DIRECT_DATABASE_URL: postgresqlUrl,
     FAL_KEY: z.string().trim().min(1),
+    /** WorkOS AuthKit credentials, named by the AuthKit SDK's own contract.
+     * Optional for the same reason as the Blob token: their absence is a
+     * missing capability (the App shows "sign-in isn't set up"), not a
+     * misconfiguration of the public site, which needs none of them. */
+    WORKOS_API_KEY: z.string().trim().min(1).optional(),
+    WORKOS_CLIENT_ID: z.string().trim().min(1).optional(),
+    WORKOS_COOKIE_PASSWORD: z.string().min(32).optional(),
   },
   system: {
     CI: z.preprocess(parseOptionalBoolean, z.boolean().optional()),

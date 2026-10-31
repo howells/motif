@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { BenchShell } from "@/components/shell/bench-shell";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getViewer } from "@/lib/app/auth/viewer";
 import { QueryProvider } from "@/lib/query-provider";
 
 export const metadata: Metadata = {
@@ -16,13 +18,22 @@ export const metadata: Metadata = {
  * selected without a layout swap — the rail keeps its scroll position and the
  * prompt keeps its text across the navigation
  * (`docs/design/specs/design-bench-shell.md`). The pages themselves render
- * nothing but a `RouteRun`, which is passed straight through as `children`. */
-const BenchLayout = ({ children }: { children: ReactNode }) => (
-  <QueryProvider>
-    <TooltipProvider>
-      <BenchShell>{children}</BenchShell>
-    </TooltipProvider>
-  </QueryProvider>
-);
+ * nothing but a `RouteRun`, which is passed straight through as `children`.
+ *
+ * Past Bench runs are the owner's alone; anyone else gets a 404 rather than
+ * learning the page exists. New runs start from Compare in the App. */
+const BenchLayout = async ({ children }: { children: ReactNode }) => {
+  const viewer = await getViewer();
+  if (viewer.state !== "member" || viewer.member.role !== "owner") {
+    notFound();
+  }
+  return (
+    <QueryProvider>
+      <TooltipProvider>
+        <BenchShell>{children}</BenchShell>
+      </TooltipProvider>
+    </QueryProvider>
+  );
+};
 
 export default BenchLayout;

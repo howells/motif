@@ -1,4 +1,4 @@
-import type { CatalogueGroup } from "@/lib/site/catalogue";
+import type { CatalogueGroup } from "./catalogue";
 import {
   APOTHECARY,
   INTERIOR,
@@ -6,8 +6,8 @@ import {
   SERIES,
   VASE,
   plate,
-} from "@/lib/site/catalogue-plates";
-import { TOOL } from "@/lib/site/catalogue-tool";
+} from "./catalogue-plates";
+import { TOOL } from "./catalogue-tool";
 
 const MAKE: CatalogueGroup = {
   body: "These make a new picture. Nothing goes in but a sentence, a theme or a shape, and a file comes back.",

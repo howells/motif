@@ -91,4 +91,4 @@ export interface CatalogueGroup {
   readonly name: string;
 }
 
-export { CATALOGUE } from "@/lib/site/catalogue-groups";
+export { CATALOGUE } from "./catalogue-groups";

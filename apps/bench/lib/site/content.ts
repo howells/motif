@@ -430,8 +430,18 @@ export function matrixRows(): readonly MatrixRow[] {
   ];
 }
 
+/** The first Model in each Tier of a Task's ranking, read from the SDK, so
+ * the page names what the CLI would actually pick today. */
+const leadOf = (
+  task: "generate" | "vary",
+  tier: "balanced" | "fast" | "quality"
+): string =>
+  TASKS[task].models.find(
+    (entry) => entry.tier === tier && entry.mode === undefined
+  )?.model ?? "none";
+
 export const MATRIX = {
-  body: `Motif curates ${TASKS.generate.models.length} generation models, with separate rankings for making and editing images. Balanced starts with Nano Banana 2.1; quality uses Sunburst at max; fast uses Banana Lite for generation and Grok for editing. The table shows each job's choices, including specialists for text, transparency and control.`,
+  body: `Motif curates ${TASKS.generate.models.length} generation models, with separate rankings for making and editing images. For a new image, balanced starts with ${leadOf("generate", "balanced")}, quality with ${leadOf("generate", "quality")} and fast with ${leadOf("generate", "fast")}; editing ranks its own, starting with ${leadOf("vary", "balanced")} at balanced. The table shows each job's choices, including specialists for text, transparency and control.`,
   footnote:
     "The rankings are reviewed against current benchmarks; existing Looks and model pins keep their choices across a refresh. Make, edit means the SDK can call Google, OpenAI, Replicate or fal directly with that provider's key. Explicit GPT Image 2 transparent output uses OpenAI; other CLI routes use fal. Token-billed models show an unknown total before the run.",
   title: "What runs where",

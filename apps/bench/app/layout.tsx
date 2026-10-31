@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import type { ReactNode } from "react";
 
@@ -21,9 +21,18 @@ const inter = Inter({
 /** Every relative URL in the metadata below this segment, the share card's
  * included, resolves against the canonical address. */
 export const metadata: Metadata = {
+  appleWebApp: { capable: true, statusBarStyle: "default", title: SITE.name },
   applicationName: SITE.name,
   metadataBase: new URL(SITE.url),
   title: SITE.name,
+};
+
+/** `cover` lets the shell reach the screen's edges on a notched phone; the
+ * safe-area insets in app.css keep content clear of them. */
+export const viewport: Viewport = {
+  themeColor: "#faf9f7",
+  viewportFit: "cover",
+  width: "device-width",
 };
 
 /** The document and the theme, nothing else. The bench's shell and its

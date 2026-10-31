@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, jsonValidationError } from "@/lib/api-response";
+import { ownerOnly } from "@/lib/app/http/legacy";
 /**
  * Manual 1–5 star override for one sample — the "manual" judge state
  * (`docs/arc/bench/BRIEF.md`, UI section: judge states are first-class,
@@ -14,8 +15,14 @@ export const dynamic = "force-dynamic";
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+): Promise<Response> {
+  const [refused, { id }] = await Promise.all([
+    ownerOnly(request, { write: true }),
+    params,
+  ]);
+  if (refused !== null) {
+    return refused;
+  }
 
   let body: unknown;
   try {

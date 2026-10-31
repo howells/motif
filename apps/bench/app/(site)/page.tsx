@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 
-import { MotifSite } from "@/components/site/motif-site";
+import { Hero } from "@/components/site/hero";
 import { SITE } from "@/lib/site/content";
 
-/** The share card itself comes from `opengraph-image.tsx` beside this file,
- * which Next adds to both the Open Graph and the X tags. */
+/** The share card itself comes from `opengraph-image.tsx` beside the root
+ * layout, which Next adds to both the Open Graph and the X tags. */
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   description: SITE.description,
@@ -24,10 +24,13 @@ export const metadata: Metadata = {
   },
 };
 
-/** The public page. It reads only static content and the SDK's Task table, so
- * it prerenders. */
+/** Home: the shelf and the six commands run against it. */
 function HomePage() {
-  return <MotifSite />;
+  return (
+    <main>
+      <Hero />
+    </main>
+  );
 }
 
 export default HomePage;

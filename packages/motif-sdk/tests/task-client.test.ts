@@ -1134,6 +1134,57 @@ describe("createMotif run", () => {
     ]);
   }, 10_000);
 
+  it("queues a Model planned as synchronous when the caller asks for the request id", async () => {
+    // object-removal runs synchronously by default; onSubmitted needs an id
+    // before the result, which only the queue gives.
+    const endpoint = FAL_TOOLS["object-removal"].endpoint;
+    const events: string[] = [];
+    const { calls, fetch } = fakeFetch((call) => {
+      if (call.method === "POST") {
+        return {
+          data: {
+            request_id: "req-erase",
+            response_url: `https://queue.fal.run/${endpoint}/requests/req-erase`,
+          },
+        };
+      }
+      if (call.url.includes("/status")) {
+        return { data: { status: "COMPLETED" } };
+      }
+      return {
+        data: {
+          image: { height: 10, url: "https://fal.media/e.png", width: 10 },
+        },
+      };
+    });
+    const result = await client(fetch).erase({
+      image: IMAGE,
+      onSubmitted: (requestId) => {
+        events.push(requestId);
+      },
+      prompt: "the car",
+    });
+
+    expect(result._unsafeUnwrap().requestId).toBe("req-erase");
+    expect(events).toStrictEqual(["req-erase"]);
+    expect(calls[0]?.url).toContain("queue.fal.run");
+  }, 10_000);
+
+  it("keeps a synchronous Model synchronous without onSubmitted", async () => {
+    const { calls, fetch } = fakeFetch(() => ({
+      data: {
+        image: { height: 10, url: "https://fal.media/e.png", width: 10 },
+      },
+    }));
+    const result = await client(fetch).erase({
+      image: IMAGE,
+      prompt: "the car",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(calls[0]?.url).not.toContain("queue.fal.run");
+  });
+
   it("resumes a submitted run by its id without submitting again", async () => {
     const endpoint = FAL_TOOLS["topaz-restore"].endpoint;
     const restored = "https://fal.media/files/resumed.png";

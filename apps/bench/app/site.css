@@ -915,6 +915,12 @@
     gap: 20px;
   }
 
+  /* In a column the 62ch basis would become a height, leaving a tall blank
+     band under the readout. */
+  .site-specimen-lines {
+    flex-basis: auto;
+  }
+
   .site-pair-source {
     width: 100%;
   }

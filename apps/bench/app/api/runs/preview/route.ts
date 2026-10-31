@@ -1,4 +1,5 @@
 import { jsonError, jsonOk, jsonValidationError } from "@/lib/api-response";
+import { ownerOnly } from "@/lib/app/http/legacy";
 /**
  * Dry-run preview — the composer's "Preview" step. Pure alignment against
  * `@motif/bench-core`, zero fal calls, zero persistence
@@ -10,7 +11,11 @@ import { RunSpecInputSchema } from "@/lib/runs/validation";
 
 export const dynamic = "force-dynamic";
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
+  const refused = await ownerOnly(request, { write: true });
+  if (refused !== null) {
+    return refused;
+  }
   let body: unknown;
   try {
     body = await request.json();

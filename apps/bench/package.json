@@ -22,6 +22,8 @@
     "@patternmode/scrollframe": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@vercel/blob": "catalog:",
+    "@workos-inc/authkit-nextjs": "catalog:",
+    "@workos-inc/node": "catalog:",
     "ai": "catalog:",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",

@@ -1,4 +1,4 @@
-import type { Plate } from "@/lib/site/catalogue";
+import type { Plate } from "./catalogue";
 
 export function plate(
   src: string,

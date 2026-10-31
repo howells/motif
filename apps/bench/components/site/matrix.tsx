@@ -2,17 +2,28 @@ import { ChapterHead } from "@/components/site/chapter";
 import type { MatrixFal } from "@/lib/site/content";
 import { MATRIX, matrixRows } from "@/lib/site/content";
 
+/* Two lanes in the fal column: the count, right-aligned in a slot wide
+   enough for two of its wide display digits, then the word. "models" starts at the same x on
+   every row whether the count is 1 or 13, and a note that has no count
+   reads in the word lane rather than under the numerals. */
+const COUNT_LANE = "inline-block w-[2.2ch] shrink-0 text-end";
+
 function FalCell({ fal }: { readonly fal: MatrixFal }) {
   if (fal.kind === "note") {
     return (
-      <span className="type-small" style={{ color: "var(--muted)" }}>
-        {fal.text}
+      <span className="flex items-baseline gap-x-2">
+        <span aria-hidden="true" className={`type-title ${COUNT_LANE}`} />
+        <span className="type-small" style={{ color: "var(--muted)" }}>
+          {fal.text}
+        </span>
       </span>
     );
   }
   return (
-    <span className="flex flex-wrap items-baseline gap-x-2">
-      <span className="type-title tabular-nums">{fal.count}</span>
+    <span className="flex items-baseline gap-x-2">
+      <span className={`type-title tabular-nums ${COUNT_LANE}`}>
+        {fal.count}
+      </span>
       <span className="type-small" style={{ color: "var(--faint)" }}>
         {fal.noun}
       </span>
@@ -126,7 +137,7 @@ export function Matrix() {
         </div>
 
         <p
-          className="type-small mt-10 max-w-[76ch] pt-8"
+          className="type-small mt-10 max-w-[52rem] pt-8"
           style={{ borderTop: "1px solid var(--rule)", color: "var(--muted)" }}
         >
           {MATRIX.footnote}

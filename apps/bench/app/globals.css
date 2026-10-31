@@ -12,6 +12,7 @@
 @import "@patternmode/scrollframe/styles.css";
 /* The public page at `/` carries its own scoped palette and type case. */
 @import "./site.css";
+@import "./app.css";
 
 @theme {
   /* ── Dark throughout ──────────────────────────────────────────────

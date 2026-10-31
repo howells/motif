@@ -14,6 +14,8 @@
  */
 import { createHash } from "node:crypto";
 
+import { ownerOnly } from "@/lib/app/http/legacy";
+
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
@@ -32,7 +34,7 @@ export const dynamic = "force-dynamic";
  * the restriction without weakening the anti-enumeration guard.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
@@ -44,7 +46,13 @@ export async function GET(
     }>;
   }
 ) {
-  const { alias, runId, sampleIndex, size } = await params;
+  const [refused, { alias, runId, sampleIndex, size }] = await Promise.all([
+    ownerOnly(request),
+    params,
+  ]);
+  if (refused !== null) {
+    return refused;
+  }
   const [rawWidth, rawHeight] = size.split("x");
   const width = clamp(Number(rawWidth) || 1024, 64, 2048);
   const height = clamp(Number(rawHeight) || 1024, 64, 2048);

@@ -161,7 +161,7 @@ export const buildVerdictStrip = (
         : [
             {
               modelAlias: model.modelAlias,
-              sublabel: `p50 provider latency, n=${model.provider.count}`,
+              sublabel: `median fal time (p50) over ${model.provider.count} runs`,
               value: model.provider.p50Ms,
             },
           ]

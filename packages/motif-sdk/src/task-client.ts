@@ -565,7 +565,10 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
       headers,
     };
     const executor = falRequestExecutor(client.value);
-    const result = chosen.queued
+    // `onSubmitted` promises the request id before any wait, which only fal's
+    // queue gives, so it queues every Model, not only those planned as queued.
+    const queued = chosen.queued || input.onSubmitted !== undefined;
+    const result = queued
       ? await runRequestQueued(
           executor,
           prepared,

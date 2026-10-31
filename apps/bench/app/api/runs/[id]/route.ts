@@ -1,21 +1,16 @@
-import { jsonError, jsonOk } from "@/lib/api-response";
 /**
- * Run detail — samples, judgments, manual ratings. Polled by the results
- * page (`/runs/[id]`) via React Query while `status === "running"`, per
- * `docs/arc/bench/BRIEF.md`'s no-SSE architecture.
+ * One past Bench run — samples, judgments, manual ratings — for the owner.
  */
-import { getRun } from "@/lib/runs/repository";
+import { ownerOnly } from "@/lib/app/http/legacy";
+import { runDetailResponse } from "@/lib/runs/handlers";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
-  const detail = await getRun(id);
-  if (!detail) {
-    return jsonError(404, "RUN_NOT_FOUND", `No run with id "${id}".`);
-  }
-  return jsonOk(detail);
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+): Promise<Response> {
+  return (
+    (await ownerOnly(request)) ?? (await runDetailResponse(request, context))
+  );
 }

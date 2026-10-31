@@ -15,3 +15,9 @@ export type {
   MotifResponse,
   SizeMode,
 } from "../../motif-sdk/src/types";
+// The App's spending guard reads the registry's rates and preset sizes to
+// derive a finite upper bound for a planned call (apps/bench/lib/app/budget).
+export { FAL_PRESET_SIZES } from "../../motif-sdk/src/aspects";
+export { estimateCost } from "../../motif-sdk/src/cost";
+export { FAL_TOOLS, isFalToolId } from "../../motif-sdk/src/tools";
+export type { FalToolPrice } from "../../motif-sdk/src/tool-types";

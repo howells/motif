@@ -1,5 +1,5 @@
-import type { CatalogueGroup } from "@/lib/site/catalogue";
-import { SERIES_FROM_REFERENCE, STILL_LIFE } from "@/lib/site/catalogue-plates";
+import type { CatalogueGroup } from "./catalogue";
+import { SERIES_FROM_REFERENCE, STILL_LIFE } from "./catalogue-plates";
 
 export const TOOL: CatalogueGroup = {
   body: "These manage your work rather than a picture.",

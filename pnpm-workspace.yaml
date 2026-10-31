@@ -29,6 +29,8 @@ catalog:
   "@types/react-dom": "^19.3.0"
   "@vercel/blob": "^2.8.0"
   "@vitest/coverage-v8": "^5.0.1"
+  "@workos-inc/authkit-nextjs": "4.6.2"
+  "@workos-inc/node": "12.1.0"
   "ai": "^7.0.113"
   "babel-plugin-react-compiler": "^1.0.0"
   "chalk": "^6.0.0"

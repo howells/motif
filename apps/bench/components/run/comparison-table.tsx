@@ -83,17 +83,17 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
   const rows: Row[] = [
     {
       direction: "lower",
-      label: "Provider p50",
+      label: "fal time, median (p50)",
       values: new Map(timing.map((m) => [m.modelAlias, m.provider.p50Ms])),
     },
     {
       direction: "lower",
-      label: "Provider p95",
+      label: "fal time, slowest 1 in 20 (p95)",
       values: new Map(timing.map((m) => [m.modelAlias, m.provider.p95Ms])),
     },
     {
       direction: "lower",
-      label: "Total p50",
+      label: "Wall time, median (p50)",
       values: new Map(timing.map((m) => [m.modelAlias, m.total.p50Ms])),
     },
     {

@@ -1,3 +1,4 @@
+import { ownerOnly } from "@/lib/app/http/legacy";
 /**
  * Serves a live-engine sample's real downloaded image bytes off disk — the
  * live counterpart to `/api/mock-image/**` (`app/api/mock-image/[runId]
@@ -17,14 +18,20 @@ import { getSampleImage } from "@/lib/runs/repository";
 export const dynamic = "force-dynamic";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   {
     params,
   }: {
     params: Promise<{ alias: string; runId: string; sampleIndex: string }>;
   }
 ) {
-  const { alias, runId, sampleIndex } = await params;
+  const [refused, { alias, runId, sampleIndex }] = await Promise.all([
+    ownerOnly(request),
+    params,
+  ]);
+  if (refused !== null) {
+    return refused;
+  }
   const parsedSampleIndex = Number(sampleIndex);
   if (!Number.isInteger(parsedSampleIndex) || parsedSampleIndex < 0) {
     return new Response(null, { status: 400 });
