@@ -1,4 +1,5 @@
 import { withAuth } from "@workos-inc/authkit-nextjs";
+import { connection } from "next/server";
 import { cache } from "react";
 
 import { getAppSql, getCapabilities } from "../db";
@@ -36,6 +37,9 @@ const signedInUser = async () => {
 };
 
 export const getViewer = cache(async (): Promise<Viewer> => {
+  // Who is looking is decided per request, never at build time: a build
+  // without the runtime credentials must not freeze "sign-in isn't set up".
+  await connection();
   if (!getCapabilities().signIn) {
     return { state: "sign-in-unavailable" };
   }
