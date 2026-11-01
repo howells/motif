@@ -9,7 +9,8 @@ import { HERO_STEPS, HOME, SITE } from "@/lib/site/content";
  *
  * One column on a phone: wordmark, picture, a row of edits, the command. From
  * 768px the edits and the command drop to the foot of the left column, level
- * with the foot of the 4:5 picture. Choosing an edit swaps the picture and
+ * with the foot of the picture: 4:5 on a phone, 4:3 from 768px, so the
+ * landscape plates are never enlarged and the edits stay on the first screen. Choosing an edit swaps the picture and
  * the command; nothing else moves, because every command is mounted in the
  * same grid cell and the tallest sets the height. */
 export function HomeOpening() {
@@ -31,17 +32,14 @@ export function HomeOpening() {
       <div className="relative -mx-4 md:col-start-2 md:row-span-2 md:row-start-1 md:mx-0">
         {step.video === undefined ? (
           <Plate
+            className="home-hero-plate"
             eager={index === 0}
             fadeKey={step.id}
-            ratio="4 / 5"
             sizes="(max-width: 767px) 100vw, 840px"
             source={step.plate}
           />
         ) : (
-          <div
-            className="site-plate site-fade"
-            style={{ aspectRatio: "4 / 5" }}
-          >
+          <div className="site-plate site-fade home-hero-plate">
             {/* Mounted only while its own step is showing, so `autoPlay`
                 starts it and unmounting stops it. */}
             <video

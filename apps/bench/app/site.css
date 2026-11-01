@@ -916,6 +916,16 @@
 /* 16px on a phone, 48px from 768px up, centred once the page is wider than
    the board. Pictures that bleed on a phone take a negative margin of one
    gutter. */
+.home-hero-plate {
+  aspect-ratio: 4 / 5;
+}
+
+@media (width >= 48rem) {
+  .home-hero-plate {
+    aspect-ratio: 4 / 3;
+  }
+}
+
 .home-gutter {
   margin-inline: auto;
   max-inline-size: var(--page);
