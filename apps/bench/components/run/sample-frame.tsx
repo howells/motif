@@ -43,7 +43,7 @@ const ParamLine = ({
     return null;
   }
   return (
-    <span className="text-plate-muted/70 truncate text-xs">
+    <span className="text-plate-muted/70 type-small truncate">
       {parts.length === 0 ? " " : parts.join(" · ")}
     </span>
   );
@@ -83,7 +83,7 @@ const LatencyCell = ({
   const counting = sample.elapsedMs !== null;
 
   return (
-    <span className="bench-numeric text-plate-ink ml-auto flex shrink-0 items-baseline gap-1.5 text-xs">
+    <span className="text-plate-ink type-small ml-auto flex shrink-0 items-baseline gap-2 tabular-nums">
       {sample.queuePolled && !counting ? (
         <Tooltip>
           <TooltipTrigger className="text-warn cursor-help">±3s</TooltipTrigger>
@@ -201,7 +201,7 @@ export const SampleFrame = ({
         latencies of a whole column of models on one edge — which is the
         comparison the sheet exists to make. */}
     <figcaption
-      className={cn("flex flex-col gap-1 px-2.5 py-2.5", ANNOTATION_MIN_HEIGHT)}
+      className={cn("flex flex-col gap-1 px-3 py-3", ANNOTATION_MIN_HEIGHT)}
     >
       <span className="flex items-baseline gap-2">
         {/* The alias is a name, not a measurement — you read it, you do not
@@ -209,7 +209,7 @@ export const SampleFrame = ({
             beneath and beside it keep mono, because those *are* scanned down
             the grid, and that contrast is what makes the mono mean
             something. */}
-        <span className="text-plate-ink truncate text-[12px]">
+        <span className="text-plate-ink type-small truncate">
           {sample.modelAlias}
         </span>
 
@@ -228,7 +228,7 @@ export const SampleFrame = ({
       </span>
 
       {sample.status === "failed" ? null : (
-        <span className="bench-numeric text-plate-muted flex items-baseline gap-2 text-xs">
+        <span className="text-plate-muted type-small flex items-baseline gap-2 tabular-nums">
           {formatUsd(sample.costRefinedMicros ?? sample.costEstimatedMicros)}
           <span className="text-plate-muted/70 ml-auto shrink-0">
             {formatDimensions(sample.width, sample.height)}

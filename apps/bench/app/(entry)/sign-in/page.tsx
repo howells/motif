@@ -20,11 +20,11 @@ const ELSEWHERE = [
 function EmailForm() {
   return (
     <form action="/auth/sign-in" className="flex flex-col gap-3" method="get">
-      <label className="flex flex-col gap-1.5">
+      <label className="flex flex-col gap-2">
         <span className="library-label text-muted">Email</span>
         <input
           autoComplete="email"
-          className="board-field sign-in-field"
+          className="board-field"
           inputMode="email"
           name="email"
           placeholder="you@example.com"
@@ -32,7 +32,7 @@ function EmailForm() {
           type="email"
         />
       </label>
-      <button className="board-button is-ink sign-in-field" type="submit">
+      <button className="board-button is-ink" type="submit">
         Continue
       </button>
       <p className="library-label text-muted">
@@ -68,7 +68,7 @@ async function SignInPage({
           src="/demo/looks/object.jpg"
         />
       </div>
-      <div className="sign-in-form flex flex-1 flex-col px-5 pt-6 md:px-20 md:py-10">
+      <div className="sign-in-form flex flex-1 flex-col px-4 pt-6 md:px-16 md:py-12">
         <Link className="app-screen-title self-start" href="/">
           Motif
         </Link>
@@ -76,7 +76,7 @@ async function SignInPage({
           Motif is invitation only.
         </p>
         <div className="flex-1" />
-        <div className="flex w-full flex-col gap-5 md:max-w-90">
+        <div className="flex w-full flex-col gap-4 md:max-w-90">
           {viewer.state === "signed-out" ? (
             <div className="hidden flex-col gap-1 md:flex">
               <h1 className="app-screen-title">Sign in</h1>
@@ -100,7 +100,7 @@ async function SignInPage({
           )}
         </div>
         <div className="flex-1" />
-        <nav aria-label="Elsewhere" className="hidden gap-5 md:flex">
+        <nav aria-label="Elsewhere" className="hidden gap-4 md:flex">
           {ELSEWHERE.map((link) => (
             <Link
               className="library-label text-muted hover:text-ink"

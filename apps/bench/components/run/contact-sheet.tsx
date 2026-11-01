@@ -74,14 +74,14 @@ export const ContactSheet = ({
 
   if (samples.length === 0) {
     return (
-      <p className="bg-plate text-plate-muted px-4 py-10 text-[13px]">
+      <p className="bg-plate text-plate-muted type-small px-4 py-12">
         No samples yet. Frames appear here as each model is dispatched.
       </p>
     );
   }
 
   return (
-    <div className="bg-plate p-5">
+    <div className="bg-plate p-4">
       {/* Tracks from 160px on a phone (so the sheet still lands 2-up in a
           358px column as the spec requires) and from 240px above `sm`,
           packed from the start. `auto-fill` fixes the column *count* from
@@ -96,7 +96,7 @@ export const ContactSheet = ({
           separating instead. */}
       <RetryBar run={run} samples={samples} />
       <Aperto.Group media={media} renderImage={renderBenchImage}>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-5 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-4 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
           {samples.map((sample) => (
             <SampleFrame
               apertoIndex={apertoIndex.get(sample.id)}

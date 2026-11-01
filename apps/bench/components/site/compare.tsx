@@ -26,7 +26,7 @@ export function Compare() {
       <ChapterHead body={COMPARE.body} id="compare" title={COMPARE.title} />
 
       <div className="site-gutter">
-        <div className="flex w-full max-w-[760px] flex-col gap-5 pt-16">
+        <div className="flex w-full max-w-[760px] flex-col gap-6 pt-16">
           <div className="relative">
             <Plate
               fadeKey={shown.src}
@@ -35,7 +35,7 @@ export function Compare() {
               source={shown}
             />
 
-            <div className="absolute start-4 bottom-4 flex gap-2.5">
+            <div className="absolute start-4 bottom-4 flex gap-3">
               <button
                 aria-label="Hold to see the source photograph"
                 aria-pressed={held}
@@ -106,7 +106,7 @@ export function Compare() {
             </p>
           ) : (
             <p
-              className="type-small flex gap-2.5 ps-4.5"
+              className="type-small flex gap-3 ps-4"
               style={{ color: "var(--faint)" }}
             >
               <span className="inline-block w-[92px] shrink-0 md:w-28">

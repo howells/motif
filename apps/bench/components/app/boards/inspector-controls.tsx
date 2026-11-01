@@ -164,7 +164,7 @@ export function Samples({
   const { count } = node.settings;
   return (
     <Section label="Samples">
-      <div className="board-outline flex h-11 w-33 items-center rounded">
+      <div className="board-outline rounded-panel h-control flex w-33 items-center">
         <button
           aria-label="One fewer"
           className="board-quiet"

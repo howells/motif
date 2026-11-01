@@ -118,7 +118,7 @@ function Finished({ generation }: { readonly generation: GenerationView }) {
   }
   return (
     <>
-      <div className="app-plate relative flex min-h-[18rem] flex-1 p-4 md:p-10">
+      <div className="app-plate relative flex min-h-[18rem] flex-1 p-4 md:p-8">
         <div className="relative size-full">
           <MediaImage
             alt={generation.prompt ?? `${generation.task} result`}
@@ -129,7 +129,7 @@ function Finished({ generation }: { readonly generation: GenerationView }) {
         </div>
         <a
           aria-label="Open full size"
-          className="absolute top-2 right-2 flex size-11 items-center justify-center"
+          className="size-control absolute top-2 right-2 flex items-center justify-center"
           href={shown.url}
           rel="noopener"
           target="_blank"

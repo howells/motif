@@ -84,7 +84,7 @@ export function AddNode({
   const column = (list: typeof groups) =>
     list.map((group) => (
       <section aria-label={group.name} key={group.name}>
-        <h3 className="type-small text-muted flex h-8 items-end px-3 pb-1.5">
+        <h3 className="type-small text-muted flex h-8 items-end px-3 pb-2">
           {group.name}
         </h3>
         <ul>
@@ -93,7 +93,7 @@ export function AddNode({
             return (
               <li key={entry.kind}>
                 <button
-                  className={`flex h-11 w-full items-center gap-3 rounded px-3 text-left ${index === current ? "bg-surface" : ""}`}
+                  className={`rounded-panel h-control flex w-full items-center gap-3 px-3 text-left ${index === current ? "bg-surface" : ""}`}
                   onClick={() => {
                     onAdd(entry.kind);
                   }}
@@ -119,14 +119,14 @@ export function AddNode({
   return (
     <dialog
       aria-label="Add node"
-      className="board-dialog board-palette mx-auto mt-18 w-[728px] max-w-[calc(100vw-2rem)]"
+      className="board-dialog board-palette mx-auto mt-16 w-[728px] max-w-[calc(100vw-2rem)]"
       onCancel={(event) => {
         event.preventDefault();
         onClose();
       }}
       ref={dialog}
     >
-      <div className="board-rule-bottom flex h-14 items-center gap-2.5 px-4">
+      <div className="board-rule-bottom flex h-14 items-center gap-3 px-4">
         <SearchIcon className="text-muted shrink-0" />
         <input
           aria-label="Find a Task"
@@ -157,7 +157,7 @@ export function AddNode({
         <kbd className="type-small text-muted">Esc</kbd>
       </div>
       {flat.length === 0 ? (
-        <p className="type-small text-muted px-7 py-6">
+        <p className="type-small text-muted px-6 py-6">
           No Task called “{query.trim()}”. Every Task the App can run is listed
           here.
         </p>

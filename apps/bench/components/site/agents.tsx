@@ -13,7 +13,7 @@ export function Agents() {
         title="For agents"
       />
 
-      <div className="site-gutter grid gap-10 pt-16 md:grid-cols-3 md:gap-6">
+      <div className="site-gutter grid gap-12 pt-16 md:grid-cols-3 md:gap-6">
         {AGENT_EXAMPLES.map((example) => (
           <div className="flex min-w-0 flex-col gap-4" key={example.label}>
             <Label>{example.label}</Label>

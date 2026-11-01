@@ -88,7 +88,7 @@ async function CommandPage({ params, searchParams }: Params) {
       <PageHead
         back={
           <Link
-            className="type-small text-muted flex min-h-11 items-center gap-1 md:hidden"
+            className="type-small text-muted min-h-control flex items-center gap-1 md:hidden"
             href="/commands"
           >
             <ChevronLeft aria-hidden="true" size={16} strokeWidth={1.5} />
@@ -98,7 +98,7 @@ async function CommandPage({ params, searchParams }: Params) {
         standfirst={entry.summary.replace(/\.$/u, "")}
         title={commandTitle(entry)}
       />
-      <div className="flex flex-col gap-8 px-4 py-6 md:px-10 md:py-8">
+      <div className="flex flex-col gap-8 px-4 py-6 md:px-8 md:py-8">
         <div className="max-w-[60rem]">
           <Field entry={entry} />
         </div>
@@ -106,8 +106,9 @@ async function CommandPage({ params, searchParams }: Params) {
           <h2 className="type-body font-medium">In your terminal</h2>
           <Command>{entry.usage}</Command>
           <p className="type-small text-muted">
-            Install once with <code className="font-mono">{SITE.install}</code>,
-            then run it from any folder.
+            Install once with{" "}
+            <code className="type-small font-mono">{SITE.install}</code>, then
+            run it from any folder.
           </p>
         </div>
         {inApp ? (

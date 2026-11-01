@@ -88,7 +88,7 @@ const ModelDryRun = ({
   }
   return (
     <span className="flex flex-col gap-1">
-      <span className="text-muted text-xs">{row.endpoint}</span>
+      <span className="text-muted type-small">{row.endpoint}</span>
       <span>
         drops{" "}
         {row.dropped.length === 0
@@ -139,7 +139,7 @@ const ModelChip = ({
         <button
           aria-pressed={selected}
           className={cn(
-            "inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-l-2 px-2 py-1 transition-colors duration-150",
+            "rounded-control inline-flex cursor-pointer items-center gap-2 border border-l-2 px-2 py-1 transition-colors duration-150",
             selected
               ? "border-border border-l-accent bg-surface-soft text-ink"
               : "border-border bg-surface text-muted hover:border-ink hover:text-ink border-l-transparent hover:border-l-transparent"
@@ -147,10 +147,12 @@ const ModelChip = ({
           onClick={onToggle}
           type="button"
         >
-          <span className="text-xs">{alias}</span>
-          <span className="text-muted text-xs">{usdFromDollars(costUsd)}</span>
+          <span className="type-small">{alias}</span>
+          <span className="text-muted type-small">
+            {usdFromDollars(costUsd)}
+          </span>
           {altered ? (
-            <span aria-hidden className="text-warn text-xs">
+            <span aria-hidden className="text-warn type-small">
               ●
             </span>
           ) : null}
@@ -173,7 +175,7 @@ const Field = ({
   readonly label: ReactNode;
 }) => (
   <div className="flex min-w-0 flex-col gap-1">
-    <label className="text-muted text-xs" htmlFor={htmlFor}>
+    <label className="text-muted type-small" htmlFor={htmlFor}>
       {label}
     </label>
     {children}
@@ -189,7 +191,7 @@ const AspectCoercionNote = ({ aspect }: { readonly aspect: BenchAspect }) => {
   }
   const dialects = ASPECT_DIALECT_TABLE[aspect];
   return (
-    <p className="border-border border-l-warn bg-surface-soft text-muted rounded-lg border border-l-2 px-3 py-2 text-xs leading-[1.5]">
+    <p className="border-border border-l-warn bg-surface-soft text-muted rounded-panel type-small border border-l-2 px-3 py-2">
       <span className="text-ink">Aspect coercion is not uniform.</span> At{" "}
       <span>{aspect}</span> the three sizing dialects disagree: aspect_ratio →{" "}
       <span>{dialects.aspectRatio}</span>, image_size_enum →{" "}
@@ -216,7 +218,7 @@ const OutputFormatNote = ({ draft }: { readonly draft: RunDraft }) => {
   const aliases = [...draft.models] as Parameters<typeof outputFormatReach>[0];
   const { dropped, supported } = outputFormatReach(aliases, draft.outputFormat);
   return (
-    <p className="text-muted text-xs">
+    <p className="text-muted type-small">
       <span className="text-ink">
         {draft.outputFormat} reaches {supported} of {aliases.length} selected
         models.
@@ -235,7 +237,7 @@ const DryRunSummary = ({
 }) => {
   if (preview === undefined) {
     return (
-      <p className="text-muted text-xs">
+      <p className="text-muted type-small">
         Dry run pending. It costs nothing — no request reaches a provider.
       </p>
     );
@@ -247,7 +249,7 @@ const DryRunSummary = ({
     (model) => model.ok && model.dropped.length > 0
   ).length;
   return (
-    <p className="text-muted text-xs leading-[1.5]">
+    <p className="text-muted type-small">
       Dry run:{" "}
       <span className="text-ink">
         {preview.models.length - preview.failedCount}
@@ -288,13 +290,12 @@ const SelectionHeader = ({
 }: Omit<SectionProps, "onToggleModel">) => (
   <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
     <h2>Models</h2>
-    <div className="text-muted flex items-center gap-3 text-xs">
+    <div className="text-muted type-small flex items-center gap-3">
       <span>
         <span>{draft.models.size}</span> of <span>{BENCH_ROUTES.length}</span>{" "}
         selected
       </span>
       <Button
-        className="h-6 px-2 text-xs"
         onClick={() => {
           onPatch({
             models: new Set(cheapestModelAliases(DEFAULT_MODEL_COUNT)),
@@ -306,7 +307,6 @@ const SelectionHeader = ({
         {DEFAULT_MODEL_COUNT} cheapest
       </Button>
       <Button
-        className="h-6 px-2 text-xs"
         onClick={() => {
           onPatch({
             models: new Set(BENCH_ROUTES.map((route) => route.alias)),
@@ -318,7 +318,6 @@ const SelectionHeader = ({
         All
       </Button>
       <Button
-        className="h-6 px-2 text-xs"
         onClick={() => {
           onPatch({ models: new Set() });
         }}
@@ -345,8 +344,8 @@ const ModelGroups = ({
     <>
       {modelTierGroups().map((group) =>
         group.routes.length === 0 ? null : (
-          <div className="flex flex-col gap-1.5" key={group.label}>
-            <p className="text-muted text-xs">{group.label}</p>
+          <div className="flex flex-col gap-2" key={group.label}>
+            <p className="text-muted type-small">{group.label}</p>
             <div className="flex flex-wrap gap-1">
               {group.routes.map((route) => (
                 <ModelChip
@@ -376,7 +375,6 @@ const ShapeFields = ({
   <div className="border-border grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-3 sm:grid-cols-5">
     <Field htmlFor="bench-samples" label="Samples per model">
       <Input
-        className="h-8"
         id="bench-samples"
         max={4}
         min={1}
@@ -399,7 +397,6 @@ const ShapeFields = ({
       }
     >
       <Input
-        className="h-8"
         id="bench-concurrency"
         max={8}
         min={1}
@@ -420,7 +417,7 @@ const ShapeFields = ({
         }}
         value={draft.aspect}
       >
-        <SelectTrigger className="h-8" id="bench-aspect">
+        <SelectTrigger id="bench-aspect">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -442,7 +439,7 @@ const ShapeFields = ({
         }}
         value={draft.resolution}
       >
-        <SelectTrigger className="h-8" id="bench-resolution">
+        <SelectTrigger id="bench-resolution">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -462,7 +459,7 @@ const ShapeFields = ({
         }}
         value={draft.outputFormat ?? FORMAT_DEFAULT}
       >
-        <SelectTrigger className="h-8" id="bench-format">
+        <SelectTrigger id="bench-format">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -497,12 +494,12 @@ const BehaviourFields = ({
           onPatch({ seedEnabled: checked === true });
         }}
       />
-      <label className="text-muted text-xs" htmlFor="bench-seed-enabled">
+      <label className="text-muted type-small" htmlFor="bench-seed-enabled">
         Fixed seed
       </label>
       <Input
         aria-label="Seed value"
-        className="h-8 w-[80px]"
+        className="w-[80px]"
         disabled={!draft.seedEnabled}
         onChange={(event) => {
           onPatch({ seed: Number(event.target.value) });
@@ -513,11 +510,11 @@ const BehaviourFields = ({
     </div>
 
     <div className="flex items-center gap-2">
-      <label className="text-muted text-xs" htmlFor="bench-max-cost">
+      <label className="text-muted type-small" htmlFor="bench-max-cost">
         Stop above
       </label>
       <Input
-        className="h-8 w-[88px]"
+        className="w-[88px]"
         id="bench-max-cost"
         min={0.01}
         onChange={(event) => {
@@ -548,7 +545,7 @@ export const ModelsPopover = ({
 }: ModelsPopoverProps) => (
   <Popover>
     <PopoverTrigger asChild>
-      <Button size="sm" type="button">
+      <Button type="button">
         Models
         <span className="text-muted">{draft.models.size}</span>
         <ChevronDownIcon />

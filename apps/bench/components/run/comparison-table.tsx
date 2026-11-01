@@ -131,7 +131,7 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
   ];
 
   if (aliases.length === 0) {
-    return <p className="text-muted text-[13px]">Nothing to compare yet.</p>;
+    return <p className="text-muted type-small">Nothing to compare yet.</p>;
   }
 
   return (
@@ -163,7 +163,7 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
           const bestKey = bestKeyFor(row);
           return (
             <TableRow key={row.label}>
-              <TableCell className="text-muted text-[13px] whitespace-nowrap">
+              <TableCell className="text-muted type-small whitespace-nowrap">
                 {row.label}
               </TableCell>
               {aliases.map((alias) => {
@@ -175,14 +175,14 @@ export const ComparisonTable = ({ quality, timing }: ComparisonTableProps) => {
                     // them in tabular figures makes an absence look like a
                     // measurement.
                     className={cn(
-                      "text-right text-[13px] whitespace-nowrap",
-                      value === null ? "text-muted" : "bench-numeric text-ink"
+                      "type-small text-right whitespace-nowrap",
+                      value === null ? "text-muted" : "text-ink tabular-nums"
                     )}
                     key={alias}
                   >
                     {formatRowValue(row, value)}
                     {alias === bestKey ? (
-                      <span aria-hidden className="text-accent ml-1.5">
+                      <span aria-hidden className="text-accent ml-2">
                         ◂
                       </span>
                     ) : null}

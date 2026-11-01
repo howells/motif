@@ -24,17 +24,17 @@ async function CommandsPage() {
         standfirst={`${COMMAND_COUNT} commands. Every one runs in your terminal; the first six also run here.`}
         title="Commands"
       />
-      <div className="px-4 pb-16 md:px-10">
+      <div className="px-4 pb-16 md:px-8">
         <table className="w-full border-collapse text-left">
           <thead className="max-md:sr-only">
             <tr className="border-border type-small text-faint border-b">
-              <th className="py-3 font-normal md:w-44" scope="col">
+              <th className="py-3 md:w-44" scope="col">
                 Command
               </th>
-              <th className="py-3 font-normal" scope="col">
+              <th className="py-3" scope="col">
                 What it does
               </th>
-              <th className="py-3 text-right font-normal" scope="col">
+              <th className="py-3 text-right" scope="col">
                 Open
               </th>
             </tr>
@@ -59,13 +59,13 @@ async function CommandsPage() {
                     : `/commands/${entry.id}`;
                 return (
                   <tr className="border-border border-b" key={entry.id}>
-                    <th className="py-0 align-middle font-normal" scope="row">
+                    <th className="py-0 align-middle" scope="row">
                       <Link
-                        className="type-small flex min-h-11 flex-col justify-center font-mono max-md:py-2"
+                        className="type-small min-h-control flex flex-col justify-center font-mono max-md:py-2"
                         href={href}
                       >
                         {commandName(entry)}
-                        <span className="text-muted font-sans md:hidden">
+                        <span className="text-muted md:hidden">
                           {shortSummary(entry)}
                         </span>
                       </Link>
@@ -75,7 +75,7 @@ async function CommandsPage() {
                     </td>
                     <td className="py-0 ps-4 text-right align-middle whitespace-nowrap">
                       <Link
-                        className="type-body inline-flex min-h-11 items-center"
+                        className="type-body min-h-control inline-flex items-center"
                         href={href}
                       >
                         {inApp ? (member ? "Open" : "Open in the App") : "Read"}

@@ -26,11 +26,11 @@ export function Masthead() {
 
 export function Footer() {
   return (
-    <footer className="site-gutter flex flex-wrap items-center justify-between gap-x-12 gap-y-4 pt-30 pb-16">
+    <footer className="site-gutter flex flex-wrap items-center justify-between gap-x-12 gap-y-4 pt-32 pb-16">
       <code className="type-small font-mono" style={{ color: "var(--ink)" }}>
         {SITE.install}
       </code>
-      <nav className="flex flex-wrap gap-x-7 gap-y-2">
+      <nav className="flex flex-wrap gap-x-6 gap-y-2">
         {FOOTER_LINKS.map((link) => (
           <a
             className="type-small no-underline hover:underline"

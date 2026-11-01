@@ -16,7 +16,7 @@ export interface RailBoard {
 }
 
 const row =
-  "flex min-h-11 items-center gap-2 rounded px-3 type-body text-muted hover:text-ink aria-[current=page]:bg-surface aria-[current=page]:font-medium aria-[current=page]:text-ink";
+  "flex min-h-control items-center gap-2 rounded-panel px-3 type-body text-muted hover:text-ink aria-[current=page]:bg-surface aria-[current=page]:font-medium aria-[current=page]:text-ink";
 
 /** The member's places: Boards with the Inbox first, then Library and
  * Settings. A new Board is named "Untitled Board" and renamed in place. */

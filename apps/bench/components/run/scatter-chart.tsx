@@ -91,7 +91,7 @@ const Axes = ({
         />
         <text
           className="fill-muted"
-          fontSize={11}
+          fontSize={13}
           textAnchor="end"
           x={MARGIN.left - 10}
           y={yFor(tick) + 4}
@@ -103,7 +103,7 @@ const Axes = ({
     {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
       <text
         className="fill-muted"
-        fontSize={11}
+        fontSize={13}
         key={`x-${fraction}`}
         textAnchor="middle"
         x={xFor(fraction * maxCost)}
@@ -129,7 +129,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
 
   if (points.length === 0) {
     return (
-      <p className="text-muted max-w-[52ch] text-[13px] leading-[1.6]">
+      <p className="text-muted type-small max-w-[52ch]">
         No cost/quality pairs yet — rate some images on the Images tab and the
         Pareto frontier appears here.
       </p>
@@ -163,7 +163,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
       <div>
         <svg
           aria-label="Cost versus quality scatter plot with the Pareto frontier highlighted"
-          className="block font-mono tabular-nums"
+          className="block tabular-nums"
           height={HEIGHT}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           width={WIDTH}
@@ -172,12 +172,12 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
 
           {/* Axis titles sit outside the plot, at the two ends the eye already
               travels to: quality above its scale, cost below its own. */}
-          <text className="fill-muted" fontSize={11} x={0} y={11}>
+          <text className="fill-muted" fontSize={13} x={0} y={13}>
             quality ★
           </text>
           <text
             className="fill-muted"
-            fontSize={11}
+            fontSize={13}
             textAnchor="end"
             x={WIDTH - MARGIN.right}
             y={HEIGHT - 6}
@@ -212,7 +212,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
                     centred label is struck through by the dashed line. */}
                 <text
                   className={onFrontier ? "fill-ink" : "fill-muted"}
-                  fontSize={11}
+                  fontSize={13}
                   x={xFor(point.costUsd) + 7}
                   y={yFor(point.quality) - 7}
                 >
@@ -223,7 +223,7 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
           })}
         </svg>
       </div>
-      <p className="text-muted max-w-[68ch] text-[13px] leading-[1.55]">
+      <p className="text-muted type-small max-w-[68ch]">
         The dashed line traces the Pareto frontier: models nothing else in this
         run beats on both price and quality. Anything below and right of it is
         dominated — you can have its quality for less, or more quality for its

@@ -29,7 +29,7 @@ export function Looks() {
         title="Looks"
       />
 
-      <div className="site-strip site-carousel pt-20" data-carousel="">
+      <div className="site-strip site-carousel pt-16" data-carousel="">
         <BlossomCarousel
           aria-label="Looks"
           as="section"
@@ -57,7 +57,7 @@ export function Looks() {
                   sizes="(max-width: 767px) 100vw, 840px"
                   source={look.plate}
                 />
-                <figcaption className="flex flex-col gap-1.5">
+                <figcaption className="flex flex-col gap-2">
                   <code
                     className="type-small font-mono"
                     style={{ color: "var(--faint)" }}

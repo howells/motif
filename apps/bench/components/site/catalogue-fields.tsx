@@ -257,7 +257,7 @@ function AskField({
         >
           {question}
         </code>
-        <p className="type-title pt-6">{answer}</p>
+        <p className="type-heading pt-6">{answer}</p>
       </div>
     </div>
   );

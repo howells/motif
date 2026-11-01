@@ -34,7 +34,7 @@ export const StarRating = ({
   onRate,
   value,
 }: StarRatingProps) => (
-  <fieldset className="m-0 inline-flex gap-0.5 border-0 p-0">
+  <fieldset className="m-0 inline-flex gap-1 border-0 p-0">
     <legend className="sr-only">Manual rating</legend>
     {STARS.map((star) => {
       const isFilled = value !== null && star <= value;

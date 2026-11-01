@@ -68,15 +68,21 @@ describe("the veil over an old image", () => {
   });
 });
 
-describe("the App's type", () => {
-  it("keeps the serif for the wordmark alone", () => {
-    const css = readFileSync(
-      new URL("../../../app/app.css", import.meta.url),
-      "utf-8"
-    );
-    const uses = [
-      ...css.matchAll(/([^{}]+)\{[^{}]*font-family:\s*var\(--font-display\)/gu),
-    ].map((match) => match[1]?.trim());
-    expect(uses).toStrictEqual([".app-wordmark"]);
+const readStylesheet = (name: string) =>
+  readFileSync(new URL(`../../../app/${name}`, import.meta.url), "utf-8");
+
+const serifUsers = (css: string) =>
+  [
+    ...css.matchAll(/([^{}]+)\{[^{}]*font-family:\s*var\(--font-display\)/gu),
+  ].map((match) => match[1]?.trim().replaceAll(/\s+/gu, " "));
+
+describe("the product's type", () => {
+  it("keeps the serif for the two heading roles and the wordmark alone", () => {
+    expect(serifUsers(readStylesheet("globals.css"))).toStrictEqual([
+      ".type-display",
+      ".type-heading, .app-wordmark",
+    ]);
+    expect(serifUsers(readStylesheet("app.css"))).toStrictEqual([]);
+    expect(serifUsers(readStylesheet("site.css"))).toStrictEqual([]);
   });
 });

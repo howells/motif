@@ -153,9 +153,9 @@ export function PlateProcess({
     return null;
   }
   return (
-    <div className="board-plate-well board-live relative mb-4 h-40 overflow-hidden rounded">
+    <div className="board-plate-well board-live rounded-panel relative mb-4 h-40 overflow-hidden">
       <LiveGlow tone="plate" />
-      <div className="absolute inset-x-0 bottom-0 px-4 pb-3.5">
+      <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
         <LiveBeats
           beats={process.beats}
           now={now}
@@ -202,7 +202,7 @@ export function ProcessLog({
       {process.live ? null : (
         <button
           aria-expanded={open}
-          className="board-rule-top flex min-h-11 w-full items-center justify-between gap-2 pt-1 text-left"
+          className="board-rule-top min-h-control flex w-full items-center justify-between gap-2 pt-1 text-left"
           onClick={() => {
             setOpen(!open);
           }}

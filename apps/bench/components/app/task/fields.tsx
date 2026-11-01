@@ -356,7 +356,7 @@ function UpscaleFields({ draft, set }: FieldsProps) {
           value={draft.detail}
         />
       </Field>
-      <label className="flex min-h-11 items-center gap-3">
+      <label className="min-h-control flex items-center gap-3">
         <input
           checked={draft.transparent}
           className="size-5 accent-current"

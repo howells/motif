@@ -79,26 +79,60 @@
   ); /* completed — its own green now the accent is achromatic */
   --color-warn: oklch(0.76 0.11 78); /* partial, contended, stale */
   --color-bad: oklch(0.66 0.16 27); /* failed */
+}
 
-  --radius: 8px;
-  --radius-frame: 0px; /* image frames never round */
+/* ── The scales ────────────────────────────────────────────────────────
+   One 4px-based spacing scale, one radius scale and one control height,
+   named once here and read by every stylesheet and every component on the
+   site, in the App and in the Bench. The spacing steps are Tailwind's own
+   (`gap-2` is 8px) and the CSS custom properties are the same numbers, so a
+   stylesheet writes `var(--spacing-4)` where markup writes `p-4`. Anything
+   between two steps is a decision to take one of them, never a new number:
+   `scripts/check-design-scale.mjs` holds the line.
+
+       1 = 4    2 = 8    3 = 12    4 = 16    6 = 24
+       8 = 32   12 = 48  16 = 64   24 = 96   32 = 128
+
+   Radius is 0 for images, 4 for controls, chips and inputs, 8 for panels,
+   dialogs, popovers and floating bars, and full for dots, avatars and round
+   icon buttons. Nested corners stay concentric: an inner radius is the outer
+   radius less the padding between them, so a 4px control inside an 8px panel
+   sits 4px in. `--radius-*: initial` removes Tailwind's own `sm` to `4xl`
+   steps so `rounded-md` cannot be written by accident. */
+@theme static {
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+  --spacing-16: 4rem;
+  --spacing-24: 6rem;
+  --spacing-32: 8rem;
+
+  /* The one control height, and the touch target. Buttons, inputs, selects,
+     tabs and nav rows are this tall on the site, in the App and in the Bench. */
+  --spacing-control: 44px;
+
+  /* The page gutter: 16px on a phone, 64px from 1450px up. */
+  --gutter: clamp(var(--spacing-4), 4.4vw, var(--spacing-16));
+
+  --radius-*: initial;
+  --radius-frame: 0px;
+  --radius-control: 4px;
+  --radius-panel: 8px;
 }
 
 /* Everything below is plumbing for the tokens above, not new design decisions:
-   the type stacks, the four radius steps Tailwind's `rounded-*` utilities
-   read, and the shadcn/ui variable names mapped onto house tokens so the
-   primitives inherit this theme instead of shipping default neutral. */
+   the type stacks and the shadcn/ui variable names mapped onto house tokens
+   so the primitives inherit this theme instead of shipping default neutral. */
 @theme {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono:
     "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
 
   /* shadcn/ui semantic names → house tokens. `--color-accent` is deliberately
      absent: shadcn treats `accent` as a neutral hover wash, but here it is the
@@ -161,29 +195,37 @@
     background: var(--color-background);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    /* 450 is the Patternmode weight — not 400, not 500. Inter is loaded as a
-       variable font (`app/layout.tsx`) precisely so this axis value exists. */
+    /* Weight 400 everywhere. `font-medium` (500) is the one emphasis weight,
+       on names, buttons and the active nav item; nothing sits between. The
+       body's size and leading are `type-body`'s, set in the case below. */
     font-feature-settings: "cpsp", "cv01", "cv02", "cv11";
-    font-size: 0.875rem;
     font-synthesis: none;
-    font-weight: 450;
-    line-height: 1.5;
+    font-weight: 400;
     margin: 0;
     min-width: 320px;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Hierarchy comes from spacing and rules, as in Patternmode — headings stay
-     at body size and earn their weight from 500 alone. */
+  /* A heading takes its shape from the role it is given, not from its tag. */
   h1,
   h2,
   h3,
   h4 {
     font-size: inherit;
-    font-weight: 500;
-    line-height: 1.25;
+    font-weight: inherit;
+    line-height: inherit;
     margin: 0;
+  }
+
+  /* Table headers and `kbd` are bold and monospaced by the UA; neither is a
+     weight or a family the case holds. */
+  th {
+    font-weight: inherit;
+  }
+
+  kbd {
+    font-family: inherit;
   }
 
   p {
@@ -213,21 +255,101 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
+}
 
-  /* iOS Safari auto-zooms on focus below 16px. Keep the 14px scale on
-     desktop; lift form fields on touch. */
-  @media (pointer: coarse) {
-    input,
-    select,
-    textarea {
-      font-size: 1rem;
-    }
+/* ── The type case ─────────────────────────────────────────────────────
+   Five roles, named identically on the site, in the App and in the Bench and
+   defined here once. Every piece of text picks exactly one. Weight is 400 in
+   all of them; `font-medium` (500) is the single emphasis, and the only
+   modifiers beside a role are `font-medium`, `font-mono` (literal command or
+   code text, at `type-small` size), `tabular-nums` and `capitalize`.
+   `scripts/check-app-typography.mjs` holds every stylesheet to this block and
+   the `howells/no-raw-type-utilities` rule holds every component.
+
+       type-display   clamp 48 to 72/1.1   Faculty   the wordmark hero; site only
+       type-heading   28/32, -0.01em       Faculty   chapter and editorial heads; site only
+       type-title     18/24, -0.01em       Inter     screen, panel and dialog titles
+       type-body      14/20                Inter     names, sentences, buttons, inputs
+       type-small     13/20                Inter     metadata, labels, captions, figures
+
+   One body leading. The public pages' reading columns used 23px; at 20px a
+   paragraph is still comfortable, and a long column is given air between its
+   paragraphs (`space-y-3`) rather than a second leading, so `type-body` has
+   exactly one shape everywhere.
+
+   The App's own classes join the role they belong to instead of restating a
+   size, so the numbers below are the only ones in the product. */
+@layer components {
+  .type-display {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 4.5rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    /* The clamp's floor is a floor in the reader's rem, not ours: at a 32px
+       default the wordmark can outgrow a 390px phone. */
+    overflow-wrap: break-word;
+  }
+
+  .type-heading,
+  .app-wordmark {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 2rem;
+  }
+
+  .type-title,
+  .app-head h1,
+  .app-screen-title,
+  .library-title,
+  .board-beat-current {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.5rem;
+  }
+
+  .type-body,
+  body,
+  .app-nav a,
+  .app-button,
+  .app-input,
+  .app-select,
+  .app-textarea,
+  .board-segmented > label,
+  .board-segmented > button,
+  .board-button,
+  .board-field,
+  .library-plate-button {
+    font-size: 0.875rem;
+    letter-spacing: normal;
+    line-height: 1.25rem;
+  }
+
+  .type-small,
+  .app-label,
+  .app-segmented label,
+  .app-value,
+  .board-figure,
+  .board-chip,
+  .library-label {
+    font-size: 0.8125rem;
+    letter-spacing: normal;
+    line-height: 1.25rem;
   }
 }
 
-@utility bench-numeric {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
+/* The one documented exception: iOS zooms the page on focus into any field
+   below 16px, so a field is 16px on a phone or any touch screen. Written once,
+   unlayered so it outranks the roles. */
+@media (pointer: coarse), (width < 48rem) {
+  :is(input, select, textarea, .app-prompt, .board-field) {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
 }
 
 /* A page-level `overflow-x: clip` used to live here to stop the comparison

@@ -75,7 +75,7 @@ export function ReferencesField({
             </span>
             <button
               aria-label="Remove this Reference"
-              className="bg-background absolute -top-3 -right-3 flex size-11 items-center justify-center rounded-full"
+              className="bg-background size-control absolute -top-3 -right-3 flex items-center justify-center rounded-full"
               onClick={() => {
                 onChange(
                   references.filter(

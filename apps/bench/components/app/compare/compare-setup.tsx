@@ -94,7 +94,7 @@ export function CompareSetup({
         standfirst="One prompt, several Models, side by side"
         title="Compare Models"
       />
-      <div className="flex max-w-[44rem] flex-col gap-6 px-4 py-6 md:px-10">
+      <div className="flex max-w-[44rem] flex-col gap-6 px-4 py-6 md:px-8">
         <Field htmlFor="compare-prompt" label="Prompt">
           <textarea
             className="app-textarea"
@@ -135,7 +135,7 @@ export function CompareSetup({
               const on = chosenSet.has(entry.model);
               return (
                 <li className="border-border border-b" key={entry.model}>
-                  <label className="flex min-h-11 cursor-pointer items-center gap-3">
+                  <label className="min-h-control flex cursor-pointer items-center gap-3">
                     <input
                       checked={on}
                       className="size-5 accent-[var(--ink)]"

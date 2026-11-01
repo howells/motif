@@ -34,91 +34,25 @@
 
   background: var(--ground);
   color: var(--ink);
-  /* `body` in globals.css sets 450 for the bench app. Reset once here so any
-     text that is between roles cannot render heavier than the roles do. */
-  font-weight: 400;
   /* The boards run their photographs off the right edge. Clipping here means
      that bleed costs no sideways scroll. */
   overflow-x: clip;
-  font-family: var(--font-sans);
   /* The page is one light surface whatever the browser's scheme, and it must
      cover the bench app's dark body underneath it. */
   color-scheme: light;
   min-block-size: 100dvh;
-  --gutter: clamp(1rem, 4.4vw, 4rem);
 }
 
-/* ── The type case ────────────────────────────────────────────────────
-   Four sizes: two in the serif, then body, then small. `font-mono` is the one
-   typographic modifier allowed beside a role, which is what makes a command a
-   fifth *style* without being a fifth size — mono is the small role in
-   another family.
-
-       display   72px   Faculty Glyphic 400 — the wordmark, and only it
-       title     28px   Faculty Glyphic 400 — chapter heads, and only them
-       body      14px   Inter 400 — command names, standfirsts, sentences
-       small     13px   Inter 400, or the same in mono
-
-   Three levels, three sizes: the wordmark, the chapters, the commands. A
-   chapter head carries a standfirst and a count beside it and twice a band's
-   air above it; a command name is a sentence-case line with its mono usage
-   directly under it. That size step — 28px chapters over 14px commands — is
-   the whole hierarchy, which is the principle globals.css already states
-   for the bench app: levels read from scale and spacing rather than from
-   another step on the ladder.
-
-   Quieter than the Paper boards drew them. The boards set every serif heading
-   at 120px, which made them the loudest thing on a page whose subject is the
-   photographs. Only the wordmark keeps display scale now; the chapter heads
-   label the pictures rather than competing with them. */
-
-.type-display {
-  font-family: var(--font-display);
-  font-size: clamp(3rem, 6vw, 4.5rem);
-  /* Faculty Glyphic has one weight. Declared here so the app-wide
-     `h1,h2,h3,h4 { font-weight: 500 }` in globals.css cannot leak in: the
-     serif has no 500 to give, and with `font-synthesis: none` the rule was
-     asking for a face that does not exist. */
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  /* The clamp's floor is a floor in the reader's rem, not ours: at a 32px
-     default the wordmark can outgrow a 390px phone. `break-word` only splits
-     when the line has no other option. */
-  overflow-wrap: break-word;
-}
-
-.type-title {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 2rem;
-}
-
-/* Inter at 400 rather than the bench app's Patternmode 450: this page carries
-   its subject in photographs and long reading columns, and the lighter face
-   suits both. Named on the role so the same class cannot render at two
-   weights depending on the tag it lands on. */
-.type-body {
-  font-size: 0.875rem;
-  font-weight: 400;
-  line-height: 1.4375rem;
-}
-
-/* The workhorse — labels, captions, table cells, controls — and, with
-   `font-mono` beside it, every command on the page. Mono is this role in
-   another family rather than a step of its own, so a command and a caption
-   share a size and a leading. */
-.type-small {
-  font-size: 0.8125rem;
-  font-weight: 400;
-  line-height: 1.25rem;
-}
+/* The type case (`type-display`, `type-heading`, `type-title`, `type-body`,
+   `type-small`) is defined once in globals.css and is the same on the site,
+   in the App and in the Bench. The scales for spacing, radius and control
+   height are there too; this file writes `var(--spacing-*)` and never a
+   number between two steps. */
 
 /* ── Page furniture ──────────────────────────────────────────────────── */
 
-/* 64px gutters at 1440 and 16px at 390, both measured off the boards. */
+/* 64px gutters at 1440 and 16px at 390 (`--gutter`, globals.css), both
+   measured off the boards. */
 .site-gutter {
   margin-inline: auto;
   max-width: 90rem;
@@ -163,7 +97,7 @@
 }
 
 /* The answer `motif ask` gave, set over the photograph it was asked about.
-   Position only: the shape is `type-title`, the page's one serif heading
+   Position only: the shape is `type-heading`, the page's one serif heading
    size. Display scale belongs to the wordmark alone, and at 72px an answer
    would cover the shelf it is counting. Set in ink like everything else: the
    plates it lies on are daylit and pale, and paper-coloured type disappeared
@@ -173,29 +107,23 @@
    is lighter but bleeds off the window on desktop. */
 .site-answer {
   color: var(--ink);
-  inset-block-start: 1.25rem;
-  inset-inline-start: 1.5rem;
+  inset-block-start: var(--spacing-6);
+  inset-inline-start: var(--spacing-6);
   position: absolute;
 }
 
 @media (width >= 48rem) {
   .site-answer {
-    inset-block-start: 2rem;
-    inset-inline-start: 2.5rem;
+    inset-block-start: var(--spacing-8);
+    inset-inline-start: var(--spacing-8);
   }
-}
-
-/* A table header is bold by UA default, which is a weight the case does not
-   hold. Reset once here rather than with `font-normal` on every header. */
-.site th {
-  font-weight: inherit;
 }
 
 /* The command chips: a surface block with mono text, used wherever the page
    shows something you could type. */
 .site-command {
   background: var(--surface);
-  padding: 0.75rem 1rem;
+  padding: var(--spacing-3) var(--spacing-4);
 }
 
 /* Underline for the selected tab in the mood and step rows. Drawn as a
@@ -206,7 +134,7 @@
   color: var(--faint);
   cursor: pointer;
   display: block;
-  padding: 0 0 0.5rem;
+  padding: 0 0 var(--spacing-2);
   position: relative;
   text-align: start;
 }
@@ -262,7 +190,7 @@
 @media (width >= 48rem) {
   .site-step-commands-rail {
     display: grid;
-    padding-top: 1.5rem;
+    padding-top: var(--spacing-6);
   }
 
   .site-step-commands-block {
@@ -356,8 +284,8 @@
   align-items: flex-start;
   border-top: 1px solid var(--rule);
   display: flex;
-  gap: 64px;
-  padding: 56px 0 64px var(--gutter);
+  gap: var(--spacing-16);
+  padding: var(--spacing-16) 0 var(--spacing-16) var(--gutter);
 }
 
 .site-rail {
@@ -369,13 +297,13 @@
 
 .site-rail-usage {
   color: var(--faint);
-  padding-top: 12px;
+  padding-top: var(--spacing-3);
   white-space: nowrap;
 }
 
 .site-rail-summary {
   color: var(--muted);
-  padding-top: 18px;
+  padding-top: var(--spacing-4);
 }
 
 .site-field {
@@ -386,15 +314,15 @@
 
 .site-band-chapter {
   align-items: baseline;
-  /* A chapter opens with twice a band's air above it, and carries a
-     standfirst and a count beside its name — that air and that furniture
-     are the level, not a heavier rule. Every rule on the page is the same
+  /* A chapter opens with twice a band's air above it (128 over 64), and
+     carries a standfirst and a count beside its name — that air and that
+     furniture are the level, not a heavier rule. Every rule on the page is the same
      1px hairline; the one ink the page spends on lines marks a position
      (the selected tab, the carousel fill), never a boundary. */
   border-top: 1px solid var(--rule);
   display: flex;
-  gap: 64px;
-  padding: 112px var(--gutter) 64px;
+  gap: var(--spacing-16);
+  padding: var(--spacing-32) var(--gutter) var(--spacing-16);
 }
 
 .site-chapter-name {
@@ -418,8 +346,8 @@
 @media (width < 62rem) {
   .site-band {
     flex-direction: column;
-    gap: 20px;
-    padding: 40px var(--gutter) 48px;
+    gap: var(--spacing-6);
+    padding: var(--spacing-12) var(--gutter);
   }
 
   .site-rail {
@@ -444,8 +372,8 @@
        measure and runs off a phone; stretch gives it the column. */
     align-items: stretch;
     flex-direction: column;
-    gap: 16px;
-    padding: 64px var(--gutter) 32px;
+    gap: var(--spacing-4);
+    padding: var(--spacing-16) var(--gutter) var(--spacing-8);
   }
 
   .site-chapter-name,
@@ -497,7 +425,7 @@
 
 .site-carousel-slide {
   flex-shrink: 0;
-  margin-inline-end: 14px;
+  margin-inline-end: var(--spacing-4);
   scroll-snap-align: start;
 }
 
@@ -508,8 +436,8 @@
 .site-carousel-controls {
   align-items: center;
   display: flex;
-  gap: 22px;
-  padding-top: 22px;
+  gap: var(--spacing-6);
+  padding-top: var(--spacing-6);
 }
 
 /* The counter is one token — "01 / 09" — and must not break across lines
@@ -539,10 +467,10 @@
   cursor: pointer;
   display: inline-flex;
   font: inherit;
-  height: 44px;
+  height: var(--spacing-control);
   justify-content: center;
   padding: 0;
-  width: 44px;
+  width: var(--spacing-control);
 }
 
 .site-hit[disabled] {
@@ -552,7 +480,7 @@
 .site-takes {
   align-items: flex-start;
   display: flex;
-  gap: 40px;
+  gap: var(--spacing-12);
   overflow: clip;
 }
 
@@ -577,13 +505,13 @@
 .site-set {
   display: flex;
   flex-wrap: wrap;
-  gap: 14px;
+  gap: var(--spacing-4);
 }
 
 .site-pair {
   align-items: center;
   display: flex;
-  gap: 48px;
+  gap: var(--spacing-12);
 }
 
 /* Both halves take the same measure. The pairs carry very different aspects
@@ -598,13 +526,13 @@
 
 .site-matched {
   display: flex;
-  gap: 24px;
+  gap: var(--spacing-6);
 }
 
 .site-repeat {
   align-items: center;
   display: flex;
-  gap: 40px;
+  gap: var(--spacing-12);
   overflow: clip;
 }
 
@@ -624,7 +552,7 @@
 .site-stack {
   align-items: center;
   display: flex;
-  gap: 24px;
+  gap: var(--spacing-6);
 }
 
 .site-stack-flat {
@@ -648,32 +576,32 @@
 }
 
 .site-stack-layer + .site-stack-layer {
-  margin-top: -150px;
+  margin-top: calc(var(--spacing-32) * -1);
 }
 
 .site-stack-layers > :nth-child(2) {
-  margin-left: 60px;
+  margin-left: var(--spacing-16);
 }
 
 .site-stack-layers > :nth-child(3) {
-  margin-left: 120px;
+  margin-left: var(--spacing-32);
 }
 
 .site-stack-mount {
   background: var(--surface);
   flex-shrink: 0;
-  padding: 12px;
+  padding: var(--spacing-3);
   width: 100%;
 }
 
 .site-lifted {
   display: flex;
-  gap: 24px;
+  gap: var(--spacing-6);
 }
 
 .site-trio {
   display: flex;
-  gap: 24px;
+  gap: var(--spacing-6);
 }
 
 .site-trio > * {
@@ -689,7 +617,7 @@
 .site-ask {
   align-items: flex-start;
   display: flex;
-  gap: 48px;
+  gap: var(--spacing-12);
 }
 
 /* The photograph keeps a reading measure so the exchange beside it sits high
@@ -703,13 +631,13 @@
 .site-ask-exchange {
   flex: 1 1 0;
   min-width: 0;
-  padding-top: 16px;
+  padding-top: var(--spacing-4);
 }
 
 .site-specimen-row {
   align-items: flex-start;
   display: flex;
-  gap: 48px;
+  gap: var(--spacing-12);
 }
 
 /* The readout takes its own measure and no more, so the plate sits beside
@@ -739,13 +667,13 @@
  * its label instead of squeezing beside it. */
 .site-studio {
   background: var(--surface);
-  padding: 28px clamp(20px, 4vw, 56px);
+  padding: var(--spacing-6) clamp(var(--spacing-4), 4vw, var(--spacing-12));
 }
 
 .site-studio-menu {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-3);
   list-style: none;
   margin: 0;
   padding: 0;
@@ -755,7 +683,7 @@
   align-items: baseline;
   display: flex;
   flex-wrap: wrap;
-  gap: 2px 12px;
+  gap: var(--spacing-1) var(--spacing-3);
 }
 
 .site-studio-mark {
@@ -784,17 +712,17 @@
   align-items: baseline;
   border-bottom: 1px solid var(--rule);
   display: flex;
-  gap: 24px;
+  gap: var(--spacing-6);
 }
 
 .site-ledger-head {
   color: var(--faint);
-  padding-bottom: 10px;
-  padding-top: 34px;
+  padding-bottom: var(--spacing-2);
+  padding-top: var(--spacing-8);
 }
 
 .site-ledger-row {
-  padding-block: 14px;
+  padding-block: var(--spacing-3);
 }
 
 .site-ledger-head > :first-child,
@@ -870,7 +798,7 @@
 
 .site-held-captions {
   display: flex;
-  padding-top: 12px;
+  padding-top: var(--spacing-3);
 }
 
 .site-clip {
@@ -886,8 +814,8 @@
 
 .site-clip-input {
   cursor: pointer;
-  height: 22px;
-  inset: -10px 0;
+  height: var(--spacing-control);
+  inset: calc(var(--spacing-control) / -2) 0;
   margin: 0;
   opacity: 0;
   position: absolute;
@@ -897,7 +825,7 @@
 @media (width < 62rem) {
   .site-takes {
     flex-direction: column;
-    gap: 20px;
+    gap: var(--spacing-6);
   }
 
   .site-takes-source {
@@ -912,7 +840,7 @@
   .site-ask,
   .site-specimen-row {
     flex-direction: column;
-    gap: 20px;
+    gap: var(--spacing-6);
   }
 
   /* In a column the 62ch basis would become a height, leaving a tall blank
@@ -960,7 +888,7 @@
   .site-ledger-head,
   .site-ledger-row {
     flex-wrap: wrap;
-    gap: 8px 16px;
+    gap: var(--spacing-2) var(--spacing-4);
   }
 
   .site-ledger-head > :first-child,

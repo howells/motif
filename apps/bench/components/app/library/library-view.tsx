@@ -78,7 +78,7 @@ function Tile({
       <button
         aria-label={stack.prompt ?? captionOf(stack)}
         aria-pressed={open}
-        className={`library-tile bg-surface aspect-square w-full md:rounded ${open ? "is-open" : ""}`}
+        className={`library-tile bg-surface md:rounded-panel aspect-square w-full ${open ? "is-open" : ""}`}
         onClick={onOpen}
         type="button"
       >
@@ -90,7 +90,7 @@ function Tile({
           />
         )}
         {stack.versions > 1 ? (
-          <span className="bg-plate/80 text-plate-ink type-small absolute top-1.5 right-1.5 flex items-center gap-1 rounded-sm px-1.5">
+          <span className="bg-plate/80 text-plate-ink type-small rounded-control absolute top-2 right-2 flex items-center gap-1 px-2">
             <Layers aria-hidden="true" size={12} strokeWidth={1.5} />
             {stack.versions}
           </span>
@@ -116,7 +116,7 @@ function FilterBar({
   readonly onChange: (next: Filters) => void;
 }) {
   return (
-    <div className="flex gap-2 px-5 pt-1 pb-4 md:px-6 md:pt-3">
+    <div className="flex gap-2 px-4 pt-1 pb-4 md:px-6 md:pt-3">
       <label className="board-field flex min-w-0 flex-1 items-center gap-2 py-0 md:w-65 md:flex-none">
         <SearchIcon className="text-muted shrink-0" />
         <input
@@ -168,7 +168,7 @@ function Empty({ filters }: { readonly filters: Filters }) {
   const searching = filters.search.trim() !== "";
   if (searching || filters.board !== "" || filters.task !== "") {
     return (
-      <p className="type-body py-10">
+      <p className="type-body py-12">
         {searching
           ? `No prompt matches “${filters.search.trim()}”.`
           : "Nothing made here yet."}
@@ -176,7 +176,7 @@ function Empty({ filters }: { readonly filters: Filters }) {
     );
   }
   return (
-    <div className="flex flex-col items-start gap-3 py-10">
+    <div className="flex flex-col items-start gap-3 py-12">
       <p className="type-body">Nothing here yet.</p>
       <Link className="board-button is-ink px-4" href="/make">
         Make an image
@@ -195,14 +195,14 @@ function Days({
   readonly openId: string | null;
 }) {
   return days.map((day) => (
-    <section className="pb-4 md:pb-5" key={day.name}>
-      <h2 className="flex h-10 items-center justify-between px-5 md:h-8 md:px-0">
+    <section className="pb-4 md:pb-4" key={day.name}>
+      <h2 className="flex h-10 items-center justify-between px-4 md:h-8 md:px-0">
         <span className="type-body font-medium">{day.name}</span>
         <span className="board-figure text-muted">
           {formatUsd(day.costMicros)}
         </span>
       </h2>
-      <ul className="grid grid-cols-3 gap-0.5 md:grid-cols-[repeat(auto-fill,minmax(10rem,202px))] md:gap-x-4 md:gap-y-5">
+      <ul className="grid grid-cols-3 gap-1 md:grid-cols-[repeat(auto-fill,minmax(10rem,202px))] md:gap-x-4 md:gap-y-4">
         {day.stacks.map((stack) => (
           <Tile
             key={stack.stackId}
@@ -241,7 +241,7 @@ export function LibraryView() {
   return (
     <div className="flex min-h-dvh">
       <main className="min-w-0 flex-1">
-        <header className="library-head flex items-center gap-4 px-5 md:px-6">
+        <header className="library-head flex items-center gap-4 px-4 md:px-6">
           <h1 className="library-title">Library</h1>
           {library.data === undefined ? null : (
             <span className="library-label text-muted hidden md:inline">
@@ -252,17 +252,17 @@ export function LibraryView() {
           )}
         </header>
         <FilterBar boards={boardList} filters={filters} onChange={setFilters} />
-        <div className="pb-10 md:px-6">
+        <div className="pb-12 md:px-6">
           {library.isPending ? (
-            <p className="type-small text-muted px-5 py-6 md:px-0">
+            <p className="type-small text-muted px-4 py-6 md:px-0">
               Loading your Library…
             </p>
           ) : library.isError ? (
-            <p className="type-small text-bad px-5 py-6 md:px-0" role="alert">
+            <p className="type-small text-bad px-4 py-6 md:px-0" role="alert">
               {messageOf(library.error)}
             </p>
           ) : library.data.stacks.length === 0 ? (
-            <div className="px-5 md:px-0">
+            <div className="px-4 md:px-0">
               <Empty filters={filters} />
             </div>
           ) : (

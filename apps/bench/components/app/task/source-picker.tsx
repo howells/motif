@@ -122,11 +122,11 @@ export function SourcePicker({
       ref={dialog}
     >
       <div className="flex max-h-[85dvh] flex-col">
-        <div className="border-border flex items-center justify-between border-b py-2 pr-2 pl-5">
+        <div className="border-border flex items-center justify-between border-b py-2 pr-2 pl-4">
           <h2 className="type-body font-medium">{label}</h2>
           <button
             aria-label="Close"
-            className="flex size-11 items-center justify-center"
+            className="size-control flex items-center justify-center"
             onClick={() => {
               setOpen(false);
             }}
@@ -135,7 +135,7 @@ export function SourcePicker({
             <X aria-hidden="true" size={18} strokeWidth={1.5} />
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-2 p-5">
+        <div className="grid grid-cols-2 gap-2 p-4">
           <button
             className="app-button"
             disabled={busy}
@@ -178,14 +178,14 @@ export function SourcePicker({
             type="file"
           />
         </div>
-        <p aria-live="polite" className="type-small text-bad px-5">
+        <p aria-live="polite" className="type-small text-bad px-4">
           {busy ? (
             <span className="text-muted">Getting the image ready…</span>
           ) : (
             problem
           )}
         </p>
-        <div className="flex-1 overflow-y-auto px-5 pt-2 pb-6">
+        <div className="flex-1 overflow-y-auto px-4 pt-2 pb-6">
           <h3 className="type-small text-muted pb-2">From your Library</h3>
           {library.isPending ? (
             <p className="type-small text-muted">Loading…</p>

@@ -214,7 +214,7 @@ export function MaskEditor({
 
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="app-plate relative flex flex-1 items-center justify-center p-4 md:p-10">
+      <div className="app-plate relative flex flex-1 items-center justify-center p-4 md:p-8">
         <div
           className="relative max-h-full w-full"
           style={{
@@ -243,7 +243,7 @@ export function MaskEditor({
         <div className="absolute top-2 right-2 flex">
           <button
             aria-label="Undo"
-            className="flex size-11 items-center justify-center disabled:opacity-40"
+            className="size-control flex items-center justify-center disabled:opacity-40"
             disabled={!marked}
             onClick={undo}
             type="button"
@@ -253,7 +253,7 @@ export function MaskEditor({
           {mode === "paint" ? (
             <button
               aria-label="Redo"
-              className="flex size-11 items-center justify-center disabled:opacity-40"
+              className="size-control flex items-center justify-center disabled:opacity-40"
               disabled={undone.length === 0}
               onClick={redo}
               type="button"

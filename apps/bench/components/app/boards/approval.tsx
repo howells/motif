@@ -35,7 +35,7 @@ function Step({
   readonly step: StepQuoteData;
 }) {
   return (
-    <li className="board-rule-bottom flex min-h-13 items-center gap-3 px-5 py-2">
+    <li className="board-rule-bottom flex min-h-13 items-center gap-3 px-4 py-2">
       <span className="type-small text-muted w-5 shrink-0 tabular-nums">
         {index}
       </span>
@@ -138,12 +138,12 @@ function QuoteSteps({
 }) {
   if (quote === undefined) {
     return (
-      <p className="type-small text-muted board-rule-top px-5 py-4">Pricing…</p>
+      <p className="type-small text-muted board-rule-top px-4 py-4">Pricing…</p>
     );
   }
   if (quote.steps.length === 0) {
     return (
-      <p className="type-small text-muted board-rule-top px-5 py-4">
+      <p className="type-small text-muted board-rule-top px-4 py-4">
         Nothing below this {label} runs yet. Wire a Task into it first.
       </p>
     );
@@ -159,7 +159,7 @@ function QuoteSteps({
             step={step}
           />
         ))}
-        <li className="flex min-h-13 items-center gap-3 px-5 py-2">
+        <li className="flex min-h-13 items-center gap-3 px-4 py-2">
           <span className="w-5 shrink-0" />
           <span className="flex min-w-0 flex-1 flex-col">
             <span className="type-body font-medium">Total</span>
@@ -175,12 +175,12 @@ function QuoteSteps({
         </li>
       </ol>
       {quote.ready && quote.steps.some((step) => step.ok && step.usage) ? (
-        <p className="type-small text-muted px-5">
+        <p className="type-small text-muted px-4">
           Holds {formatUsd(quote.micros)} while it runs. You pay what fal
           charges; if fal doesn’t say, the hold counts as an estimate.
         </p>
       ) : quote.ready && quote.micros > quote.listMicros ? (
-        <p className="type-small text-muted px-5">
+        <p className="type-small text-muted px-4">
           Holds up to {formatUsd(quote.micros)} while it runs. You pay what fal
           charges.
         </p>
@@ -232,7 +232,7 @@ function Actions({
   readonly quote: QuoteViewData | undefined;
 }) {
   return (
-    <div className="flex gap-2 px-5 pt-4 pb-5">
+    <div className="flex gap-2 px-4 pt-4 pb-4">
       <button className="board-button flex-1" onClick={onCancel} type="button">
         Cancel
       </button>
@@ -336,7 +336,7 @@ export function ApprovalDialog({
       }}
       ref={dialog}
     >
-      <div className="flex flex-col gap-3 px-5 pt-5 pb-3">
+      <div className="flex flex-col gap-3 px-4 pt-4 pb-3">
         <h2 className="type-title" id="approval-title">
           {titleOf(label, runnable, downstream)}
         </h2>
@@ -353,13 +353,13 @@ export function ApprovalDialog({
         ) : null}
       </div>
       {shown.isError ? (
-        <p className="type-small text-bad px-5 pb-3" role="alert">
+        <p className="type-small text-bad px-4 pb-3" role="alert">
           {messageOf(shown.error)}
         </p>
       ) : null}
       <QuoteSteps label={label} onUseModel={onUseModel} quote={quote} />
       {start.isError ? (
-        <p className="type-small text-bad px-5 pt-3" role="alert">
+        <p className="type-small text-bad px-4 pt-3" role="alert">
           {messageOf(start.error)}
         </p>
       ) : null}

@@ -177,7 +177,7 @@ export function CompareResults({
     return (
       <>
         <PageHead title="Compare Models" />
-        <p className="type-body text-bad px-4 py-8 md:px-10" role="alert">
+        <p className="type-body text-bad px-4 py-8 md:px-8" role="alert">
           {messageOf(comparison.error)}
         </p>
       </>
@@ -218,7 +218,7 @@ export function CompareResults({
         standfirst={data.prompt}
         title="Compare Models"
       />
-      <dl className="border-border grid grid-cols-2 gap-4 border-b px-4 py-4 md:grid-cols-4 md:px-10">
+      <dl className="border-border grid grid-cols-2 gap-4 border-b px-4 py-4 md:grid-cols-4 md:px-8">
         <div>
           <dt className="type-small text-muted">Quickest this time</dt>
           <dd className="type-body">
@@ -247,7 +247,7 @@ export function CompareResults({
         </div>
       </dl>
       <div
-        className="border-border flex gap-4 border-b px-4 md:px-10"
+        className="border-border flex gap-4 border-b px-4 md:px-8"
         role="tablist"
       >
         {(
@@ -273,7 +273,7 @@ export function CompareResults({
       </div>
 
       {failed.length > 0 ? (
-        <output className="flex flex-wrap items-center justify-between gap-3 px-4 pt-5 md:px-10">
+        <output className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 md:px-8">
           <div className="flex flex-col">
             <span className="type-body">
               {failed.length} of {runs.length}{" "}
@@ -296,13 +296,13 @@ export function CompareResults({
         </output>
       ) : null}
       {retry.error === null ? null : (
-        <p className="type-small text-bad px-4 pt-2 md:px-10">
+        <p className="type-small text-bad px-4 pt-2 md:px-8">
           {messageOf(retry.error)}
         </p>
       )}
 
       {tab === "images" ? (
-        <ul className="grid gap-6 px-4 py-6 sm:grid-cols-2 md:px-10 lg:grid-cols-3">
+        <ul className="grid gap-6 px-4 py-6 sm:grid-cols-2 md:px-8 lg:grid-cols-3">
           {runs.map((generation) => (
             <Tile
               generation={generation}
@@ -317,7 +317,7 @@ export function CompareResults({
       ) : null}
 
       {tab === "table" ? (
-        <div className="overflow-x-auto px-4 py-6 md:px-10">
+        <div className="overflow-x-auto px-4 py-6 md:px-8">
           <table className="w-full min-w-[34rem] border-collapse text-left">
             <thead>
               <tr className="border-border type-small text-muted border-b">
@@ -371,7 +371,7 @@ export function CompareResults({
       ) : null}
 
       {tab === "quality" ? (
-        <div className="px-4 py-6 md:px-10">
+        <div className="px-4 py-6 md:px-8">
           <ul className="flex max-w-[44rem] flex-col">
             {runs
               .toSorted(

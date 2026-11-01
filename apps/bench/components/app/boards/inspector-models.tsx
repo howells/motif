@@ -135,7 +135,7 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
               <li>
                 <button
                   aria-expanded={all}
-                  className="type-body flex h-11 w-full items-center justify-between"
+                  className="type-body h-control flex w-full items-center justify-between"
                   onClick={() => {
                     setAll(!all);
                   }}
@@ -188,7 +188,7 @@ export function CompareModels({
               <li className="board-rule-bottom" key={model.model}>
                 <button
                   aria-pressed={picked}
-                  className="flex min-h-11 w-full items-center gap-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-control flex w-full items-center gap-3 py-2 text-left disabled:cursor-not-allowed disabled:opacity-50"
                   disabled={full || (model.reason !== null && !picked)}
                   onClick={() => {
                     editSettings(node, {

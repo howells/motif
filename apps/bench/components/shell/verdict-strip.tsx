@@ -51,32 +51,32 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
         alongside the rail heading and every table header, the treatment stops
         being a signal and becomes texture. The label is a caption; the number
         is the subject, and the 17px mono figure below already says so. */}
-    <span className="text-muted text-[12px] leading-[14px]">
-      {readout.label}
-    </span>
+    <span className="text-muted type-small">{readout.label}</span>
     {/* A fixed 18px answer line, whether it holds a 17px numeral or the 13px
         "not yet" sentence. Sized by content, the answered and unanswered cells
         came out different heights, and `justify-center` then pushed their
         labels to different baselines — four verdicts of one band sitting on
         two different lines. */}
-    <span className="flex h-[18px] min-w-0 items-baseline gap-1.5">
+    <span className="flex h-[18px] min-w-0 items-baseline gap-2">
       {readout.pick ? (
         <>
-          <span className="bench-numeric text-ink text-[17px] leading-[18px] font-medium">
+          <span className="text-ink type-title font-medium tabular-nums">
             {readout.format(readout.pick)}
           </span>
           {readout.unit === undefined ? null : (
-            <span className="text-muted shrink-0 text-xs">{readout.unit}</span>
+            <span className="text-muted type-small shrink-0">
+              {readout.unit}
+            </span>
           )}
           {/* The alias is a name, read on its own — never scanned down a
               column — so it takes the body font. Only the figure beside it is
               mono, because only the figure is compared. */}
-          <span className="text-muted truncate text-[12px]">
+          <span className="text-muted type-small truncate">
             {readout.pick.modelAlias}
           </span>
         </>
       ) : (
-        <span className="text-muted truncate text-[13px] leading-[18px]">
+        <span className="text-muted type-small truncate">
           {readout.emptyLabel}
         </span>
       )}
@@ -89,7 +89,7 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
  * header block on the old results page; the shell has no header to put them
  * in and they belong beside the verdicts they qualify. */
 const RunFlags = ({ run }: { readonly run: RunSummary }) => (
-  <div className="flex shrink-0 flex-wrap items-center gap-1.5 md:justify-end md:pl-4">
+  <div className="flex shrink-0 flex-wrap items-center gap-2 md:justify-end md:pl-4">
     <RunStatusBadge short status={run.status} />
     {run.isMock ? <Badge>mock</Badge> : null}
     {run.concurrency > 1 ? (
@@ -193,7 +193,7 @@ export const VerdictStrip = ({
     // grid's own gap do the spacing. `first:pl-0` alone used to indent cells
     // 3 and 4 by 16px against cells 1 and 2 directly above them, so the two
     // rows of a 2×2 verdict grid did not share a left edge.
-    <div className="border-border order-1 grid shrink-0 grid-cols-2 gap-x-6 gap-y-4 border-b px-3 py-3.5 md:flex md:h-16 md:items-stretch md:gap-y-0 md:px-4 md:py-0">
+    <div className="border-border order-1 grid shrink-0 grid-cols-2 gap-x-6 gap-y-4 border-b px-3 py-4 md:flex md:h-16 md:items-stretch md:gap-y-0 md:px-4 md:py-0">
       {readouts.map((readout) => (
         <Cell key={readout.label} readout={readout} />
       ))}

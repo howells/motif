@@ -74,7 +74,7 @@ function ResultGrid({
                 >
                   <MediaImage alt="" sizes="152px" src={output.url} />
                   <span
-                    className={`board-chip absolute bottom-1.5 left-1.5 ${picked ? "" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"}`}
+                    className={`board-chip absolute bottom-2 left-2 ${picked ? "" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"}`}
                   >
                     {picked ? <CheckIcon size={14} /> : null}
                     {picked ? "Pick" : "Make Pick"}
@@ -121,7 +121,7 @@ export function Results({ node }: { readonly node: NodeViewData }) {
           <>
             <button
               aria-expanded={earlier}
-              className="board-rule-top type-body flex h-11 w-full items-center justify-between"
+              className="board-rule-top type-body h-control flex w-full items-center justify-between"
               onClick={() => {
                 setEarlier(!earlier);
               }}

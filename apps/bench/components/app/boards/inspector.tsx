@@ -42,7 +42,7 @@ function SourceFields({ node }: { readonly node: NodeViewData }) {
       ) : (
         <div className="flex flex-col gap-3">
           <div
-            className="bg-surface relative overflow-hidden rounded"
+            className="bg-surface rounded-panel relative overflow-hidden"
             style={{
               aspectRatio:
                 node.pick.width !== null && node.pick.height !== null
@@ -334,7 +334,7 @@ export function Inspector({
           <CloseIcon />
         </button>
       </header>
-      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-6 py-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-6 py-4">
         {node.kind === "prompt" ? (
           <PromptFields node={node} options={options} />
         ) : null}
@@ -346,7 +346,7 @@ export function Inspector({
         ) : null}
       </div>
       {runnable ? (
-        <footer className="board-rule-top flex shrink-0 flex-col gap-3 px-6 pt-4 pb-5">
+        <footer className="board-rule-top flex shrink-0 flex-col gap-3 px-6 pt-4 pb-4">
           <div className="flex items-baseline justify-between gap-3">
             {node.price?.ok === false ? (
               <span className="type-small text-bad">{node.price.reason}</span>
@@ -386,7 +386,7 @@ export function Inspector({
           </div>
         </footer>
       ) : (
-        <footer className="board-rule-top flex shrink-0 gap-2 px-6 pt-4 pb-5">
+        <footer className="board-rule-top flex shrink-0 gap-2 px-6 pt-4 pb-4">
           <button
             className="board-button flex-1"
             onClick={() => {

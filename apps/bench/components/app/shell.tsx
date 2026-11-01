@@ -109,7 +109,7 @@ export async function Shell({
             <>
               {spend === null ? null : <SpendMeter initial={spend} />}
               <Link
-                className="border-border flex min-h-11 items-center gap-3 border-t pt-3"
+                className="border-border min-h-control flex items-center gap-3 border-t pt-3"
                 href="/settings"
               >
                 <span

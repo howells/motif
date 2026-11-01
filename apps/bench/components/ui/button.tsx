@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
  * elements per screen — reach for `outline` unless this is *the* action of
  * the page. */
 const buttonVariants = cva(
-  "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md whitespace-nowrap transition-[background-color,border-color,color] duration-150 disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
+  "rounded-control inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap transition-[background-color,border-color,color] duration-150 disabled:pointer-events-none disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5",
   {
     defaultVariants: {
       size: "default",
@@ -28,9 +28,8 @@ const buttonVariants = cva(
     },
     variants: {
       size: {
-        default: "h-[34px] px-3.5",
-        icon: "size-8",
-        sm: "h-8 px-3",
+        default: "h-control px-4",
+        icon: "size-control",
       },
       variant: {
         accent:

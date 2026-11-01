@@ -21,7 +21,7 @@ export function ZoomControl() {
   const { fitView, zoomIn, zoomOut } = useReactFlow();
   const { zoom } = useViewport();
   return (
-    <div className="board-float absolute right-4 bottom-4 z-10 flex h-11 items-center">
+    <div className="board-float h-control absolute right-4 bottom-4 z-10 flex items-center">
       <button
         aria-label="Zoom out"
         className="board-quiet hover:bg-surface"
@@ -47,7 +47,7 @@ export function ZoomControl() {
       </button>
       <span aria-hidden="true" className="bg-border h-5 w-px" />
       <button
-        className="board-quiet type-small hover:bg-surface px-3.5"
+        className="board-quiet type-small hover:bg-surface px-4"
         onClick={() => {
           void fitView({ duration: 200, padding: 0.2 });
         }}
@@ -157,7 +157,7 @@ export function BoardName({
     return (
       <h1 className="type-title min-w-0">
         <button
-          className="hover:bg-surface -mx-2 max-w-full truncate rounded px-2 py-1"
+          className="hover:bg-surface rounded-panel -mx-2 max-w-full truncate px-2 py-1"
           onClick={() => {
             setEditing(true);
           }}

@@ -73,7 +73,7 @@ export function Moods() {
       >
         <div
           aria-label="Moods"
-          className="flex gap-8 overflow-x-auto pt-8 md:gap-10"
+          className="flex gap-8 overflow-x-auto pt-8 md:gap-12"
           role="tablist"
         >
           {MOODS.map((item, position) => (
@@ -93,7 +93,7 @@ export function Moods() {
         </div>
       </ChapterHead>
 
-      <div className="site-strip site-carousel pt-10" data-carousel="">
+      <div className="site-strip site-carousel pt-12" data-carousel="">
         <BlossomCarousel
           aria-label="The same kitchen in six lights"
           as="section"

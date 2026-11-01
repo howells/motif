@@ -4,7 +4,9 @@
 
    Inside `.app` the Tailwind colour tokens are remapped to the paper palette,
    so `text-ink`, `bg-surface` and `border-border` mean the same thing here
-   that `--ink`, `--surface` and `--rule` do in site.css. The dark bench
+   that `--ink`, `--surface` and `--rule` do in site.css. Type, spacing, radius
+   and the control height are not remapped: they are the scales in
+   globals.css, the same here as on the public pages and in the Bench. The dark bench
    theme in globals.css is untouched outside this class. */
 
 .app {
@@ -25,8 +27,6 @@
 
   --rail: 14.5rem;
   --bar: calc(3.5rem + env(safe-area-inset-bottom));
-  --control: 2.75rem;
-  --radius-control: 4px;
 
   min-block-size: 100dvh;
 }
@@ -39,7 +39,7 @@
 
 .app-main {
   min-inline-size: 0;
-  padding-block-end: calc(var(--bar) + 1rem);
+  padding-block-end: calc(var(--bar) + var(--spacing-4));
   padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
   padding-block-start: env(safe-area-inset-top);
 }
@@ -78,7 +78,7 @@
   block-size: 2px;
   content: "";
   inset-block-start: -1px;
-  inset-inline: 0.75rem;
+  inset-inline: var(--spacing-3);
   position: absolute;
 }
 
@@ -93,9 +93,9 @@
     border-inline-end: 1px solid var(--rule);
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: var(--spacing-4);
     inset-block-start: 0;
-    padding: 1.5rem 0.75rem 1.25rem;
+    padding: var(--spacing-6) var(--spacing-3);
     position: sticky;
   }
 
@@ -111,19 +111,15 @@
 .app-wordmark {
   align-items: center;
   display: flex;
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  letter-spacing: -0.02em;
-  line-height: 2rem;
-  min-block-size: 2.75rem;
-  padding-inline: 0.75rem;
+  min-block-size: var(--spacing-control);
+  padding-inline: var(--spacing-3);
 }
 
 .app-nav {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-block-start: 0.5rem;
+  padding-block-start: var(--spacing-2);
 }
 
 .app-nav a {
@@ -131,8 +127,8 @@
   border-radius: var(--radius-control);
   color: var(--muted);
   display: flex;
-  min-block-size: var(--control);
-  padding-inline: 0.75rem;
+  min-block-size: var(--spacing-control);
+  padding-inline: var(--spacing-3);
 }
 
 .app-nav a:hover {
@@ -152,106 +148,22 @@
   border-block-end: 1px solid var(--rule);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1rem;
+  gap: var(--spacing-2) var(--spacing-4);
   justify-content: space-between;
-  padding: 1rem 1rem 1rem;
+  padding: var(--spacing-4);
 }
 
 @media (width >= 48rem) {
   .app-head {
-    min-block-size: 5.5rem;
-    padding: 1rem 2.5rem;
+    min-block-size: var(--spacing-24);
+    padding: var(--spacing-4) var(--spacing-8);
   }
 }
 
-/* ── The type case ─────────────────────────────────────────────────────
-   The App sets text in three roles, all Inter at weight 400, with hierarchy
-   carried by size and colour rather than by weight:
-
-     type-small   13/20   metadata, labels, captions, prices and timings
-                          (with `tabular-nums`), dense control text
-     type-body    14/20   default text, node names, buttons, inputs
-     type-title   18/24   screen, panel, dialog and empty-state titles, the
-                          live beat; tracking -0.01em
-
-   The wordmark (`.app-wordmark`, Faculty 28) is the one brand exception.
-   Sanctioned modifiers: `font-medium` (500, the single emphasis weight: node
-   names, buttons, the active nav item), `tabular-nums`, `font-mono` for
-   literal command text, and `capitalize`. The App's own classes below join
-   the role they belong to rather than restating a size.
-   `scripts/check-app-typography.mjs` (and the `howells/no-raw-type-utilities`
-   rule on the App's components) hold this case; a size, weight or tracking
-   written anywhere else fails the lint. */
-.app {
-  font-weight: 400;
-}
-
-.app :is(h1, h2, h3, h4) {
-  font-weight: inherit;
-}
-
-.app kbd {
-  font-family: inherit;
-}
-
-.app .type-small,
-.app-label,
-.app-segmented label,
-.app-value,
-.board-figure,
-.board-chip,
-.library-label {
-  font-size: 0.8125rem;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 1.25rem;
-}
-
-.app .type-body,
-.app-nav a,
-.app-button,
-.app-input,
-.app-select,
-.app-textarea,
-.board-segmented > label,
-.board-segmented > button,
-.board-button,
-.board-field,
-.library-plate-button {
-  font-size: 0.875rem;
-  font-weight: 400;
-  letter-spacing: normal;
-  line-height: 1.25rem;
-}
-
-/* The preset's `font-medium` is layered and the roles are not, so a role
-   would otherwise win and the emphasis weight would never show. */
-.app .font-medium {
-  font-weight: 500;
-}
-
-/* The one documented exception: a form field is 16px below 48rem, because
-   iOS zooms the page on focus into anything smaller. One rule, so the number
-   is written once. */
-@media (width < 48rem) {
-  .app :is(.app-input, .app-select, .app-textarea, .app-prompt, .board-field) {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-}
-
-/* Inter, not the serif that `.type-title` is on the public pages. */
-.app-head h1,
-.app-screen-title,
-.library-title,
-.board-beat-current,
-.app .type-title {
-  font-family: var(--font-sans);
-  font-size: 1.125rem;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 1.5rem;
-}
+/* The type case is globals.css's, the same on every surface. The App's own
+   classes join a role there (`.app-button` is `type-body`, `.app-label` is
+   `type-small`, `.app-head h1` is `type-title`) rather than restating a size,
+   and the one emphasis is `font-medium` (500). */
 
 /* ── Controls ──────────────────────────────────────────────────────── */
 
@@ -263,10 +175,10 @@
   color: var(--ink);
   cursor: pointer;
   display: inline-flex;
-  gap: 0.5rem;
+  gap: var(--spacing-2);
   justify-content: center;
-  min-block-size: var(--control);
-  padding-inline: 1rem;
+  min-block-size: var(--spacing-control);
+  padding-inline: var(--spacing-4);
   text-decoration: none;
   transition:
     background-color 150ms,
@@ -320,28 +232,28 @@
   border-radius: var(--radius-control);
   color: var(--ink);
   inline-size: 100%;
-  min-block-size: var(--control);
-  padding: 0.5rem 0.875rem;
+  min-block-size: var(--spacing-control);
+  padding: var(--spacing-2) var(--spacing-3);
 }
 
 .app-textarea {
-  min-block-size: 6rem;
+  min-block-size: var(--spacing-24);
   resize: vertical;
 }
 
 .app-select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231c1b1a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-position: right 0.875rem center;
+  background-position: right var(--spacing-3) center;
   background-repeat: no-repeat;
-  padding-inline-end: 2.25rem;
+  padding-inline-end: var(--spacing-8);
 }
 
 .app-label {
   align-items: baseline;
   display: flex;
   justify-content: space-between;
-  padding-block-end: 0.5rem;
+  padding-block-end: var(--spacing-2);
 }
 
 .app-label > span + span {
@@ -354,29 +266,29 @@
    and screen readers behave as a radio group. */
 .app-segmented {
   background: var(--surface);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-panel);
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  padding: 2px;
+  padding: var(--spacing-1);
 }
 
 .app-segmented label {
   align-items: center;
-  border-radius: 3px;
+  border-radius: var(--radius-control);
   color: var(--muted);
   cursor: pointer;
   display: flex;
   justify-content: center;
-  min-block-size: calc(var(--control) - 4px);
-  padding-inline: 0.5rem;
+  min-block-size: calc(var(--spacing-control) - var(--spacing-2));
+  padding-inline: var(--spacing-2);
   position: relative;
   text-align: center;
 }
 
 .app-segmented input {
   appearance: none;
-  inset: 0;
+  inset: calc(var(--spacing-1) * -1) 0;
   margin: 0;
   position: absolute;
 }
@@ -406,7 +318,7 @@
 .app-meter {
   background: var(--surface);
   block-size: 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   display: flex;
   overflow: hidden;
 }
@@ -456,8 +368,8 @@
 
 .app-tab {
   color: var(--muted);
-  min-block-size: var(--control);
-  padding-inline: 0.5rem;
+  min-block-size: var(--spacing-control);
+  padding-inline: var(--spacing-2);
   position: relative;
 }
 
@@ -501,7 +413,7 @@
 
 @media (width >= 48rem) {
   .app-sheet {
-    border-radius: 6px;
+    border-radius: var(--radius-panel);
     margin: auto;
     max-inline-size: 40rem;
   }
@@ -543,7 +455,7 @@
 
 .board-card {
   background: #fff;
-  border-radius: 4px;
+  border-radius: var(--radius-panel);
   box-shadow: var(--board-card-shadow);
   color: var(--ink);
   transition: box-shadow 150ms;
@@ -579,19 +491,19 @@
    Flow positions the handle; this only draws it, with a 24px hit area. */
 .board .react-flow__handle.board-port {
   background: #fff;
-  block-size: 10px;
+  block-size: 8px;
   border: 0;
-  border-radius: 5px;
+  border-radius: 50%;
   box-shadow: inset 0 0 0 1.5px var(--board-wire);
-  inline-size: 10px;
+  inline-size: 8px;
   min-block-size: 0;
   min-inline-size: 0;
-  top: 17px;
+  top: calc(var(--spacing-control) / 2 - var(--spacing-1));
 }
 
 .board .react-flow__handle.board-port::after {
   content: "";
-  inset: -7px;
+  inset: calc(var(--spacing-2) * -1);
   position: absolute;
 }
 
@@ -606,12 +518,12 @@
 }
 
 .board .react-flow__handle-left.board-port {
-  left: -5px;
+  left: calc(var(--spacing-1) * -1);
   transform: none;
 }
 
 .board .react-flow__handle-right.board-port {
-  right: -5px;
+  right: calc(var(--spacing-1) * -1);
   transform: none;
 }
 
@@ -628,15 +540,15 @@
 .board-chip {
   align-items: center;
   background: rgb(250 249 247 / 92%);
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   display: inline-flex;
-  gap: 4px;
+  gap: var(--spacing-1);
   block-size: 24px;
-  padding-inline: 6px 8px;
+  padding-inline: var(--spacing-2);
 }
 
 .board-thumb {
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   position: relative;
 }
@@ -649,14 +561,14 @@
 
 .board-float {
   background: #fff;
-  border-radius: 4px;
+  border-radius: var(--radius-panel);
   box-shadow: var(--board-float-shadow);
 }
 
 .board-dialog {
   background: #fff;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--radius-panel);
   box-shadow: var(--board-dialog-shadow);
   color: var(--ink);
   padding: 0;
@@ -669,31 +581,31 @@
 /* Two or three choices on the mount, the chosen one lifted onto white. */
 .board-segmented {
   background: var(--surface);
-  border-radius: 4px;
+  border-radius: var(--radius-panel);
   display: grid;
-  gap: 2px;
+  gap: var(--spacing-1);
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  min-block-size: 44px;
-  padding: 3px;
+  min-block-size: var(--spacing-control);
+  padding: var(--spacing-1);
 }
 
 .board-segmented > label,
 .board-segmented > button {
   align-items: center;
-  border-radius: 2px;
+  border-radius: var(--radius-control);
   color: var(--muted);
   cursor: pointer;
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-2);
   justify-content: center;
-  padding-inline: 8px;
+  padding-inline: var(--spacing-2);
   position: relative;
 }
 
 .board-segmented input {
   appearance: none;
-  inset: 0;
+  inset: calc(var(--spacing-1) * -1) 0;
   margin: 0;
   position: absolute;
 }
@@ -713,16 +625,16 @@
 
 .board-button {
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   box-shadow: inset 0 0 0 1px var(--rule);
   color: var(--ink);
   cursor: pointer;
   display: inline-flex;
   font-weight: 500;
-  gap: 8px;
+  gap: var(--spacing-2);
   justify-content: center;
-  min-block-size: 44px;
-  padding-inline: 14px;
+  min-block-size: var(--spacing-control);
+  padding-inline: var(--spacing-4);
   transition:
     background-color 150ms,
     box-shadow 150ms;
@@ -760,13 +672,13 @@
 
 .board-quiet {
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   color: var(--ink);
   cursor: pointer;
   display: inline-flex;
   justify-content: center;
-  min-block-size: 44px;
-  min-inline-size: 44px;
+  min-block-size: var(--spacing-control);
+  min-inline-size: var(--spacing-control);
 }
 
 .board-quiet:disabled {
@@ -776,12 +688,12 @@
 
 .board-field {
   background: #fff;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   box-shadow: inset 0 0 0 1px var(--rule);
   color: var(--ink);
   inline-size: 100%;
-  min-block-size: 44px;
-  padding: 12px;
+  min-block-size: var(--spacing-control);
+  padding: var(--spacing-3);
 }
 
 .board-field:focus {
@@ -792,10 +704,10 @@
 select.board-field {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%231c1b1a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
-  background-position: right 10px center;
+  background-position: right var(--spacing-3) center;
   background-repeat: no-repeat;
   padding-block: 0;
-  padding-inline: 12px 36px;
+  padding-inline: var(--spacing-3) var(--spacing-8);
 }
 
 textarea.board-field {
@@ -816,7 +728,7 @@ textarea.board-field {
 
 .board-box {
   align-items: center;
-  border-radius: 3px;
+  border-radius: var(--radius-control);
   block-size: 16px;
   box-shadow: inset 0 0 0 1.5px rgb(28 27 26 / 40%);
   color: var(--ground);
@@ -1162,7 +1074,7 @@ textarea.board-field {
 
 .board-banner {
   inline-size: 516px;
-  max-inline-size: calc(100% - 2rem);
+  max-inline-size: calc(100% - var(--spacing-8));
 }
 
 .board-note {
@@ -1193,7 +1105,7 @@ textarea.board-field {
 
 /* The Library: a contact sheet on paper, one image opened on the plate. */
 .library-tile {
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   overflow: hidden;
   position: relative;
 }
@@ -1209,8 +1121,8 @@ textarea.board-field {
 }
 
 .library-step {
-  block-size: 44px;
-  border-radius: 4px;
+  block-size: var(--spacing-control);
+  border-radius: var(--radius-control);
   inline-size: 64px;
   overflow: hidden;
   position: relative;
@@ -1224,14 +1136,14 @@ textarea.board-field {
 
 .library-plate-button {
   align-items: center;
-  border-radius: 4px;
+  border-radius: var(--radius-control);
   box-shadow: inset 0 0 0 1px rgb(243 243 243 / 30%);
   color: var(--color-plate-ink);
   display: inline-flex;
   font-weight: 500;
   justify-content: center;
-  min-block-size: 44px;
-  min-inline-size: 44px;
+  min-block-size: var(--spacing-control);
+  min-inline-size: var(--spacing-control);
 }
 
 .library-plate-button.is-solid {
@@ -1272,17 +1184,6 @@ textarea.board-field {
   }
 }
 
-/* Sign in: on a phone the field and button are a thumb's height. */
-.sign-in-field {
-  min-block-size: 52px;
-}
-
-@media (width >= 48rem) {
-  .sign-in-field {
-    min-block-size: 44px;
-  }
-}
-
 /* The shared notices carry their own page padding; here they sit in the
    form's column. */
 .sign-in-notice > div {
@@ -1294,7 +1195,7 @@ textarea.board-field {
 }
 
 .sign-in-form {
-  padding-block-end: max(1rem, env(safe-area-inset-bottom));
+  padding-block-end: max(var(--spacing-4), env(safe-area-inset-bottom));
 }
 
 @media (width >= 48rem) {
@@ -1304,7 +1205,7 @@ textarea.board-field {
   }
 
   .sign-in-form {
-    padding-block-end: 2.5rem;
+    padding-block-end: var(--spacing-8);
   }
 }
 

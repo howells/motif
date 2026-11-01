@@ -81,21 +81,21 @@ export function Matrix() {
             <thead>
               <tr style={{ borderBottom: "1px solid var(--rule)" }}>
                 <th
-                  className="type-small pb-3.5 text-start min-[62rem]:w-105"
+                  className="type-small pb-4 text-start min-[62rem]:w-105"
                   scope="col"
                   style={{ color: "var(--faint)" }}
                 >
                   Command
                 </th>
                 <th
-                  className="type-small pb-3.5 text-start min-[62rem]:w-55"
+                  className="type-small pb-4 text-start min-[62rem]:w-55"
                   scope="col"
                   style={{ color: "var(--faint)" }}
                 >
                   fal
                 </th>
                 <th
-                  className="type-small pb-3.5 text-start min-[62rem]:w-45"
+                  className="type-small pb-4 text-start min-[62rem]:w-45"
                   scope="col"
                   style={{ color: "var(--faint)" }}
                 >
@@ -111,7 +111,7 @@ export function Matrix() {
                   model and the lanes stop lining up. On a phone the verb
                   sits above its summary. */}
                   <th
-                    className="py-2.5 pe-4 text-start align-baseline min-[62rem]:pe-6"
+                    className="py-3 pe-4 text-start align-baseline min-[62rem]:pe-6"
                     scope="row"
                   >
                     <code
@@ -124,10 +124,10 @@ export function Matrix() {
                       {row.summary}
                     </span>
                   </th>
-                  <td className="py-2.5 pe-4 align-baseline">
+                  <td className="py-3 pe-4 align-baseline">
                     <FalCell fal={row.fal} />
                   </td>
-                  <td className="py-2.5 align-baseline">
+                  <td className="py-3 align-baseline">
                     <DirectCell direct={row.direct} />
                   </td>
                 </tr>
@@ -137,7 +137,7 @@ export function Matrix() {
         </div>
 
         <p
-          className="type-small mt-10 max-w-[52rem] pt-8"
+          className="type-small mt-12 max-w-[52rem] pt-8"
           style={{ borderTop: "1px solid var(--rule)", color: "var(--muted)" }}
         >
           {MATRIX.footnote}

@@ -196,7 +196,7 @@ describe(BoardEditor, () => {
     expect(foot).toBeGreaterThan(well);
     expect(card.slice(foot, wellEnd).match(/board-thumb/gu)?.length).toBe(2);
     // Each is a 44 px target.
-    expect(card.slice(foot, wellEnd).match(/size-11/gu)?.length).toBe(2);
+    expect(card.slice(foot, wellEnd).match(/size-control/gu)?.length).toBe(2);
     expect(card.slice(foot, wellEnd)).toContain(">Pick<");
     // And nothing beneath the well but the rows and the footer.
     expect(card).not.toMatch(/<ul class="flex gap-2 px-3\.5 pt-2\.5">/u);

@@ -77,7 +77,7 @@ function StepCommands({
                 </code>
                 <div
                   aria-hidden="true"
-                  className="mt-2.5 h-px max-w-[380px]"
+                  className="mt-3 h-px max-w-[380px]"
                   style={{ background: "var(--rule)" }}
                 >
                   {selected && running ? (
@@ -148,10 +148,10 @@ export function Hero() {
   }
 
   return (
-    <section className="site-gutter site-bleed flex flex-col pt-11 pb-14 md:flex-row md:items-start md:gap-12 md:pb-16">
+    <section className="site-gutter site-bleed flex flex-col pt-12 pb-16 md:flex-row md:items-start md:gap-12 md:pb-16">
       <div className="flex flex-col pt-1 md:w-[400px] md:shrink-0">
         <h1 className="type-display md:sr-only">{SITE.name}</h1>
-        <p className="type-body max-w-[380px] pt-7">
+        <p className="type-body max-w-[380px] pt-6">
           {SITE.standfirst}{" "}
           <a
             className="underline decoration-(--faint) decoration-1 underline-offset-3 hover:decoration-current"
@@ -172,7 +172,7 @@ export function Hero() {
 
         <div
           aria-label="What Motif did to this shelf"
-          className="flex flex-wrap gap-x-5 gap-y-2 pt-9 md:flex-col md:gap-x-0 md:gap-y-3.5 md:pt-11"
+          className="flex flex-wrap gap-x-4 gap-y-2 pt-8 md:flex-col md:gap-x-0 md:gap-y-4 md:pt-12"
           role="tablist"
         >
           {HERO_STEPS.map((item, position) => (
@@ -197,7 +197,7 @@ export function Hero() {
       </div>
 
       <div
-        className="flex flex-col gap-3 pt-6 md:min-w-0 md:flex-1 md:gap-3.5 md:pt-35"
+        className="flex flex-col gap-3 pt-6 md:min-w-0 md:flex-1 md:gap-4 md:pt-32"
         id="hero-plate"
       >
         <div className="relative">
@@ -227,7 +227,7 @@ export function Hero() {
             </div>
           )}
           {step.answer === undefined ? null : (
-            <p className="site-answer type-title">{step.answer}</p>
+            <p className="site-answer type-heading">{step.answer}</p>
           )}
         </div>
 

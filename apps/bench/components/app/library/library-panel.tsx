@@ -84,9 +84,9 @@ function MadeFrom({ item }: { readonly item: LibraryItemData }) {
 
 function Facts({ item }: { readonly item: LibraryItemData }) {
   return (
-    <dl className="flex flex-col px-6 pt-5">
+    <dl className="flex flex-col px-6 pt-4">
       {factsOf(item).map((fact) => (
-        <div className="flex min-h-8 items-baseline py-1.5" key={fact.label}>
+        <div className="flex min-h-8 items-baseline py-2" key={fact.label}>
           <dt className="text-plate-muted library-label w-22 shrink-0">
             {fact.label}
           </dt>

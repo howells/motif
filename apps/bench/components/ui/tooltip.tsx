@@ -36,7 +36,7 @@ export const TooltipContent = ({
   <TooltipPrimitive.Portal>
     <TooltipPrimitive.Content
       className={cn(
-        "bg-ink text-background z-50 max-w-[280px] origin-(--radix-tooltip-content-transform-origin) rounded-md px-2.5 py-1.5 text-[13px] leading-[1.45] text-balance",
+        "bg-ink text-background rounded-control type-small z-50 max-w-[280px] origin-(--radix-tooltip-content-transform-origin) px-3 py-2 text-balance",
         "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
         className
       )}

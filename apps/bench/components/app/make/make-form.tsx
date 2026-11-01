@@ -145,14 +145,14 @@ function PhotoRow({
             onClick={onPick}
             type="button"
           >
-            <span className="relative size-8 overflow-hidden rounded">
+            <span className="rounded-panel relative size-8 overflow-hidden">
               <MediaImage alt="" sizes="32px" src={photo.url} />
             </span>
             Your photo
           </button>
           <button
             aria-label="Remove the photo"
-            className="flex size-11 items-center justify-center"
+            className="size-control flex items-center justify-center"
             onClick={onClear}
             type="button"
           >
@@ -195,11 +195,11 @@ function AspectRow({
 
 function MakeHeader({ memberName }: { readonly memberName: string }) {
   return (
-    <header className="flex h-14 shrink-0 items-center justify-between pr-2 pl-5">
+    <header className="flex h-14 shrink-0 items-center justify-between pr-2 pl-4">
       <h1 className="app-screen-title">Make</h1>
       <Link
         aria-label="Settings"
-        className="flex size-11 items-center justify-center"
+        className="size-control flex items-center justify-center"
         href="/settings"
       >
         <span className="bg-surface type-small flex size-7 items-center justify-center rounded-full">
@@ -227,7 +227,7 @@ function MakeFooter({
 }) {
   const blocked = isBlocked(price);
   return (
-    <div className="mt-auto flex flex-col gap-3 px-5 pt-6 pb-4">
+    <div className="mt-auto flex flex-col gap-3 px-4 pt-6 pb-4">
       <p className="flex items-baseline justify-between gap-3">
         <span className={`type-small ${blocked ? "text-bad" : "text-muted"}`}>
           {line}
@@ -246,7 +246,7 @@ function MakeFooter({
         </p>
       )}
       <button
-        className="bg-ink text-background type-body flex h-13 items-center justify-center rounded font-medium disabled:opacity-40"
+        className="bg-ink text-background type-body rounded-panel flex h-13 items-center justify-center font-medium disabled:opacity-40"
         disabled={price === undefined || blocked || pending}
         type="submit"
       >
@@ -345,10 +345,10 @@ export function MakeForm({
           }
         }}
       >
-        <div className="flex flex-col px-5">
+        <div className="flex flex-col px-4">
           <textarea
             aria-label="Prompt"
-            className="placeholder:text-faint app-prompt type-body min-h-31 w-full resize-none rounded px-3.5 py-3"
+            className="placeholder:text-faint app-prompt type-body rounded-panel min-h-31 w-full resize-none px-4 py-3"
             maxLength={4000}
             onChange={(event) => {
               setDraft({ ...draft, prompt: event.target.value });

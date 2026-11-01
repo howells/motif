@@ -1,31 +1,42 @@
 /**
- * Holds the App's type case in `app/app.css`. The case is three roles, all at
- * weight 400 (`type-small` 13/20, `type-body` 14/20, `type-title` 18/24), with
- * the wordmark's Faculty 28 as the one brand exception and `font-medium` (500)
- * the single emphasis weight. The App's components are held by the
- * `howells/no-raw-type-utilities` rule in the root `oxlint.config.ts`; this
- * script holds the stylesheet, which that rule cannot read.
+ * Holds the product's type case, defined once in `app/globals.css`, in every
+ * stylesheet: `app/globals.css`, `app/site.css` and `app/app.css`. The case is
+ * five roles (`type-display`, `type-heading`, `type-title`, `type-body`,
+ * `type-small`), all at weight 400, with `font-medium` (500) the single
+ * emphasis weight. The components, on the site, in the App and in the Bench,
+ * are held by the `howells/no-raw-type-utilities` rule in the root
+ * `oxlint.config.ts`; this script holds the stylesheets, which that rule
+ * cannot read.
  *
  * Shape (size, leading, tracking, family, weight other than 400 or 500) may be
- * written only in a rule made wholly of role selectors, in the wordmark, or in
- * the one form-field exception below. Anywhere else it is a finding, with the
- * role to join instead.
+ * written only in `app/globals.css`, in a rule made wholly of role selectors,
+ * in the base rules for headings, tables and `kbd`, or in the one form-field
+ * exception below. Anywhere else it is a finding, with the role to join
+ * instead.
  */
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-const SIZES = new Set(["0.8125rem", "0.875rem", "1.125rem"]);
+const SIZES = new Set([
+  "0.8125rem",
+  "0.875rem",
+  "1.125rem",
+  "1.75rem",
+  "clamp(3rem, 6vw, 4.5rem)",
+]);
 
 /** Selectors that are the roles themselves, or join one. */
 const ROLE_SELECTORS = new Set([
-  ".app .type-small",
-  ".app-label",
-  ".app-segmented label",
-  ".app-value",
-  ".board-figure",
-  ".board-chip",
-  ".library-label",
-  ".app .type-body",
+  ".type-display",
+  ".type-heading",
+  ".app-wordmark",
+  ".type-title",
+  ".app-head h1",
+  ".app-screen-title",
+  ".library-title",
+  ".board-beat-current",
+  ".type-body",
+  "body",
   ".app-nav a",
   ".app-button",
   ".app-input",
@@ -36,23 +47,21 @@ const ROLE_SELECTORS = new Set([
   ".board-button",
   ".board-field",
   ".library-plate-button",
-  ".app-head h1",
-  ".app-screen-title",
-  ".library-title",
-  ".board-beat-current",
-  ".app .type-title",
+  ".type-small",
+  ".app-label",
+  ".app-segmented label",
+  ".app-value",
+  ".board-figure",
+  ".board-chip",
+  ".library-label",
 ]);
 
-/** The wordmark is the brand exception. */
-const BRAND_SELECTORS = new Set([".app-wordmark"]);
-
-/** A form field is 16px below 48rem so iOS does not zoom on focus: the one
- * documented exception, written once. */
-const FORM_FIELD_SELECTOR =
-  ".app :is(.app-input, .app-select, .app-textarea, .app-prompt, .board-field)";
+/** A form field is 16px on a phone or any touch screen so iOS does not zoom
+ * on focus: the one documented exception, written once. */
+const FORM_FIELD_SELECTOR = ":is(input, select, textarea, .app-prompt, .board-field)";
 
 /** The rules that set the case on the document itself. */
-const BASE_SELECTORS = new Set([".app", ".app :is(h1, h2, h3, h4)", ".app kbd"]);
+const BASE_SELECTORS = new Set(["h1, h2, h3, h4", "th", "kbd"]);
 
 const SHAPE = new Set([
   "font-size",
@@ -65,9 +74,9 @@ const SHAPE = new Set([
 ]);
 
 const ROLE_FOR = {
-  "font-family": "type-small, type-body or type-title (Inter is the role's)",
-  "font-size": "type-small (13), type-body (14) or type-title (18)",
-  "letter-spacing": "type-title (-0.01em); the others have none",
+  "font-family": "type-small, type-body, type-title (Inter), or type-heading or type-display (Faculty)",
+  "font-size": "type-small (13), type-body (14), type-title (18), type-heading (28) or type-display",
+  "letter-spacing": "type-title or type-heading (-0.01em), type-display (-0.02em); the others have none",
   "line-height": "the role already sets its leading",
   "text-transform": "`capitalize` in markup; no role uppercases",
   "font-weight": "400 in the role, or 500 as the single emphasis weight",
@@ -143,37 +152,33 @@ const declarationsOf = (rule, css) => {
   return found;
 };
 
-export function violationsOf(css) {
+/** Every stylesheet the case holds; only `globals.css` may define a role. */
+export const STYLESHEETS = ["globals.css", "site.css", "app.css"];
+
+export function violationsOf(css, file = "app.css") {
   const out = [];
+  const definesRoles = file === "globals.css";
   for (const rule of rulesOf(css)) {
     const all = (set) => rule.selectors.every((selector) => set.has(selector));
     const owns =
-      all(ROLE_SELECTORS) ||
-      all(BRAND_SELECTORS) ||
-      all(BASE_SELECTORS) ||
-      (rule.selectors.length === 1 && rule.selectors[0] === FORM_FIELD_SELECTOR);
-    const brand = all(BRAND_SELECTORS);
+      definesRoles &&
+      (all(ROLE_SELECTORS) ||
+        all(BASE_SELECTORS) ||
+        (rule.selectors.length === 1 && rule.selectors[0] === FORM_FIELD_SELECTOR));
     for (const { line, property, value } of declarationsOf(rule, css)) {
       if (!SHAPE.has(property)) {
         continue;
       }
-      const light = value === "inherit" || value === "normal";
       if (property === "font-weight" && ["400", "500", "inherit"].includes(value)) {
         continue;
       }
-      if (property === "font" && value === "inherit") {
+      if (["font", "font-family", "line-height", "font-size"].includes(property) && value === "inherit") {
         continue;
       }
-      if (property === "font-family" && value === "inherit") {
+      if (owns && property === "letter-spacing" && ["normal", "-0.01em", "-0.02em"].includes(value)) {
         continue;
       }
-      if (owns && brand) {
-        continue;
-      }
-      if (owns && property === "letter-spacing" && (light || value === "-0.01em")) {
-        continue;
-      }
-      if (owns && property === "font-family" && value === "var(--font-sans)") {
+      if (owns && property === "font-family" && ["var(--font-sans)", "var(--font-display)"].includes(value)) {
         continue;
       }
       if (
@@ -183,7 +188,11 @@ export function violationsOf(css) {
       ) {
         continue;
       }
-      if (owns && property === "line-height" && ["1.25rem", "1.5rem"].includes(value)) {
+      if (
+        owns &&
+        property === "line-height" &&
+        ["1.25rem", "1.5rem", "2rem", "1.1"].includes(value)
+      ) {
         continue;
       }
       out.push({
@@ -195,16 +204,19 @@ export function violationsOf(css) {
   return out;
 }
 
-const target = fileURLToPath(new URL("../app/app.css", import.meta.url));
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const found = violationsOf(readFileSync(target, "utf-8"));
-  for (const item of found) {
-    console.error(`apps/bench/app/app.css:${item.line}  ${item.message}`);
+  let total = 0;
+  for (const file of STYLESHEETS) {
+    const path = fileURLToPath(new URL(`../app/${file}`, import.meta.url));
+    const found = violationsOf(readFileSync(path, "utf-8"), file);
+    for (const item of found) {
+      console.error(`apps/bench/app/${file}:${item.line}  ${item.message}`);
+    }
+    total += found.length;
   }
-  if (found.length > 0) {
+  if (total > 0) {
     console.error(
-      `\nApp typography: ${found.length} finding(s). The case is type-small, type-body and type-title; see the comment above them in app.css.`
+      `\nTypography: ${total} finding(s). The case is type-display, type-heading, type-title, type-body and type-small, defined once in app/globals.css.`
     );
     process.exit(1);
   }

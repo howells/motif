@@ -101,7 +101,7 @@ function LivePlate({
   return (
     <div className="board-live absolute inset-0">
       <LiveGlow tone="plate" />
-      <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
+      <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
         <LiveBeats
           beats={beats}
           now={now}
@@ -155,19 +155,19 @@ function NextSteps({ output }: { readonly output: ResultOutput }) {
   return (
     <div className="grid grid-cols-3 gap-2">
       <Link
-        className="bg-surface type-body flex h-11 items-center justify-center rounded"
+        className="bg-surface type-body rounded-panel h-control flex items-center justify-center"
         href={`/commands/erase?source=${output.assetId}`}
       >
         Erase
       </Link>
       <Link
-        className="bg-surface type-body flex h-11 items-center justify-center rounded"
+        className="bg-surface type-body rounded-panel h-control flex items-center justify-center"
         href={`/commands/upscale?source=${output.assetId}`}
       >
         Upscale
       </Link>
       <a
-        className="bg-surface type-body flex h-11 items-center justify-center rounded"
+        className="bg-surface type-body rounded-panel h-control flex items-center justify-center"
         download
         href={output.url}
       >
@@ -217,7 +217,7 @@ export function MakeResult({
       <header className="flex h-14 shrink-0 items-center gap-1 pr-2 pl-1">
         <Link
           aria-label="Back to Make"
-          className="flex size-11 items-center justify-center"
+          className="size-control flex items-center justify-center"
           href="/make"
         >
           <ChevronLeftIcon />
@@ -244,7 +244,7 @@ export function MakeResult({
           />
         )}
       </div>
-      <div className="flex flex-col px-5 pt-4">
+      <div className="flex flex-col px-4 pt-4">
         <p className="flex items-baseline justify-between gap-3">
           <span className="type-body font-medium">{inboxLine(reply.data)}</span>
           <span className="board-figure">
@@ -257,16 +257,16 @@ export function MakeResult({
         </p>
         <Facts prompt={again.prompt} result={result} words={words} />
       </div>
-      <div className="mt-auto flex flex-col gap-2 px-5 pt-6 pb-4">
+      <div className="mt-auto flex flex-col gap-2 px-4 pt-6 pb-4">
         {output === undefined ? null : <NextSteps output={output} />}
         <Link
-          className="bg-ink text-background type-body flex h-13 items-center justify-center rounded font-medium"
+          className="bg-ink text-background type-body rounded-panel flex h-13 items-center justify-center font-medium"
           href={againHref(again)}
         >
           Make again
         </Link>
         <Link
-          className="type-small text-muted hidden min-h-11 items-center justify-center md:flex"
+          className="type-small text-muted min-h-control hidden items-center justify-center md:flex"
           href={`/boards/${boardId}`}
         >
           Open the Inbox Board

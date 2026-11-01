@@ -25,9 +25,7 @@ type TabId = (typeof TABS)[number]["id"];
  * shell never blanks a region it has already drawn
  * (`docs/design/specs/design-bench-shell.md`). */
 const PaneNote = ({ children }: { readonly children: React.ReactNode }) => (
-  <p className="text-muted max-w-[56ch] px-4 py-4 text-[13px] leading-[1.6]">
-    {children}
-  </p>
+  <p className="text-muted type-small max-w-[56ch] px-4 py-4">{children}</p>
 );
 
 /** What the pane says before there is anything to compare: the prompt that
@@ -35,13 +33,13 @@ const PaneNote = ({ children }: { readonly children: React.ReactNode }) => (
  * obvious. */
 const FirstRunHint = ({ draft }: { readonly draft: RunDraft }) => (
   <div className="flex flex-col gap-3 px-4 py-4">
-    <p className="text-muted max-w-[56ch] text-[13px] leading-[1.6]">
+    <p className="text-muted type-small max-w-[56ch]">
       Press <span className="text-ink">Run</span> (or{" "}
       <span className="text-ink">⌘↵</span>) to send this prompt to the models
       below. The estimate in the summary line above comes from a real dry run —
       parameters aligned and priced with nothing sent to a provider.
     </p>
-    <p className="text-muted flex flex-wrap gap-x-3 gap-y-1 text-[12px]">
+    <p className="text-muted type-small flex flex-wrap gap-x-3 gap-y-1">
       {[...draft.models].toSorted().map((alias) => (
         <span key={alias}>{alias}</span>
       ))}
@@ -65,12 +63,12 @@ const TabBar = ({
         weaker than the tab bar's own top rule, and not a control the house
         style has anywhere else. This is the shared pattern, so the bench reads
         as a sibling of the site rather than as a lookalike. */}
-    <div className="border-border-soft bg-surface-soft flex gap-0.5 rounded-full border p-0.5">
+    <div className="border-border-soft bg-surface-soft flex gap-1 rounded-full border p-1">
       {TABS.map((entry) => (
         <button
           aria-current={entry.id === tab ? "true" : undefined}
           className={cn(
-            "cursor-pointer rounded-full px-2.5 py-1 text-[13px] leading-none transition-colors duration-150",
+            "type-small cursor-pointer rounded-full px-3 py-1 transition-colors duration-150",
             entry.id === tab
               ? "bg-ink text-background"
               : "text-muted hover:text-ink"
@@ -86,7 +84,7 @@ const TabBar = ({
       ))}
     </div>
     {detail === undefined ? null : (
-      <span className="text-muted ml-auto hidden truncate pl-4 text-xs sm:block">
+      <span className="text-muted type-small ml-auto hidden truncate pl-4 sm:block">
         {detail.samples.length} sample
         {detail.samples.length === 1 ? "" : "s"} · {detail.run.aspect} ·{" "}
         {detail.run.resolution}

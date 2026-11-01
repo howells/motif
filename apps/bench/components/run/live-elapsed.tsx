@@ -135,7 +135,7 @@ export const LiveElapsed = ({ elapsedMs }: LiveElapsedProps) => {
       // latency is the value worth hearing, and it arrives as ordinary
       // content.
       aria-label="Generating"
-      className="bench-numeric text-plate-muted"
+      className="text-plate-muted tabular-nums"
       role="timer"
     >
       {/* Under `prefers-reduced-motion` a digit flickering ten times a second

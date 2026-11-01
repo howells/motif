@@ -38,7 +38,7 @@ const SummaryLine = ({
 }: Pick<TopBarProps, "draft" | "preview" | "runError">) => {
   if (runError !== null) {
     return (
-      <output className="text-bad block truncate text-xs">{runError}</output>
+      <output className="text-bad type-small block truncate">{runError}</output>
     );
   }
   // Body font throughout. This is one line of running text — a count, a
@@ -48,7 +48,7 @@ const SummaryLine = ({
   // the rail heading and every table header, which is how a screen ends up
   // with one uniform texture and no emphasis left to spend.
   return (
-    <p className="text-muted truncate text-xs md:whitespace-nowrap">
+    <p className="text-muted type-small truncate md:whitespace-nowrap">
       {draft.models.size} model{draft.models.size === 1 ? "" : "s"}
       {draft.samplesPerModel > 1 ? ` × ${draft.samplesPerModel} samples` : ""}
       {/* Framing and size drop out below `xl` and give their width back to the
@@ -114,7 +114,7 @@ export const TopBar = ({
         width and ink, and grows a hairline only on hover and focus. */}
     <Input
       aria-label="Prompt"
-      className="hover:border-b-border-soft focus:border-b-ink max-md:border-border max-md:bg-surface col-span-2 col-start-1 row-start-1 h-9 min-w-0 rounded-none border-0 border-b border-b-transparent bg-transparent px-0 shadow-none max-md:h-8 max-md:rounded-md max-md:border max-md:px-2.5 md:flex-1 md:px-4"
+      className="hover:border-b-border-soft focus:border-b-ink max-md:border-border max-md:bg-surface h-control max-md:rounded-control col-span-2 col-start-1 row-start-1 min-w-0 rounded-none border-0 border-b border-b-transparent bg-transparent px-0 shadow-none max-md:border max-md:px-3 md:flex-1 md:px-4"
       onChange={(event) => {
         onPatch({ prompt: event.target.value });
       }}
@@ -147,12 +147,7 @@ export const TopBar = ({
         truncates the estimate off the end of the summary. Both are the point
         of the bar, so neither yields to the other. */}
     <div className="col-span-2 col-start-1 row-start-2 flex shrink-0 items-center justify-end gap-2 md:pr-4">
-      <Button
-        className="md:hidden"
-        onClick={onOpenRuns}
-        size="sm"
-        type="button"
-      >
+      <Button className="md:hidden" onClick={onOpenRuns} type="button">
         Runs
       </Button>
       <ModelsPopover
@@ -161,13 +156,7 @@ export const TopBar = ({
         onToggleModel={onToggleModel}
         preview={preview}
       />
-      <Button
-        disabled={!canRun}
-        onClick={onRun}
-        size="sm"
-        type="button"
-        variant="accent"
-      >
+      <Button disabled={!canRun} onClick={onRun} type="button" variant="accent">
         {isRunning ? "Running…" : "Run"}
       </Button>
     </div>

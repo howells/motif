@@ -192,7 +192,7 @@ function Spending({
         <ul className="border-border border-t">
           {pot.members.map((line) => (
             <li
-              className="border-border flex min-h-11 items-center justify-between border-b"
+              className="border-border min-h-control flex items-center justify-between border-b"
               key={line.memberId}
             >
               <span className="type-body">
@@ -207,7 +207,7 @@ function Spending({
             </li>
           ))}
           {pot.heldMicros > 0 ? (
-            <li className="border-border text-muted flex min-h-11 items-center justify-between border-b">
+            <li className="border-border text-muted min-h-control flex items-center justify-between border-b">
               <span className="type-small">Held for runs still going</span>
               <span className="app-value">{formatUsd(pot.heldMicros)}</span>
             </li>
@@ -451,7 +451,7 @@ export function SettingsView({ me }: { readonly me: SettingsMember }) {
         standfirst="Spending, people and this device"
         title="Settings"
       />
-      <div className="grid gap-12 px-4 py-8 md:px-10 lg:grid-cols-[minmax(0,40rem)_minmax(0,22rem)] lg:gap-10">
+      <div className="grid gap-12 px-4 py-8 md:px-8 lg:grid-cols-[minmax(0,40rem)_minmax(0,22rem)] lg:gap-12">
         <div className="flex flex-col gap-12">
           <Spending me={me} names={names} />
           {me.owner ? (
@@ -464,7 +464,7 @@ export function SettingsView({ me }: { readonly me: SettingsMember }) {
             )
           ) : null}
         </div>
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col gap-12">
           <section aria-labelledby="install" className="flex flex-col gap-3">
             <h2 className="type-title" id="install">
               Install the App

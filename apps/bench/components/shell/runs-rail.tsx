@@ -42,7 +42,7 @@ const StatusDot = ({ status }: { readonly status: string }) => (
   <span
     aria-hidden="true"
     className={cn(
-      "size-[5px] shrink-0 rounded-full",
+      "size-1 shrink-0 rounded-full",
       STATUS_TONE[status] ?? "bg-muted"
     )}
   />
@@ -71,7 +71,7 @@ const RunEntry = ({
     <button
       aria-current={isSelected ? "true" : undefined}
       className={cn(
-        "border-t-border-soft flex w-full cursor-pointer flex-col gap-0.5 border-t border-l-2 px-3 py-2 text-left transition-colors duration-150",
+        "border-t-border-soft flex w-full cursor-pointer flex-col gap-1 border-t border-l-2 px-3 py-2 text-left transition-colors duration-150",
         isSelected
           ? "border-l-accent bg-surface-soft"
           : "hover:bg-surface-soft border-l-transparent"
@@ -81,17 +81,17 @@ const RunEntry = ({
       }}
       type="button"
     >
-      <span className="flex w-full items-center gap-1.5">
+      <span className="flex w-full items-center gap-2">
         <StatusDot status={run.status} />
-        <span className="text-ink text-[13px]">
+        <span className="text-ink type-small">
           {run.models.length} model{run.models.length === 1 ? "" : "s"}
         </span>
-        {/* The one figure in the rail that keeps mono. Costs right-align into
+        {/* The one figure in the rail set in tabular numerals. Costs right-align into
             a single column nine rows deep and are read against each other —
             "which run was the expensive one" is the question the column
             answers, and tabular figures are what let you answer it by
             scanning. Everything else here is read one row at a time. */}
-        <span className="bench-numeric text-muted ml-auto text-xs">
+        <span className="text-muted type-small ml-auto tabular-nums">
           {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
           {run.costActualMicros === null ? " est" : ""}
         </span>
@@ -99,7 +99,7 @@ const RunEntry = ({
 
       {/* Indented past the disc so the meta line hangs off the count above it
           rather than starting a second column. */}
-      <span className="text-muted flex flex-wrap items-baseline gap-x-1.5 pl-[11px] text-xs">
+      <span className="text-muted type-small flex flex-wrap items-baseline gap-x-2 pl-3">
         <span>
           {progress === null
             ? run.status
@@ -125,7 +125,7 @@ const RunEntry = ({
           own subject appears once the composer above became a forward-looking
           draft rather than a description of what is on screen. */}
       {isSelected ? (
-        <span className="text-muted line-clamp-2 pl-[11px] text-[12px] leading-[1.45]">
+        <span className="text-muted type-small line-clamp-2 pl-3">
           {run.prompt}
         </span>
       ) : null}
@@ -138,17 +138,17 @@ const RunList = ({ onSelect, progress, selectedRunId }: RunsRailProps) => {
   const runs = data?.runs ?? [];
 
   if (isLoading) {
-    return <p className="text-muted px-3 py-2.5 text-xs">Loading runs…</p>;
+    return <p className="text-muted type-small px-3 py-3">Loading runs…</p>;
   }
   if (isError) {
     return (
-      <p className="text-muted px-3 py-2.5 text-xs leading-[1.5]">
+      <p className="text-muted type-small px-3 py-3">
         Could not load runs. The app&apos;s own store may be unavailable.
       </p>
     );
   }
   if (runs.length === 0) {
-    return <p className="text-muted px-3 py-2.5 text-xs">No runs yet.</p>;
+    return <p className="text-muted type-small px-3 py-3">No runs yet.</p>;
   }
 
   return (
@@ -175,10 +175,10 @@ const RailHeading = () => {
   const { data } = useRuns();
   const count = data?.runs.length;
   return (
-    <span className="text-ink flex items-baseline gap-1.5 text-[13px]">
+    <span className="text-ink type-small flex items-baseline gap-2">
       Runs
       {count === undefined ? null : (
-        <span className="text-muted text-xs">{count}</span>
+        <span className="text-muted type-small">{count}</span>
       )}
     </span>
   );

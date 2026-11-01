@@ -75,7 +75,7 @@ function Header({
   const meta = headerMeta(node, run);
   return (
     <header
-      className={`flex h-11 items-center justify-between gap-3 ${trailing === undefined ? "px-3.5" : "pr-2 pl-3.5"}`}
+      className={`h-control flex items-center justify-between gap-3 ${trailing === undefined ? "px-4" : "pr-2 pl-4"}`}
     >
       <h3 className="type-body font-medium">{NODE_LABELS[node.kind]}</h3>
       <span className="flex items-center gap-1">
@@ -101,7 +101,7 @@ function Rows({ node }: { readonly node: NodeViewData }) {
   const labelWidth = LABEL_WIDTH[node.kind] ?? 76;
   return (
     <dl
-      className={`flex flex-col px-3.5 pt-1.5 pb-2 ${node.kind === "prompt" ? "board-rule-top" : ""}`}
+      className={`flex flex-col px-4 pt-2 pb-2 ${node.kind === "prompt" ? "board-rule-top" : ""}`}
     >
       {rows.map((row) => (
         <div className="flex h-7 items-center gap-2" key={row.label}>
@@ -164,7 +164,7 @@ function Making({
   const images = run.expected;
   return (
     <>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-center">
         <span className="type-body font-medium">
           {run.state === "waiting"
             ? "Waiting for the node before"
@@ -280,7 +280,7 @@ function ImageArea({
                       : "Make this the Pick"
                   }
                   aria-pressed={image.assetId === node.pick?.assetId}
-                  className="board-thumb nodrag bg-surface block size-11"
+                  className="board-thumb nodrag bg-surface size-control block"
                   onClick={() => {
                     makePick(node, image.assetId);
                   }}
@@ -319,7 +319,7 @@ function Footer({
   const { openRun, stop } = useBoard();
   const price = node.price;
   return (
-    <footer className="board-rule-top flex h-13 items-center justify-between gap-2 pr-1 pl-3.5">
+    <footer className="board-rule-top flex h-13 items-center justify-between gap-2 pr-1 pl-4">
       {price === null ? (
         <span />
       ) : price.ok ? (
@@ -338,7 +338,7 @@ function Footer({
       )}
       {run.state === "idle" ? (
         <button
-          className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
+          className="board-quiet nodrag hover:bg-surface type-body gap-2 pr-4 pl-3 font-medium"
           onClick={() => {
             openRun(node.id, "node");
           }}
@@ -349,7 +349,7 @@ function Footer({
         </button>
       ) : (
         <button
-          className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
+          className="board-quiet nodrag hover:bg-surface type-body gap-2 pr-4 pl-3 font-medium"
           onClick={() => {
             stop(run.run.id);
           }}
@@ -367,7 +367,7 @@ function PromptBody({ node }: { readonly node: NodeViewOf<"prompt"> }) {
   const { text } = node.settings;
   return (
     <p
-      className={`type-body line-clamp-5 px-3.5 pb-3 ${text.trim() === "" ? "text-faint" : ""}`}
+      className={`type-body line-clamp-5 px-4 pb-3 ${text.trim() === "" ? "text-faint" : ""}`}
     >
       {text.trim() === "" ? "Write what you want to see" : text}
     </p>
@@ -425,9 +425,9 @@ function CompareColumn({
   const output = result?.outputs[0];
   const picked = output !== undefined && output.assetId === node.pick?.assetId;
   return (
-    <div className="flex w-68 flex-col gap-2.5">
+    <div className="flex w-68 flex-col gap-3">
       <div
-        className={`board-plate-well relative size-68 overflow-hidden rounded ${picked ? "is-picked" : ""}`}
+        className={`board-plate-well rounded-panel relative size-68 overflow-hidden ${picked ? "is-picked" : ""}`}
       >
         {output === undefined ? (
           <span className="type-small text-plate-muted absolute inset-0 flex items-center justify-center px-6 text-center">
@@ -451,13 +451,13 @@ function CompareColumn({
           </span>
         </div>
         {output === undefined ? null : picked ? (
-          <span className="bg-plate-ink text-plate type-body flex h-11 shrink-0 items-center gap-1.5 rounded px-3 font-medium">
+          <span className="bg-plate-ink text-plate type-body rounded-panel h-control flex shrink-0 items-center gap-2 px-3 font-medium">
             <CheckIcon size={16} />
             Pick
           </span>
         ) : (
           <button
-            className="nodrag text-plate-ink board-plate-button type-body flex h-11 shrink-0 items-center rounded px-3"
+            className="nodrag text-plate-ink board-plate-button type-body rounded-panel h-control flex shrink-0 items-center px-3"
             onClick={() => {
               makePick(node, output.assetId);
             }}
@@ -476,7 +476,7 @@ function CompareColumns({ node }: { readonly node: NodeViewData }) {
   const latest = latestPerModel(node);
   if (models.length === 0) {
     return (
-      <p className="type-small text-plate-muted px-4 py-10 text-center">
+      <p className="type-small text-plate-muted px-4 py-12 text-center">
         Choose two or more Models in the panel.
       </p>
     );
@@ -546,7 +546,7 @@ function CompareCard({
           <CompareColumns node={node} />
         </div>
       ) : null}
-      <footer className="board-rule-top flex h-13 items-center gap-4 pr-1 pl-3.5">
+      <footer className="board-rule-top flex h-13 items-center gap-4 pr-1 pl-4">
         <span className="board-figure">
           {node.price?.ok === true ? formatUsd(node.price.listMicros) : ""}
         </span>
@@ -559,7 +559,7 @@ function CompareCard({
         </span>
         {run.state === "idle" ? (
           <button
-            className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
+            className="board-quiet nodrag hover:bg-surface type-body gap-2 pr-4 pl-3 font-medium"
             onClick={() => {
               openRun(node.id, "node");
             }}
@@ -570,7 +570,7 @@ function CompareCard({
           </button>
         ) : (
           <button
-            className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
+            className="board-quiet nodrag hover:bg-surface type-body gap-2 pr-4 pl-3 font-medium"
             onClick={() => {
               stop(run.run.id);
             }}

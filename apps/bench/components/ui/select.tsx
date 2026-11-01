@@ -26,7 +26,7 @@ export const SelectTrigger = ({
 }: ComponentProps<typeof SelectPrimitive.Trigger>) => (
   <SelectPrimitive.Trigger
     className={cn(
-      "border-border bg-surface-soft text-ink data-[placeholder]:text-muted flex h-[34px] w-full cursor-pointer items-center justify-between gap-2 rounded-md border px-2.5 whitespace-nowrap shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
+      "border-border bg-surface-soft text-ink data-[placeholder]:text-muted h-control rounded-control flex w-full cursor-pointer items-center justify-between gap-2 border px-3 whitespace-nowrap shadow-xs transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-45",
       className
     )}
     data-slot="select-trigger"
@@ -48,7 +48,7 @@ export const SelectContent = ({
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       className={cn(
-        "border-border bg-surface text-ink relative z-50 max-h-(--radix-select-content-available-height) min-w-[var(--radix-select-trigger-width)] origin-(--radix-select-content-transform-origin) overflow-y-auto rounded-md border p-1 shadow-md",
+        "border-border bg-surface text-ink rounded-control relative z-50 max-h-(--radix-select-content-available-height) min-w-[var(--radix-select-trigger-width)] origin-(--radix-select-content-transform-origin) overflow-y-auto border p-1 shadow-md",
         "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
         className
       )}
@@ -69,7 +69,7 @@ export const SelectItem = ({
 }: ComponentProps<typeof SelectPrimitive.Item>) => (
   <SelectPrimitive.Item
     className={cn(
-      "data-[highlighted]:bg-surface-soft relative flex w-full cursor-pointer items-center gap-2 rounded-sm py-1.5 pr-7 pl-2 outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45",
+      "data-[highlighted]:bg-surface-soft rounded-control relative flex w-full cursor-pointer items-center gap-2 py-2 pr-8 pl-2 outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-45",
       className
     )}
     data-slot="select-item"

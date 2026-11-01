@@ -15,7 +15,7 @@ function Notice({
   readonly title: string;
 }) {
   return (
-    <div className="flex max-w-[34rem] flex-col gap-4 px-4 py-10 md:px-10">
+    <div className="flex max-w-[34rem] flex-col gap-4 px-4 py-12 md:px-8">
       <h2 className="type-title">{title}</h2>
       <p className="type-body text-muted">{body}</p>
       {action}

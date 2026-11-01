@@ -23,7 +23,7 @@ export function ChapterHead({
 }) {
   return (
     <div className="site-band-chapter">
-      <h2 className="type-title site-chapter-name" id={id}>
+      <h2 className="type-heading site-chapter-name" id={id}>
         {title}
       </h2>
       <div className="site-chapter-standfirst">

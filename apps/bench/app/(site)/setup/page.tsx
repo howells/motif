@@ -26,7 +26,7 @@ function SetupPage() {
         standfirst="Install the CLI, add a fal key, and run."
         title="Setup"
       />
-      <ol className="flex max-w-[44rem] flex-col gap-6 px-4 py-8 md:px-10">
+      <ol className="flex max-w-[44rem] flex-col gap-6 px-4 py-8 md:px-8">
         {STEPS.map((step, index) => (
           <li className="flex flex-col gap-2" key={step.label}>
             <span className="type-body">

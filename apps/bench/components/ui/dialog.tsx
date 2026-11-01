@@ -48,7 +48,7 @@ export const DialogContent = ({
     <DialogOverlay />
     <DialogPrimitive.Content
       className={cn(
-        "border-border bg-surface animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[min(1100px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col rounded-lg border shadow-lg",
+        "border-border bg-surface animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 rounded-panel fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[min(1100px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col border shadow-lg",
         className
       )}
       data-slot="dialog-content"
@@ -75,7 +75,7 @@ export const DialogDescription = ({
   ...props
 }: ComponentProps<typeof DialogPrimitive.Description>) => (
   <DialogPrimitive.Description
-    className={cn("text-muted text-[13px]", className)}
+    className={cn("text-muted type-small", className)}
     data-slot="dialog-description"
     {...props}
   />

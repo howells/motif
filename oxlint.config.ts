@@ -97,32 +97,24 @@ export default {
   },
   overrides: [
     {
-      // The type case for the public page at `/` (apps/bench/app/site.css):
-      // four roles — `type-display`, `type-title`, `type-body`, `type-small` —
-      // and every piece of text on that page picks exactly one. This rule is
-      // what holds the case; written down on its own it drifts, because each
-      // file's raw utility looks reasonable in isolation. `font-mono` is the
-      // one sanctioned modifier: mono is the small role in another family
-      // rather than a step of its own, so a command and a caption share a
-      // size and a leading and differ only in the face.
-      //
-      // Scoped to the site, not the bench app, which is a different design
-      // system on its own tokens and is not migrated.
-      files: ["apps/bench/components/site/**"],
-      rules: {
-        "howells/no-raw-type-utilities": ["error", { allow: ["font-mono"] }],
-      },
-    },
-    {
-      // The App's type case (apps/bench/app/app.css): three roles, `type-small`
-      // 13/20, `type-body` 14/20 and `type-title` 18/24, all at weight 400,
-      // with the wordmark's Faculty 28 the one brand exception. Hierarchy comes
-      // from size and colour. The sanctioned modifiers are `font-medium` (the
-      // single emphasis weight: node names, buttons, the active nav item),
-      // `font-mono` (literal command text only) and `capitalize` (cases a data
-      // value); `tabular-nums` is not a typographic utility this rule governs.
-      // `scripts/check-app-typography.mjs` holds the same case in app.css.
-      files: ["apps/bench/components/app/**", "apps/bench/app/(entry)/**"],
+      // The product's one type case (apps/bench/app/globals.css): five roles,
+      // `type-display`, `type-heading`, `type-title`, `type-body` and
+      // `type-small`, identical on the public site, in the App and in the
+      // Bench, all at weight 400. Every piece of text picks exactly one, and
+      // hierarchy comes from size and colour. The sanctioned modifiers are
+      // `font-medium` (the single emphasis weight: names, buttons, the active
+      // nav item), `font-mono` (literal command or code text, at `type-small`
+      // size) and `capitalize` (cases a data value); `tabular-nums` is not a
+      // typographic utility this rule governs. Written down on its own the
+      // case drifts, because each file's raw utility looks reasonable in
+      // isolation, so this rule holds every component and
+      // `scripts/check-app-typography.mjs` holds every stylesheet.
+      // `scripts/check-design-scale.mjs` holds spacing and radius.
+      files: [
+        "apps/bench/components/**",
+        "apps/bench/app/**",
+        "apps/bench/lib/**",
+      ],
       rules: {
         "howells/no-raw-type-utilities": [
           "error",

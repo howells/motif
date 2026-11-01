@@ -74,7 +74,7 @@ function Head({
     <header className="app-head">
       <div className="flex min-w-0 flex-col gap-1">
         <Link
-          className="type-small text-muted flex min-h-11 items-center gap-1 md:hidden"
+          className="type-small text-muted min-h-control flex items-center gap-1 md:hidden"
           href="/commands"
         >
           <ChevronLeft aria-hidden="true" size={16} strokeWidth={1.5} />
@@ -120,7 +120,7 @@ function Placeholder({
 }) {
   if (draft.source !== null && task !== "generate") {
     return (
-      <div className="app-plate flex min-h-[18rem] flex-1 p-4 md:p-10">
+      <div className="app-plate flex min-h-[18rem] flex-1 p-4 md:p-8">
         <div className="relative size-full">
           <MediaImage
             alt="The Source"
@@ -172,7 +172,7 @@ function SessionRuns({
         <button
           aria-current={id === shown}
           aria-label={`Run ${runs.length - position}`}
-          className="app-button is-quiet min-w-11 px-3"
+          className="app-button is-quiet min-w-control px-3"
           key={id}
           onClick={() => {
             setShown(id);
@@ -317,7 +317,7 @@ export function TaskWorkspace({
       <div className="flex flex-1 flex-col md:grid md:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
         <section
           aria-label="Result"
-          className="flex min-h-[22rem] flex-col gap-3 md:order-2 md:h-[calc(100dvh-5.5rem)] md:py-6 md:pr-10 md:pl-10"
+          className="flex min-h-[22rem] flex-col gap-3 md:order-2 md:h-[calc(100dvh-5.5rem)] md:py-6 md:pr-8 md:pl-8"
         >
           {pane}
           <SessionRuns
@@ -331,7 +331,7 @@ export function TaskWorkspace({
           aria-label="Settings for this run"
           className="border-border flex flex-col md:order-1 md:h-[calc(100dvh-5.5rem)] md:border-r"
         >
-          <div className="flex-1 overflow-y-auto px-4 py-6 md:px-7">
+          <div className="flex-1 overflow-y-auto px-4 py-6 md:px-6">
             <TaskFields draft={draft} options={options} set={set} task={task} />
             {maskProblem === null ? null : (
               <p className="type-small text-bad pt-3" role="alert">
@@ -339,7 +339,7 @@ export function TaskWorkspace({
               </p>
             )}
           </div>
-          <div className="bg-background border-border sticky bottom-[var(--bar)] flex flex-col gap-3 border-t px-4 py-4 md:bottom-0 md:px-7">
+          <div className="bg-background border-border sticky bottom-[var(--bar)] flex flex-col gap-3 border-t px-4 py-4 md:bottom-0 md:px-6">
             <Estimate
               built={built}
               error={quote.error}
