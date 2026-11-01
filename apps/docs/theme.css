@@ -1,0 +1,516 @@
+/* Motif's paper look, from the Paper file "Motif" (tokens paper-ground,
+   paper-mount, paper-ink, paper-muted, paper-rule). Light only; the config
+   sets `mode: "light"` and `toggle: false`. Everything the config cannot set
+   is here. No uppercase and no tracked labels anywhere. */
+:root {
+  --blume-background: #faf9f7;
+  --blume-foreground: #1c1b1a;
+  --blume-muted: #efedea;
+  --blume-muted-foreground: #5f5c5a;
+  --blume-border: rgb(28 27 26 / 12%);
+  --blume-accent: #1c1b1a;
+  --blume-accent-foreground: #faf9f7;
+  --blume-action: #1c1b1a;
+  --blume-action-foreground: #faf9f7;
+  --blume-code-background: #efedea;
+  --blume-content-width: 42rem;
+  --blume-radius: 0.25rem;
+  --docs-control: 2.75rem;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────── */
+
+[data-blume-header] {
+  height: 4rem;
+  border-bottom: 1px solid var(--blume-border);
+  background: var(--blume-background);
+  backdrop-filter: none;
+  padding-inline: 1.5rem;
+}
+
+/* The wordmark is the only Faculty Glyphic on the site. */
+.docs-wordmark {
+  font-family: "Faculty Glyphic", var(--blume-font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--blume-foreground);
+  text-decoration: none;
+}
+
+/* Blume's icon button opens the search; the field below stands in for it. */
+[data-blume-search-open] {
+  display: none;
+}
+
+.docs-search-field {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 15rem;
+  height: var(--docs-control);
+  padding: 0 0.75rem 0 0.75rem;
+  border: 1px solid var(--blume-border);
+  border-radius: var(--blume-radius);
+  background: var(--blume-background);
+  color: var(--blume-muted-foreground);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.docs-search-field kbd {
+  font-family: var(--blume-font-body);
+  font-size: 0.75rem;
+  color: var(--blume-muted-foreground);
+}
+
+.docs-search-field:hover {
+  background: var(--blume-muted);
+}
+
+/* Search first, then "Open the App", as the board has them. */
+.docs-search-field {
+  order: 1;
+}
+
+/* "Open the App" is a bordered button, not Blume's filled pill. */
+[data-blume-header] a[href$="/make"] {
+  order: 2;
+  margin-inline-start: 0.5rem;
+  height: var(--docs-control);
+  padding: 0 1rem;
+  border: 1px solid var(--blume-border);
+  border-radius: var(--blume-radius);
+  background: var(--blume-background);
+  color: var(--blume-foreground);
+  font-size: 0.875rem;
+  font-weight: 400;
+  opacity: 1;
+}
+
+[data-blume-header] a[href$="/make"]:hover {
+  background: var(--blume-muted);
+  opacity: 1;
+}
+
+[data-blume-header] a[href$="/make"] svg {
+  display: none;
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────── */
+
+@media (min-width: 64rem) {
+  [data-blume-doc-grid] {
+    grid-template-columns: 16.5rem minmax(0, 1fr);
+  }
+  [data-blume-doc-grid] > aside:first-child {
+    border-inline-end: 1px solid var(--blume-border);
+    padding-inline: 1.5rem;
+    padding-top: 1.25rem;
+  }
+}
+
+@media (min-width: 80rem) {
+  [data-blume-doc-grid] {
+    grid-template-columns: 16.5rem minmax(0, 1fr) 15rem;
+  }
+}
+
+/* The right rail carries the outline only: no page actions. */
+[data-blume-page-actions] {
+  display: none;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────── */
+
+[data-blume-nav-tree] {
+  font-size: 0.875rem;
+}
+
+.blume-nav-link,
+.blume-nav-summary,
+.blume-nav-heading,
+.blume-nav-heading-link {
+  min-height: var(--docs-control);
+  display: flex;
+  align-items: center;
+  border-radius: var(--blume-radius);
+  padding-block: 0;
+}
+
+.blume-nav-heading {
+  margin-bottom: 0;
+  font-weight: 500;
+  color: var(--blume-foreground);
+}
+
+.blume-nav-link,
+.blume-nav-summary,
+.blume-nav-heading {
+  padding-inline: 0.75rem;
+}
+
+/* Rows inside a group sit one step in; a command inside a collapsible group
+   sits another. No rail down the side. */
+[data-blume-nav-tree] li > div a.blume-nav-link,
+[data-blume-nav-tree] li > div summary {
+  padding-inline-start: 1.5rem;
+}
+
+[data-blume-nav-tree] details > div {
+  border: 0;
+  padding-inline-start: 0;
+}
+
+[data-blume-nav-tree] details > div a.blume-nav-link {
+  padding-inline-start: 2.25rem;
+}
+
+.blume-nav-link[aria-current="page"],
+.blume-nav-link:hover,
+.blume-nav-summary:hover {
+  background: var(--blume-muted);
+}
+
+.blume-nav-link[aria-current="page"] {
+  color: var(--blume-foreground);
+  font-weight: 400;
+}
+
+/* ── Type ───────────────────────────────────────────────────────────── */
+
+.prose h1,
+.prose h2,
+.prose h3 {
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.prose h1 {
+  font-size: 1.75rem;
+  font-weight: 400;
+  line-height: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.prose > p.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.5rem;
+  color: var(--blume-muted-foreground);
+}
+
+.prose h2 {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5rem;
+  letter-spacing: -0.01em;
+  margin-top: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--blume-foreground);
+}
+
+.prose h3 {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.25rem;
+}
+
+.prose {
+  line-height: 1.25rem;
+}
+
+.prose p {
+  line-height: 1.25rem;
+}
+
+.prose a:not(.blume-heading-anchor) {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--blume-border);
+}
+
+/* Inline code reads as type, not as a chip. */
+.prose :not(pre) > code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-family: var(--blume-font-mono);
+  font-size: 0.8125rem;
+  color: var(--blume-foreground);
+}
+
+/* ── Code blocks: a mount-coloured bar, no title strip ──────────────── */
+
+.prose pre,
+.prose pre.astro-code {
+  margin: 0.75rem 0 1rem;
+  border: 0;
+  border-radius: var(--blume-radius);
+  background: var(--blume-code-background) !important;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.prose pre[data-language] {
+  padding-top: 0.75rem;
+}
+
+.prose pre[data-language]::before,
+.prose pre[data-language]::after {
+  display: none;
+}
+
+.prose pre > code {
+  padding: 0 4.5rem 0 1rem;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.prose pre > [data-blume-copy] {
+  width: auto;
+  height: auto;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  background: transparent;
+  color: var(--blume-foreground);
+  font-family: var(--blume-font-body);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border-radius: 0;
+}
+
+.prose pre > [data-blume-copy] svg {
+  display: none;
+}
+
+.prose pre > [data-blume-copy]::after {
+  content: "Copy";
+}
+
+.prose pre > [data-blume-copy][aria-label="Copied!"]::after {
+  content: "Copied";
+}
+
+.prose pre > [data-blume-copy]:hover {
+  background: transparent;
+  color: var(--blume-foreground);
+}
+
+/* Shiki's colours stay quiet: ink for the command, muted for its arguments. */
+.prose pre.astro-code span {
+  color: var(--blume-foreground) !important;
+}
+
+/* ── Tables: rules only, a quiet header ─────────────────────────────── */
+
+.blume-table-scroll {
+  border: 0;
+  border-radius: 0;
+  margin: 0.75rem 0 1rem;
+}
+
+.prose table {
+  font-size: 0.875rem;
+}
+
+.prose thead th {
+  border-bottom: 1px solid var(--blume-border);
+  color: var(--blume-muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.prose tbody td {
+  border-bottom: 1px solid var(--blume-border);
+}
+
+.blume-table-scroll :is(th, td) {
+  padding: 0.6875rem 0.75rem 0.6875rem 0;
+}
+
+.prose td > code,
+.prose td code {
+  font-size: 0.8125rem;
+}
+
+/* Price columns align right and read as figures. */
+.prose td[align="right"],
+.prose th[align="right"] {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Command pages ──────────────────────────────────────────────────── */
+
+/* The "In the App" marker sits at the right of the breadcrumb row. */
+.docs-in-app {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--blume-muted-foreground);
+}
+
+.prose > p.docs-in-app {
+  position: absolute;
+  top: 0.125rem;
+  right: 0;
+}
+
+.prose {
+  position: relative;
+}
+
+.docs-commands {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.5rem 0 1rem;
+}
+
+.docs-commands td {
+  padding: 0.6875rem 0;
+  border-top: 1px solid var(--blume-border);
+  vertical-align: baseline;
+}
+
+.docs-commands tr:last-child td {
+  border-bottom: 0;
+}
+
+.docs-commands td:first-child {
+  width: 8.5rem;
+}
+
+.docs-commands td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.docs-commands a {
+  text-decoration: none !important;
+  color: var(--blume-foreground);
+}
+
+.docs-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.docs-pictures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.docs-pictures-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.docs-pictures-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.docs-pictures figure,
+.docs-looks figure,
+.docs-moods figure {
+  margin: 0;
+}
+
+.docs-pictures img,
+.docs-looks img,
+.docs-moods img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+}
+
+.docs-pictures figcaption,
+.docs-looks figcaption,
+.docs-moods figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  color: var(--blume-muted-foreground);
+}
+
+/* ── Looks and Moods ────────────────────────────────────────────────── */
+
+.docs-looks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem 1rem;
+  margin: 1rem 0 1.5rem;
+}
+
+.docs-looks img {
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}
+
+.docs-looks figcaption {
+  display: flex;
+  flex-direction: column;
+  color: var(--blume-foreground);
+  font-size: 0.875rem;
+}
+
+.docs-looks figcaption code {
+  color: var(--blume-muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.docs-moods {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0 1rem;
+}
+
+.docs-moods img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+
+.docs-moods figcaption {
+  color: var(--blume-foreground);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 40rem) {
+  .docs-looks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .docs-moods {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .docs-pictures-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-blume-header] {
+    padding-inline: 1rem;
+  }
+  /* On a phone the field gives way to Blume's own search button. */
+  .docs-search-field {
+    display: none;
+  }
+  [data-blume-search-open] {
+    display: inline-flex;
+  }
+}
+
+/* ── Pagination and footer ──────────────────────────────────────────── */
+
+[data-blume-footer] {
+  background: var(--blume-background);
+  font-size: 0.8125rem;
+}

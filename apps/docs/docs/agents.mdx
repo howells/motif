@@ -1,0 +1,49 @@
+---
+title: For agents
+description: JSON output, a price before every run, and a schema for every command.
+sidebar:
+  label: For agents
+---
+
+## JSON output
+
+Pass `--format json` for one object on stdout. Errors arrive as one object on stderr.
+
+```sh
+motif "amber bottles on a stone shelf" --format json --no-open
+```
+
+## Price a run first
+
+`--dry-run` reports the cost before anything is spent. A cost of null means the total is unknown, not free.
+
+```sh
+motif erase "the parked car" street.jpg --dry-run --fields cost,costBasis,output
+```
+
+## Errors and exit codes
+
+The exit code and the error object always agree, so branch on the code.
+
+| Exit | Meaning                | Error codes          |
+| ---- | ---------------------- | -------------------- |
+| 0    | Success                |                      |
+| 2    | Invalid input or usage | `INVALID_OPTION`     |
+| 2    | No Model can do it     | `NO_MODEL_AVAILABLE` |
+| 3    | Key missing or refused | `MISSING_API_KEY`    |
+| 4    | Not found              | `NO_PREVIOUS`        |
+| 5    | The provider failed    | `TASK_FAILED`        |
+
+## Read the schema
+
+Read one command's schema before you call it.
+
+```sh
+motif --describe erase --format json
+```
+
+## Docs for agents
+
+|                       |                                   |
+| --------------------- | --------------------------------- |
+| [llms.txt](/llms.txt) | A plain-text index of every page. |

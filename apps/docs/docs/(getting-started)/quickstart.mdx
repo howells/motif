@@ -1,0 +1,38 @@
+---
+title: Quickstart
+description: Install Motif, add a fal key and make your first image.
+sidebar:
+  label: Quickstart
+---
+
+## 1. Install the CLI
+
+One global install gives you the motif command.
+
+```sh
+npm install -g @howells/motif-cli
+```
+
+## 2. Add your fal key
+
+The terminal charges your own fal account, not the App's monthly budget.
+
+```sh
+export FAL_KEY=…
+```
+
+## 3. Check the price first
+
+`--dry-run` shows the Model and the price, and spends nothing.
+
+```sh
+motif "amber bottles on a stone shelf" --dry-run
+```
+
+## 4. Make your first image
+
+Take off the flag. Motif saves the file and opens it.
+
+```sh
+motif "amber bottles on a stone shelf"
+```

@@ -1,0 +1,33 @@
+{
+  "name": "@motif/docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsx scripts/generate-commands.ts && blume build",
+    "dev": "tsx scripts/generate-commands.ts && blume dev --port 4500",
+    "generate": "tsx scripts/generate-commands.ts",
+    "lint": "howells-check scripts blume.config.ts",
+    "lint:fix": "howells-fix scripts blume.config.ts",
+    "preview": "blume preview --port 4500",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/faculty-glyphic": "^5.3.0",
+    "blume": "^2.2.6"
+  },
+  "devDependencies": {
+    "@howells/lint": "catalog:",
+    "@howells/motif-cli": "workspace:*",
+    "@howells/motif-sdk": "workspace:*",
+    "@howells/typescript-config": "catalog:",
+    "@types/node": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:vite8",
+    "zod": "catalog:"
+  },
+  "engines": {
+    "node": ">=22.19.0"
+  }
+}

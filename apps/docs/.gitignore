@@ -1,0 +1,10 @@
+node_modules/
+.blume/
+.blume-verify/
+dist/
+.vercel/
+.env.local
+
+# Command pages are build output: scripts/generate-commands.ts writes them from
+# the CLI and the SDK on every `pnpm dev` and `pnpm build`.
+/docs/commands/

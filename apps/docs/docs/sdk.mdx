@@ -1,0 +1,89 @@
+---
+title: SDK
+description: "@howells/motif-sdk runs the same Tasks as the CLI from Node, with a Model chosen for you and a price you can read first."
+sidebar:
+  label: SDK
+---
+
+`@howells/motif-sdk` is the public Node SDK for Motif: Task-first image, video and utility work on fal, plus a provider-agnostic image layer. The CLI is built on it, so a command and its SDK function choose the same Model.
+
+## Install
+
+```sh
+npm install @howells/motif-sdk
+```
+
+## Run a Task
+
+The Task client, `createMotif`, is the fal surface. Name a Task and, optionally, a Tier, and Motif chooses the Model, builds its request and runs it on fal.
+
+```ts
+import { createMotif } from "@howells/motif-sdk";
+
+const motif = createMotif(); // reads FAL_KEY
+
+const result = await motif.generate({
+  prompt: "editorial product photo",
+  resolution: "2K",
+  tier: "quality",
+});
+
+if (result.isErr()) {
+  throw result.error;
+}
+
+console.log(result.value.model, result.value.files[0]?.url, result.value.cost);
+```
+
+Every Task function returns a `Result` from `neverthrow` and does not throw for fal request failures. Check `isErr()` or `isOk()`.
+
+## Plan without calling fal
+
+`plan(task, input, { dryRun: true })` resolves the Model and returns the endpoint, body and projected cost with no network call and no key. It is the SDK's form of `--dry-run`.
+
+```ts
+const plan = motif.plan(
+  "erase",
+  { image: "https://example.com/room.png", prompt: "the chair" },
+  { dryRun: true }
+);
+
+if (plan.isOk()) {
+  console.log(plan.value.model, plan.value.cost);
+}
+```
+
+Token-billed Models report `cost: { usd: null, basis: "unknown" }`. A published representative price is not an exact total.
+
+## Tiers
+
+Each Task ranks its Models by Tier. `balanced` is the default. `TASKS.generate` and `TASKS.vary` expose the current choices, and explicit Models, Looks and pins take precedence over the ranking.
+
+| Tier       | Generation default | Editing default   |
+| ---------- | ------------------ | ----------------- |
+| `quality`  | Sunburst at `max`  | Sunburst at `max` |
+| `balanced` | Nano Banana 2.1    | Grok Image 2      |
+| `fast`     | Nano Banana 2 Lite | Grok              |
+
+## Main exports
+
+- `createMotif`: the Task client, with one function per Task plus `run`, `stream`, `plan`, `upload` and `deletePayloads`.
+- `TASKS`, `TASK_IDS`, `TIERS`, `resolveTask`, `modelProfile`, `tierChangesChoice`: the Task registry and Model resolution.
+- `createMotifImage` from `@howells/motif-sdk/image`: generate, edit and best-of-N across OpenRouter, OpenAI, Replicate and fal.
+- `ASPECT_RATIOS`, `RESOLUTIONS`, `FORMAT_PRESETS`: shared sizing metadata.
+- `LOOKS`, `CREATIVE_TAXONOMY`, `enrichPrompt`, `validateCreativeDirection`: the house Looks and Moods.
+- `formatCost`, `sumCosts`: cost formatting and totals.
+- `getFalKeyFromEnv`, `getOpenAiKeyFromEnv`: key parsing.
+
+## The image layer
+
+`createMotifImage` is for callers who choose the provider and Model themselves. It is built on the Vercel AI SDK image interface, and every result carries a per-call `cost`.
+
+| Provider     | Env var               |
+| ------------ | --------------------- |
+| `openrouter` | `OPENROUTER_API_KEY`  |
+| `openai`     | `OPENAI_API_KEY`      |
+| `replicate`  | `REPLICATE_API_TOKEN` |
+| `fal`        | `FAL_KEY`             |
+
+The full reference, including streaming and best-of-N, is in the [package README](https://github.com/howells/motif/blob/main/packages/motif-sdk/README.md).

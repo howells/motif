@@ -1,0 +1,46 @@
+---
+title: Setup and keys
+description: Install the CLI, add a fal key, and know whose money a run spends.
+sidebar:
+  label: Setup and keys
+---
+
+## Install
+
+```sh
+npm install -g @howells/motif-cli
+```
+
+This gives you the `motif` command. Run `motif` on its own for help, and `motif <command> --help` for one command.
+
+## Add your fal key
+
+Motif runs its Models on [fal](https://fal.ai). Get a key at [fal.ai/dashboard/keys](https://fal.ai/dashboard/keys), then set it in your environment.
+
+```sh
+export FAL_KEY=…
+```
+
+Motif reads the key from your environment and never sends it anywhere but fal. You can also store it as `apiKey` in `~/.motif/config.json`.
+
+A dry run needs no key. `--dry-run` chooses the Model and prices the call without contacting fal, so you can try any command before you have an account.
+
+## The App's budget and your own fal account
+
+Motif charges two different places.
+
+| Where you run it | Who pays |
+| --- | --- |
+| The terminal | Your own fal account, through your `FAL_KEY`. |
+| The App | The App's monthly budget, shared by everyone who uses it. Each person sees their own spend and what is left. |
+
+A run in the terminal does not touch the App's budget.
+
+## Environment variables
+
+| Variable | Needed for |
+| --- | --- |
+| `FAL_KEY` | Every run on fal, which is most of them. Not needed for `--dry-run`. |
+| `OPENAI_API_KEY` | Direct OpenAI routes, such as explicit GPT Image 2 transparent output. Optional. |
+
+If a key is missing, the command stops with `MISSING_API_KEY` and exit code 3, and names the variable to set.
