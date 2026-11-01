@@ -337,9 +337,10 @@
   opacity: 0.5;
 }
 
-/* Values whose characters matter: Model ids, costs, sizes. */
+/* Figures that line up: costs, sizes, counts. Set in the sans with
+ * tabular figures; mono is kept for literal command text only. */
 .app-value {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
 }
@@ -523,8 +524,8 @@
   line-height: 1.75rem;
 }
 
-.board-mono {
-  font-family: var(--font-mono);
+.board-figure {
+  font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.25rem;

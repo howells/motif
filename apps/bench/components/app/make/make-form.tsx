@@ -232,7 +232,7 @@ function MakeFooter({
         <span className={`type-small ${blocked ? "text-bad" : "text-muted"}`}>
           {line}
         </span>
-        <span className="board-mono shrink-0">
+        <span className="board-figure shrink-0">
           {price === undefined || price.reason !== null
             ? ""
             : price.usage

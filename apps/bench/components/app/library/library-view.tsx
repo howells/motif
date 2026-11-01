@@ -200,7 +200,7 @@ function Days({
     <section className="pb-4 md:pb-5" key={day.name}>
       <h2 className="flex h-10 items-center justify-between px-5 md:h-8 md:px-0">
         <span className="text-sm leading-5 font-medium">{day.name}</span>
-        <span className="board-mono text-muted">
+        <span className="board-figure text-muted">
           {formatUsd(day.costMicros)}
         </span>
       </h2>

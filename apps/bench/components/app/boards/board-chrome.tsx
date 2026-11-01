@@ -95,7 +95,7 @@ export function StaleBanner({
       >
         Run from {NODE_LABELS[root.kind]}
         {total > 0 ? (
-          <span className="board-mono font-normal">{formatUsd(total)}</span>
+          <span className="board-figure font-normal">{formatUsd(total)}</span>
         ) : null}
       </button>
     </div>

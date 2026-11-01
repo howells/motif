@@ -124,7 +124,7 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
                         </span>
                       )}
                     </span>
-                    <span className="board-mono w-14 shrink-0 text-right">
+                    <span className="board-figure w-14 shrink-0 text-right">
                       {priceOf(model)}
                     </span>
                   </button>
@@ -218,7 +218,7 @@ export function CompareModels({
                       </span>
                     )}
                   </span>
-                  <span className="board-mono w-14 shrink-0 text-right">
+                  <span className="board-figure w-14 shrink-0 text-right">
                     {priceOf(model)}
                   </span>
                 </button>

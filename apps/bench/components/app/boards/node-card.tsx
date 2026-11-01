@@ -112,7 +112,7 @@ function Rows({ node }: { readonly node: NodeViewData }) {
             {row.label}
           </dt>
           <dd
-            className={`min-w-0 truncate ${row.mono === true ? "board-mono" : "text-sm leading-5"}`}
+            className={`min-w-0 truncate ${row.mono === true ? "board-figure" : "text-sm leading-5"}`}
           >
             {row.value}
           </dd>
@@ -324,7 +324,7 @@ function Footer({
         <span />
       ) : price.ok ? (
         <span
-          className="board-mono"
+          className="board-figure"
           title={price.usage ? "Billed by usage" : undefined}
         >
           {price.usage
@@ -446,7 +446,7 @@ function CompareColumn({
           <span className="text-plate-ink truncate text-sm leading-5 font-medium">
             {node.names[model] ?? result?.modelName ?? model}
           </span>
-          <span className="board-mono text-plate-muted">
+          <span className="board-figure text-plate-muted">
             {columnFacts(result)}
           </span>
         </div>
@@ -547,7 +547,7 @@ function CompareCard({
         </div>
       ) : null}
       <footer className="board-rule-top flex h-13 items-center gap-4 pr-1 pl-3.5">
-        <span className="board-mono">
+        <span className="board-figure">
           {node.price?.ok === true ? formatUsd(node.price.listMicros) : ""}
         </span>
         <span className="type-small text-muted flex-1 truncate">

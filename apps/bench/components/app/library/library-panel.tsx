@@ -91,7 +91,7 @@ function Facts({ item }: { readonly item: LibraryItemData }) {
             {fact.label}
           </dt>
           <dd
-            className={`text-plate-ink min-w-0 ${fact.mono === true ? "board-mono" : "text-sm leading-5"}`}
+            className={`text-plate-ink min-w-0 ${fact.mono === true ? "board-figure" : "text-sm leading-5"}`}
           >
             {fact.value}
           </dd>

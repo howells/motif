@@ -353,7 +353,7 @@ export function Inspector({
             ) : (
               <>
                 <span className="type-small text-muted">{priceLine(node)}</span>
-                <span className="board-mono">
+                <span className="board-figure">
                   {node.price?.ok === true
                     ? node.price.usage
                       ? `Up to ${formatCap(node.price.listMicros)}`

@@ -79,7 +79,7 @@ describe("LiveBeats", () => {
       <LiveBeats beats={BEATS} now={T0 + 22_000} origin={ORIGIN} />
     );
     expect(html).toMatch(/tabular-nums[^>]*>22 s<\/span><\/div><\/div>$/u);
-    expect(html).not.toContain("board-mono");
+    expect(html).not.toContain("board-figure");
   });
 
   it("shows only the latest of the repeated quiet beats", () => {
@@ -149,7 +149,7 @@ describe("ProcessLog", () => {
     expect(html).toContain("4.9 s");
     expect(html.match(/board-beat-dot/gu)).toHaveLength(1);
     expect(html).not.toContain("aria-expanded");
-    expect(html).not.toContain("board-mono");
+    expect(html).not.toContain("board-figure");
   });
 
   it("runs its clock with the run, not with the last beat", () => {

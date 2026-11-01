@@ -73,7 +73,7 @@ function Step({
           </>
         )}
       </span>
-      <span className="board-mono w-16 shrink-0 text-right">
+      <span className="board-figure w-16 shrink-0 text-right">
         {step.ok ? formatUsd(step.listMicros) : ""}
       </span>
     </li>
@@ -108,7 +108,7 @@ function ScopeChoice({
           type="button"
         >
           {choice.label}
-          <span className="board-mono font-normal">
+          <span className="board-figure font-normal">
             {choice.quote === undefined
               ? ""
               : formatUsd(choice.quote.listMicros)}
@@ -169,7 +169,7 @@ function QuoteSteps({
               {totalLine(quote)}
             </span>
           </span>
-          <span className="board-mono w-16 shrink-0 text-right font-medium">
+          <span className="board-figure w-16 shrink-0 text-right font-medium">
             {formatUsd(quote.listMicros)}
           </span>
         </li>

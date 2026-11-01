@@ -82,7 +82,7 @@ function PlateNote({
         Making
       </span>
       {run === undefined ? null : (
-        <span className="board-mono">
+        <span className="board-figure">
           {formatSeconds(Math.max(0, now - Date.parse(run.createdAt)))}
           {typicalOf(result)}
         </span>
@@ -251,7 +251,7 @@ export function MakeResult({
           <span className="text-sm leading-5 font-medium">
             {inboxLine(reply.data)}
           </span>
-          <span className="board-mono">
+          <span className="board-figure">
             {result === undefined || result.costMicros === null
               ? ""
               : result.costEstimated
