@@ -70,7 +70,7 @@ function SelectRow({
   return (
     <Row label={label}>
       <span
-        className={`flex-1 truncate text-sm leading-5 ${current === undefined ? "text-muted" : ""}`}
+        className={`type-body flex-1 truncate ${current === undefined ? "text-muted" : ""}`}
       >
         {current?.label ?? none}
       </span>
@@ -131,7 +131,7 @@ function PhotoRow({
     <Row label="Photo">
       {photo === null ? (
         <button
-          className="text-muted flex min-h-13 flex-1 items-center justify-between text-left text-sm leading-5"
+          className="text-muted type-body flex min-h-13 flex-1 items-center justify-between text-left"
           onClick={onPick}
           type="button"
         >
@@ -141,7 +141,7 @@ function PhotoRow({
       ) : (
         <>
           <button
-            className="flex min-h-13 flex-1 items-center gap-3 text-left text-sm leading-5"
+            className="type-body flex min-h-13 flex-1 items-center gap-3 text-left"
             onClick={onPick}
             type="button"
           >
@@ -246,7 +246,7 @@ function MakeFooter({
         </p>
       )}
       <button
-        className="bg-ink text-background flex h-13 items-center justify-center rounded text-base font-medium disabled:opacity-40"
+        className="bg-ink text-background type-body flex h-13 items-center justify-center rounded font-medium disabled:opacity-40"
         disabled={price === undefined || blocked || pending}
         type="submit"
       >
@@ -348,7 +348,7 @@ export function MakeForm({
         <div className="flex flex-col px-5">
           <textarea
             aria-label="Prompt"
-            className="placeholder:text-faint app-prompt min-h-31 w-full resize-none rounded px-3.5 py-3 text-base leading-6"
+            className="placeholder:text-faint app-prompt type-body min-h-31 w-full resize-none rounded px-3.5 py-3"
             maxLength={4000}
             onChange={(event) => {
               setDraft({ ...draft, prompt: event.target.value });

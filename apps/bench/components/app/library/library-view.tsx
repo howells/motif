@@ -97,9 +97,7 @@ function Tile({
         ) : null}
       </button>
       <span className="hidden flex-col md:flex">
-        <span className="text-sm leading-5 font-medium">
-          {captionOf(stack)}
-        </span>
+        <span className="type-body font-medium">{captionOf(stack)}</span>
         <span className="library-label text-muted truncate">
           {stack.board?.name ?? "No Board"}
         </span>
@@ -199,7 +197,7 @@ function Days({
   return days.map((day) => (
     <section className="pb-4 md:pb-5" key={day.name}>
       <h2 className="flex h-10 items-center justify-between px-5 md:h-8 md:px-0">
-        <span className="text-sm leading-5 font-medium">{day.name}</span>
+        <span className="type-body font-medium">{day.name}</span>
         <span className="board-figure text-muted">
           {formatUsd(day.costMicros)}
         </span>

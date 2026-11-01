@@ -102,7 +102,7 @@ export function AddNode({
                   }}
                   type="button"
                 >
-                  <span className="w-21 shrink-0 text-sm leading-5 font-medium">
+                  <span className="type-body w-21 shrink-0 font-medium">
                     {NODE_LABELS[entry.kind]}
                   </span>
                   <span className="type-small text-muted line-clamp-1">
@@ -131,7 +131,7 @@ export function AddNode({
         <input
           aria-label="Find a Task"
           autoFocus
-          className="placeholder:text-faint min-w-0 flex-1 bg-transparent text-sm leading-5 outline-none"
+          className="placeholder:text-faint type-body min-w-0 flex-1 bg-transparent outline-none"
           onChange={(event) => {
             setQuery(event.target.value);
             setActive(0);
@@ -154,7 +154,7 @@ export function AddNode({
           placeholder="Find a Task"
           value={query}
         />
-        <kbd className="type-small text-muted font-sans">Esc</kbd>
+        <kbd className="type-small text-muted">Esc</kbd>
       </div>
       {flat.length === 0 ? (
         <p className="type-small text-muted px-7 py-6">

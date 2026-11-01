@@ -77,7 +77,7 @@ function Header({
     <header
       className={`flex h-11 items-center justify-between gap-3 ${trailing === undefined ? "px-3.5" : "pr-2 pl-3.5"}`}
     >
-      <h3 className="board-title">{NODE_LABELS[node.kind]}</h3>
+      <h3 className="type-body font-medium">{NODE_LABELS[node.kind]}</h3>
       <span className="flex items-center gap-1">
         {meta === null ? null : (
           <span
@@ -112,7 +112,7 @@ function Rows({ node }: { readonly node: NodeViewData }) {
             {row.label}
           </dt>
           <dd
-            className={`min-w-0 truncate ${row.mono === true ? "board-figure" : "text-sm leading-5"}`}
+            className={`min-w-0 truncate ${row.mono === true ? "board-figure" : "type-body"}`}
           >
             {row.value}
           </dd>
@@ -165,7 +165,7 @@ function Making({
   return (
     <>
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-center">
-        <span className="text-sm leading-5 font-medium">
+        <span className="type-body font-medium">
           {run.state === "waiting"
             ? "Waiting for the node before"
             : makingLabel(node, images)}
@@ -228,7 +228,7 @@ function ImageArea({
       {node.pick === null ? (
         node.kind === "source" ? (
           <button
-            className="nodrag text-muted hover:text-ink absolute inset-0 flex flex-col items-center justify-center gap-1 text-sm"
+            className="nodrag text-muted hover:text-ink type-body absolute inset-0 flex flex-col items-center justify-center gap-1"
             onClick={() => {
               chooseSource(node.id);
             }}
@@ -300,7 +300,7 @@ function ImageArea({
           )}
           <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 px-4 pb-4">
             <p className="board-beat-current text-ink">{DIDNT_FINISH}</p>
-            <p className="text-ink text-sm leading-5">{failure}</p>
+            <p className="text-ink type-body">{failure}</p>
           </div>
         </>
       )}
@@ -338,7 +338,7 @@ function Footer({
       )}
       {run.state === "idle" ? (
         <button
-          className="board-quiet nodrag hover:bg-surface gap-1.5 pr-3.5 pl-3 text-sm leading-5 font-medium"
+          className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
           onClick={() => {
             openRun(node.id, "node");
           }}
@@ -349,7 +349,7 @@ function Footer({
         </button>
       ) : (
         <button
-          className="board-quiet nodrag hover:bg-surface gap-1.5 pr-3.5 pl-3 text-sm leading-5 font-medium"
+          className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
           onClick={() => {
             stop(run.run.id);
           }}
@@ -367,7 +367,7 @@ function PromptBody({ node }: { readonly node: NodeViewOf<"prompt"> }) {
   const { text } = node.settings;
   return (
     <p
-      className={`line-clamp-5 px-3.5 pb-3 text-sm leading-5 ${text.trim() === "" ? "text-faint" : ""}`}
+      className={`type-body line-clamp-5 px-3.5 pb-3 ${text.trim() === "" ? "text-faint" : ""}`}
     >
       {text.trim() === "" ? "Write what you want to see" : text}
     </p>
@@ -443,7 +443,7 @@ function CompareColumn({
       </div>
       <div className="flex items-start justify-between gap-2">
         <div className="flex min-w-0 flex-col">
-          <span className="text-plate-ink truncate text-sm leading-5 font-medium">
+          <span className="text-plate-ink type-body truncate font-medium">
             {node.names[model] ?? result?.modelName ?? model}
           </span>
           <span className="board-figure text-plate-muted">
@@ -451,13 +451,13 @@ function CompareColumn({
           </span>
         </div>
         {output === undefined ? null : picked ? (
-          <span className="bg-plate-ink text-plate flex h-11 shrink-0 items-center gap-1.5 rounded px-3 text-sm leading-5 font-medium">
+          <span className="bg-plate-ink text-plate type-body flex h-11 shrink-0 items-center gap-1.5 rounded px-3 font-medium">
             <CheckIcon size={16} />
             Pick
           </span>
         ) : (
           <button
-            className="nodrag text-plate-ink board-plate-button flex h-11 shrink-0 items-center rounded px-3 text-sm leading-5"
+            className="nodrag text-plate-ink board-plate-button type-body flex h-11 shrink-0 items-center rounded px-3"
             onClick={() => {
               makePick(node, output.assetId);
             }}
@@ -559,7 +559,7 @@ function CompareCard({
         </span>
         {run.state === "idle" ? (
           <button
-            className="board-quiet nodrag hover:bg-surface gap-1.5 pr-3.5 pl-3 text-sm leading-5 font-medium"
+            className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
             onClick={() => {
               openRun(node.id, "node");
             }}
@@ -570,7 +570,7 @@ function CompareCard({
           </button>
         ) : (
           <button
-            className="board-quiet nodrag hover:bg-surface gap-1.5 pr-3.5 pl-3 text-sm leading-5 font-medium"
+            className="board-quiet nodrag hover:bg-surface type-body gap-1.5 pr-3.5 pl-3 font-medium"
             onClick={() => {
               stop(run.run.id);
             }}

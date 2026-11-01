@@ -114,6 +114,23 @@ export default {
       },
     },
     {
+      // The App's type case (apps/bench/app/app.css): three roles, `type-small`
+      // 13/20, `type-body` 14/20 and `type-title` 18/24, all at weight 400,
+      // with the wordmark's Faculty 28 the one brand exception. Hierarchy comes
+      // from size and colour. The sanctioned modifiers are `font-medium` (the
+      // single emphasis weight: node names, buttons, the active nav item),
+      // `font-mono` (literal command text only) and `capitalize` (cases a data
+      // value); `tabular-nums` is not a typographic utility this rule governs.
+      // `scripts/check-app-typography.mjs` holds the same case in app.css.
+      files: ["apps/bench/components/app/**", "apps/bench/app/(entry)/**"],
+      rules: {
+        "howells/no-raw-type-utilities": [
+          "error",
+          { allow: ["font-medium", "font-mono", "capitalize"] },
+        ],
+      },
+    },
+    {
       // Migration exception: React Doctor rules are DOM-oriented (see header
       // note), so they stay off everywhere except the Next app.
       files: ["apps/cli/**", "packages/**"],

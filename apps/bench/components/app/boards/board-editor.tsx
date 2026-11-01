@@ -270,7 +270,7 @@ function EditorHeader({
       >
         <PlusIcon />
         Add node
-        <kbd className="type-small text-muted font-sans font-normal">⌘K</kbd>
+        <kbd className="type-small text-muted">⌘K</kbd>
       </button>
     </header>
   );

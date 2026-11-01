@@ -322,7 +322,7 @@ export function Inspector({
       className="board-rule-left flex h-full w-90 shrink-0 flex-col bg-white"
     >
       <header className="board-rule-bottom flex h-15 shrink-0 items-center justify-between pr-2 pl-6">
-        <h2 className="board-title">{NODE_LABELS[node.kind]}</h2>
+        <h2 className="type-title">{NODE_LABELS[node.kind]}</h2>
         <button
           aria-label="Close the panel"
           className="board-quiet hover:bg-surface"

@@ -78,9 +78,7 @@ function PlateNote({
   }
   return (
     <>
-      <span className="text-plate-ink text-sm leading-5 font-medium">
-        Making
-      </span>
+      <span className="text-plate-ink type-body font-medium">Making</span>
       {run === undefined ? null : (
         <span className="board-figure">
           {formatSeconds(Math.max(0, now - Date.parse(run.createdAt)))}
@@ -148,7 +146,7 @@ function Facts({
           .{words.length === 0 ? "" : ` ${words.join(", ")}.`}
         </p>
       )}
-      <p className="pt-2 text-sm leading-5">{prompt}</p>
+      <p className="type-body pt-2">{prompt}</p>
     </>
   );
 }
@@ -157,19 +155,19 @@ function NextSteps({ output }: { readonly output: ResultOutput }) {
   return (
     <div className="grid grid-cols-3 gap-2">
       <Link
-        className="bg-surface flex h-11 items-center justify-center rounded text-sm leading-5"
+        className="bg-surface type-body flex h-11 items-center justify-center rounded"
         href={`/commands/erase?source=${output.assetId}`}
       >
         Erase
       </Link>
       <Link
-        className="bg-surface flex h-11 items-center justify-center rounded text-sm leading-5"
+        className="bg-surface type-body flex h-11 items-center justify-center rounded"
         href={`/commands/upscale?source=${output.assetId}`}
       >
         Upscale
       </Link>
       <a
-        className="bg-surface flex h-11 items-center justify-center rounded text-sm leading-5"
+        className="bg-surface type-body flex h-11 items-center justify-center rounded"
         download
         href={output.url}
       >
@@ -248,9 +246,7 @@ export function MakeResult({
       </div>
       <div className="flex flex-col px-5 pt-4">
         <p className="flex items-baseline justify-between gap-3">
-          <span className="text-sm leading-5 font-medium">
-            {inboxLine(reply.data)}
-          </span>
+          <span className="type-body font-medium">{inboxLine(reply.data)}</span>
           <span className="board-figure">
             {result === undefined || result.costMicros === null
               ? ""
@@ -264,7 +260,7 @@ export function MakeResult({
       <div className="mt-auto flex flex-col gap-2 px-5 pt-6 pb-4">
         {output === undefined ? null : <NextSteps output={output} />}
         <Link
-          className="bg-ink text-background flex h-13 items-center justify-center rounded text-base font-medium"
+          className="bg-ink text-background type-body flex h-13 items-center justify-center rounded font-medium"
           href={againHref(again)}
         >
           Make again

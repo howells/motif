@@ -142,6 +142,7 @@
 .app-nav a[aria-current="page"] {
   background: var(--surface);
   color: var(--ink);
+  font-weight: 500;
 }
 
 /* ── Page head ─────────────────────────────────────────────────────── */
@@ -163,17 +164,93 @@
   }
 }
 
-/* The App's one title role: a screen's name, a Settings section, the Library.
-   Set in Inter. The serif belongs to the wordmark alone. */
+/* ── The type case ─────────────────────────────────────────────────────
+   The App sets text in three roles, all Inter at weight 400, with hierarchy
+   carried by size and colour rather than by weight:
+
+     type-small   13/20   metadata, labels, captions, prices and timings
+                          (with `tabular-nums`), dense control text
+     type-body    14/20   default text, node names, buttons, inputs
+     type-title   18/24   screen, panel, dialog and empty-state titles, the
+                          live beat; tracking -0.01em
+
+   The wordmark (`.app-wordmark`, Faculty 28) is the one brand exception.
+   Sanctioned modifiers: `font-medium` (500, the single emphasis weight: node
+   names, buttons, the active nav item), `tabular-nums`, `font-mono` for
+   literal command text, and `capitalize`. The App's own classes below join
+   the role they belong to rather than restating a size.
+   `scripts/check-app-typography.mjs` (and the `howells/no-raw-type-utilities`
+   rule on the App's components) hold this case; a size, weight or tracking
+   written anywhere else fails the lint. */
+.app {
+  font-weight: 400;
+}
+
+.app :is(h1, h2, h3, h4) {
+  font-weight: inherit;
+}
+
+.app kbd {
+  font-family: inherit;
+}
+
+.app .type-small,
+.app-label,
+.app-segmented label,
+.app-value,
+.board-figure,
+.board-chip,
+.library-label {
+  font-size: 0.8125rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.25rem;
+}
+
+.app .type-body,
+.app-nav a,
+.app-button,
+.app-input,
+.app-select,
+.app-textarea,
+.board-segmented > label,
+.board-segmented > button,
+.board-button,
+.board-field,
+.library-plate-button {
+  font-size: 0.875rem;
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.25rem;
+}
+
+/* The preset's `font-medium` is layered and the roles are not, so a role
+   would otherwise win and the emphasis weight would never show. */
+.app .font-medium {
+  font-weight: 500;
+}
+
+/* The one documented exception: a form field is 16px below 48rem, because
+   iOS zooms the page on focus into anything smaller. One rule, so the number
+   is written once. */
+@media (width < 48rem) {
+  .app :is(.app-input, .app-select, .app-textarea, .app-prompt, .board-field) {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* Inter, not the serif that `.type-title` is on the public pages. */
 .app-head h1,
 .app-screen-title,
 .library-title,
+.board-beat-current,
 .app .type-title {
   font-family: var(--font-sans);
-  font-size: 1.5rem;
-  font-weight: 550;
-  letter-spacing: -0.015em;
-  line-height: 1.75rem;
+  font-size: 1.125rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.5rem;
 }
 
 /* ── Controls ──────────────────────────────────────────────────────── */
@@ -186,7 +263,6 @@
   color: var(--ink);
   cursor: pointer;
   display: inline-flex;
-  font: inherit;
   gap: 0.5rem;
   justify-content: center;
   min-block-size: var(--control);
@@ -243,16 +319,12 @@
   border: 1px solid var(--rule);
   border-radius: var(--radius-control);
   color: var(--ink);
-  font: inherit;
-  /* 16px stops iOS zooming the page on focus. */
-  font-size: 1rem;
   inline-size: 100%;
   min-block-size: var(--control);
   padding: 0.5rem 0.875rem;
 }
 
 .app-textarea {
-  line-height: 1.4;
   min-block-size: 6rem;
   resize: vertical;
 }
@@ -265,21 +337,10 @@
   padding-inline-end: 2.25rem;
 }
 
-@media (width >= 48rem) {
-  .app-input,
-  .app-select,
-  .app-textarea {
-    font-size: 0.9375rem;
-  }
-}
-
 .app-label {
   align-items: baseline;
   display: flex;
-  font-size: 0.8125rem;
-  font-weight: 500;
   justify-content: space-between;
-  line-height: 1.25rem;
   padding-block-end: 0.5rem;
 }
 
@@ -306,7 +367,6 @@
   color: var(--muted);
   cursor: pointer;
   display: flex;
-  font-size: 0.8125rem;
   justify-content: center;
   min-block-size: calc(var(--control) - 4px);
   padding-inline: 0.5rem;
@@ -340,14 +400,7 @@
 /* Figures that line up: costs, sizes, counts. Set in the sans with
  * tabular figures; mono is kept for literal command text only. */
 .app-value {
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-}
-
-.app-small {
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
 }
 
 .app-meter {
@@ -506,29 +559,8 @@
   opacity: 0.4;
 }
 
-/* The smaller role: a node's name, a panel's heading. */
-.board-title {
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 550;
-  letter-spacing: -0.015em;
-  line-height: 1.375rem;
-}
-
-/* The line a run is on: calm and large, the one thing the well says. */
-.board-beat-current {
-  font-family: var(--font-sans);
-  font-size: 1.375rem;
-  font-weight: 500;
-  letter-spacing: -0.015em;
-  line-height: 1.75rem;
-}
-
 .board-figure {
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-  line-height: 1.25rem;
 }
 
 .board-rule-top {
@@ -598,10 +630,8 @@
   background: rgb(250 249 247 / 92%);
   border-radius: 4px;
   display: inline-flex;
-  font-size: 0.8125rem;
   gap: 4px;
   block-size: 24px;
-  line-height: 1.25rem;
   padding-inline: 6px 8px;
 }
 
@@ -655,10 +685,8 @@
   color: var(--muted);
   cursor: pointer;
   display: flex;
-  font-size: 0.875rem;
   gap: 8px;
   justify-content: center;
-  line-height: 1.25rem;
   padding-inline: 8px;
   position: relative;
 }
@@ -690,11 +718,9 @@
   color: var(--ink);
   cursor: pointer;
   display: inline-flex;
-  font-size: 0.875rem;
   font-weight: 500;
   gap: 8px;
   justify-content: center;
-  line-height: 1.25rem;
   min-block-size: 44px;
   padding-inline: 14px;
   transition:
@@ -753,9 +779,7 @@
   border-radius: 4px;
   box-shadow: inset 0 0 0 1px var(--rule);
   color: var(--ink);
-  font-size: 0.875rem;
   inline-size: 100%;
-  line-height: 1.25rem;
   min-block-size: 44px;
   padding: 12px;
 }
@@ -1204,10 +1228,8 @@ textarea.board-field {
   box-shadow: inset 0 0 0 1px rgb(243 243 243 / 30%);
   color: var(--color-plate-ink);
   display: inline-flex;
-  font-size: 0.875rem;
   font-weight: 500;
   justify-content: center;
-  line-height: 1.25rem;
   min-block-size: 44px;
   min-inline-size: 44px;
 }
@@ -1229,11 +1251,6 @@ textarea.board-field {
   }
 }
 
-.library-label {
-  font-size: 0.8125rem;
-  line-height: 1.25rem;
-}
-
 .library-plate-button.is-bare {
   box-shadow: none;
 }
@@ -1252,12 +1269,6 @@ textarea.board-field {
   .library-head {
     block-size: 3.75rem;
     box-shadow: inset 0 -1px 0 var(--rule);
-  }
-
-  .library-title {
-    font-size: 1rem;
-    letter-spacing: -0.015em;
-    line-height: 1.375rem;
   }
 }
 

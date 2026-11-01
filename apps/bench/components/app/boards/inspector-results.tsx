@@ -121,7 +121,7 @@ export function Results({ node }: { readonly node: NodeViewData }) {
           <>
             <button
               aria-expanded={earlier}
-              className="board-rule-top flex h-11 w-full items-center justify-between text-sm leading-5"
+              className="board-rule-top type-body flex h-11 w-full items-center justify-between"
               onClick={() => {
                 setEarlier(!earlier);
               }}

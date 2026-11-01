@@ -321,19 +321,19 @@ export function CompareResults({
           <table className="w-full min-w-[34rem] border-collapse text-left">
             <thead>
               <tr className="border-border type-small text-muted border-b">
-                <th className="py-2 font-normal" scope="col">
+                <th className="type-small py-2" scope="col">
                   Model
                 </th>
-                <th className="py-2 font-normal" scope="col">
+                <th className="type-small py-2" scope="col">
                   State
                 </th>
-                <th className="py-2 text-right font-normal" scope="col">
+                <th className="type-small py-2 text-right" scope="col">
                   Time this run
                 </th>
-                <th className="py-2 text-right font-normal" scope="col">
+                <th className="type-small py-2 text-right" scope="col">
                   Cost
                 </th>
-                <th className="py-2 text-right font-normal" scope="col">
+                <th className="type-small py-2 text-right" scope="col">
                   Held
                 </th>
               </tr>
@@ -341,7 +341,7 @@ export function CompareResults({
             <tbody>
               {runs.map((generation) => (
                 <tr className="border-border border-b" key={generation.id}>
-                  <th className="app-value py-3 font-normal" scope="row">
+                  <th className="app-value py-3" scope="row">
                     {generation.model}
                   </th>
                   <td className="type-small py-3">{generation.status}</td>

@@ -234,7 +234,7 @@ export function ProcessLog({
                 </span>
                 <span className="flex min-w-0 flex-col">
                   <span
-                    className={`text-sm leading-5 ${beat.kind === "error" ? "text-bad" : marked ? "text-ink" : "text-muted"}`}
+                    className={`type-body ${beat.kind === "error" ? "text-bad" : marked ? "text-ink" : "text-muted"}`}
                   >
                     {beat.text}
                   </span>

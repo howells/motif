@@ -69,7 +69,7 @@ function MadeFrom({ item }: { readonly item: LibraryItemData }) {
                   <MediaImage alt="" sizes="64px" src={step.url} />
                 </span>
                 <span
-                  className={`text-plate-ink text-sm leading-5 ${here ? "font-medium" : ""}`}
+                  className={`text-plate-ink type-body ${here ? "font-medium" : ""}`}
                 >
                   {taskTitle(step.task)}
                 </span>
@@ -91,7 +91,7 @@ function Facts({ item }: { readonly item: LibraryItemData }) {
             {fact.label}
           </dt>
           <dd
-            className={`text-plate-ink min-w-0 ${fact.mono === true ? "board-figure" : "text-sm leading-5"}`}
+            className={`text-plate-ink min-w-0 ${fact.mono === true ? "board-figure" : "type-body"}`}
           >
             {fact.value}
           </dd>
@@ -252,7 +252,7 @@ export function LibraryPanel({
       className="bg-plate library-panel fixed inset-0 z-40 flex max-w-full flex-col overflow-y-auto md:sticky md:top-0 md:z-auto md:h-dvh md:shrink-0"
     >
       <header className="flex h-15 shrink-0 items-center justify-between pr-2 pl-6">
-        <h2 className="board-title text-plate-ink">
+        <h2 className="type-title text-plate-ink">
           {item === undefined ? "" : taskTitle(item.task)}
         </h2>
         <button

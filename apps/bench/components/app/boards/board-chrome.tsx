@@ -81,7 +81,7 @@ export function StaleBanner({
     <div className="board-float board-banner absolute top-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-3 py-2 pr-2 pl-4">
       <span aria-hidden="true" className="board-stale-dot" />
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-sm leading-5 font-medium">{title}</span>
+        <span className="type-body font-medium">{title}</span>
         <span className="type-small text-muted">
           Something upstream changed. Nothing is spent until you run them.
         </span>
@@ -95,7 +95,7 @@ export function StaleBanner({
       >
         Run from {NODE_LABELS[root.kind]}
         {total > 0 ? (
-          <span className="board-figure font-normal">{formatUsd(total)}</span>
+          <span className="board-figure">{formatUsd(total)}</span>
         ) : null}
       </button>
     </div>
@@ -115,7 +115,7 @@ export function EmptyBoard({
 }) {
   return (
     <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 px-6">
-      <p className="text-muted text-sm leading-5">Start with</p>
+      <p className="text-muted type-body">Start with</p>
       <div className="pointer-events-auto flex flex-wrap justify-center gap-3">
         {STARTERS.map((starter) => (
           <button
@@ -126,7 +126,9 @@ export function EmptyBoard({
             }}
             type="button"
           >
-            <span className="board-title">{NODE_LABELS[starter.kind]}</span>
+            <span className="type-body font-medium">
+              {NODE_LABELS[starter.kind]}
+            </span>
             <span className="type-small text-muted">{starter.text}</span>
           </button>
         ))}
@@ -149,11 +151,11 @@ export function BoardName({
   const [problem, setProblem] = useState<string | null>(null);
   const field = useRef<HTMLInputElement>(null);
   if (board.kind === "inbox") {
-    return <h1 className="board-title truncate">{board.name}</h1>;
+    return <h1 className="type-title truncate">{board.name}</h1>;
   }
   if (!editing) {
     return (
-      <h1 className="board-title min-w-0">
+      <h1 className="type-title min-w-0">
         <button
           className="hover:bg-surface -mx-2 max-w-full truncate rounded px-2 py-1"
           onClick={() => {
@@ -165,7 +167,7 @@ export function BoardName({
           {board.name}
         </button>
         {problem === null ? null : (
-          <span className="type-small text-bad ml-3 font-sans">{problem}</span>
+          <span className="type-small text-bad ml-3">{problem}</span>
         )}
       </h1>
     );
@@ -197,7 +199,7 @@ export function BoardName({
       <input
         aria-label="Board name"
         autoFocus
-        className="board-title board-field h-10 min-h-0 w-72 py-0"
+        className="type-title board-field h-10 min-h-0 w-72 py-0"
         defaultValue={board.name}
         maxLength={80}
         name="name"

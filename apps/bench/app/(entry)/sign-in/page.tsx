@@ -80,9 +80,7 @@ async function SignInPage({
           {viewer.state === "signed-out" ? (
             <div className="hidden flex-col gap-1 md:flex">
               <h1 className="app-screen-title">Sign in</h1>
-              <p className="text-muted text-sm leading-5">
-                Motif is invitation only.
-              </p>
+              <p className="text-muted type-body">Motif is invitation only.</p>
             </div>
           ) : (
             <h1 className="sr-only">Sign in</h1>

@@ -176,7 +176,7 @@ export function Samples({
         >
           <MinusIcon />
         </button>
-        <output className="flex-1 text-center text-sm leading-5 tabular-nums">
+        <output className="type-body flex-1 text-center tabular-nums">
           {count}
         </output>
         <button

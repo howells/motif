@@ -108,7 +108,7 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
                     <span className={`board-radio ${on ? "is-on" : ""}`} />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span
-                        className={`truncate text-sm leading-5 ${on ? "font-medium" : ""}`}
+                        className={`type-body truncate ${on ? "font-medium" : ""}`}
                       >
                         {model.name}
                       </span>
@@ -135,7 +135,7 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
               <li>
                 <button
                   aria-expanded={all}
-                  className="flex h-11 w-full items-center justify-between text-sm leading-5"
+                  className="type-body flex h-11 w-full items-center justify-between"
                   onClick={() => {
                     setAll(!all);
                   }}
@@ -203,9 +203,7 @@ export function CompareModels({
                     {picked ? <CheckIcon size={12} /> : null}
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate text-sm leading-5">
-                      {model.name}
-                    </span>
+                    <span className="type-body truncate">{model.name}</span>
                     {model.reason === null ? (
                       model.usage ? (
                         <span className="type-small text-muted">

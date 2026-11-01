@@ -40,7 +40,7 @@ function Step({
         {index}
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-sm leading-5 font-medium">{step.label}</span>
+        <span className="type-body font-medium">{step.label}</span>
         {step.ok ? (
           <>
             <span className="type-small text-muted">{step.detail}</span>
@@ -108,7 +108,7 @@ function ScopeChoice({
           type="button"
         >
           {choice.label}
-          <span className="board-figure font-normal">
+          <span className="board-figure">
             {choice.quote === undefined
               ? ""
               : formatUsd(choice.quote.listMicros)}
@@ -162,7 +162,7 @@ function QuoteSteps({
         <li className="flex min-h-13 items-center gap-3 px-5 py-2">
           <span className="w-5 shrink-0" />
           <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-sm leading-5 font-medium">Total</span>
+            <span className="type-body font-medium">Total</span>
             <span
               className={`type-small ${isOverCap(quote) ? "text-bad" : "text-muted"}`}
             >
@@ -337,7 +337,7 @@ export function ApprovalDialog({
       ref={dialog}
     >
       <div className="flex flex-col gap-3 px-5 pt-5 pb-3">
-        <h2 className="board-title" id="approval-title">
+        <h2 className="type-title" id="approval-title">
           {titleOf(label, runnable, downstream)}
         </h2>
         {hasBelow && runnable ? (
