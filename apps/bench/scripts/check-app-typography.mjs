@@ -22,7 +22,7 @@ const SIZES = new Set([
   "0.875rem",
   "1.125rem",
   "1.75rem",
-  "clamp(3rem, 6vw, 4.5rem)",
+  "1.375rem",
 ]);
 
 /** Selectors that are the roles themselves, or join one. */
@@ -75,7 +75,7 @@ const SHAPE = new Set([
 
 const ROLE_FOR = {
   "font-family": "type-small, type-body, type-title (Inter), or type-heading or type-display (Faculty)",
-  "font-size": "type-small (13), type-body (14), type-title (18), type-heading (28) or type-display",
+  "font-size": "type-small (13), type-body (14), type-title (18), type-heading (28) or type-display (22)",
   "letter-spacing": "type-title or type-heading (-0.01em), type-display (-0.02em); the others have none",
   "line-height": "the role already sets its leading",
   "text-transform": "`capitalize` in markup; no role uppercases",
@@ -191,7 +191,7 @@ export function violationsOf(css, file = "app.css") {
       if (
         owns &&
         property === "line-height" &&
-        ["1.25rem", "1.5rem", "2rem", "1.1"].includes(value)
+        ["1.25rem", "1.5rem", "1.75rem", "2rem"].includes(value)
       ) {
         continue;
       }
