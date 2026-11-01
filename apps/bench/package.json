@@ -15,6 +15,7 @@
   "dependencies": {
     "@blossom-carousel/react": "catalog:",
     "@howells/motif-sdk": "workspace:*",
+    "@mastra/core": "catalog:",
     "@motif/bench-core": "workspace:*",
     "@motif/bench-db": "workspace:*",
     "@motif/bench-env": "workspace:*",
@@ -24,6 +25,7 @@
     "@vercel/blob": "catalog:",
     "@workos-inc/authkit-nextjs": "catalog:",
     "@workos-inc/node": "catalog:",
+    "@xyflow/react": "catalog:",
     "ai": "catalog:",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",

@@ -24,11 +24,16 @@ export type {
 } from "./manual-ratings";
 export {
   appAssets,
+  appBoardRuns,
+  appBoards,
   appBudgetMonths,
   appComparisons,
   appGenerations,
   appHolds,
   appInvitations,
   appMembers,
+  appNodeResults,
+  appNodes,
   appSettings,
+  appWires,
 } from "./app-schema";

@@ -1,7 +1,9 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   check,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -297,5 +299,189 @@ export const appGenerations = pgTable(
       "app_generations_reference_ids_array_check",
       sql`jsonb_typeof(${table.referenceAssetIds}) = 'array'`
     ),
+  ]
+);
+
+/**
+ * A named canvas of nodes, one person's own. Every member has exactly one
+ * Inbox Board, where things made on the phone land; it is created the first
+ * time the member opens the App and can't be renamed.
+ */
+export const appBoards = pgTable(
+  "app_boards",
+  {
+    createdAt: timestamptz("created_at").defaultNow().notNull(),
+    id: text("id").primaryKey(),
+    kind: text("kind").notNull(),
+    name: text("name").notNull(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => appMembers.id, { onDelete: "restrict" }),
+    updatedAt: timestamptz("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("app_boards_owner_idx").on(table.ownerId, table.updatedAt),
+    uniqueIndex("app_boards_one_inbox")
+      .on(table.ownerId)
+      .where(sql`${table.kind} = 'inbox'`),
+    check("app_boards_kind_check", sql`${table.kind} in ('board', 'inbox')`),
+    check(
+      "app_boards_name_check",
+      sql`char_length(${table.name}) between 1 and 80`
+    ),
+  ]
+);
+
+/**
+ * One node on a Board: Prompt or Source (inputs), a Task, or Compare.
+ * `settings` holds what the node asks for, validated by the App before it is
+ * written. `pick_asset_id` is the result that flows down its wires. `stale`
+ * means something upstream changed after it last ran; it costs nothing until
+ * it runs again. A removed node keeps its row so the Library can still say
+ * which Board and node made an image.
+ */
+export const appNodes = pgTable(
+  "app_nodes",
+  {
+    boardId: text("board_id")
+      .notNull()
+      .references(() => appBoards.id, { onDelete: "restrict" }),
+    createdAt: timestamptz("created_at").defaultNow().notNull(),
+    id: text("id").primaryKey(),
+    kind: text("kind").notNull(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => appMembers.id, { onDelete: "restrict" }),
+    pickAssetId: text("pick_asset_id").references(() => appAssets.id, {
+      onDelete: "restrict",
+    }),
+    positionX: doublePrecision("position_x").notNull(),
+    positionY: doublePrecision("position_y").notNull(),
+    removedAt: timestamptz("removed_at"),
+    settings: jsonb("settings").$type<Record<string, unknown>>().notNull(),
+    stale: boolean("stale").notNull().default(false),
+    updatedAt: timestamptz("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("app_nodes_board_idx").on(table.boardId),
+    index("app_nodes_owner_idx").on(table.ownerId),
+    check(
+      "app_nodes_kind_check",
+      sql`${table.kind} in ('prompt', 'source', 'generate', 'vary', 'erase', 'reframe', 'cutout', 'upscale', 'compare')`
+    ),
+    check(
+      "app_nodes_settings_object_check",
+      sql`jsonb_typeof(${table.settings}) = 'object'`
+    ),
+  ]
+);
+
+/** A wire carries a node's text or Pick into another node's input. */
+export const appWires = pgTable(
+  "app_wires",
+  {
+    boardId: text("board_id")
+      .notNull()
+      .references(() => appBoards.id, { onDelete: "restrict" }),
+    createdAt: timestamptz("created_at").defaultNow().notNull(),
+    fromNodeId: text("from_node_id")
+      .notNull()
+      .references(() => appNodes.id, { onDelete: "restrict" }),
+    id: text("id").primaryKey(),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => appMembers.id, { onDelete: "restrict" }),
+    removedAt: timestamptz("removed_at"),
+    toNodeId: text("to_node_id")
+      .notNull()
+      .references(() => appNodes.id, { onDelete: "restrict" }),
+  },
+  (table) => [
+    index("app_wires_board_idx").on(table.boardId),
+    uniqueIndex("app_wires_one_live_input")
+      .on(table.toNodeId)
+      .where(sql`${table.removedAt} is null`),
+    check(
+      "app_wires_not_self_check",
+      sql`${table.fromNodeId} <> ${table.toNodeId}`
+    ),
+  ]
+);
+
+/** Every Generation a node has made, newest last: the node's history, and
+ * how the Library knows which Board and node made an image. */
+export const appNodeResults = pgTable(
+  "app_node_results",
+  {
+    boardId: text("board_id")
+      .notNull()
+      .references(() => appBoards.id, { onDelete: "restrict" }),
+    createdAt: timestamptz("created_at").defaultNow().notNull(),
+    generationId: text("generation_id")
+      .primaryKey()
+      .references(() => appGenerations.id, { onDelete: "restrict" }),
+    nodeId: text("node_id")
+      .notNull()
+      .references(() => appNodes.id, { onDelete: "restrict" }),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => appMembers.id, { onDelete: "restrict" }),
+    runId: text("run_id"),
+  },
+  (table) => [
+    index("app_node_results_node_idx").on(table.nodeId, table.createdAt),
+    index("app_node_results_board_idx").on(table.boardId),
+  ]
+);
+
+/**
+ * One approved run on a Board: a single node, or a node and everything
+ * downstream of it, priced together before anything spent. `steps` is the
+ * order the workflow runs the nodes in, with each one's approved ceiling;
+ * `lease_until` says a worker is driving it, so a poll can take over a run
+ * whose function stopped.
+ */
+export const appBoardRuns = pgTable(
+  "app_board_runs",
+  {
+    approvedMicros: micros("approved_micros").notNull(),
+    boardId: text("board_id")
+      .notNull()
+      .references(() => appBoards.id, { onDelete: "restrict" }),
+    createdAt: timestamptz("created_at").defaultNow().notNull(),
+    errorMessage: text("error_message"),
+    fromNodeId: text("from_node_id")
+      .notNull()
+      .references(() => appNodes.id, { onDelete: "restrict" }),
+    id: text("id").primaryKey(),
+    idempotencyKey: text("idempotency_key").notNull(),
+    leaseUntil: timestamptz("lease_until"),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => appMembers.id, { onDelete: "restrict" }),
+    scope: text("scope").notNull(),
+    status: text("status").notNull(),
+    steps: jsonb("steps").$type<Record<string, unknown>[]>().notNull(),
+    updatedAt: timestamptz("updated_at").defaultNow().notNull(),
+  },
+  (table) => [
+    index("app_board_runs_board_idx").on(table.boardId, table.createdAt),
+    uniqueIndex("app_board_runs_owner_idempotency_unique").on(
+      table.ownerId,
+      table.idempotencyKey
+    ),
+    check(
+      "app_board_runs_scope_check",
+      sql`${table.scope} in ('node', 'downstream')`
+    ),
+    check(
+      "app_board_runs_status_check",
+      sql`${table.status} in ('running', 'completed', 'failed', 'stopped')`
+    ),
+    check(
+      "app_board_runs_steps_array_check",
+      sql`jsonb_typeof(${table.steps}) = 'array'`
+    ),
+    check("app_board_runs_approved_check", sql`${table.approvedMicros} > 0`),
   ]
 );
