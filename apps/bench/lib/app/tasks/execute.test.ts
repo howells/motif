@@ -404,7 +404,7 @@ describe("advanceGeneration", () => {
     ]);
   });
 
-  it("raises what its observer throws, after the worker has finished its own part", async () => {
+  it("finishes the Generation when its observer throws, since the observer only narrates", async () => {
     const { deps } = depsWith(async (_task, input) => {
       input.onSubmitted?.("req-1");
       return ok(output());
@@ -413,7 +413,7 @@ describe("advanceGeneration", () => {
       advanceGeneration(sql, OWNER, ID, deps, () => {
         throw new Error("the feed closed");
       })
-    ).rejects.toThrow("the feed closed");
+    ).resolves.toBeUndefined();
     expect(store.endGeneration).toHaveBeenCalledWith(
       sql,
       ID,

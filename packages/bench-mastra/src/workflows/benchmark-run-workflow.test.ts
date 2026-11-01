@@ -1,7 +1,7 @@
 import { alignParams } from "@motif/bench-core";
 import { describe, expect, it } from "vitest";
 
-import { mockPersistExecutor } from "../executors";
+import { mockGenerationExecutor, mockPersistExecutor } from "../executors";
 import type { GenerationAttemptInput } from "../executors";
 import {
   benchmarkRunWorkflow,
@@ -182,6 +182,32 @@ describe("benchmarkRunWorkflow (default mock executors)", () => {
     expect(result.result.status).toBe("failed");
     expect(result.result.models[0]?.failedCount).toBe(1);
     expect(result.result.models[0]?.succeededCount).toBe(0);
+  });
+});
+
+describe("benchmarkRunWorkflow (a sample that can't be kept)", () => {
+  it("counts a sample whose persist failed as failed, never completed", async () => {
+    const workflow = createBenchmarkRunWorkflow({
+      generationExecutor: mockGenerationExecutor,
+      persistExecutor: {
+        persist: async () => {
+          await Promise.resolve();
+          throw new Error("the database went away");
+        },
+      },
+    });
+
+    const run = await workflow.createRun();
+    const result = await run.start({
+      inputData: { ...baseSpec, models: ["flux2-turbo"] },
+    });
+
+    expect(result.status).toBe("success");
+    if (result.status !== "success") {
+      return;
+    }
+    expect(result.result.models[0]?.succeededCount).toBe(0);
+    expect(result.result.models[0]?.failedCount).toBe(1);
   });
 });
 

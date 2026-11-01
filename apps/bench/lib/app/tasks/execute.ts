@@ -89,25 +89,25 @@ const ignore: Notify = () => {
   // Nobody is watching.
 };
 
-/** Hands events to an observer one after another, off the worker's path. A
- * failure of the observer is kept and raised when the worker is done. */
+/** Hands events to an observer one after another, off the worker's path.
+ * The observer only narrates: its failure is logged and never fails the
+ * Generation, which may already have been paid for. */
 const notifier = (observe: WorkerObserver | undefined) => {
   let chain: Promise<void> = Promise.resolve();
-  let failure: unknown;
-  let failed = false;
+  let logged = false;
   const deliver = async (
     before: Promise<void>,
     watcher: WorkerObserver,
     event: WorkerEvent
   ): Promise<void> => {
-    // `before` never rejects: every delivery keeps its own failure.
+    // `before` never rejects: every delivery handles its own failure.
     await before;
     try {
       await watcher(event);
     } catch (error) {
-      if (!failed) {
-        failed = true;
-        failure = error;
+      if (!logged) {
+        logged = true;
+        console.error("[generation] a progress observer failed", error);
       }
     }
   };
@@ -121,14 +121,7 @@ const notifier = (observe: WorkerObserver | undefined) => {
   const drain = async () => {
     await chain;
   };
-  /** Wait, then raise what the observer threw. */
-  const flush = async () => {
-    await drain();
-    if (failed) {
-      throw failure;
-    }
-  };
-  return { drain, flush, notify };
+  return { drain, notify };
 };
 
 /** Report fal's queue when its status or place in line changes, say so when
@@ -594,7 +587,7 @@ export const advanceGeneration = async (
   if (leaseToken === null) {
     return;
   }
-  const { drain, flush, notify } = notifier(observe);
+  const { drain, notify } = notifier(observe);
   try {
     const generation = await getOwnedGeneration(sql, ownerId, id);
     if (generation === null) {
@@ -637,7 +630,6 @@ export const advanceGeneration = async (
         break;
       }
     }
-    await flush();
   } finally {
     // Nothing is written for this Generation after it has stopped working.
     await drain();

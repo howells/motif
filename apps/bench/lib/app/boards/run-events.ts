@@ -185,9 +185,10 @@ const stepEvents = (
 /**
  * The beats one chunk of a workflow's stream stands for: the run starting and
  * finishing, a node's step beginning and ending, a step's failure, and each
- * beat a step wrote with `writer`. A nested Compare surfaces in the parent
- * stream like any other step; its own beats carry their node, so nothing
- * depends on the step ids.
+ * beat a step wrote with `writer`. A step's own beats carry their node. A
+ * node's begin, done and error come from its step id (`node-<id>` or
+ * `compare-<id>`, with nested Compare steps as `compare-<id>.<step>`); that
+ * separator is engine behaviour, pinned by run-events.test.ts.
  */
 export const eventsOf = (
   chunk: unknown,

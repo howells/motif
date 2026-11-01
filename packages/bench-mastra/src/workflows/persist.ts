@@ -41,8 +41,9 @@ export const createPersistStep = (executor: PersistExecutor) =>
             };
 
       let sampleId: string;
+      let persisted = true;
       try {
-        const persisted = await executor.persist({
+        const kept = await executor.persist({
           alias: outcome.alias,
           costBasis: outcome.costBasis,
           costEstimatedMicros: outcome.costEstimatedMicros,
@@ -53,12 +54,17 @@ export const createPersistStep = (executor: PersistExecutor) =>
           sampleIndex: outcome.sampleIndex,
           usesQueue: outcome.usesQueue,
         });
-        sampleId = persisted.sampleId;
-      } catch {
-        // A persist failure must not take the whole `.foreach` batch down —
+        sampleId = kept.sampleId;
+      } catch (error) {
+        // A persist failure must not take the whole `.foreach` batch down:
         // the attempt itself still happened (and, on success, already cost
-        // money), so it is reported as a failed *persisted* sample rather
-        // than thrown.
+        // money). It is reported as a sample that wasn't kept, with its
+        // cause in the log, and never counted as completed.
+        console.error(
+          `[bench] couldn't keep sample ${String(outcome.sampleIndex)} of ${outcome.alias} for run ${outcome.runId}`,
+          error
+        );
+        persisted = false;
         sampleId = `unpersisted-${outcome.runId}-${outcome.alias}-${outcome.sampleIndex}`;
       }
 
@@ -74,7 +80,8 @@ export const createPersistStep = (executor: PersistExecutor) =>
         runId: outcome.runId,
         sampleId,
         sampleIndex: outcome.sampleIndex,
-        status: outcome.status === "ok" ? "completed" : "failed",
+        persisted,
+        status: persisted && outcome.status === "ok" ? "completed" : "failed",
         totalMs: outcome.totalMs,
       };
 

@@ -172,6 +172,8 @@ export const PersistOutcomeSchema = z.object({
   downloadMs: z.number().nonnegative().nullable(),
   errorCode: ExecuteErrorCodeSchema.nullable(),
   executionOrdinal: z.number().int().nonnegative(),
+  /** False when the sample couldn't be kept; it then counts as failed. */
+  persisted: z.boolean(),
   providerMs: z.number().nonnegative().nullable(),
   runId: z.string(),
   sampleId: z.string(),

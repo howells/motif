@@ -657,7 +657,12 @@ export const driveRun = async (
       ctx,
       await compareModelsOf(sql, member.id, run)
     );
-    const handle = await workflow.createRun();
+    // The App's own run id names the Mastra run, so logs and the stream
+    // correlate with app_board_runs and app_run_events.
+    const handle = await workflow.createRun({
+      resourceId: member.id,
+      runId,
+    });
     const stream = handle.stream({ inputData: { runId } });
     await recordStream(
       {
