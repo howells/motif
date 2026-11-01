@@ -63,7 +63,7 @@
 
 .docs-search-field kbd {
   font-family: var(--blume-font-body);
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   color: var(--blume-muted-foreground);
 }
 
@@ -190,23 +190,24 @@
 }
 
 .prose h1 {
-  font-size: 1.75rem;
+  font-size: 1.125rem;
   font-weight: 400;
-  line-height: 2rem;
+  line-height: 1.5rem;
   margin-bottom: 0.5rem;
+  letter-spacing: -0.01em;
 }
 
 .prose > p.text-lg {
-  font-size: 1.125rem;
-  line-height: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
   color: var(--blume-muted-foreground);
 }
 
 .prose h2 {
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  line-height: 1.5rem;
-  letter-spacing: -0.01em;
+  line-height: 1.25rem;
+  letter-spacing: 0;
   margin-top: 2.5rem;
   margin-bottom: 0.5rem;
   color: var(--blume-foreground);
@@ -513,4 +514,29 @@
 [data-blume-footer] {
   background: var(--blume-background);
   font-size: 0.8125rem;
+}
+
+/* The public site sets its text at 14 and 13, with 18 kept for a page's own
+   title, so the docs do too. Tables keep the body leading, and the pieces
+   Blume sizes itself (the previous and next links, the contents heading)
+   join the same roles. */
+.prose table td,
+.prose table th {
+  line-height: 1.25rem;
+}
+
+a:has(> svg use[href="#blume-i-arrow-left"]),
+a:has(> svg use[href="#blume-i-arrow-right"]) {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+a:has(> svg use[href="#blume-i-arrow-left"]) .text-xs,
+a:has(> svg use[href="#blume-i-arrow-right"]) .text-xs {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+p.font-semibold {
+  font-weight: 500;
 }

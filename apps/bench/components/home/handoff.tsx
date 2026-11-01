@@ -24,7 +24,7 @@ export function HomeHandoff() {
               className="group min-h-control flex flex-col justify-center gap-1 py-4 no-underline md:h-[72px] md:flex-row md:items-center md:justify-between md:py-0"
               href={item.href}
             >
-              <span className="type-title font-medium group-hover:underline">
+              <span className="type-body font-medium group-hover:underline">
                 {item.title}
               </span>
               <span className="type-body text-muted">{item.body}</span>

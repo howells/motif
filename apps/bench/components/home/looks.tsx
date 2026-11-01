@@ -8,7 +8,7 @@ export function HomeLooks() {
   return (
     <section aria-labelledby="home-looks" className="home-section">
       <div className="home-gutter">
-        <h2 className="type-title" id="home-looks">
+        <h2 className="type-body" id="home-looks">
           {HOME.looksTitle}
         </h2>
       </div>

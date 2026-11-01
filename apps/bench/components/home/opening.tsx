@@ -26,7 +26,7 @@ export function HomeOpening() {
         <h1 className="type-wordmark" id="home-title">
           {SITE.name}
         </h1>
-        <p className="type-title">{HOME.line}</p>
+        <p className="type-body">{HOME.line}</p>
       </div>
 
       <div className="relative -mx-4 md:col-start-2 md:row-span-2 md:row-start-1 md:mx-0">
@@ -64,7 +64,7 @@ export function HomeOpening() {
           {HERO_STEPS.map((item, position) => (
             <button
               aria-pressed={position === index}
-              className="type-title text-muted aria-pressed:text-ink hover:text-ink min-h-control shrink-0 cursor-pointer text-start whitespace-nowrap"
+              className="type-body text-muted aria-pressed:text-ink hover:text-ink min-h-control shrink-0 cursor-pointer text-start whitespace-nowrap"
               key={item.id}
               onClick={() => {
                 setIndex(position);

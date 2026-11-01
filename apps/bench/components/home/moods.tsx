@@ -28,7 +28,7 @@ export function HomeMoods() {
       aria-labelledby="home-moods"
       className="home-gutter home-section flex flex-col gap-4 md:gap-8"
     >
-      <h2 className="type-title" id="home-moods">
+      <h2 className="type-body" id="home-moods">
         {HOME.moodsTitle}
       </h2>
       <div className="site-plate -mx-4 aspect-square md:mx-0 md:aspect-[2/1]">
