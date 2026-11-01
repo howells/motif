@@ -34,44 +34,74 @@ const USUALLY = beat(5, "make", "Muse usually takes about 50 s", 5000, {
   typicalMs: 50_000,
 });
 
+const ORIGIN = T0;
+
 describe("LiveBeats", () => {
-  it("sets the current beat large with the earlier ones receding above it", () => {
+  it("sets the current beat large with one faint short beat before it", () => {
     const html = renderToStaticMarkup(
-      <LiveBeats beats={BEATS} depth={2} now={T0 + 6000} />
+      <LiveBeats beats={BEATS} now={T0 + 6000} origin={ORIGIN} />
     );
     expect(html).toContain("Sending to fal: Muse");
-    expect(html).toContain("Price checked again: $0.080");
+    // The beat before, in its short form, with the seconds it came after the start.
+    expect(html).toContain("<span>Price checked</span>");
+    expect(html).not.toContain("Price checked again");
     expect(html).not.toContain(">Starting<");
     expect(html).toContain("4.2 s");
-    expect(html.match(/board-beat-past/gu)).toHaveLength(2);
+    expect(html.match(/board-beat-past/gu)).toHaveLength(1);
     // The current line is the one announced to assistive technology.
     expect(html).toMatch(
       /<output[^>]*board-beat-current[^>]*>Sending to fal: Muse<\/output>/u
     );
   });
 
-  it("dims earlier lines by the shares the contrast allows, nearest first", () => {
+  it("never cuts a beat short, and has no top label or typical-time words", () => {
     const html = renderToStaticMarkup(
-      <LiveBeats beats={BEATS} depth={3} now={T0 + 6000} />
+      <LiveBeats beats={[...BEATS, USUALLY]} now={T0 + 6000} origin={ORIGIN} />
+    );
+    expect(html).not.toContain("truncate");
+    expect(html).not.toContain("line-clamp");
+    expect(html).not.toContain("usually takes");
+    expect(html).not.toContain("of about");
+  });
+
+  it("dims the earlier line by the share the contrast allows", () => {
+    const html = renderToStaticMarkup(
+      <LiveBeats beats={BEATS} now={T0 + 6000} origin={ORIGIN} />
     );
     const shares = [...html.matchAll(/opacity:([0-9.]+)/gu)].map((match) =>
       Number(match[1])
     );
-    // Farthest first in the page, nearest last.
-    expect(shares).toStrictEqual([...RECEDE].toReversed());
+    expect(shares).toStrictEqual([...RECEDE]);
   });
 
-  it("sets timings in tabular figures of the sans, not mono", () => {
+  it("ends the rail with the seconds since the run began, in tabular figures of the sans", () => {
     const html = renderToStaticMarkup(
-      <LiveBeats beats={BEATS} depth={2} now={T0 + 6000} />
+      <LiveBeats beats={BEATS} now={T0 + 22_000} origin={ORIGIN} />
     );
-    expect(html).toContain("tabular-nums");
+    expect(html).toMatch(/tabular-nums[^>]*>22 s<\/span><\/div><\/div>$/u);
     expect(html).not.toContain("board-mono");
+  });
+
+  it("shows only the latest of the repeated quiet beats", () => {
+    const html = renderToStaticMarkup(
+      <LiveBeats
+        beats={[
+          ...BEATS,
+          beat(5, "wait", "Still making it, 15 s in", 15_000),
+          beat(6, "wait", "Still making it, 30 s in", 30_000),
+        ]}
+        now={T0 + 31_000}
+        origin={ORIGIN}
+      />
+    );
+    expect(html).toContain("Still making it, 30 s in");
+    expect(html).not.toContain("Still making it, 15 s in");
+    expect(html).not.toContain("Still waiting");
   });
 
   it("only sweeps without the owner's history", () => {
     const html = renderToStaticMarkup(
-      <LiveBeats beats={BEATS} now={T0 + 6000} />
+      <LiveBeats beats={BEATS} now={T0 + 6000} origin={ORIGIN} />
     );
     expect(html).toContain("board-time-sweep");
     expect(html).not.toContain("board-time-fill");
@@ -80,12 +110,18 @@ describe("LiveBeats", () => {
   it("fills toward the typical time with it, never full", () => {
     const share = (elapsed: number) => {
       const html = renderToStaticMarkup(
-        <LiveBeats beats={[...BEATS, USUALLY]} now={T0 + 5000 + elapsed} />
+        <LiveBeats
+          beats={[...BEATS, USUALLY]}
+          now={T0 + 5000 + elapsed}
+          origin={ORIGIN}
+        />
       );
       return Number(/scaleX\(([0-9.]+)\)/u.exec(html)?.[1]);
     };
     expect(
-      renderToStaticMarkup(<LiveBeats beats={[...BEATS, USUALLY]} now={T0} />)
+      renderToStaticMarkup(
+        <LiveBeats beats={[...BEATS, USUALLY]} now={T0} origin={ORIGIN} />
+      )
     ).not.toContain("board-time-sweep");
     expect(share(0)).toBe(0);
     expect(share(25_000)).toBeGreaterThan(0.5);
@@ -94,20 +130,23 @@ describe("LiveBeats", () => {
   });
 
   it("draws nothing before the first beat", () => {
-    expect(renderToStaticMarkup(<LiveBeats beats={[]} now={T0} />)).toBe("");
+    expect(
+      renderToStaticMarkup(<LiveBeats beats={[]} now={T0} origin={T0} />)
+    ).toBe("");
   });
 });
 
 describe("ProcessLog", () => {
-  it("lists every beat in order with its time and a quiet label, marking the current one", () => {
+  it("lists every beat in order with its time since the run began, marking the current one", () => {
     const html = renderToStaticMarkup(
       <ProcessLog now={T0 + 6000} process={processOf(BEATS, "running")} />
     );
     expect(html.indexOf("Starting")).toBeLessThan(
       html.indexOf("Sending to fal: Muse")
     );
-    expect(html).toContain("Reading");
-    expect(html).toContain("Price");
+    expect(html).toContain("Reading the Prompt");
+    expect(html).toContain("Price checked again: $0.080");
+    expect(html).toContain("4.9 s");
     expect(html.match(/board-beat-dot/gu)).toHaveLength(1);
     expect(html).not.toContain("aria-expanded");
     expect(html).not.toContain("board-mono");
@@ -119,6 +158,38 @@ describe("ProcessLog", () => {
       <ProcessLog now={T0 + 49_000} process={processOf(BEATS, "running")} />
     );
     expect(html).toMatch(/<span class="tabular-nums">49 s<\/span>/u);
+  });
+
+  it("puts the typical time under the beat before it and folds repeated quiet beats", () => {
+    const html = renderToStaticMarkup(
+      <ProcessLog
+        now={T0 + 40_000}
+        process={processOf(
+          [
+            ...BEATS,
+            beat(5, "make", "fal is making it", 5000),
+            USUALLY,
+            beat(7, "wait", "Still making it, 15 s in", 20_000),
+            beat(8, "wait", "Still making it, 30 s in", 35_000),
+          ],
+          "running"
+        )}
+      />
+    );
+    expect(html.match(/Muse usually takes about 50 s/gu)).toHaveLength(1);
+    expect(html.indexOf("fal is making it")).toBeLessThan(
+      html.indexOf("usually takes")
+    );
+    expect(html).toContain("Still making it, 30 s in");
+    expect(html).not.toContain("Still making it, 15 s in");
+  });
+
+  it("counts every time from the run's own start, even for a node that began later", () => {
+    const later = [beat(3, "read", "Reading the Prompt", 9000)];
+    const html = renderToStaticMarkup(
+      <ProcessLog now={T0 + 12_000} process={processOf(later, "running", T0)} />
+    );
+    expect(html).toContain(">9.0 s<");
   });
 
   it("folds a finished node into one line", () => {

@@ -177,7 +177,11 @@ export const settledLine = (generation: Generation): Line | null => {
     };
   }
   if (generation.costStatus === "released") {
-    return { kind: "settle", text: "Nothing was spent, the hold is released" };
+    return {
+      data: { releasedMicros: generation.boundMicros },
+      kind: "settle",
+      text: `Nothing charged, ${formatUsd(generation.boundMicros)} released`,
+    };
   }
   return {
     data: { estimated: true, micros: generation.boundMicros },

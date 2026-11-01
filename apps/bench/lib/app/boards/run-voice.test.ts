@@ -158,7 +158,7 @@ describe("what a run says", () => {
     expect(
       settledLine(generation({ costStatus: "released", status: "failed" }))
         ?.text
-    ).toBe("Nothing was spent, the hold is released");
+    ).toBe("Nothing charged, $0.500 released");
     expect(
       settledLine(generation({ costStatus: "retained", status: "failed" }))
         ?.text

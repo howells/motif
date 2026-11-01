@@ -495,12 +495,6 @@
   transition: box-shadow 150ms;
 }
 
-.board-card.is-stale {
-  box-shadow:
-    0 0 0 1px rgb(139 101 43 / 55%),
-    0 1px 2px rgb(28 27 26 / 4%);
-}
-
 .board-card.is-selected {
   box-shadow:
     0 0 0 2px var(--ink),
@@ -511,14 +505,22 @@
   opacity: 0.4;
 }
 
-/* The smaller role: a node's name, a panel's heading, the line a run is on. */
-.board-title,
-.board-beat-current {
+/* The smaller role: a node's name, a panel's heading. */
+.board-title {
   font-family: var(--font-sans);
   font-size: 1rem;
   font-weight: 550;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
   line-height: 1.375rem;
+}
+
+/* The line a run is on: calm and large, the one thing the well says. */
+.board-beat-current {
+  font-family: var(--font-sans);
+  font-size: 1.375rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  line-height: 1.75rem;
 }
 
 .board-mono {
@@ -902,11 +904,11 @@ textarea.board-field {
   animation: board-beat-lift 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* A hairline of time under the current line. With the owner's typical time
-   it fills toward it; without one it only sweeps. */
+/* A bare hairline under the current line, the elapsed time at its end. With
+   the owner's typical time it fills toward it; without one it only sweeps. */
 .board-time-rail {
-  background: rgb(28 27 26 / 16%);
-  block-size: 2px;
+  background: rgb(28 27 26 / 20%);
+  block-size: 1px;
   display: block;
   overflow: hidden;
   position: relative;
@@ -1253,7 +1255,7 @@ textarea.board-field {
 
   .library-title {
     font-size: 1rem;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     line-height: 1.375rem;
   }
 }

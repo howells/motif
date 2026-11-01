@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 
-import { ChevronDownIcon } from "@/components/app/boards/icons";
+import { CheckIcon, ChevronDownIcon } from "@/components/app/boards/icons";
 import {
-  KIND_LABELS,
   easedShare,
+  logRows,
   makingOf,
   offsetLabel,
   recent,
+  shortText,
   summaryOf,
+  wellBeats,
 } from "@/lib/app/boards/process";
 import type { NodeProcess } from "@/lib/app/boards/process";
 import type { Beat } from "@/lib/app/boards/run-events";
@@ -26,91 +28,98 @@ const TONES: Readonly<
 };
 
 /**
- * The hairline under the current beat. With this owner's typical time for the
+ * The bare hairline under the current beat, the seconds since the run began
+ * at its right end in tabular figures. With this owner's typical time for the
  * Model it fills toward it, slowing as it nears and never full before the
  * image is back; without one it only sweeps, saying nothing about how long.
  * Only transform moves.
  */
 function TimeRail({
   beats,
+  elapsed,
   now,
   tone,
 }: {
   readonly beats: readonly Beat[];
+  readonly elapsed: number;
   readonly now: number;
   readonly tone: Tone;
 }) {
   const making = makingOf(beats);
   return (
-    <span
-      aria-hidden="true"
-      className={`board-time-rail mt-2 ${tone === "plate" ? "on-plate" : ""}`}
-    >
-      {making === null ? (
-        <span className="board-time-sweep" />
-      ) : (
-        <span
-          className="board-time-fill"
-          style={{
-            transform: `scaleX(${easedShare(now - making.startedAt, making.typicalMs).toFixed(3)})`,
-          }}
-        />
-      )}
-    </span>
+    <div aria-hidden="true" className="flex items-center gap-3">
+      <span
+        className={`board-time-rail flex-1 ${tone === "plate" ? "on-plate" : ""}`}
+      >
+        {making === null ? (
+          <span className="board-time-sweep" />
+        ) : (
+          <span
+            className="board-time-fill"
+            style={{
+              transform: `scaleX(${easedShare(now - making.startedAt, making.typicalMs).toFixed(3)})`,
+            }}
+          />
+        )}
+      </span>
+      <span className={`type-small shrink-0 tabular-nums ${TONES[tone].main}`}>
+        {formatSeconds(elapsed)}
+      </span>
+    </div>
   );
 }
 
 /**
- * The beats of a node that is being worked on: the current one set large and
- * calm, the few before it receding above with the seconds each came after
- * the first, and a hairline of time under it. A new beat slides up and fades
- * in; the rest lift. Under reduced motion they only crossfade. The earlier
- * lines stay dark enough to read on the veil over a photograph.
+ * The beats of a node that is being worked on, stripped to what matters: the
+ * one faint beat before, in its short form with the seconds it came after
+ * the run began; the current one set large and calm, free to wrap to a
+ * second line; and a bare rail with the elapsed time. A new beat slides up
+ * and fades in. Under reduced motion they only crossfade. The earlier line
+ * stays dark enough to read on the veil over a photograph.
  */
 export function LiveBeats({
   beats,
-  depth = 3,
   now,
+  origin,
   tone = "paper",
 }: {
   readonly beats: readonly Beat[];
-  readonly depth?: number;
   readonly now: number;
+  readonly origin: number;
   readonly tone?: Tone;
 }) {
-  const { current, past } = recent(beats, depth);
-  const [first] = beats;
-  if (current === undefined || first === undefined) {
+  const { current, past } = recent(wellBeats(beats), 1);
+  if (current === undefined) {
     return null;
   }
   const colours = TONES[tone];
   return (
-    <div className="flex flex-col gap-1.5">
-      <div aria-hidden="true" className="flex flex-col gap-0.5">
-        {past.map((beat, index) => {
-          // Nearest the current line is last in `past`.
-          const rank = past.length - 1 - index;
-          return (
-            <p
-              className={`board-beat-past type-small flex items-baseline justify-between gap-3 ${colours.quiet}`}
-              key={`${beat.seq}-${rank}`}
-              style={{ opacity: RECEDE[rank] ?? RECEDE.at(-1) }}
-            >
-              <span className="truncate">{beat.text}</span>
-              <span className="shrink-0 tabular-nums">
-                {offsetLabel(beat, first)}
-              </span>
-            </p>
-          );
-        })}
-      </div>
+    <div className="flex flex-col gap-3">
+      {past.map((beat) => (
+        <p
+          aria-hidden="true"
+          className={`board-beat-past type-small flex items-baseline justify-between gap-3 ${colours.quiet}`}
+          key={beat.seq}
+          style={{ opacity: RECEDE[0] }}
+        >
+          <span>{shortText(beat)}</span>
+          <span className="shrink-0 tabular-nums">
+            {offsetLabel(beat, origin)}
+          </span>
+        </p>
+      ))}
       <output
-        className={`board-beat board-beat-current line-clamp-2 ${colours.main}`}
+        className={`board-beat board-beat-current ${colours.main}`}
         key={current.seq}
       >
         {current.text}
       </output>
-      <TimeRail beats={beats} now={now} tone={tone} />
+      <TimeRail
+        beats={beats}
+        elapsed={Math.max(0, now - origin)}
+        now={now}
+        tone={tone}
+      />
     </div>
   );
 }
@@ -147,7 +156,12 @@ export function PlateProcess({
     <div className="board-plate-well board-live relative mb-4 h-40 overflow-hidden rounded">
       <LiveGlow tone="plate" />
       <div className="absolute inset-x-0 bottom-0 px-4 pb-3.5">
-        <LiveBeats beats={process.beats} depth={3} now={now} tone="plate" />
+        <LiveBeats
+          beats={process.beats}
+          now={now}
+          origin={process.origin ?? now}
+          tone="plate"
+        />
       </div>
     </div>
   );
@@ -155,10 +169,10 @@ export function PlateProcess({
 
 /**
  * The settings panel's Process: every beat of the node's latest run in
- * order, each with the seconds it came after the first, a quiet label for
- * what kind of beat it is, and the current one marked. It reads the same
- * beats the node does. While the run goes it is open and its clock runs;
- * once the node has finished it folds into one line that opens again.
+ * order, each with the seconds since the run began, always climbing, and the
+ * current one marked. It reads the same beats the node does. While the run
+ * goes it is open and its header keeps the live total; once the node has
+ * finished it folds into one line that opens again.
  */
 export function ProcessLog({
   now,
@@ -168,20 +182,20 @@ export function ProcessLog({
   readonly process: NodeProcess;
 }) {
   const [open, setOpen] = useState(false);
-  const { beats } = process;
-  const [first] = beats;
-  if (first === undefined) {
+  const { beats, origin } = process;
+  if (beats.length === 0 || origin === null) {
     return null;
   }
   const shown = process.live || open;
-  const last = beats.at(-1);
+  const rows = logRows(beats);
+  const last = rows.at(-1);
   return (
     <section className="flex flex-col gap-1">
       <h3 className="type-small text-muted flex items-baseline justify-between">
         <span>Process</span>
         {process.live ? (
           <span className="tabular-nums">
-            {formatSeconds(Math.max(0, now - Date.parse(first.at)))}
+            {formatSeconds(Math.max(0, now - origin))}
           </span>
         ) : null}
       </h3>
@@ -204,31 +218,32 @@ export function ProcessLog({
       )}
       {shown ? (
         <ol className="flex flex-col pt-1">
-          {beats.map((beat) => {
-            const marked = process.live && beat.seq === last?.seq;
+          {rows.map(({ beat, note }) => {
+            const marked = process.live && beat.seq === last?.beat.seq;
             return (
               <li
-                className="grid grid-cols-[3.25rem_1fr] items-baseline gap-2 py-1"
+                className="grid grid-cols-[1rem_1fr_auto] items-baseline gap-2 py-1"
                 key={beat.seq}
               >
-                <span className="type-small text-faint tabular-nums">
-                  {offsetLabel(beat, first)}
+                <span aria-hidden="true" className="flex items-center">
+                  {marked ? (
+                    <span className="board-beat-dot bg-ink inline-block size-1.5 rounded-full" />
+                  ) : beat.kind === "error" ? null : (
+                    <CheckIcon className="text-faint" size={14} />
+                  )}
                 </span>
                 <span className="flex min-w-0 flex-col">
-                  <span className="type-small text-faint flex items-center gap-1.5">
-                    {marked ? (
-                      <span
-                        aria-hidden="true"
-                        className="board-beat-dot bg-ink inline-block size-1.5 rounded-full"
-                      />
-                    ) : null}
-                    {KIND_LABELS[beat.kind]}
-                  </span>
                   <span
-                    className={`text-sm leading-5 tabular-nums ${beat.kind === "error" ? "text-bad" : marked ? "text-ink" : "text-muted"}`}
+                    className={`text-sm leading-5 ${beat.kind === "error" ? "text-bad" : marked ? "text-ink" : "text-muted"}`}
                   >
                     {beat.text}
                   </span>
+                  {note === null ? null : (
+                    <span className="type-small text-faint">{note}</span>
+                  )}
+                </span>
+                <span className="type-small text-faint tabular-nums">
+                  {offsetLabel(beat, origin)}
                 </span>
               </li>
             );

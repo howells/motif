@@ -27,38 +27,77 @@ export const beatsOfNode = (beats: readonly Beat[], nodeId: string): Beat[] =>
 /** Beats that are bookends or reassurance rather than steps. */
 const BOOKENDS = new Set<RunEventKind>(["begin", "done", "run", "end", "wait"]);
 
-/** The quiet label for a kind of beat. */
-export const KIND_LABELS: Readonly<Record<RunEventKind, string>> = {
-  arm: "Model",
-  begin: "Start",
-  compare: "Compare",
-  done: "Done",
-  end: "Run",
-  error: "Failed",
-  hold: "Hold",
-  image: "Image",
-  make: "Making",
-  pick: "Pick",
-  price: "Price",
-  log: "fal",
-  queue: "Queue",
-  read: "Reading",
-  run: "Run",
-  send: "fal",
-  settle: "Cost",
-  stale: "Stale",
-  store: "Stored",
-  wait: "Waiting",
-};
-
 const ms = (beat: Beat): number => Date.parse(beat.at);
 
-/** How long after the node's first beat this one came, as "4.2 s". */
-export const offsetLabel = (beat: Beat, first: Beat): string =>
-  formatSeconds(Math.max(0, ms(beat) - ms(first)));
+/** When the run began, by the clock of its first beat. */
+export const originOf = (beats: readonly Beat[]): number | null => {
+  const [first] = beats;
+  return first === undefined ? null : ms(first);
+};
+
+/** How long after the run began this beat came, as "4.2 s". Always climbing
+ * down the log, since the beats are in order. */
+export const offsetLabel = (beat: Beat, origin: number): string =>
+  formatSeconds(Math.max(0, ms(beat) - origin));
+
+const isTypical = (beat: Beat): boolean =>
+  beat.kind === "make" && typeof beat.data?.typicalMs === "number";
+
+/** Repeated quiet beats ("Still making it, 30 s in") say the same thing
+ * again: only the latest of a node's stays. */
+export const collapsed = (beats: readonly Beat[]): Beat[] => {
+  const latest = beats.findLast((beat) => beat.kind === "wait");
+  return beats.filter((beat) => beat.kind !== "wait" || beat === latest);
+};
+
+const SHORT: Partial<Record<RunEventKind, (beat: Beat) => string>> = {
+  hold: () => "Hold placed",
+  image: () => "Image back",
+  price: () => "Price checked",
+  queue: () => "Was in the queue",
+  read: (beat) => beat.text.replace(/^Reading\b/u, "Read"),
+  send: (beat) =>
+    typeof beat.data?.model === "string" ? "Sent to fal" : beat.text,
+  store: () => "Stored",
+  wait: () => "Still waiting",
+};
+
+/** A beat in the few words it keeps once a newer one has taken its place:
+ * "Sent to fal" for "Sending to fal: Grok Imagine Image 2.0". Never cut
+ * short with an ellipsis; a beat with no shorter form is kept whole. */
+export const shortText = (beat: Beat): string =>
+  SHORT[beat.kind]?.(beat) ?? beat.text;
+
+/** What the well shows of a run: the quiet repeats folded away and the
+ * owner's typical time left to the panel's log. */
+export const wellBeats = (beats: readonly Beat[]): Beat[] =>
+  collapsed(beats).filter((beat) => !isTypical(beat));
+
+export interface LogRow {
+  readonly beat: Beat;
+  /** A quiet sub-line under the beat, such as the Model's usual time. */
+  readonly note: string | null;
+}
+
+/** The panel's log: each beat once, the owner's typical time as a quiet
+ * line under the beat before it. */
+export const logRows = (beats: readonly Beat[]): LogRow[] => {
+  const rows: LogRow[] = [];
+  for (const beat of collapsed(beats)) {
+    const before = rows.at(-1);
+    if (isTypical(beat) && before !== undefined) {
+      rows[rows.length - 1] = { beat: before.beat, note: beat.text };
+    } else {
+      rows.push({ beat, note: null });
+    }
+  }
+  return rows;
+};
 
 export interface NodeProcess {
   readonly beats: readonly Beat[];
+  /** When the run began, so every time counts from the same moment. */
+  readonly origin: number | null;
   /** The run is still going and this node has not finished in it. */
   readonly live: boolean;
   readonly failed: boolean;
@@ -70,12 +109,14 @@ export const NO_PROCESS: NodeProcess = {
   failed: false,
   finished: false,
   live: false,
+  origin: null,
 };
 
 /** Where a node stands in a run, from its own beats and the run's status. */
 export const processOf = (
   beats: readonly Beat[],
-  runStatus: "completed" | "failed" | "running" | "stopped"
+  runStatus: "completed" | "failed" | "running" | "stopped",
+  origin: number | null = originOf(beats)
 ): NodeProcess => {
   const failed = beats.some((beat) => beat.kind === "error");
   const finished = failed || beats.some((beat) => beat.kind === "done");
@@ -84,6 +125,7 @@ export const processOf = (
     failed,
     finished,
     live: runStatus === "running" && !finished && beats.length > 0,
+    origin,
   };
 };
 
@@ -175,7 +217,11 @@ export const processForNode = (
   const feed = feeds.find((item) => run !== undefined && item.runId === run.id);
   return run === undefined || feed === undefined
     ? NO_PROCESS
-    : processOf(beatsOfNode(feed.beats, nodeId), run.status);
+    : processOf(
+        beatsOfNode(feed.beats, nodeId),
+        run.status,
+        originOf(feed.beats)
+      );
 };
 
 // ── Waiting for fal ─────────────────────────────────────────────────────

@@ -206,7 +206,7 @@ describe("eventsOf", () => {
     ).toEqual([]);
   });
 
-  it("says a skipped node was skipped", () => {
+  it("says a node the stop skipped will not start", () => {
     expect(
       eventsOf(
         {
@@ -220,7 +220,11 @@ describe("eventsOf", () => {
         CALM
       )
     ).toEqual([
-      { kind: "done", nodeId: NODE_A, text: "Skipped, the run was stopped" },
+      {
+        kind: "done",
+        nodeId: NODE_A,
+        text: "Stopped. Nothing below will start",
+      },
     ]);
   });
 });

@@ -3,15 +3,19 @@ import { describe, expect, it } from "vitest";
 import {
   FILL_CEILING,
   beatsOfNode,
+  collapsed,
   easedShare,
   foldBeats,
   latestRunOf,
+  logRows,
   makingOf,
   offsetLabel,
   processForNode,
   processOf,
   recent,
+  shortText,
   summaryOf,
+  wellBeats,
 } from "./process";
 import type { RunRef } from "./process";
 import type { Beat, RunEventKind } from "./run-events";
@@ -100,13 +104,61 @@ describe("recent", () => {
 });
 
 describe("offsetLabel", () => {
-  it("is the seconds after the node's first beat", () => {
+  it("is the seconds after the run began", () => {
     expect(
       offsetLabel(
         beat(1, "read", "a", { at: 4200 }),
-        beat(1, "read", "a", { at: 0 })
+        Date.parse("2026-11-01T10:00:00.000Z")
       )
     ).toBe("4.2 s");
+  });
+});
+
+describe("shortText", () => {
+  it("keeps what a beat said in fewer words, never an ellipsis", () => {
+    expect(
+      shortText(
+        beat(1, "send", "Sending to fal: Grok Imagine Image 2.0", {
+          data: { model: "Grok Imagine Image 2.0" },
+        })
+      )
+    ).toBe("Sent to fal");
+    expect(shortText(beat(2, "read", "Reading the Prompt"))).toBe(
+      "Read the Prompt"
+    );
+    expect(shortText(beat(3, "send", "fal has it"))).toBe("fal has it");
+    expect(shortText(beat(4, "price", "Price checked again: $0.080"))).toBe(
+      "Price checked"
+    );
+    expect(shortText(beat(5, "error", "Generate didn't finish"))).toBe(
+      "Generate didn't finish"
+    );
+  });
+});
+
+describe("repeated quiet beats", () => {
+  const beats = [
+    beat(1, "make", "fal is making it"),
+    beat(2, "wait", "Still making it, 15 s in"),
+    beat(3, "log", "step 4"),
+    beat(4, "wait", "Still making it, 30 s in"),
+  ];
+
+  it("keeps only the latest, in the well and in the log", () => {
+    expect(collapsed(beats).map((item) => item.seq)).toEqual([1, 3, 4]);
+    expect(wellBeats(beats).map((item) => item.seq)).toEqual([1, 3, 4]);
+    expect(logRows(beats).map((row) => row.beat.seq)).toEqual([1, 3, 4]);
+  });
+
+  it("leaves the typical time out of the well and under the beat before it in the log", () => {
+    const typical = beat(2, "make", "Muse usually takes about 50 s", {
+      data: { typicalMs: 50_000 },
+    });
+    const held = [beat(1, "make", "fal is making it"), typical];
+    expect(wellBeats(held).map((item) => item.seq)).toEqual([1]);
+    expect(logRows(held)).toEqual([
+      { beat: held[0], note: "Muse usually takes about 50 s" },
+    ]);
   });
 });
 

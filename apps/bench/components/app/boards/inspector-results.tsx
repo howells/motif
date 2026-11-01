@@ -98,7 +98,11 @@ export function Results({ node }: { readonly node: NodeViewData }) {
   const [earlier, setEarlier] = useState(false);
   const groups = runsOf(node.results);
   const [latest, ...rest] = groups;
-  if (latest === undefined) {
+  // Nothing to show until an image exists: no empty block while it is made.
+  if (
+    latest === undefined ||
+    !node.results.some((result) => result.outputs.length > 0)
+  ) {
     return null;
   }
   const earlierImages = rest.reduce(

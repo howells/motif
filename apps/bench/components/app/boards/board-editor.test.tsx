@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -193,6 +195,8 @@ describe(BoardEditor, () => {
     expect(well).toBeGreaterThan(-1);
     expect(foot).toBeGreaterThan(well);
     expect(card.slice(foot, wellEnd).match(/board-thumb/gu)?.length).toBe(2);
+    // Each is a 44 px target.
+    expect(card.slice(foot, wellEnd).match(/size-11/gu)?.length).toBe(2);
     expect(card.slice(foot, wellEnd)).toContain(">Pick<");
     // And nothing beneath the well but the rows and the footer.
     expect(card).not.toMatch(/<ul class="flex gap-2 px-3\.5 pt-2\.5">/u);
@@ -237,5 +241,42 @@ describe(BoardEditor, () => {
       })
     );
     expect(html).toContain("board-veil");
+  });
+
+  it("says a node did not finish, and why, in its well", () => {
+    const html = render(
+      BoardViewSchema.parse({
+        ...VIEW,
+        nodes: VIEW.nodes.map((item) =>
+          item.id === "nod_g"
+            ? {
+                ...item,
+                results: [
+                  {
+                    ...result("gen_a", "grok-image", "ast_a"),
+                    error: "fal stopped after 60 s",
+                    outputs: [],
+                    status: "failed",
+                  },
+                ],
+                stale: false,
+              }
+            : item
+        ),
+      })
+    );
+    expect(html).toContain("It didn&#x27;t finish");
+    expect(html).toContain("fal stopped after 60 s");
+    expect(html).not.toContain("Run to see it here");
+  });
+
+  it("marks a Stale node with the word and a dashed wire, not an amber border", () => {
+    const html = render();
+    expect(html).toContain(">Stale<");
+    const css = readFileSync(
+      new URL("../../../app/app.css", import.meta.url),
+      "utf-8"
+    );
+    expect(css).not.toMatch(/\.board-card\.is-stale\s*\{/u);
   });
 });

@@ -13,7 +13,7 @@ export const PAPER = { b: 247, g: 249, r: 250 } as const;
 /** The ink tone, as the App's `--ink` token. */
 export const INK = { b: 26, g: 27, r: 28 } as const;
 
-/** How much of the ink each earlier line keeps, nearest the current line
- * first. The lowest is set by contrast: below about 0.66 a line no longer
- * reaches AA over the veil laid on a black image. */
-export const RECEDE = [0.88, 0.76, 0.68] as const;
+/** How much of the ink the one faint earlier line keeps. It is set by
+ * contrast: below about 0.66 a line no longer reaches AA over the veil laid
+ * on a black image. */
+export const RECEDE = [0.68] as const;

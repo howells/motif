@@ -8,7 +8,7 @@ import { LiveBeats, LiveGlow } from "@/components/app/boards/process";
 import { useNow } from "@/components/app/boards/use-now";
 import { useRunBeats } from "@/components/app/boards/use-run-beats";
 import { MediaImage } from "@/components/app/media-image";
-import { makingOf } from "@/lib/app/boards/process";
+import { originOf } from "@/lib/app/boards/process";
 import type { Beat } from "@/lib/app/boards/run-events";
 import { api, messageOf } from "@/lib/app/client/api";
 import { RunResultsReply } from "@/lib/app/client/board-schemas";
@@ -42,11 +42,6 @@ const againHref = (again: Again): string => {
     }
   }
   return `/make?${params.toString()}`;
-};
-
-const typicalOfBeats = (beats: readonly Beat[]): string => {
-  const making = makingOf(beats);
-  return making === null ? "" : ` of about ${formatSeconds(making.typicalMs)}`;
 };
 
 const typicalOf = (result: ResultViewData | undefined): string =>
@@ -101,27 +96,20 @@ function PlateNote({
 function LivePlate({
   beats,
   now,
-  reply,
 }: {
   readonly beats: readonly Beat[];
   readonly now: number;
-  readonly reply: RunResultsData | undefined;
 }) {
-  const run = reply?.run;
   return (
     <div className="board-live absolute inset-0">
       <LiveGlow tone="plate" />
-      <div className="absolute inset-x-0 top-0 flex items-baseline justify-between px-5 pt-4">
-        <span className="type-small text-plate-muted">Making</span>
-        {run === undefined ? null : (
-          <span className="type-small text-plate-muted tabular-nums">
-            {formatSeconds(Math.max(0, now - Date.parse(run.createdAt)))}
-            {typicalOfBeats(beats)}
-          </span>
-        )}
-      </div>
       <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
-        <LiveBeats beats={beats} depth={3} now={now} tone="plate" />
+        <LiveBeats
+          beats={beats}
+          now={now}
+          origin={originOf(beats) ?? now}
+          tone="plate"
+        />
       </div>
     </div>
   );
@@ -240,7 +228,7 @@ export function MakeResult({
       </header>
       <div className="bg-plate relative aspect-square w-full">
         {output === undefined && running && beats.length > 0 ? (
-          <LivePlate beats={beats} now={now} reply={reply.data} />
+          <LivePlate beats={beats} now={now} />
         ) : output === undefined ? (
           <div className="text-plate-muted absolute inset-0 flex flex-col items-center justify-center gap-1 px-8 text-center">
             <PlateNote

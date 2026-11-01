@@ -31,7 +31,6 @@ import {
 } from "@/lib/app/boards/canvas";
 import type { NodeViewOf, RunState } from "@/lib/app/boards/canvas";
 import { NODE_LABELS, inputOf, isRunnable } from "@/lib/app/boards/model";
-import { makingOf } from "@/lib/app/boards/process";
 import type {
   NodeViewData,
   ResultViewData,
@@ -132,36 +131,14 @@ const makingLabel = (node: NodeViewData, images: number): string =>
     : `Making ${images} ${images === 1 ? "image" : "images"}`;
 
 /** The well of a node being made, reading out what the run is doing. */
-function LiveWell({
-  node,
-  run,
-}: {
-  readonly node: NodeViewData;
-  readonly run: Extract<RunState, { state: "running" | "waiting" }>;
-}) {
+function LiveWell({ node }: { readonly node: NodeViewData }) {
   const { now, process } = useBoard();
-  const { beats } = process(node.id);
-  const elapsed = elapsedOf(run.since, now);
-  // Only this owner's own history speaks of how long it usually takes.
-  const typical = makingOf(beats)?.typicalMs ?? null;
+  const { beats, origin } = process(node.id);
   return (
     <div className="board-live absolute inset-0">
       <LiveGlow />
-      <div className="absolute inset-x-0 top-0 flex items-baseline justify-between px-3.5 pt-2.5">
-        <span className="type-small text-ink">
-          {makingLabel(node, run.expected)}
-        </span>
-        <span className="type-small text-muted tabular-nums">
-          {formatSeconds(elapsed)}
-          {typical === null ? "" : ` of about ${formatSeconds(typical)}`}
-        </span>
-      </div>
-      <div className="absolute inset-x-0 bottom-0 px-3.5 pb-3">
-        <LiveBeats
-          beats={beats}
-          depth={IMAGE_HEIGHT[node.kind] >= 150 ? 2 : 1}
-          now={now}
-        />
+      <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
+        <LiveBeats beats={beats} now={now} origin={origin ?? now} />
       </div>
     </div>
   );
@@ -176,7 +153,7 @@ function Making({
 }) {
   const { now, process } = useBoard();
   if (run.state === "running" && process(node.id).beats.length > 0) {
-    return <LiveWell node={node} run={run} />;
+    return <LiveWell node={node} />;
   }
   const elapsed = elapsedOf(run.since, now);
   const typical = run.typicalMs;
@@ -212,6 +189,16 @@ function Making({
   );
 }
 
+const DIDNT_FINISH = "It didn't finish";
+
+/** Why the node's latest Generation did not finish, when it did not. */
+const failureOf = (node: NodeViewData): string | null => {
+  const [latest] = node.results;
+  return latest?.status === "failed"
+    ? (latest.error ?? "The run failed.")
+    : null;
+};
+
 function ImageArea({
   node,
   run,
@@ -223,6 +210,7 @@ function ImageArea({
   const height = IMAGE_HEIGHT[node.kind];
   const images = imagesOf(node);
   const busy = run.state !== "idle";
+  const failure = busy ? null : failureOf(node);
   const thumbs = images.slice(0, 4);
   // A node that has just finished shows its image with a gentle reveal. The
   // flag is set when the run ends, in render, so the image never flashes in.
@@ -249,7 +237,7 @@ function ImageArea({
             <PlusIcon />
             Choose an image
           </button>
-        ) : busy ? null : (
+        ) : busy || failure !== null ? null : (
           <span className="type-small text-muted absolute inset-0 flex items-center justify-center">
             {node.price?.ok === false
               ? "Not ready to run"
@@ -276,7 +264,7 @@ function ImageArea({
       {node.pick !== null && busy ? (
         <span aria-hidden="true" className="board-veil absolute inset-0" />
       ) : null}
-      {node.pick !== null && thumbs.length > 1 && !busy ? (
+      {node.pick !== null && thumbs.length > 1 && !busy && failure === null ? (
         <div className="board-well-foot absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 px-2 pt-8 pb-2">
           <span className="board-chip">
             <CheckIcon size={14} />
@@ -292,19 +280,30 @@ function ImageArea({
                       : "Make this the Pick"
                   }
                   aria-pressed={image.assetId === node.pick?.assetId}
-                  className="board-thumb nodrag bg-surface block size-8"
+                  className="board-thumb nodrag bg-surface block size-11"
                   onClick={() => {
                     makePick(node, image.assetId);
                   }}
                   type="button"
                 >
-                  <MediaImage alt="" sizes="32px" src={image.url} />
+                  <MediaImage alt="" sizes="44px" src={image.url} />
                 </button>
               </li>
             ))}
           </ul>
         </div>
       ) : null}
+      {failure === null ? null : (
+        <>
+          {node.pick === null ? null : (
+            <span aria-hidden="true" className="board-veil absolute inset-0" />
+          )}
+          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1 px-4 pb-4">
+            <p className="board-beat-current text-ink">{DIDNT_FINISH}</p>
+            <p className="text-ink text-sm leading-5">{failure}</p>
+          </div>
+        </>
+      )}
       {run.state === "idle" ? null : <Making node={node} run={run} />}
     </div>
   );

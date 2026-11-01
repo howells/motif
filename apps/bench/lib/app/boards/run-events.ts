@@ -175,7 +175,7 @@ const stepEvents = (
       {
         kind: "done",
         nodeId,
-        text: skipped ? "Skipped, the run was stopped" : "Finished",
+        text: skipped ? "Stopped. Nothing below will start" : "Finished",
       },
     ];
   }
