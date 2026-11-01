@@ -42,6 +42,12 @@ import { modelName } from "./names";
 import { buildRequests, inputFor, pickSizes, quoteNode } from "./plan";
 import { sayFor } from "./run-events";
 import type { Say } from "./run-events";
+import {
+  approvedGraph,
+  compareModelsOf,
+  resultPick,
+  StepFailedError,
+} from "./run-inputs";
 import { recordStream } from "./run-record";
 import {
   claimRun,
@@ -66,6 +72,7 @@ import {
   typicalLine,
 } from "./run-voice";
 import type { Line } from "./run-voice";
+import { sameConfiguration } from "./snapshot";
 import { completeNode, getGraph, markStale, recordResult } from "./store";
 import type { BoardNode } from "./store";
 
@@ -93,14 +100,6 @@ export const liveRunDeps = (worker: WorkerDeps): RunDeps => ({
   },
   worker,
 });
-
-/** A run step failed in a way the person should read. */
-export class StepFailedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "StepFailedError";
-  }
-}
 
 /** The run is out of time for this invocation; a poll carries it on. */
 class OutOfTimeError extends Error {
@@ -267,7 +266,7 @@ const settle = async (
 };
 
 const loadNode = async (ctx: RunContext, nodeId: string) => {
-  const graph = await getGraph(ctx.sql, ctx.member.id, ctx.run.boardId);
+  const graph = await approvedGraph(ctx);
   const node = graph.nodes.find((candidate) => candidate.id === nodeId);
   if (node === undefined) {
     throw new StepFailedError("A node in this run was removed.");
@@ -318,10 +317,7 @@ const finish = async (
   generations: readonly Generation[],
   say: Say
 ) => {
-  const pick = generations.find(
-    (generation) =>
-      generation.status === "completed" && generation.outputAssetIds.length > 0
-  )?.outputAssetIds[0];
+  const pick = resultPick(node, generations);
   if (pick === undefined) {
     const failed = generations.find(
       (generation) => generation.status !== "completed"
@@ -330,7 +326,24 @@ const finish = async (
       `${NODE_LABELS[node.kind]} didn't finish: ${failed?.errorMessage ?? "no image came back."}`
     );
   }
-  await completeNode(ctx.sql, ctx.member.id, node.id, pick);
+  const current = await getGraph(ctx.sql, ctx.member.id, ctx.run.boardId);
+  const snapshot = ctx.run.steps[0]?.snapshot;
+  if (snapshot === undefined || !sameConfiguration(graph, current, node.id)) {
+    // Keep the result in history, but never make pre-edit work the current Pick.
+    await markStale(ctx.sql, ctx.member.id, [node.id]);
+    return;
+  }
+  const original = snapshot.nodes.find((candidate) => candidate.id === node.id);
+  const completed = await completeNode(
+    ctx.sql,
+    ctx.member.id,
+    node.id,
+    pick,
+    original?.pickAssetId
+  );
+  if (!completed) {
+    return;
+  }
   await tell(say, pickLine());
   const below = staleAfterPick(
     node.id,
@@ -608,24 +621,6 @@ export const buildRunWorkflow = (
   return workflow.commit();
 };
 
-/** The Models each Compare node in a run will ask, from its settings now. */
-const compareModelsOf = async (
-  sql: AppSql,
-  ownerId: string,
-  run: BoardRun
-): Promise<Map<string, readonly string[]>> => {
-  const graph = await getGraph(sql, ownerId, run.boardId);
-  const byId = new Map(graph.nodes.map((node) => [node.id, node]));
-  const found = new Map<string, readonly string[]>();
-  for (const step of run.steps) {
-    const node = byId.get(step.nodeId);
-    if (node?.kind === "compare") {
-      found.set(node.id, node.settings.models);
-    }
-  }
-  return found;
-};
-
 /**
  * Drive a run as far as this invocation can. Safe to call from any number
  * of requests: only the holder of the run's lease drives it.
@@ -653,10 +648,7 @@ export const driveRun = async (
       run,
       sql,
     };
-    const workflow = buildRunWorkflow(
-      ctx,
-      await compareModelsOf(sql, member.id, run)
-    );
+    const workflow = buildRunWorkflow(ctx, compareModelsOf(run));
     // The App's own run id names the Mastra run, so logs and the stream
     // correlate with app_board_runs and app_run_events.
     const handle = await workflow.createRun({

@@ -164,6 +164,7 @@ const StepQuoteSchema = z.discriminatedUnion("ok", [
 export type StepQuoteData = z.infer<typeof StepQuoteSchema>;
 
 export const QuoteViewSchema = z.object({
+  configuration: z.string().regex(/^[0-9a-f]{64}$/u),
   availableMicros: z.number(),
   capMicros: z.number(),
   levels: z.array(z.array(z.string())),

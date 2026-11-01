@@ -40,9 +40,11 @@ export interface LibraryItem {
   readonly width: number | null;
 }
 
-const stepOf = (generation: Generation): MadeFromStep | null => {
-  const [assetId] = generation.outputAssetIds;
-  return assetId === undefined
+const stepOf = (
+  generation: Generation,
+  assetId = generation.outputAssetIds[0]
+): MadeFromStep | null =>
+  assetId === undefined
     ? null
     : {
         assetId,
@@ -50,17 +52,16 @@ const stepOf = (generation: Generation): MadeFromStep | null => {
         task: generation.task,
         url: mediaUrl(assetId),
       };
-};
 
 /** The Generations this one came from, following each Source back to the
  * Generation that made it, oldest first. */
 const ANCESTORS = `
-WITH RECURSIVE chain (id, source, depth) AS (
-  SELECT g.id, g.source_asset_id, 0
+WITH RECURSIVE chain (id, source, asset_id, depth) AS (
+  SELECT g.id, g.source_asset_id, NULL::text, 0
     FROM app_generations g
    WHERE g.id = $1 AND g.owner_id = $2
   UNION ALL
-  SELECT p.id, p.source_asset_id, c.depth + 1
+  SELECT p.id, p.source_asset_id, c.source, c.depth + 1
     FROM chain c
     CROSS JOIN LATERAL (
       SELECT g.id, g.source_asset_id
@@ -72,7 +73,7 @@ WITH RECURSIVE chain (id, source, depth) AS (
     ) p
    WHERE c.source IS NOT NULL AND c.depth < $3
 )
-SELECT id FROM chain WHERE depth > 0 ORDER BY depth DESC`;
+SELECT id, asset_id FROM chain WHERE depth > 0 ORDER BY depth DESC`;
 
 const ancestorsOf = async (
   sql: AppSql,
@@ -85,9 +86,12 @@ const ancestorsOf = async (
   const found = new Map(
     generations.map((generation) => [generation.id, generation])
   );
-  return ids.flatMap((id) => {
-    const generation = found.get(id);
-    const step = generation === undefined ? null : stepOf(generation);
+  return rows.flatMap((row) => {
+    const generation = found.get(text(row, "id"));
+    const step =
+      generation === undefined
+        ? null
+        : stepOf(generation, text(row, "asset_id"));
     return step === null ? [] : [step];
   });
 };

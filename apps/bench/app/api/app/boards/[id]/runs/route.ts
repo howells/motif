@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
 const RunRequest = z.strictObject({
+  approvedConfiguration: z.string().regex(/^[0-9a-f]{64}$/u),
   approvedMicros: z.int().positive(),
   fromNodeId: z.string().regex(/^nod_[0-9a-f]{32}$/u),
   idempotencyKey: z.uuid(),

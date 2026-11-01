@@ -3,6 +3,7 @@ import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import { spawnEnv } from "./cli-env";
 
@@ -25,9 +26,21 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-function isPackResult(value: unknown): value is PackResult {
-  return typeof value === "object" && value !== null && "files" in value;
-}
+const PackSchema = z.object({
+  files: z.array(z.object({ path: z.string() })),
+  name: z.string(),
+});
+
+// npm 11 returns an array; npm 12 keys results by package name.
+const PackOutputSchema = z
+  .union([
+    z.array(PackSchema),
+    z
+      .record(z.string(), PackSchema)
+      .transform((packages) => Object.values(packages)),
+  ])
+  .pipe(z.tuple([PackSchema]))
+  .transform(([pack]) => pack);
 
 const repoRoot = resolve(import.meta.dirname, "../../..");
 
@@ -71,15 +84,7 @@ async function npmPackDryRun(packagePath: string): Promise<PackResult> {
     packagePath
   );
   expect(result.code, result.stderr).toBe(0);
-  const parsed: unknown = JSON.parse(result.stdout);
-  if (!Array.isArray(parsed)) {
-    throw new TypeError("expected npm pack --json to return an array");
-  }
-  const first: unknown = parsed[0];
-  if (!isPackResult(first)) {
-    throw new Error("expected an npm pack result object");
-  }
-  return first;
+  return PackOutputSchema.parse(JSON.parse(result.stdout));
 }
 
 function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {

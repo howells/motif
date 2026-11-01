@@ -474,16 +474,26 @@ export const recordResult = async (
 
 const COMPLETE_NODE = `
 UPDATE app_nodes SET pick_asset_id = $3, stale = false, updated_at = now()
- WHERE id = $1 AND owner_id = $2 AND removed_at IS NULL`;
+ WHERE id = $1 AND owner_id = $2 AND removed_at IS NULL
+   AND (NOT $4::boolean OR pick_asset_id IS NOT DISTINCT FROM $5::text)
+RETURNING id`;
 
 /** A node ran: its new result is the Pick, and it is no longer Stale. */
 export const completeNode = async (
   sql: AppSql,
   ownerId: string,
   nodeId: string,
-  pickAssetId: string
-): Promise<void> => {
-  await sql(COMPLETE_NODE, [nodeId, ownerId, pickAssetId]);
+  pickAssetId: string,
+  expectedPick?: string | null
+): Promise<boolean> => {
+  const rows = await sql(COMPLETE_NODE, [
+    nodeId,
+    ownerId,
+    pickAssetId,
+    expectedPick !== undefined,
+    expectedPick ?? null,
+  ]);
+  return rows.length > 0;
 };
 
 const NODE_RESULTS = `

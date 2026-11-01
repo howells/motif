@@ -3,31 +3,27 @@
  * member's own Boards. Routes parse and authorise; these load, check, write
  * and return the Board as the browser should now see it.
  */
-import { CREATIVE_TAXONOMY, LOOKS, TASKS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, LOOKS } from "@howells/motif-sdk";
 import type { AppSql } from "@motif/bench-db/app-sql";
 
 import type { Member } from "../auth/members";
-import { BOUNDED_GENERATION_MODELS } from "../budget/bounds";
 import { monthSummary } from "../budget/ledger";
 import { getOwnedAsset } from "../media/assets";
 import { formatUsd } from "../money";
 import { getOwnedGenerations } from "../tasks/store";
 import {
-  chosenModel,
   isRunnable,
-  isTaskKind,
   parseSettings,
   staleAfterEdit,
   staleAfterPick,
   wireRefusal,
-  withModel,
 } from "./model";
 import type { KindSettings, NodeKind, RunScope, SettingsInput } from "./model";
-import { modelName } from "./names";
 import { inputFor, pickSizes, quoteNode, quoteRun } from "./plan";
-import type { RunQuote, StepQuote } from "./plan";
+import type { RunQuote } from "./plan";
 import { createRun, latestRuns } from "./run-store";
 import type { BoardRun, RunStep } from "./run-store";
+import { configurationKey } from "./snapshot";
 import {
   addNode,
   addWire,
@@ -41,7 +37,7 @@ import {
   setPick,
   updateSettings,
 } from "./store";
-import type { Board } from "./store";
+import type { Board, BoardNode, Graph } from "./store";
 import { boardView, resultView } from "./views";
 import type { BoardView, PriceView, ResultView } from "./views";
 
@@ -191,12 +187,12 @@ export interface AddNodeInput {
   readonly from?: string;
 }
 
-export const addBoardNode = async (
+export const createBoardNode = async (
   sql: AppSql,
   ownerId: string,
   boardId: string,
   input: AddNodeInput
-): Promise<Outcome<BoardView>> => {
+): Promise<Outcome<BoardNode>> => {
   const board = await getOwnedBoard(sql, ownerId, boardId);
   if (board === null) {
     return refuse(404, "NOT_FOUND", NOT_FOUND);
@@ -242,7 +238,18 @@ export const addBoardNode = async (
       return wired;
     }
   }
-  return { ok: true, value: await loadBoardView(sql, ownerId, board) };
+  return { ok: true, value: node };
+};
+
+/** Add a node and return the refreshed canvas to the browser. */
+export const addBoardNode = async (
+  sql: AppSql,
+  ownerId: string,
+  boardId: string,
+  input: AddNodeInput
+): Promise<Outcome<BoardView>> => {
+  const added = await createBoardNode(sql, ownerId, boardId, input);
+  return added.ok ? await boardViewById(sql, ownerId, boardId) : added;
 };
 
 export interface NodeEdit {
@@ -378,24 +385,31 @@ export const disconnect = async (
   if (node === null) {
     return refuse(404, "NOT_FOUND", NOT_FOUND);
   }
+  const graph = await getGraph(sql, ownerId, node.boardId);
+  await markStale(
+    sql,
+    ownerId,
+    staleAfterEdit(node.id, graph.nodes, graph.wires)
+  );
   return await boardViewById(sql, ownerId, node.boardId);
 };
 
 // ── Pricing and running ───────────────────────────────────────────────
 
 export interface QuoteView extends RunQuote {
+  readonly configuration: string;
   readonly availableMicros: number;
   readonly capMicros: number;
   readonly month: string;
 }
 
-export const quoteBoardRun = async (
+const quoteBoardGraph = async (
   sql: AppSql,
   ownerId: string,
   boardId: string,
   fromNodeId: string,
   scope: RunScope
-): Promise<Outcome<QuoteView>> => {
+): Promise<Outcome<QuoteView & { readonly graph: Graph }>> => {
   const board = await getOwnedBoard(sql, ownerId, boardId);
   if (board === null) {
     return refuse(404, "NOT_FOUND", NOT_FOUND);
@@ -413,6 +427,8 @@ export const quoteBoardRun = async (
     ok: true,
     value: {
       ...quoted,
+      configuration: configurationKey(graph),
+      graph,
       availableMicros: Math.max(
         0,
         budget.capMicros - budget.spentMicros - budget.heldMicros
@@ -421,6 +437,28 @@ export const quoteBoardRun = async (
       month: budget.month,
     },
   };
+};
+
+/** Price the current Board without exposing its internal snapshot. */
+export const quoteBoardRun = async (
+  sql: AppSql,
+  ownerId: string,
+  boardId: string,
+  fromNodeId: string,
+  scope: RunScope
+): Promise<Outcome<QuoteView>> => {
+  const quoted = await quoteBoardGraph(
+    sql,
+    ownerId,
+    boardId,
+    fromNodeId,
+    scope
+  );
+  if (!quoted.ok) {
+    return quoted;
+  }
+  const { graph: _graph, ...value } = quoted.value;
+  return { ok: true, value };
 };
 
 /**
@@ -437,11 +475,12 @@ export const startBoardRun = async (
     readonly scope: RunScope;
     readonly idempotencyKey: string;
     readonly approvedMicros: number;
+    readonly approvedConfiguration?: string;
   }
 ): Promise<
   Outcome<{ readonly run: BoardRun; readonly duplicate: boolean }>
 > => {
-  const quoted = await quoteBoardRun(
+  const quoted = await quoteBoardGraph(
     sql,
     member.id,
     input.boardId,
@@ -462,7 +501,11 @@ export const startBoardRun = async (
         : "There's nothing here to run."
     );
   }
-  if (value.micros > input.approvedMicros) {
+  if (
+    value.micros > input.approvedMicros ||
+    (input.approvedConfiguration !== undefined &&
+      input.approvedConfiguration !== value.configuration)
+  ) {
     return refuse(
       409,
       "PRICE_CHANGED",
@@ -487,7 +530,12 @@ export const startBoardRun = async (
     for (const nodeId of level) {
       const step = priced.get(nodeId);
       if (step?.ok === true) {
-        steps.push({ level: index, micros: step.micros, nodeId });
+        steps.push({
+          level: index,
+          micros: step.micros,
+          nodeId,
+          ...(steps.length === 0 && { snapshot: value.graph }),
+        });
       }
     }
   }
@@ -502,121 +550,4 @@ export const startBoardRun = async (
     return refuse(404, "NOT_FOUND", NOT_FOUND);
   }
   return { ok: true, value: created };
-};
-
-// ── Model choices ─────────────────────────────────────────────────────
-
-export interface ModelChoice {
-  readonly chosen: boolean;
-  readonly listMicros: number | null;
-  readonly model: string;
-  readonly name: string;
-  readonly reason: string | null;
-  readonly tier: string;
-  /** Billed by usage: priced at a fixed hold per image. */
-  readonly usage: boolean;
-}
-
-export interface NodeOptions {
-  readonly motifChoice: string | null;
-  readonly models: readonly ModelChoice[];
-}
-
-const RANKED_LIMIT = 8;
-
-const usageOf = (quoted: StepQuote): boolean => quoted.ok && quoted.usage;
-
-/** The Models a node of this kind could ask, best ranked first. Compare
- * offers only Models with a listed price, so its holds are ceilings. */
-const candidatesFor = (
-  kind: NodeKind,
-  mode: "describe" | "text" | undefined
-): readonly { readonly model: string; readonly tier: string }[] => {
-  if (kind === "compare") {
-    return BOUNDED_GENERATION_MODELS.map((model) => ({
-      model,
-      tier:
-        TASKS.generate.models.find((entry) => entry.model === model)?.tier ??
-        "balanced",
-    }));
-  }
-  if (!isTaskKind(kind)) {
-    return [];
-  }
-  const wanted = kind === "erase" && mode === "text" ? "text" : undefined;
-  const found: { model: string; tier: string }[] = [];
-  for (const entry of TASKS[kind].models) {
-    if (("mode" in entry ? entry.mode : undefined) === wanted) {
-      found.push({ model: entry.model, tier: entry.tier });
-    }
-  }
-  return found;
-};
-
-/**
- * The Models a node could use, best ranked first, each priced on the node's
- * real inputs. Motif's own choice (from the Tier, or the Look) is marked;
- * a Model the person picks overrides it.
- */
-export const nodeOptions = async (
-  sql: AppSql,
-  ownerId: string,
-  nodeId: string
-): Promise<Outcome<NodeOptions>> => {
-  const node = await getOwnedNode(sql, ownerId, nodeId);
-  if (node === null || !isRunnable(node.kind)) {
-    return refuse(404, "NOT_FOUND", "That node isn't on one of your Boards.");
-  }
-  const graph = await getGraph(sql, ownerId, node.boardId);
-  const sizes = await pickSizes(sql, ownerId, graph);
-  const input = inputFor(node, graph, sizes);
-  const motif = quoteNode(
-    { ...node, ...withModel(node) },
-    input,
-    ownerId,
-    sizes
-  );
-  const motifChoice = motif.ok ? (motif.models[0] ?? null) : null;
-  const candidates = candidatesFor(
-    node.kind,
-    node.kind === "erase" ? node.settings.mode : undefined
-  );
-  const compared = new Set(node.kind === "compare" ? node.settings.models : []);
-  const current = chosenModel(node);
-  const seen = new Set<string>();
-  const models: ModelChoice[] = [];
-  for (const candidate of candidates) {
-    if (seen.has(candidate.model) || models.length >= RANKED_LIMIT) {
-      continue;
-    }
-    seen.add(candidate.model);
-    const asked: KindSettings =
-      node.kind === "compare"
-        ? {
-            kind: "generate",
-            settings: {
-              ...(node.settings.aspect !== undefined && {
-                aspect: node.settings.aspect,
-              }),
-              count: 1,
-              model: candidate.model,
-              references: [],
-            },
-          }
-        : withModel(node, candidate.model);
-    const priced = quoteNode({ ...node, ...asked }, input, ownerId, sizes);
-    models.push({
-      chosen:
-        node.kind === "compare"
-          ? compared.has(candidate.model)
-          : current === candidate.model,
-      listMicros: priced.ok ? priced.listMicros : null,
-      model: candidate.model,
-      name: modelName(candidate.model),
-      reason: priced.ok ? null : priced.reason,
-      tier: candidate.tier,
-      usage: usageOf(priced),
-    });
-  }
-  return { ok: true, value: { models, motifChoice } };
 };

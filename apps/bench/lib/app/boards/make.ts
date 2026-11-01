@@ -12,7 +12,12 @@ import { modelName } from "./names";
 import { quoteRun } from "./plan";
 import { getRunByKey } from "./run-store";
 import type { BoardRun } from "./run-store";
-import { addBoardNode, checkSettings, refuse, startBoardRun } from "./service";
+import {
+  createBoardNode,
+  checkSettings,
+  refuse,
+  startBoardRun,
+} from "./service";
 import type { Outcome } from "./service";
 import { ensureInbox, getGraph } from "./store";
 import type { BoardNode } from "./store";
@@ -171,7 +176,7 @@ export const make = async (
     y = Math.max(y, node.y + INBOX_ROW);
   }
   const { generate, prompt } = makeGraph(input);
-  const added = await addBoardNode(sql, member.id, inbox.id, {
+  const added = await createBoardNode(sql, member.id, inbox.id, {
     kind: "prompt",
     settings: prompt.settings,
     x: 40,
@@ -180,13 +185,8 @@ export const make = async (
   if (!added.ok) {
     return added;
   }
-  const promptNode = added.value.nodes.find(
-    (node) => node.kind === "prompt" && node.y === y && node.x === 40
-  );
-  if (promptNode === undefined) {
-    return refuse(500, "MAKE_FAILED", "The Prompt wasn't added to your Inbox.");
-  }
-  const withGenerate = await addBoardNode(sql, member.id, inbox.id, {
+  const promptNode = added.value;
+  const withGenerate = await createBoardNode(sql, member.id, inbox.id, {
     from: promptNode.id,
     kind: "generate",
     settings: generate.settings,
@@ -196,16 +196,7 @@ export const make = async (
   if (!withGenerate.ok) {
     return withGenerate;
   }
-  const generateNode = withGenerate.value.nodes.find(
-    (node) => node.kind === "generate" && node.y === y && node.x === 336
-  );
-  if (generateNode === undefined) {
-    return refuse(
-      500,
-      "MAKE_FAILED",
-      "The Generate node wasn't added to your Inbox."
-    );
-  }
+  const generateNode = withGenerate.value;
   return await startBoardRun(sql, member, {
     approvedMicros: input.approvedMicros,
     boardId: inbox.id,

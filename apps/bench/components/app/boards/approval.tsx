@@ -308,6 +308,7 @@ export function ApprovalDialog({
       await api(`/api/app/boards/${boardId}/runs`, RunReply, {
         body: {
           approvedMicros: approved.micros,
+          approvedConfiguration: approved.configuration,
           fromNodeId: nodeId,
           idempotencyKey: key,
           scope: downstream ? "downstream" : "node",

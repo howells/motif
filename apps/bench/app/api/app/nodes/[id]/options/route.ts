@@ -1,5 +1,5 @@
 import { respond } from "@/lib/app/boards/http";
-import { nodeOptions } from "@/lib/app/boards/service";
+import { nodeOptions } from "@/lib/app/boards/node-options";
 import { appError, authorise } from "@/lib/app/http/guard";
 import { isAppId } from "@/lib/app/ids";
 

@@ -9,7 +9,8 @@ import { z } from "zod";
 import { newId } from "../ids";
 import { date, dateOrNull, integer, text, textOrNull } from "../rows";
 import type { RunScope } from "./model";
-import type { NodeResult } from "./store";
+import { GraphSnapshotSchema } from "./snapshot";
+import type { Graph, NodeResult } from "./store";
 
 export type BoardRunStatus = "completed" | "failed" | "running" | "stopped";
 
@@ -17,6 +18,7 @@ export interface RunStep {
   readonly nodeId: string;
   readonly level: number;
   readonly micros: number;
+  readonly snapshot?: Graph;
 }
 
 export interface BoardRun {
@@ -44,6 +46,7 @@ const StepsSchema = z.array(
     level: z.number().int(),
     micros: z.number().int(),
     nodeId: z.string(),
+    snapshot: GraphSnapshotSchema.optional(),
   })
 );
 
