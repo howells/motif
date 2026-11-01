@@ -84,7 +84,7 @@ export function InstallApp() {
       <dl className="flex flex-col gap-3">
         {MANUAL.map((step) => (
           <div key={step.where}>
-            <dt className="type-small font-medium">{step.where}</dt>
+            <dt className="type-body">{step.where}</dt>
             <dd className="type-small text-muted">{step.how}</dd>
           </div>
         ))}
