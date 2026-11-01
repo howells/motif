@@ -93,8 +93,18 @@ export const besidePlacement = (
   from: Box,
   size: { readonly height: number; readonly width: number },
   others: readonly Box[]
-) => {
-  const spot = { ...size, x: from.x + from.width + GAP.x, y: from.y };
+) =>
+  clearPlacement(
+    { ...size, x: from.x + from.width + GAP.x, y: from.y },
+    others
+  );
+
+/**
+ * The first spot at or below `wanted` that lands on nothing in `others`:
+ * a node dropped where another already sits moves down past it.
+ */
+export const clearPlacement = (wanted: Box, others: readonly Box[]) => {
+  const spot = { ...wanted };
   for (;;) {
     const blocker = others.find((other) => overlaps(spot, other));
     if (blocker === undefined) {

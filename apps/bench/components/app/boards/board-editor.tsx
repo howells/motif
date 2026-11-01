@@ -50,6 +50,7 @@ import {
 import type { NodeKind, RunScope } from "@/lib/app/boards/model";
 import {
   besidePlacement,
+  clearPlacement,
   estimatedHeight,
   revealViewport,
 } from "@/lib/app/boards/viewport";
@@ -66,7 +67,7 @@ const EDGE_TYPES = { wire: Wire };
 
 /** Where a new node goes: to the right of the selected node when it can
  * take what that node gives, wired in, clear of anything already there;
- * otherwise near the middle of the view. Either way the canvas then pans to
+ * otherwise near the middle of the view, below anything already there. Either way the canvas then pans to
  * keep it in view beside its panel. */
 interface Placement {
   readonly x: number;
@@ -96,7 +97,15 @@ const placement = (
       ),
     };
   }
-  return { x: Math.round(center.x - 120), y: Math.round(center.y - 60) };
+  return clearPlacement(
+    {
+      height: estimatedHeight(kind),
+      width: nodeWidth(kind),
+      x: Math.round(center.x - nodeWidth(kind) / 2),
+      y: Math.round(center.y - 60),
+    },
+    nodes.map((node) => boxOf(node))
+  );
 };
 
 function ProblemNote({

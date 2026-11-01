@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { besidePlacement, revealViewport } from "./viewport";
+import { besidePlacement, clearPlacement, revealViewport } from "./viewport";
 
 const PANE = { height: 800, width: 900 };
 const AT_REST = { x: 0, y: 0, zoom: 1 };
@@ -69,5 +69,18 @@ describe(besidePlacement, () => {
       x: 336,
       y: 345,
     });
+  });
+});
+
+describe(clearPlacement, () => {
+  const wanted = { height: 300, width: 272, x: 100, y: 100 };
+
+  it("keeps the wanted spot when nothing is there", () => {
+    expect(clearPlacement(wanted, [])).toStrictEqual({ x: 100, y: 100 });
+  });
+
+  it("moves down past a node already sitting there", () => {
+    const taken = { height: 320, width: 272, x: 200, y: 50 };
+    expect(clearPlacement(wanted, [taken])).toStrictEqual({ x: 100, y: 402 });
   });
 });
