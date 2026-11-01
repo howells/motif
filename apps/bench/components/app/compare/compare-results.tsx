@@ -10,6 +10,7 @@ import { PageHead } from "@/components/app/page-head";
 import { api, messageOf, newKey } from "@/lib/app/client/api";
 import { chargeLine } from "@/lib/app/client/charge";
 import { ComparisonReply, Ignored } from "@/lib/app/client/schemas";
+import { useAfterSettle } from "@/lib/app/client/settled";
 import { isInFlight } from "@/lib/app/client/use-generation";
 import { formatSeconds, formatUsd } from "@/lib/app/money";
 import type { GenerationView } from "@/lib/app/views";
@@ -39,8 +40,13 @@ const latestPerModel = (
   return [...latest.values()];
 };
 
+/** What a run counts against the cap: its cost, nothing once released, or
+ * its hold while that stands in as an estimate. */
 const costOf = (generation: GenerationView): number | null =>
-  generation.costMicros ?? (generation.costStatus === "released" ? 0 : null);
+  generation.costStatus === "retained"
+    ? generation.boundMicros
+    : (generation.costMicros ??
+      (generation.costStatus === "released" ? 0 : null));
 
 function Tile({
   generation,
@@ -143,6 +149,11 @@ export function CompareResults({
         ? 2000
         : false,
   });
+  useAfterSettle(
+    comparison.data?.generations.some((generation) =>
+      isInFlight(generation)
+    ) === true
+  );
   const retry = useMutation({
     mutationFn: async (failed: readonly GenerationView[]) => {
       await Promise.all(

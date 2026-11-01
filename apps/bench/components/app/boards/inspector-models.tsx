@@ -9,13 +9,15 @@ import { Section, Segments } from "@/components/app/boards/inspector-controls";
 import { modelsOf } from "@/lib/app/boards/canvas";
 import type { NodeViewOf, TaskNodeView } from "@/lib/app/boards/canvas";
 import { BOARD_TIERS, MAX_COMPARE_MODELS } from "@/lib/app/boards/model";
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import { api, messageOf } from "@/lib/app/client/api";
 import { NodeOptionsSchema } from "@/lib/app/client/board-schemas";
 import type {
   BoardViewData,
+  NodeOptionsData,
   NodeViewData,
 } from "@/lib/app/client/board-schemas";
-import { formatUsd } from "@/lib/app/money";
+import { formatCap, formatUsd } from "@/lib/app/money";
 
 const TIER_LABEL = {
   balanced: "Balanced",
@@ -34,6 +36,20 @@ const versionOf = (node: NodeViewData, view: BoardViewData): string => {
     upstream?.settings ?? null,
   ]);
 };
+
+type ModelOption = NodeOptionsData["models"][number];
+
+/** A Model billed by usage is held at a fixed amount per image, not priced. */
+const modelNote = (motif: boolean, usage: boolean): string => {
+  const billed = `billed by usage, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image`;
+  if (motif) {
+    return usage ? `Motif’s choice, ${billed}` : "Motif’s choice";
+  }
+  return `Billed by usage, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image`;
+};
+
+const priceOf = (model: ModelOption): string =>
+  model.listMicros === null || model.usage ? "" : formatUsd(model.listMicros);
 
 export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
   const { editSettings, view } = useBoard();
@@ -97,9 +113,9 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
                         {model.name}
                       </span>
                       {model.reason === null ? (
-                        motif ? (
+                        motif || model.usage ? (
                           <span className="type-small text-muted">
-                            Motif’s choice
+                            {modelNote(motif, model.usage)}
                           </span>
                         ) : null
                       ) : (
@@ -109,9 +125,7 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
                       )}
                     </span>
                     <span className="board-mono w-14 shrink-0 text-right">
-                      {model.listMicros === null
-                        ? ""
-                        : formatUsd(model.listMicros)}
+                      {priceOf(model)}
                     </span>
                   </button>
                 </li>
@@ -192,16 +206,20 @@ export function CompareModels({
                     <span className="truncate text-sm leading-5">
                       {model.name}
                     </span>
-                    {model.reason === null ? null : (
+                    {model.reason === null ? (
+                      model.usage ? (
+                        <span className="type-small text-muted">
+                          {modelNote(false, true)}
+                        </span>
+                      ) : null
+                    ) : (
                       <span className="type-small text-muted line-clamp-2">
                         {model.reason}
                       </span>
                     )}
                   </span>
                   <span className="board-mono w-14 shrink-0 text-right">
-                    {model.listMicros === null
-                      ? ""
-                      : formatUsd(model.listMicros)}
+                    {priceOf(model)}
                   </span>
                 </button>
               </li>

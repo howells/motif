@@ -409,6 +409,9 @@ export type StepQuote =
       readonly micros: number;
       readonly models: readonly string[];
       readonly estimated: boolean;
+      /** A Model in it is billed by usage, so its price is a fixed hold
+       * per image rather than a ceiling. */
+      readonly usage: boolean;
     }
   | {
       readonly ok: false;
@@ -493,6 +496,7 @@ export const quoteNode = (
   }
   let micros = 0;
   let listMicros = 0;
+  let usage = false;
   const models: string[] = [];
   for (const request of built.requests) {
     const quoted = quote(request, inputsFor(input, ownerId, references));
@@ -522,6 +526,7 @@ export const quoteNode = (
     }
     micros += quoted.bound.micros;
     listMicros += quoted.bound.listMicros;
+    usage ||= quoted.bound.billing === "usage";
     models.push(quoted.plan.model);
   }
   const output = estimateOutput(
@@ -538,6 +543,7 @@ export const quoteNode = (
     models,
     nodeId: node.id,
     ok: true,
+    usage,
   };
 };
 

@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import { BOUNDED_GENERATION_MODELS, boundFor } from "./bounds";
 import type { BoundContext, PlannedCall } from "./bounds";
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "./policy";
 
 const motif = createMotif({ falKey: "fal_test_key" });
 const SOURCE = "https://example.com/source.png";
@@ -127,15 +128,52 @@ describe("boundFor", () => {
     expect(bound.kind).toBe("unbounded");
   });
 
-  it("refuses a metered Model however cheap its example price", () => {
+  // Daniel's decision, 1 November 2026 (MOT-74): image Models fal bills by
+  // usage run, each image held at a fixed $0.50 rather than refused.
+  it("holds a usage-billed Model at a fixed amount per image", () => {
     const call = planned("generate", { model: "banana21", prompt: "a jug" });
-    const bound = boundFor(call, NO_REFERENCES);
-    expect(bound.kind).toBe("unbounded");
+    expect(boundFor(call, NO_REFERENCES)).toMatchObject({
+      billing: "usage",
+      kind: "bounded",
+      listMicros: USAGE_HOLD_MICROS_PER_IMAGE,
+      micros: USAGE_HOLD_MICROS_PER_IMAGE,
+    });
   });
 
-  it("refuses a token-billed Model", () => {
+  it("holds every image a usage-billed run asks for", () => {
+    const call = planned("generate", {
+      count: 3,
+      model: "sunburst",
+      prompt: "a jug",
+    });
+    expect(boundFor(call, NO_REFERENCES)).toMatchObject({
+      billing: "usage",
+      micros: 3 * USAGE_HOLD_MICROS_PER_IMAGE,
+    });
+  });
+
+  it("holds a token-billed Model the same way", () => {
     const call = planned("generate", { model: "gpt2", prompt: "a jug" });
-    expect(boundFor(call, NO_REFERENCES).kind).toBe("unbounded");
+    expect(boundFor(call, NO_REFERENCES)).toMatchObject({
+      billing: "usage",
+      micros: USAGE_HOLD_MICROS_PER_IMAGE,
+    });
+  });
+
+  it("holds Motif's own Balanced choice for generate", () => {
+    const plan = motif
+      .plan("generate", { prompt: "a jug", tier: "balanced" }, { dryRun: true })
+      ._unsafeUnwrap();
+    const bound = boundFor({ ...plan, task: "generate" }, NO_REFERENCES);
+    expect(bound.kind).toBe("bounded");
+  });
+
+  it("marks a listed price as a ceiling, not usage", () => {
+    const call = planned("generate", {
+      model: "grok-image-2",
+      prompt: "a jug",
+    });
+    expect(boundFor(call, NO_REFERENCES)).toMatchObject({ billing: "listed" });
   });
 
   it("refuses a Model billed per compute second, even at a listed $0", () => {
@@ -146,7 +184,7 @@ describe("boundFor", () => {
     ).toBe("unbounded");
   });
 
-  it("refuses a per-megapixel generation whose size isn't fixed", () => {
+  it("holds a per-megapixel generation whose size isn't fixed as usage", () => {
     const bound = boundFor(
       {
         body: { prompt: "a jug" },
@@ -156,7 +194,10 @@ describe("boundFor", () => {
       },
       NO_REFERENCES
     );
-    expect(bound.kind).toBe("unbounded");
+    expect(bound).toMatchObject({
+      billing: "usage",
+      micros: USAGE_HOLD_MICROS_PER_IMAGE,
+    });
   });
 
   it("holds a per-megapixel generation from its fixed size and its References", () => {

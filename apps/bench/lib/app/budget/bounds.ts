@@ -1,19 +1,26 @@
 /**
- * The most one planned provider call can cost, or a refusal.
+ * What to hold against the monthly cap for one planned provider call, or a
+ * refusal.
  *
- * The App reserves this figure against the shared monthly cap before it calls
- * fal, so it has to be a ceiling, not a forecast. `TaskPlan.cost` is a
- * projection and is never used as one. Instead each Model the App can run is
- * named below with the rate fal bills it at and the largest variant of that
- * rate, read from the SDK registry and its pricing notes. Anything else is
- * refused: a metered Model, one billed per token or per compute second, one
- * whose bill depends on a size the App can't know before the call, and any
- * Model not listed. A refusal is final for the request; nothing estimates a
- * way round it.
+ * The App reserves this figure before it calls fal. `TaskPlan.cost` is a
+ * projection and is never used as one. Two kinds of hold:
  *
- * A headroom of a quarter sits on every ceiling so a quiet fal price rise
- * between SDK releases is still held. The recorded cost replaces the hold
- * when the run settles, so headroom costs nothing once a run finishes.
+ * - A ceiling, for each Model named below with the rate fal bills it at and
+ *   the largest variant of that rate, read from the SDK registry and its
+ *   pricing notes. A headroom of a quarter sits on every ceiling so a quiet
+ *   fal price rise between SDK releases is still held.
+ * - A usage hold, for an image Model fal bills by usage (tokens, or a rate
+ *   with no published maximum): a fixed amount per image, decided by Daniel
+ *   on 1 November 2026 (MOT-74) so Motif's own ranking runs unchanged. It is
+ *   not a ceiling; the run settles at the cost the SDK reports, or at the
+ *   hold, marked as an estimate (`retained`), when no cost is reported.
+ *
+ * Still refused: a Task not in the App, a provider other than fal, a tool
+ * billed per compute second or by some other unit with no maximum, and a
+ * tool whose bill depends on a size the App can't know before the call.
+ *
+ * The recorded cost replaces the hold when the run settles, so headroom
+ * costs nothing once a run finishes.
  */
 
 import {
@@ -22,6 +29,8 @@ import {
   isFalToolId,
 } from "@motif/bench-core/sdk-internal";
 import type { FalToolPrice } from "@motif/bench-core/sdk-internal";
+
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "./policy";
 
 /** Integer micros: $1 = 1,000,000. */
 const MICROS_PER_USD = 1_000_000;
@@ -53,11 +62,16 @@ export interface PlannedCall {
 export type Bound =
   | {
       readonly kind: "bounded";
-      /** The ceiling to hold, headroom included, in micros. */
+      /** `listed`: a ceiling from fal's listed rate. `usage`: the fixed
+       * per-image hold for a Model fal bills by usage, which is not a
+       * ceiling. */
+      readonly billing: "listed" | "usage";
+      /** What to hold, headroom included, in micros. */
       readonly micros: number;
-      /** The ceiling before headroom, in micros, for display. */
+      /** The ceiling before headroom (the hold itself for `usage`), in
+       * micros, for display. */
       readonly listMicros: number;
-      /** How the ceiling was worked out, in a sentence. */
+      /** How the hold was worked out, in a sentence. */
       readonly basis: string;
     }
   | {
@@ -77,9 +91,23 @@ const bounded = (usd: number, basis: string): Bound => {
   }
   return {
     basis,
+    billing: "listed",
     kind: "bounded",
     listMicros,
     micros: Math.ceil((listMicros * HEADROOM_NUMERATOR) / HEADROOM_DENOMINATOR),
+  };
+};
+
+/** The fixed hold for an image Model billed by usage: so much per image,
+ * with no headroom, since it is a decision rather than a listed price. */
+const usageHold = (model: string, count: number): Bound => {
+  const micros = USAGE_HOLD_MICROS_PER_IMAGE * count;
+  return {
+    basis: `fal bills ${model} by usage, so the App holds a fixed amount per image`,
+    billing: "usage",
+    kind: "bounded",
+    listMicros: micros,
+    micros,
   };
 };
 
@@ -391,9 +419,8 @@ const generationBound = (call: PlannedCall, context: BoundContext): Bound => {
   if (rate !== undefined) {
     const output = imageSizeOf(call.body.image_size);
     if (output === null) {
-      return unbounded(
-        `${call.model} bills by size, and the size isn't fixed in the request.`
-      );
+      // Billed by size, and the size isn't fixed in the request.
+      return usageHold(call.model, count);
     }
     const inputMegapixels = context.references.reduce(
       (sum, size) => sum + Math.ceil(megapixels(size)),
@@ -404,9 +431,7 @@ const generationBound = (call: PlannedCall, context: BoundContext): Bound => {
       `$${rate} per processed megapixel, input and output, rounded up`
     );
   }
-  return unbounded(
-    `${call.model} bills by usage and publishes no maximum, so the App can't hold what it might cost.`
-  );
+  return usageHold(call.model, count);
 };
 
 /** The ceiling to reserve for one planned call, or why there isn't one. */

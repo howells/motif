@@ -8,7 +8,9 @@ import { SpendMeter } from "@/components/app/spend-meter";
 import { dmMono, facultyGlyphic } from "@/components/site/fonts";
 import type { Viewer } from "@/lib/app/auth/viewer";
 import { ensureInbox, listBoards } from "@/lib/app/boards/store";
-import { monthSummary } from "@/lib/app/budget/ledger";
+import { monthSummary, spendFor } from "@/lib/app/budget/ledger";
+import { SpendSchema } from "@/lib/app/client/schemas";
+import type { SpendData } from "@/lib/app/client/schemas";
 import { getAppSql } from "@/lib/app/db";
 import { MASTHEAD_LINKS } from "@/lib/site/content";
 
@@ -31,18 +33,13 @@ const MEMBER_BAR: readonly NavItem[] = [
   { href: "/library", label: "Library" },
 ];
 
-const spendOf = async (viewer: Viewer) => {
+const spendOf = async (viewer: Viewer): Promise<SpendData | null> => {
   const sql = getAppSql();
   if (viewer.state !== "member" || sql === null) {
     return null;
   }
-  const summary = await monthSummary(sql);
-  return {
-    capMicros: summary.capMicros,
-    heldMicros: summary.heldMicros,
-    month: summary.month,
-    spentMicros: summary.spentMicros,
-  };
+  // Checked against the shape the meter reads, as an API reply would be.
+  return SpendSchema.parse(spendFor(await monthSummary(sql), viewer.member));
 };
 
 const boardsOf = async (viewer: Viewer): Promise<readonly RailBoard[]> => {
@@ -62,7 +59,7 @@ const boardsOf = async (viewer: Viewer): Promise<readonly RailBoard[]> => {
 
 /** One shell for the public site and the App: a left rail from 768px up, a
  * bottom bar below it. Signed in, the rail is the member's Boards, Library
- * and Settings, with the shared spend and the account at its foot; the
+ * and Settings, with your own spend and the account at its foot; the
  * phone's bar is Make and Library. */
 export async function Shell({
   children,
@@ -110,7 +107,7 @@ export async function Shell({
             </>
           ) : (
             <>
-              {spend === null ? null : <SpendMeter spend={spend} />}
+              {spend === null ? null : <SpendMeter initial={spend} />}
               <Link
                 className="border-border flex min-h-11 items-center gap-3 border-t pt-3"
                 href="/settings"

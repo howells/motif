@@ -6,8 +6,9 @@ import type { Edge, Node, NodeChange } from "@xyflow/react";
 import { useState } from "react";
 
 import { useNow } from "@/components/app/boards/use-now";
-import { IMAGE_HEIGHT, isRunning, nodeWidth } from "@/lib/app/boards/canvas";
+import { isRunning, nodeWidth } from "@/lib/app/boards/canvas";
 import type { SettingsPatch } from "@/lib/app/boards/model";
+import { estimatedHeight } from "@/lib/app/boards/viewport";
 import { api, messageOf } from "@/lib/app/client/api";
 import {
   BoardViewSchema,
@@ -20,6 +21,7 @@ import type {
   NodeViewData,
   RunViewData,
 } from "@/lib/app/client/board-schemas";
+import { SPEND_KEY, useAfterSettle } from "@/lib/app/client/settled";
 
 export interface Change {
   readonly path: string;
@@ -98,6 +100,9 @@ export const useBoardData = (initial: BoardViewData) => {
   });
 
   const now = useNow(runningId !== null);
+  // The rail's spend and Inbox count, and the Library, catch up the moment
+  // the run settles, without a reload.
+  useAfterSettle(runningId !== null);
 
   const apply = (next: BoardViewData) => {
     queryClient.setQueryData(key, next);
@@ -167,7 +172,11 @@ export const useBoardData = (initial: BoardViewData) => {
       ...current,
       runs: [run, ...current.runs.filter((item) => item.id !== run.id)],
     }));
-    await queryClient.invalidateQueries({ queryKey: key });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: key }),
+      // The hold now shows on the spend meter.
+      queryClient.invalidateQueries({ queryKey: SPEND_KEY }),
+    ]);
   };
 
   const moved = async (moves: readonly Move[]) => {
@@ -198,9 +207,6 @@ export const useBoardData = (initial: BoardViewData) => {
   };
 };
 
-/** A card's header, property rows and footer around its image, roughly. */
-const CARD_CHROME = 160;
-
 interface Local {
   readonly position?: { x: number; y: number };
   readonly measured?: { width?: number; height?: number };
@@ -222,7 +228,7 @@ export const flowNodes = (
       id: node.id,
       // Until the canvas measures a card, its known width and a fair guess
       // at its height let the first paint (and a server render) place it.
-      initialHeight: IMAGE_HEIGHT[node.kind] + CARD_CHROME,
+      initialHeight: estimatedHeight(node.kind),
       initialWidth: nodeWidth(node.kind, node),
       position:
         dragging && entry?.position !== undefined

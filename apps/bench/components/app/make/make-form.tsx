@@ -19,7 +19,7 @@ import { api, messageOf, newKey } from "@/lib/app/client/api";
 import { MakeQuoteSchema, RunReply } from "@/lib/app/client/board-schemas";
 import type { MakeQuoteData } from "@/lib/app/client/board-schemas";
 import type { PickedImage } from "@/lib/app/client/task-draft";
-import { formatUsd } from "@/lib/app/money";
+import { formatCap, formatUsd } from "@/lib/app/money";
 
 /** Wait until typing stops before asking for a price. */
 const useSettled = <T,>(value: T, ms: number): T => {
@@ -114,7 +114,8 @@ const priceLine = (
     return `More than the ${formatUsd(price.availableMicros)} left this month.`;
   }
   const by = look === "" ? "Motif’s choice" : "from the Look";
-  return `${price.modelName ?? "Motif’s choice"}, ${by}. Lands in Inbox.`;
+  const billed = price.usage ? " Billed by usage." : "";
+  return `${price.modelName ?? "Motif’s choice"}, ${by}.${billed} Lands in Inbox.`;
 };
 
 function PhotoRow({
@@ -234,7 +235,9 @@ function MakeFooter({
         <span className="board-mono shrink-0">
           {price === undefined || price.reason !== null
             ? ""
-            : formatUsd(price.listMicros)}
+            : price.usage
+              ? `Up to ${formatCap(price.listMicros)}`
+              : formatUsd(price.listMicros)}
         </span>
       </p>
       {error === null ? null : (

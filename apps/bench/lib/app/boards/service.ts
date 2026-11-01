@@ -10,6 +10,7 @@ import type { Member } from "../auth/members";
 import { BOUNDED_GENERATION_MODELS } from "../budget/bounds";
 import { monthSummary } from "../budget/ledger";
 import { getOwnedAsset } from "../media/assets";
+import { formatUsd } from "../money";
 import { getOwnedGenerations } from "../tasks/store";
 import {
   chosenModel,
@@ -24,7 +25,7 @@ import {
 import type { KindSettings, NodeKind, RunScope, SettingsInput } from "./model";
 import { modelName } from "./names";
 import { inputFor, pickSizes, quoteNode, quoteRun } from "./plan";
-import type { RunQuote } from "./plan";
+import type { RunQuote, StepQuote } from "./plan";
 import { createRun, latestRuns } from "./run-store";
 import type { BoardRun, RunStep } from "./run-store";
 import {
@@ -145,7 +146,12 @@ export const loadBoardView = async (
     prices.set(
       node.id,
       quoted.ok
-        ? { detail: quoted.detail, listMicros: quoted.listMicros, ok: true }
+        ? {
+            detail: quoted.detail,
+            listMicros: quoted.listMicros,
+            ok: true,
+            usage: quoted.usage,
+          }
         : { ok: false, reason: quoted.reason }
     );
   }
@@ -468,7 +474,7 @@ export const startBoardRun = async (
     return refuse(
       402,
       "CAP_REACHED",
-      "This would go past the monthly cap, so it hasn't started.",
+      `This holds ${formatUsd(value.micros)}, more than the ${formatUsd(value.availableMicros)} left this month, so it hasn't started.`,
       {
         availableMicros: value.availableMicros,
         requestedMicros: value.micros,
@@ -507,6 +513,8 @@ export interface ModelChoice {
   readonly name: string;
   readonly reason: string | null;
   readonly tier: string;
+  /** Billed by usage: priced at a fixed hold per image. */
+  readonly usage: boolean;
 }
 
 export interface NodeOptions {
@@ -516,8 +524,10 @@ export interface NodeOptions {
 
 const RANKED_LIMIT = 8;
 
+const usageOf = (quoted: StepQuote): boolean => quoted.ok && quoted.usage;
+
 /** The Models a node of this kind could ask, best ranked first. Compare
- * offers only Models whose price can be held. */
+ * offers only Models with a listed price, so its holds are ceilings. */
 const candidatesFor = (
   kind: NodeKind,
   mode: "describe" | "text" | undefined
@@ -605,6 +615,7 @@ export const nodeOptions = async (
       name: modelName(candidate.model),
       reason: priced.ok ? null : priced.reason,
       tier: candidate.tier,
+      usage: usageOf(priced),
     });
   }
   return { ok: true, value: { models, motifChoice } };

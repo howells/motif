@@ -15,7 +15,8 @@ import type {
   Node,
   NodeTypes,
 } from "@xyflow/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
+import type { RefObject } from "react";
 
 import { AddNode } from "@/components/app/boards/add-node";
 import { ApprovalDialog } from "@/components/app/boards/approval";
@@ -47,6 +48,12 @@ import {
   wireRefusal,
 } from "@/lib/app/boards/model";
 import type { NodeKind, RunScope } from "@/lib/app/boards/model";
+import {
+  besidePlacement,
+  estimatedHeight,
+  revealViewport,
+} from "@/lib/app/boards/viewport";
+import type { Box } from "@/lib/app/boards/viewport";
 import type {
   BoardViewData,
   NodeViewData,
@@ -57,8 +64,10 @@ const NODE_TYPES: NodeTypes = Object.fromEntries(
 );
 const EDGE_TYPES = { wire: Wire };
 
-/** Where a new node goes: beside the selected node when it can take what
- * that node gives, wired in; otherwise near the middle of the view. */
+/** Where a new node goes: to the right of the selected node when it can
+ * take what that node gives, wired in, clear of anything already there;
+ * otherwise near the middle of the view. Either way the canvas then pans to
+ * keep it in view beside its panel. */
 interface Placement {
   readonly x: number;
   readonly y: number;
@@ -69,7 +78,9 @@ interface Placement {
 const placement = (
   kind: NodeKind,
   selected: NodeViewData | null,
-  center: { x: number; y: number }
+  center: { x: number; y: number },
+  boxOf: (node: NodeViewData) => Box,
+  nodes: readonly NodeViewData[]
 ): Placement => {
   if (
     selected !== null &&
@@ -78,8 +89,11 @@ const placement = (
   ) {
     return {
       from: selected.id,
-      x: selected.x + nodeWidth(selected.kind, selected) + 64,
-      y: selected.y,
+      ...besidePlacement(
+        boxOf(selected),
+        { height: estimatedHeight(kind), width: nodeWidth(kind) },
+        nodes.map((node) => boxOf(node))
+      ),
     };
   }
   return { x: Math.round(center.x - 120), y: Math.round(center.y - 60) };
@@ -328,6 +342,48 @@ function Stage({
   );
 }
 
+/**
+ * Keeps the selected node in view. Its panel opens beside the canvas and
+ * narrows it, so the canvas pans just enough that the whole node shows.
+ * Returns how to read a node's place and size, measured once drawn.
+ */
+const useReveal = (
+  view: BoardViewData,
+  selectedId: string | null,
+  frame: RefObject<HTMLDivElement | null>
+) => {
+  const flow = useReactFlow();
+  const boxOf = (node: NodeViewData): Box => {
+    const measured = flow.getInternalNode(node.id)?.measured;
+    return {
+      height: measured?.height ?? estimatedHeight(node.kind),
+      width: measured?.width ?? nodeWidth(node.kind, node),
+      x: node.x,
+      y: node.y,
+    };
+  };
+  const reveal = useEffectEvent((id: string) => {
+    const node = view.nodes.find((candidate) => candidate.id === id);
+    const pane = frame.current;
+    if (node === undefined || pane === null) {
+      return;
+    }
+    const next = revealViewport(boxOf(node), flow.getViewport(), {
+      height: pane.clientHeight,
+      width: pane.clientWidth,
+    });
+    if (next !== null) {
+      void flow.setViewport(next, { duration: 200 });
+    }
+  });
+  useEffect(() => {
+    if (selectedId !== null) {
+      reveal(selectedId);
+    }
+  }, [selectedId]);
+  return boxOf;
+};
+
 function Editor({
   initial,
   options,
@@ -347,6 +403,8 @@ function Editor({
     view.nodes.find((node) => node.id === canvas.selectedId) ?? null;
   useAddShortcut(setAdding);
 
+  const boxOf = useReveal(view, canvas.selectedId, frame);
+
   const addNode = async (kind: NodeKind) => {
     setAdding(false);
     const before = new Set(view.nodes.map((node) => node.id));
@@ -356,7 +414,10 @@ function Editor({
       y: (rect?.top ?? 0) + (rect?.height ?? 600) / 3,
     });
     const next = await data.send({
-      body: { kind, ...placement(kind, selected, center) },
+      body: {
+        kind,
+        ...placement(kind, selected, center, boxOf, view.nodes),
+      },
       path: `/api/app/boards/${view.board.id}/nodes`,
     });
     const added = next?.nodes.find((node) => !before.has(node.id));

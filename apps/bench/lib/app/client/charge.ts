@@ -8,13 +8,13 @@ export const chargeLine = (generation: GenerationView): string => {
       return "Nothing was charged. The hold was released.";
     }
     case "retained": {
-      return `fal may have charged for this, so ${formatUsd(generation.boundMicros)} stays counted until a cost is known.`;
+      return `fal didn’t say what this cost, so ${formatUsd(generation.boundMicros)} stays counted as an estimate.`;
     }
     case "settled": {
       return `Charged ${formatUsd(generation.costMicros ?? 0)}.`;
     }
     case "held": {
-      return `Holding up to ${formatUsd(generation.boundMicros)} against the shared cap.`;
+      return `Holding up to ${formatUsd(generation.boundMicros)} against this month’s cap.`;
     }
     default: {
       throw new TypeError("Unknown cost status.");

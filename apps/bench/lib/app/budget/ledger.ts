@@ -1,5 +1,6 @@
 /**
- * The shared monthly cap, held in Postgres.
+ * The monthly cap, held in Postgres: one pot for every member, shown
+ * privately (see `spendFor`).
  *
  * Every change is one SQL statement, so it is atomic on its own: a statement
  * whose data-modifying CTEs reserve against the month row and insert the hold
@@ -79,6 +80,62 @@ export const monthSummary = async (
     })),
     month,
     spentMicros: totals === undefined ? 0 : integer(totals, "spent_micros"),
+  };
+};
+
+/** One person's spending this month, as they may see it. */
+export interface SpendView {
+  readonly capMicros: number;
+  /** What is left in the pot this month, after everyone's spend and holds. */
+  readonly leftMicros: number;
+  readonly month: string;
+  readonly mine: {
+    readonly heldMicros: number;
+    /** Runs counted at their hold because fal reported no cost. */
+    readonly estimated: number;
+    readonly runs: number;
+    readonly spentMicros: number;
+  };
+  /** The pot's total and everyone's lines: the owner's alone. */
+  readonly pot: {
+    readonly heldMicros: number;
+    readonly spentMicros: number;
+    readonly members: MonthSummary["members"];
+  } | null;
+}
+
+/**
+ * The month as one person may see it. One pot covers everyone (Daniel's
+ * decision, 1 November 2026, MOT-74: "one pot, shown privately"): each
+ * person sees their own spend and what is left; only the owner sees the
+ * pot's total and other people's figures.
+ */
+export const spendFor = (
+  summary: MonthSummary,
+  member: { readonly id: string; readonly role: "member" | "owner" }
+): SpendView => {
+  const line = summary.members.find((entry) => entry.memberId === member.id);
+  return {
+    capMicros: summary.capMicros,
+    leftMicros: Math.max(
+      0,
+      summary.capMicros - summary.spentMicros - summary.heldMicros
+    ),
+    mine: {
+      estimated: line?.retained ?? 0,
+      heldMicros: line?.heldMicros ?? 0,
+      runs: line?.runs ?? 0,
+      spentMicros: line?.spentMicros ?? 0,
+    },
+    month: summary.month,
+    pot:
+      member.role === "owner"
+        ? {
+            heldMicros: summary.heldMicros,
+            members: summary.members,
+            spentMicros: summary.spentMicros,
+          }
+        : null,
   };
 };
 

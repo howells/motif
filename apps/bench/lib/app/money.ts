@@ -14,6 +14,10 @@ export const formatUsd = (micros: number): string => {
   return `$${usd.toFixed(2)}`;
 };
 
+/** `$0.08`, `$12.43`: dollars and cents, for a month's running total. */
+export const formatDollars = (micros: number): string =>
+  `$${(micros / MICROS).toFixed(2)}`;
+
 /** `$50` for a whole-dollar cap, otherwise two places. */
 export const formatCap = (micros: number): string => {
   const usd = micros / MICROS;

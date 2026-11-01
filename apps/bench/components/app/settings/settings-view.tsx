@@ -7,8 +7,16 @@ import { useState } from "react";
 import { PageHead } from "@/components/app/page-head";
 import { InstallApp } from "@/components/app/settings/install-app";
 import { api, messageOf } from "@/lib/app/client/api";
-import { BudgetReply, Ignored, PeopleSchema } from "@/lib/app/client/schemas";
-import { formatCap, formatUsd, monthName, resetDay } from "@/lib/app/money";
+import { Ignored, PeopleSchema } from "@/lib/app/client/schemas";
+import { SPEND_KEY, fetchSpend } from "@/lib/app/client/settled";
+import { spendLines } from "@/lib/app/client/spend";
+import {
+  formatCap,
+  formatDollars,
+  formatUsd,
+  monthName,
+  resetDay,
+} from "@/lib/app/money";
 
 interface Person {
   readonly createdAt: string;
@@ -38,22 +46,37 @@ export interface SettingsMember {
 const dateOf = (iso: string) =>
   new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
 
-function Spending({
-  me,
-  names,
+/** A bar of spend, then holds for runs still going, against the cap. */
+function Meter({
+  capMicros,
+  heldMicros,
+  spentMicros,
 }: {
-  readonly me: SettingsMember;
-  readonly names: ReadonlyMap<string, string>;
+  readonly capMicros: number;
+  readonly heldMicros: number;
+  readonly spentMicros: number;
+}) {
+  const total = Math.max(capMicros, 1);
+  const spent = Math.min(100, (spentMicros / total) * 100);
+  const held = Math.min(100 - spent, (heldMicros / total) * 100);
+  return (
+    <span aria-hidden="true" className="app-meter">
+      <span style={{ inlineSize: `${spent}%` }} />
+      <span style={{ inlineSize: `${held}%` }} />
+    </span>
+  );
+}
+
+/** The monthly cap: the owner changes it; everyone else is told it. */
+function CapSetting({
+  capMicros,
+  owner,
+}: {
+  readonly capMicros: number;
+  readonly owner: boolean;
 }) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const budget = useQuery({
-    queryFn: async () => {
-      const body = await api("/api/app/budget", BudgetReply);
-      return body.budget;
-    },
-    queryKey: ["budget"],
-  });
   const [cap, setCap] = useState<string | null>(null);
   const saveCap = useMutation({
     mutationFn: async (dollars: number) =>
@@ -62,10 +85,71 @@ function Spending({
       }),
     onSuccess: async () => {
       setCap(null);
-      await queryClient.invalidateQueries({ queryKey: ["budget"] });
+      await queryClient.invalidateQueries({ queryKey: SPEND_KEY });
       router.refresh();
     },
   });
+  if (!owner) {
+    return (
+      <p className="type-small text-muted">
+        Daniel sets the monthly cap of {formatCap(capMicros)}.
+      </p>
+    );
+  }
+  const typed = cap ?? (capMicros / 1_000_000).toFixed(2);
+  const dollars = Number(typed);
+  return (
+    <form
+      className="flex flex-col gap-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (Number.isFinite(dollars) && dollars >= 0) {
+          saveCap.mutate(dollars);
+        }
+      }}
+    >
+      <label className="app-label" htmlFor="cap">
+        Monthly cap
+      </label>
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          className="app-input app-value max-w-[10rem]"
+          id="cap"
+          inputMode="decimal"
+          onChange={(event) => {
+            setCap(event.target.value);
+          }}
+          value={typed}
+        />
+        <button
+          className="app-button"
+          disabled={saveCap.isPending || cap === null}
+          type="submit"
+        >
+          Save cap
+        </button>
+        <span className="type-small text-muted">
+          One cap covers everyone’s runs.
+        </span>
+      </div>
+      {saveCap.error === null ? null : (
+        <p className="type-small text-bad">{messageOf(saveCap.error)}</p>
+      )}
+    </form>
+  );
+}
+
+/** The cap and what it covers. One pot for everyone, shown privately: each
+ * person sees their own spend and what is left; the owner also sees the
+ * pot's total and everyone's line. */
+function Spending({
+  me,
+  names,
+}: {
+  readonly me: SettingsMember;
+  readonly names: ReadonlyMap<string, string>;
+}) {
+  const budget = useQuery({ queryFn: fetchSpend, queryKey: SPEND_KEY });
 
   if (budget.isPending) {
     return <p className="type-small text-muted">Loading spending…</p>;
@@ -74,10 +158,12 @@ function Spending({
     return <p className="type-small text-bad">{messageOf(budget.error)}</p>;
   }
   const data = budget.data;
-  const total = Math.max(data.capMicros, 1);
-  const retained = data.members.reduce((sum, line) => sum + line.retained, 0);
-  const typed = cap ?? (data.capMicros / 1_000_000).toFixed(2);
-  const dollars = Number(typed);
+  const { pot } = data;
+  const lines = spendLines(data);
+  const estimated =
+    pot === null
+      ? data.mine.estimated
+      : pot.members.reduce((sum, line) => sum + line.retained, 0);
 
   return (
     <section aria-labelledby="spending" className="flex flex-col gap-4">
@@ -87,105 +173,55 @@ function Spending({
       <div className="flex flex-col gap-2">
         <p className="flex items-baseline justify-between">
           <span className="app-value">
-            {formatUsd(data.spentMicros + data.heldMicros)} of{" "}
-            {formatCap(data.capMicros)}
+            {pot === null
+              ? lines.spent
+              : `${formatDollars(pot.spentMicros + pot.heldMicros)} of ${formatCap(data.capMicros)}`}
           </span>
           <span className="type-small text-muted">
             Resets {resetDay(data.month)}
           </span>
         </p>
-        <span className="sr-only">
-          {formatUsd(data.spentMicros)} spent, {formatUsd(data.heldMicros)} held
-        </span>
-        <span aria-hidden="true" className="app-meter">
-          <span
-            style={{
-              inlineSize: `${Math.min(100, (data.spentMicros / total) * 100)}%`,
-            }}
-          />
-          <span
-            style={{
-              inlineSize: `${Math.min(100, (data.heldMicros / total) * 100)}%`,
-            }}
-          />
-        </span>
+        <Meter
+          capMicros={data.capMicros}
+          heldMicros={pot === null ? data.mine.heldMicros : pot.heldMicros}
+          spentMicros={pot === null ? data.mine.spentMicros : pot.spentMicros}
+        />
+        <span className="type-small text-muted">{lines.left}</span>
       </div>
-      <ul className="border-border border-t">
-        {data.members.map((line) => (
-          <li
-            className="border-border flex min-h-11 items-center justify-between border-b"
-            key={line.memberId}
-          >
-            <span className="type-body">
-              {line.memberId === me.id
-                ? "You"
-                : (names.get(line.memberId) ?? "Someone removed")}
-              , {line.runs} {line.runs === 1 ? "run" : "runs"}
-            </span>
-            <span className="app-value">
-              {formatUsd(line.spentMicros + line.heldMicros)}
-            </span>
-          </li>
-        ))}
-        {data.heldMicros > 0 ? (
-          <li className="border-border text-muted flex min-h-11 items-center justify-between border-b">
-            <span className="type-small">Held for runs still going</span>
-            <span className="app-value">{formatUsd(data.heldMicros)}</span>
-          </li>
-        ) : null}
-        {retained > 0 ? (
-          <li className="border-border text-muted flex min-h-11 items-center justify-between border-b">
-            <span className="type-small">Runs with no price yet</span>
-            <span className="type-small">
-              {retained}, counted at their full hold
-            </span>
-          </li>
-        ) : null}
-      </ul>
-      {me.owner ? (
-        <form
-          className="flex flex-col gap-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (Number.isFinite(dollars) && dollars >= 0) {
-              saveCap.mutate(dollars);
-            }
-          }}
-        >
-          <label className="app-label" htmlFor="cap">
-            Monthly cap for everyone
-          </label>
-          <div className="flex flex-wrap items-center gap-3">
-            <input
-              className="app-input app-value max-w-[10rem]"
-              id="cap"
-              inputMode="decimal"
-              onChange={(event) => {
-                setCap(event.target.value);
-              }}
-              value={typed}
-            />
-            <button
-              className="app-button"
-              disabled={saveCap.isPending || cap === null}
-              type="submit"
+      {pot === null ? null : (
+        <ul className="border-border border-t">
+          {pot.members.map((line) => (
+            <li
+              className="border-border flex min-h-11 items-center justify-between border-b"
+              key={line.memberId}
             >
-              Save cap
-            </button>
-            <span className="type-small text-muted">
-              Runs stop for everyone at the cap.
-            </span>
-          </div>
-          {saveCap.error === null ? null : (
-            <p className="type-small text-bad">{messageOf(saveCap.error)}</p>
-          )}
-        </form>
-      ) : (
-        <p className="type-small text-muted">
-          Everyone shares one cap of {formatCap(data.capMicros)} a month. Daniel
-          sets it.
-        </p>
+              <span className="type-body">
+                {line.memberId === me.id
+                  ? "You"
+                  : (names.get(line.memberId) ?? "Someone removed")}
+                , {line.runs} {line.runs === 1 ? "run" : "runs"}
+              </span>
+              <span className="app-value">
+                {formatUsd(line.spentMicros + line.heldMicros)}
+              </span>
+            </li>
+          ))}
+          {pot.heldMicros > 0 ? (
+            <li className="border-border text-muted flex min-h-11 items-center justify-between border-b">
+              <span className="type-small">Held for runs still going</span>
+              <span className="app-value">{formatUsd(pot.heldMicros)}</span>
+            </li>
+          ) : null}
+        </ul>
       )}
+      {estimated > 0 ? (
+        <p className="type-small text-muted">
+          {estimated === 1
+            ? "1 run is an estimate: fal didn’t say what it cost, so its hold counts."
+            : `${estimated} runs are estimates: fal didn’t say what they cost, so their holds count.`}
+        </p>
+      ) : null}
+      <CapSetting capMicros={data.capMicros} owner={me.owner} />
     </section>
   );
 }
@@ -252,7 +288,7 @@ function PeopleSection({
   const [email, setEmail] = useState("");
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["people"] });
-    await queryClient.invalidateQueries({ queryKey: ["budget"] });
+    await queryClient.invalidateQueries({ queryKey: SPEND_KEY });
   };
   const invite = useMutation({
     mutationFn: async () =>
@@ -375,7 +411,7 @@ function PeopleSection({
       </form>
       {invite.error === null && act.error === null ? (
         <p className="type-small text-muted">
-          Only you can invite or remove people. Everyone shares the one cap.
+          Only you can invite or remove people.
         </p>
       ) : (
         <p className="type-small text-bad" role="alert">
@@ -386,8 +422,9 @@ function PeopleSection({
   );
 }
 
-/** Spending, people and this device. The owner sets the cap and decides
- * who is in; everyone else sees their own spending and the shared total. */
+/** Spending, people and this device. The owner sets the cap, sees the
+ * pot's total and decides who is in; everyone else sees their own spending
+ * and what is left. */
 export function SettingsView({ me }: { readonly me: SettingsMember }) {
   const people = useQuery({
     enabled: me.owner,

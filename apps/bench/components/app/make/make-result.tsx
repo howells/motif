@@ -12,6 +12,7 @@ import type {
   ResultViewData,
   RunResultsData,
 } from "@/lib/app/client/board-schemas";
+import { useAfterSettle } from "@/lib/app/client/settled";
 import { formatSeconds, formatUsd } from "@/lib/app/money";
 
 type ResultOutput = ResultViewData["outputs"][number];
@@ -173,6 +174,7 @@ export function MakeResult({
       query.state.data?.run.status === "running" ? 2000 : false,
   });
   const now = useNow(reply.data?.run.status === "running");
+  useAfterSettle(reply.data?.run.status === "running");
   const result = reply.data?.results[0];
   const output = result?.outputs[0];
   const words = [lookLabel, moodLabel].filter(
@@ -217,7 +219,9 @@ export function MakeResult({
           <span className="board-mono">
             {result === undefined || result.costMicros === null
               ? ""
-              : formatUsd(result.costMicros)}
+              : result.costEstimated
+                ? `About ${formatUsd(result.costMicros)}`
+                : formatUsd(result.costMicros)}
           </span>
         </p>
         <Facts prompt={again.prompt} result={result} words={words} />

@@ -51,7 +51,7 @@ const quoteFor = async (requestKey: string | null): Promise<Quote> => {
 
 const startProblem = (error: unknown): string =>
   error instanceof ApiError && error.code === "CAP_REACHED"
-    ? "The shared cap for this month is reached, so this hasn’t started. Daniel can raise it in Settings."
+    ? `${messageOf(error)} Daniel can raise the cap in Settings.`
     : messageOf(error);
 
 function Head({

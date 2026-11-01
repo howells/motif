@@ -37,7 +37,7 @@ describe("chargeLine", () => {
   it("never says nothing was charged unless the hold was released", () => {
     expect(chargeLine(generation("released"))).toContain("Nothing was charged");
     expect(chargeLine(generation("retained"))).toContain(
-      "$0.221 stays counted"
+      "$0.221 stays counted as an estimate"
     );
     expect(chargeLine(generation("retained"))).not.toContain(
       "Nothing was charged"

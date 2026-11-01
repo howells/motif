@@ -94,6 +94,7 @@ export const QuoteSchema = z.discriminatedUnion("kind", [
       usd: z.number().nullable(),
     }),
     kind: z.literal("ready"),
+    usage: z.boolean(),
   }),
   z.object({
     ...quoted,
@@ -105,23 +106,35 @@ export const QuoteSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
-export const BudgetReply = z.object({
-  budget: z.object({
-    capMicros: z.number(),
+export const SpendSchema = z.object({
+  capMicros: z.number(),
+  leftMicros: z.number(),
+  mine: z.object({
+    estimated: z.number(),
     heldMicros: z.number(),
-    members: z.array(
-      z.object({
-        heldMicros: z.number(),
-        memberId: z.string(),
-        retained: z.number(),
-        runs: z.number(),
-        spentMicros: z.number(),
-      })
-    ),
-    month: z.string(),
+    runs: z.number(),
     spentMicros: z.number(),
   }),
+  month: z.string(),
+  pot: z
+    .object({
+      heldMicros: z.number(),
+      members: z.array(
+        z.object({
+          heldMicros: z.number(),
+          memberId: z.string(),
+          retained: z.number(),
+          runs: z.number(),
+          spentMicros: z.number(),
+        })
+      ),
+      spentMicros: z.number(),
+    })
+    .nullable(),
 });
+export type SpendData = z.infer<typeof SpendSchema>;
+
+export const BudgetReply = z.object({ budget: SpendSchema });
 
 export const PeopleSchema = z.object({
   invitations: z.array(

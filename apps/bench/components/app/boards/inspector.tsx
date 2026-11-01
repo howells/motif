@@ -19,8 +19,9 @@ import type { TaskOptions } from "@/components/app/task/fields";
 import { modelsOf } from "@/lib/app/boards/canvas";
 import type { NodeViewOf } from "@/lib/app/boards/canvas";
 import { NODE_LABELS, isRunnable } from "@/lib/app/boards/model";
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import type { NodeViewData } from "@/lib/app/client/board-schemas";
-import { formatUsd } from "@/lib/app/money";
+import { formatCap, formatUsd } from "@/lib/app/money";
 
 function SourceFields({ node }: { readonly node: NodeViewData }) {
   const { chooseSource } = useBoard();
@@ -296,6 +297,9 @@ const priceLine = (node: NodeViewData): string => {
       : node.kind === "generate" || node.kind === "vary"
         ? node.settings.count
         : 1;
+  if (node.price.usage) {
+    return `Billed by usage, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image`;
+  }
   return count > 1
     ? `${count} × ${formatUsd(Math.round(node.price.listMicros / count))}`
     : "";
@@ -347,7 +351,9 @@ export function Inspector({
                 <span className="type-small text-muted">{priceLine(node)}</span>
                 <span className="board-mono">
                   {node.price?.ok === true
-                    ? formatUsd(node.price.listMicros)
+                    ? node.price.usage
+                      ? `Up to ${formatCap(node.price.listMicros)}`
+                      : formatUsd(node.price.listMicros)
                     : ""}
                 </span>
               </>

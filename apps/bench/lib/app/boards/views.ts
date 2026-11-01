@@ -14,6 +14,10 @@ import type { Board, BoardNode, BoardWire } from "./store";
 
 export interface ResultView {
   readonly completedAt: string | null;
+  /** The cost is the hold, counted because fal reported none. */
+  readonly costEstimated: boolean;
+  /** What the run counts against the cap: the recorded cost, or the hold
+   * when the cost is an estimate. */
   readonly costMicros: number | null;
   readonly createdAt: string;
   readonly elapsedMs: number | null;
@@ -40,7 +44,13 @@ export interface PickView {
 
 /** What running this node alone would cost, or why it can't run yet. */
 export type PriceView =
-  | { readonly ok: true; readonly listMicros: number; readonly detail: string }
+  | {
+      readonly ok: true;
+      readonly listMicros: number;
+      readonly detail: string;
+      /** Billed by usage: the price is a fixed hold per image. */
+      readonly usage: boolean;
+    }
   | { readonly ok: false; readonly reason: string };
 
 interface NodeViewBase {
@@ -89,7 +99,11 @@ export const resultView = (
   runId: string | null
 ): ResultView => ({
   completedAt: generation.completedAt?.toISOString() ?? null,
-  costMicros: generation.costMicros,
+  costEstimated: generation.costStatus === "retained",
+  costMicros:
+    generation.costStatus === "retained"
+      ? generation.boundMicros
+      : generation.costMicros,
   createdAt: generation.createdAt.toISOString(),
   elapsedMs: generation.providerMs,
   error:

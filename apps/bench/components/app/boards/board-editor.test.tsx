@@ -9,6 +9,7 @@ import { BoardEditor } from "./board-editor";
 
 const result = (generationId: string, model: string, assetId: string) => ({
   completedAt: "2026-11-01T10:00:04.000Z",
+  costEstimated: false,
   costMicros: 30_000,
   createdAt: "2026-11-01T10:00:00.000Z",
   elapsedMs: 4000,
@@ -46,7 +47,7 @@ const VIEW = BoardViewSchema.parse({
     },
     {
       ...node("nod_g", "generate", 360),
-      price: { detail: "1 image", listMicros: 30_000, ok: true },
+      price: { detail: "1 image", listMicros: 30_000, ok: true, usage: false },
       stale: true,
     },
     {
@@ -92,11 +93,11 @@ const STILL: AppRouterInstance = {
   replace: vi.fn<() => void>(),
 };
 
-const render = (): string =>
+const render = (view = VIEW): string =>
   renderToStaticMarkup(
     <AppRouterContext value={STILL}>
       <QueryClientProvider client={new QueryClient()}>
-        <BoardEditor initial={VIEW} options={OPTIONS} />
+        <BoardEditor initial={view} options={OPTIONS} />
       </QueryClientProvider>
     </AppRouterContext>
   );
@@ -133,5 +134,30 @@ describe(BoardEditor, () => {
     expect(html).toContain("Muse");
     expect(html).toContain("Make Pick");
     expect(html).toContain(">Pick<");
+  });
+
+  it("prices a usage-billed Model as its hold, not a refusal", () => {
+    const html = render(
+      BoardViewSchema.parse({
+        ...VIEW,
+        nodes: VIEW.nodes.map((item) =>
+          item.id === "nod_g"
+            ? {
+                ...item,
+                price: {
+                  detail: "Nano Banana 2.1, 1 image",
+                  listMicros: 500_000,
+                  ok: true,
+                  usage: true,
+                },
+                stale: false,
+              }
+            : item
+        ),
+      })
+    );
+
+    expect(html).toContain("Up to $0.50");
+    expect(html).not.toContain("Not ready");
   });
 });

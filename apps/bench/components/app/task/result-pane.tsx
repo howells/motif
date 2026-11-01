@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { MediaImage } from "@/components/app/media-image";
 import { messageOf } from "@/lib/app/client/api";
 import { chargeLine } from "@/lib/app/client/charge";
+import { useAfterSettle } from "@/lib/app/client/settled";
 import { isInFlight, useGeneration } from "@/lib/app/client/use-generation";
 import { formatSeconds, formatUsd } from "@/lib/app/money";
 import type { GenerationView } from "@/lib/app/views";
@@ -97,9 +98,11 @@ function Failed({
 const metaOf = (generation: GenerationView): string => {
   const parts = [
     generation.model,
-    generation.costMicros === null
-      ? "cost not known yet"
-      : formatUsd(generation.costMicros),
+    generation.costStatus === "retained"
+      ? `about ${formatUsd(generation.boundMicros)}`
+      : generation.costMicros === null
+        ? "cost not known yet"
+        : formatUsd(generation.costMicros),
   ];
   if (generation.elapsedMs !== null) {
     parts.push(formatSeconds(generation.elapsedMs));
@@ -190,6 +193,7 @@ export function ResultPane({
   readonly retrying: boolean;
 }) {
   const query = useGeneration(id);
+  useAfterSettle(isInFlight(query.data));
   if (query.isPending) {
     return <div className="app-plate flex-1" />;
   }

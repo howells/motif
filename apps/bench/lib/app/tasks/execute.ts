@@ -255,7 +255,7 @@ const complete = async (
         }
       : {
           basis:
-            "fal reports no price for this run, so the whole hold is counted",
+            "fal reports no price for this run, so the hold is counted as an estimate",
           kind: "retained" as const,
         };
   await endGeneration(

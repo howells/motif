@@ -1,8 +1,9 @@
 "use client";
 
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import { messageOf } from "@/lib/app/client/api";
 import type { Built, Draft } from "@/lib/app/client/task-draft";
-import { formatUsd } from "@/lib/app/money";
+import { formatCap, formatUsd } from "@/lib/app/money";
 
 interface Alternative {
   readonly micros: number;
@@ -22,6 +23,7 @@ export type Quote =
       readonly kind: "ready";
       readonly model: string;
       readonly tier: string;
+      readonly usage: boolean;
     }
   | {
       readonly alternatives: readonly Alternative[];
@@ -78,7 +80,7 @@ function Blocked({
 }
 
 /** The price line above Run: which Model, the projected cost, what is left
- * under the shared cap, and how much the run will hold while it runs. */
+ * this month, and how much the run will hold while it runs. */
 export function Estimate({
   built,
   error,
@@ -127,8 +129,10 @@ export function Estimate({
       </p>
       <p className={`type-small ${over ? "text-bad" : "text-faint"}`}>
         {over
-          ? `This could cost up to ${formatUsd(quote.boundMicros)}, more than is left under the shared cap.`
-          : `Holds up to ${formatUsd(quote.boundMicros)} while it runs.`}
+          ? `This holds ${formatUsd(quote.boundMicros)}, more than the ${formatUsd(quote.availableMicros)} left this month.`
+          : quote.usage
+            ? `Billed by usage. Holds ${formatUsd(quote.boundMicros)} while it runs, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image.`
+            : `Holds up to ${formatUsd(quote.boundMicros)} while it runs.`}
       </p>
     </div>
   );

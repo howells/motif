@@ -76,6 +76,8 @@ export interface MakeQuote {
   readonly model: string | null;
   readonly modelName: string | null;
   readonly reason: string | null;
+  /** Billed by usage: priced at a fixed hold per image. */
+  readonly usage: boolean;
 }
 
 /** Price a Make. Spends nothing and adds nothing to the Inbox. */
@@ -124,6 +126,7 @@ export const quoteMake = async (
       modelName: model === null ? null : modelName(model),
       reason:
         step === undefined ? "Write a prompt." : step.ok ? null : step.reason,
+      usage: step?.ok === true && step.usage,
     },
   };
 };

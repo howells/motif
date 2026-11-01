@@ -9,7 +9,7 @@ export const benchRetired = (): Response =>
   appError(
     410,
     "BENCH_RETIRED",
-    "Bench runs have moved to Compare in the App, where every run is held against the shared monthly cap."
+    "Bench runs have moved to Compare in the App, where every run is held against the monthly cap."
   );
 
 /** `null` when the owner is asking; otherwise the refusal to return. */

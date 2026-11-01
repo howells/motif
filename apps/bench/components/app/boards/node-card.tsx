@@ -30,7 +30,7 @@ import type {
   NodeViewData,
   ResultViewData,
 } from "@/lib/app/client/board-schemas";
-import { formatSeconds, formatUsd } from "@/lib/app/money";
+import { formatCap, formatSeconds, formatUsd } from "@/lib/app/money";
 
 function Ports({ node }: { readonly node: NodeViewData }) {
   const { view } = useBoard();
@@ -266,7 +266,14 @@ function Footer({
       {price === null ? (
         <span />
       ) : price.ok ? (
-        <span className="board-mono">{formatUsd(price.listMicros)}</span>
+        <span
+          className="board-mono"
+          title={price.usage ? "Billed by usage" : undefined}
+        >
+          {price.usage
+            ? `Up to ${formatCap(price.listMicros)}`
+            : formatUsd(price.listMicros)}
+        </span>
       ) : (
         <span className="type-small text-muted truncate" title={price.reason}>
           Not ready
@@ -314,7 +321,11 @@ function PromptBody({ node }: { readonly node: NodeViewOf<"prompt"> }) {
 const columnFacts = (result: ResultViewData | undefined): string => {
   const facts: string[] = [];
   if (result?.costMicros !== undefined && result.costMicros !== null) {
-    facts.push(formatUsd(result.costMicros));
+    facts.push(
+      result.costEstimated
+        ? `About ${formatUsd(result.costMicros)}`
+        : formatUsd(result.costMicros)
+    );
   }
   if (result?.elapsedMs !== undefined && result.elapsedMs !== null) {
     facts.push(formatSeconds(result.elapsedMs));

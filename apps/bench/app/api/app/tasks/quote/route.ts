@@ -61,5 +61,6 @@ export async function POST(request: Request) {
     boundMicros: quoted.bound.micros,
     kind: "ready",
     listMicros: quoted.bound.listMicros,
+    usage: quoted.bound.billing === "usage",
   });
 }

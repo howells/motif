@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { PlayIcon } from "@/components/app/boards/icons";
 import { NODE_LABELS, isRunnable } from "@/lib/app/boards/model";
 import type { NodeKind, RunScope } from "@/lib/app/boards/model";
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import { api, messageOf, newKey } from "@/lib/app/client/api";
 import { QuoteViewSchema, RunReply } from "@/lib/app/client/board-schemas";
 import type {
@@ -13,7 +14,7 @@ import type {
   RunViewData,
   StepQuoteData,
 } from "@/lib/app/client/board-schemas";
-import { formatCap, formatUsd, monthName } from "@/lib/app/money";
+import { formatCap, formatUsd } from "@/lib/app/money";
 
 const quoteOf = async (
   boardId: string,
@@ -41,7 +42,15 @@ function Step({
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-sm leading-5 font-medium">{step.label}</span>
         {step.ok ? (
-          <span className="type-small text-muted">{step.detail}</span>
+          <>
+            <span className="type-small text-muted">{step.detail}</span>
+            {step.usage ? (
+              <span className="type-small text-muted">
+                Billed by usage, up to {formatCap(USAGE_HOLD_MICROS_PER_IMAGE)}{" "}
+                an image
+              </span>
+            ) : null}
+          </>
         ) : (
           <>
             <span className="type-small text-bad">{step.reason}</span>
@@ -113,12 +122,10 @@ function ScopeChoice({
 const isOverCap = (quote: QuoteViewData): boolean =>
   quote.micros > quote.availableMicros;
 
-const totalLine = (quote: QuoteViewData): string => {
-  const month = monthName(quote.month);
-  return isOverCap(quote)
-    ? `More than the ${formatUsd(quote.availableMicros)} left for ${month}`
-    : `Leaves ${formatUsd(Math.max(0, quote.availableMicros - quote.listMicros))} of ${formatCap(quote.capMicros)} for ${month}`;
-};
+const totalLine = (quote: QuoteViewData): string =>
+  isOverCap(quote)
+    ? `More than the ${formatUsd(quote.availableMicros)} left this month`
+    : `Up to ${formatUsd(Math.max(0, quote.availableMicros - quote.micros))} left this month after this run`;
 
 function QuoteSteps({
   label,
@@ -167,7 +174,12 @@ function QuoteSteps({
           </span>
         </li>
       </ol>
-      {quote.ready && quote.micros > quote.listMicros ? (
+      {quote.ready && quote.steps.some((step) => step.ok && step.usage) ? (
+        <p className="type-small text-muted px-5">
+          Holds {formatUsd(quote.micros)} while it runs. You pay what fal
+          charges; if fal doesn’t say, the hold counts as an estimate.
+        </p>
+      ) : quote.ready && quote.micros > quote.listMicros ? (
         <p className="type-small text-muted px-5">
           Holds up to {formatUsd(quote.micros)} while it runs. You pay what fal
           charges.

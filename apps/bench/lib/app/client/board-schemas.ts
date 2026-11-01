@@ -11,6 +11,7 @@ const Output = z.object({ assetId: z.string(), url: z.string() });
 
 export const ResultViewSchema = z.object({
   completedAt: z.string().nullable(),
+  costEstimated: z.boolean(),
   costMicros: z.number().nullable(),
   createdAt: z.string(),
   elapsedMs: z.number().nullable(),
@@ -49,6 +50,7 @@ const nodeBase = {
         detail: z.string(),
         listMicros: z.number(),
         ok: z.literal(true),
+        usage: z.boolean(),
       }),
       z.object({ ok: z.literal(false), reason: z.string() }),
     ])
@@ -146,6 +148,7 @@ const StepQuoteSchema = z.discriminatedUnion("ok", [
     models: z.array(z.string()),
     nodeId: z.string(),
     ok: z.literal(true),
+    usage: z.boolean(),
   }),
   z.object({
     alternatives: z.array(
@@ -181,6 +184,7 @@ export const NodeOptionsSchema = z.object({
       name: z.string(),
       reason: z.string().nullable(),
       tier: z.string(),
+      usage: z.boolean(),
     })
   ),
   motifChoice: z.string().nullable(),
@@ -219,5 +223,6 @@ export const MakeQuoteSchema = z.object({
   model: z.string().nullable(),
   modelName: z.string().nullable(),
   reason: z.string().nullable(),
+  usage: z.boolean(),
 });
 export type MakeQuoteData = z.infer<typeof MakeQuoteSchema>;

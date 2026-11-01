@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { USAGE_HOLD_MICROS_PER_IMAGE } from "../budget/policy";
 import { parseSettings } from "./model";
 import type { NodeKind, SettingsPatch } from "./model";
 import { PENDING_ASSET_ID, buildRequests, inputFor, quoteRun } from "./plan";
@@ -206,20 +207,37 @@ describe(quoteRun, () => {
     expect(quoted.listMicros).toBe(80_000);
   });
 
-  it("refuses an unbounded Model and offers ones that can be held", () => {
+  // Daniel's decision, 1 November 2026 (MOT-74): a Model fal bills by usage
+  // runs at a fixed hold per image instead of being refused.
+  it("prices a usage-billed Model at its fixed hold per image", () => {
     const graph: Graph = {
       nodes: [
         make("p", "prompt", { text: "A vase" }),
-        make("g", "generate", { model: "seedream4" }),
+        make("g", "generate", { count: 2, model: "banana21" }),
+      ],
+      wires: [{ from: "p", id: "w", to: "g" }],
+    };
+    const quoted = quoteRun(graph, "g", "node", new Map(), OWNER);
+    expect(quoted.ready).toBe(true);
+    expect(quoted.steps[0]).toMatchObject({
+      listMicros: 2 * USAGE_HOLD_MICROS_PER_IMAGE,
+      micros: 2 * USAGE_HOLD_MICROS_PER_IMAGE,
+      ok: true,
+      usage: true,
+    });
+  });
+
+  it("runs Motif's own choice for a fresh Generate", () => {
+    const graph: Graph = {
+      nodes: [
+        make("p", "prompt", { text: "A vase" }),
+        make("g", "generate", {}),
       ],
       wires: [{ from: "p", id: "w", to: "g" }],
     };
     const [step] = quoteRun(graph, "g", "node", new Map(), OWNER).steps;
-    expect(step?.ok).toBe(false);
-    expect(step?.ok === false && step.reason).toMatch(
-      /^Seedream 4.0 bills by usage/u
-    );
-    expect(step?.ok === false && step.alternatives.length).toBeGreaterThan(0);
+    expect(step?.ok).toBe(true);
+    expect(step?.ok === true && step.models).toStrictEqual(["banana21"]);
   });
 
   it("is not ready when any step can't run, and names it", () => {

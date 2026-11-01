@@ -162,7 +162,7 @@ export function CompareSetup({
           <p className="type-small text-bad" role="alert">
             {start.error instanceof ApiError &&
             start.error.code === "CAP_REACHED"
-              ? "The shared cap for this month is reached, so nothing has started."
+              ? "That’s more than is left this month, so nothing has started."
               : problem}
           </p>
         )}
@@ -187,8 +187,8 @@ export function CompareSetup({
           {start.isPending ? "Starting…" : `Run ${chosen.length} Models`}
         </button>
         <p className="type-small text-muted">
-          Each Model is held against the shared cap before any of them starts.
-          If the hold doesn’t fit, nothing runs.
+          Each Model is held against this month’s cap before any of them starts.
+          If the holds don’t fit, nothing runs.
         </p>
       </div>
     </main>
