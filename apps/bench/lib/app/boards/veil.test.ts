@@ -77,9 +77,10 @@ const serifUsers = (css: string) =>
   ].map((match) => match[1]?.trim().replaceAll(/\s+/gu, " "));
 
 describe("the product's type", () => {
-  it("keeps the serif for the two heading roles and the wordmark alone", () => {
+  it("keeps the serif for the display and heading roles, the app wordmark and the homepage wordmark alone", () => {
     expect(serifUsers(readStylesheet("globals.css"))).toStrictEqual([
       ".type-display",
+      ".type-wordmark",
       ".type-heading, .app-wordmark",
     ]);
     expect(serifUsers(readStylesheet("app.css"))).toStrictEqual([]);

@@ -8,6 +8,11 @@
  * `oxlint.config.ts`; this script holds the stylesheets, which that rule
  * cannot read.
  *
+ * One role stands outside the five: `type-wordmark`, the homepage's "Motif"
+ * at 48/56 on a phone and 72/80 from 768px up, -0.02em, Faculty. It is
+ * approved for that one word, so it is held to exactly those numbers, in its
+ * own rule in `app/globals.css`, and nowhere else may use them.
+ *
  * Shape (size, leading, tracking, family, weight other than 400 or 500) may be
  * written only in `app/globals.css`, in a rule made wholly of role selectors,
  * in the base rules for headings, tables and `kbd`, or in the one form-field
@@ -56,9 +61,21 @@ const ROLE_SELECTORS = new Set([
   ".library-label",
 ]);
 
+/** The one approved size outside the ramp. Only a rule whose selector is
+ * `.type-wordmark` alone, in `globals.css`, may state these values; they are
+ * not added to the shared sets, so no other role can borrow them. */
+const WORDMARK_SELECTOR = ".type-wordmark";
+const WORDMARK_VALUES = {
+  "font-family": ["var(--font-display)"],
+  "font-size": ["3rem", "4.5rem"],
+  "letter-spacing": ["-0.02em"],
+  "line-height": ["3.5rem", "5rem"],
+};
+
 /** A form field is 16px on a phone or any touch screen so iOS does not zoom
  * on focus: the one documented exception, written once. */
-const FORM_FIELD_SELECTOR = ":is(input, select, textarea, .app-prompt, .board-field)";
+const FORM_FIELD_SELECTOR =
+  ":is(input, select, textarea, .app-prompt, .board-field)";
 
 /** The rules that set the case on the document itself. */
 const BASE_SELECTORS = new Set(["h1, h2, h3, h4", "th", "kbd"]);
@@ -74,9 +91,12 @@ const SHAPE = new Set([
 ]);
 
 const ROLE_FOR = {
-  "font-family": "type-small, type-body, type-title (Inter), or type-heading or type-display (Faculty)",
-  "font-size": "type-small (13), type-body (14), type-title (18), type-heading (28) or type-display (22)",
-  "letter-spacing": "type-title or type-heading (-0.01em), type-display (-0.02em); the others have none",
+  "font-family":
+    "type-small, type-body, type-title (Inter), or type-heading or type-display (Faculty)",
+  "font-size":
+    "type-small (13), type-body (14), type-title (18), type-heading (28) or type-display (22)",
+  "letter-spacing":
+    "type-title or type-heading (-0.01em), type-display (-0.02em); the others have none",
   "line-height": "the role already sets its leading",
   "text-transform": "`capitalize` in markup; no role uppercases",
   "font-weight": "400 in the role, or 500 as the single emphasis weight",
@@ -110,7 +130,9 @@ const splitList = (list) => {
  */
 export function rulesOf(css) {
   const blanked = css
-    .replaceAll(/\/\*[\s\S]*?\*\//gu, (match) => match.replaceAll(/[^\n]/gu, " "))
+    .replaceAll(/\/\*[\s\S]*?\*\//gu, (match) =>
+      match.replaceAll(/[^\n]/gu, " ")
+    )
     .replaceAll(/"[^"\n]*"/gu, (match) => `"${" ".repeat(match.length - 2)}"`);
   const rules = [];
   const stack = [];
@@ -125,12 +147,16 @@ export function rulesOf(css) {
       const open = stack.pop();
       if (open !== undefined && !open.prelude.startsWith("@")) {
         const body = css.slice(open.at + 1, index);
-        const media = stack.map((item) => item.prelude).filter((item) => item.startsWith("@media"));
+        const media = stack
+          .map((item) => item.prelude)
+          .filter((item) => item.startsWith("@media"));
         rules.push({
           at: open.at + 1,
           body,
           media,
-          selectors: splitList(open.prelude).map((item) => item.replaceAll(/\s+/gu, " ").trim()),
+          selectors: splitList(open.prelude).map((item) =>
+            item.replaceAll(/\s+/gu, " ").trim()
+          ),
         });
       }
       start = index + 1;
@@ -164,27 +190,53 @@ export function violationsOf(css, file = "app.css") {
       definesRoles &&
       (all(ROLE_SELECTORS) ||
         all(BASE_SELECTORS) ||
-        (rule.selectors.length === 1 && rule.selectors[0] === FORM_FIELD_SELECTOR));
+        (rule.selectors.length === 1 &&
+          rule.selectors[0] === FORM_FIELD_SELECTOR));
     for (const { line, property, value } of declarationsOf(rule, css)) {
       if (!SHAPE.has(property)) {
         continue;
       }
-      if (property === "font-weight" && ["400", "500", "inherit"].includes(value)) {
+      if (
+        property === "font-weight" &&
+        ["400", "500", "inherit"].includes(value)
+      ) {
         continue;
       }
-      if (["font", "font-family", "line-height", "font-size"].includes(property) && value === "inherit") {
+      if (
+        definesRoles &&
+        rule.selectors.length === 1 &&
+        rule.selectors[0] === WORDMARK_SELECTOR &&
+        WORDMARK_VALUES[property]?.includes(value)
+      ) {
         continue;
       }
-      if (owns && property === "letter-spacing" && ["normal", "-0.01em", "-0.02em"].includes(value)) {
+      if (
+        ["font", "font-family", "line-height", "font-size"].includes(
+          property
+        ) &&
+        value === "inherit"
+      ) {
         continue;
       }
-      if (owns && property === "font-family" && ["var(--font-sans)", "var(--font-display)"].includes(value)) {
+      if (
+        owns &&
+        property === "letter-spacing" &&
+        ["normal", "-0.01em", "-0.02em"].includes(value)
+      ) {
+        continue;
+      }
+      if (
+        owns &&
+        property === "font-family" &&
+        ["var(--font-sans)", "var(--font-display)"].includes(value)
+      ) {
         continue;
       }
       if (
         owns &&
         property === "font-size" &&
-        (SIZES.has(value) || (rule.selectors[0] === FORM_FIELD_SELECTOR && value === "1rem"))
+        (SIZES.has(value) ||
+          (rule.selectors[0] === FORM_FIELD_SELECTOR && value === "1rem"))
       ) {
         continue;
       }

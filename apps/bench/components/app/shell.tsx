@@ -21,9 +21,7 @@ export interface NavItem {
 
 const PUBLIC_NAV: readonly NavItem[] = [
   { href: "/", label: "Home" },
-  { href: "/commands", label: "Commands" },
-  { href: "/looks", label: "Looks" },
-  { href: "/setup", label: "Setup" },
+  { href: "/docs", label: "Docs" },
 ];
 
 /** On a phone the App is Make and Library; Boards need the room a larger

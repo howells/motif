@@ -227,6 +227,26 @@ export const LOOKS = [
   ),
 ];
 
+/** The six Looks the homepage runs in a row, in the order the Paper board
+ * draws them. Each is one of the house Looks above, so the page cannot show
+ * a flag the CLI does not have. */
+const HOME_LOOK_IDS = [
+  "still-life",
+  "interior",
+  "portrait",
+  "object",
+  "architectural",
+  "editorial",
+] as const;
+
+export const HOME_LOOKS = HOME_LOOK_IDS.map((id) => {
+  const found = LOOKS.find((look) => look.flag === `--look ${id}`);
+  if (found === undefined) {
+    throw new Error(`missing home look ${id}`);
+  }
+  return found;
+});
+
 /** One kitchen, one prompt, one seed. Only `--mood` changes between plates. */
 export const MOODS = [
   {
@@ -290,6 +310,18 @@ export const MOODS = [
     },
   },
 ] as const;
+
+/** The order the homepage's Mood row reads in, and the one it opens on. */
+export const HOME_MOOD_ORDER = [
+  "window",
+  "dawn",
+  "raking",
+  "overcast",
+  "lamplit",
+  "nocturne",
+] as const;
+
+export const HOME_MOOD_DEFAULT = "lamplit";
 
 export const MOOD_COMMAND =
   'motif "a family kitchen with a scrubbed oak table" --look interior --mood {mood} --seed 4217';
@@ -445,4 +477,35 @@ export const MATRIX = {
   footnote:
     "The rankings are reviewed against current benchmarks; existing Looks and model pins keep their choices across a refresh. Make, edit means the SDK can call Google, OpenAI, Replicate or fal directly with that provider's key. Explicit GPT Image 2 transparent output uses OpenAI; other CLI routes use fal. Token-billed models show an unknown total before the run.",
   title: "What runs where",
+} as const;
+
+/** The words on the homepage that the other sections do not already own. */
+export const HOME = {
+  docs: [
+    {
+      body: "Install, add your fal key, make an image.",
+      href: "/docs/quickstart",
+      title: "Quickstart",
+    },
+    {
+      body: "Every command, with an example to copy.",
+      href: "/docs/commands",
+      title: "Commands",
+    },
+    {
+      body: "The kind of image, and the light it is made in.",
+      href: "/docs/looks-and-moods",
+      title: "Looks and Moods",
+    },
+    {
+      body: "JSON output, dry runs and error codes.",
+      href: "/docs/agents",
+      title: "For agents",
+    },
+  ],
+  handoff: "Everything else is in the docs.",
+  line: "Make and edit images. Motif picks the model.",
+  llms: { href: "/docs/llms.txt", label: "llms.txt" },
+  looksTitle: "Pick a Look.",
+  moodsTitle: "Then pick a Mood for the light.",
 } as const;

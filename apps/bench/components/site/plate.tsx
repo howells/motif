@@ -33,14 +33,16 @@ export function Plate({
   /** Omits the holding colour behind the picture, for a cut-out sitting
    * straight on the page. */
   readonly plain?: boolean;
-  readonly ratio: string;
+  /** Omitted when the caller sets the box's `aspect-*` itself, for a plate
+   * whose ratio changes with the breakpoint. */
+  readonly ratio?: string;
   readonly sizes: string;
   readonly source: PlateSource;
 }) {
   return (
     <div
       className={`site-plate ${plain === true ? "site-plate-plain" : ""} ${className ?? ""}`}
-      style={{ aspectRatio: ratio }}
+      style={ratio === undefined ? undefined : { aspectRatio: ratio }}
     >
       <Image
         alt={source.alt}

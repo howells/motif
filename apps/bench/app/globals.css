@@ -238,7 +238,7 @@
 
 /* ── The type case ─────────────────────────────────────────────────────
    Five roles, named identically on the site, in the App and in the Bench and
-   defined here once. Every piece of text picks exactly one. Weight is 400 in
+   defined here once, and one exception beside them, `type-wordmark`. Every piece of text picks exactly one. Weight is 400 in
    all of them; `font-medium` (500) is the single emphasis, and the only
    modifiers beside a role are `font-medium`, `font-mono` (literal command or
    code text, at `type-small` size), `tabular-nums` and `capitalize`.
@@ -250,6 +250,11 @@
        type-title     18/24, -0.01em       Inter     screen, panel and dialog titles
        type-body      14/20                Inter     names, sentences, buttons, inputs
        type-small     13/20                Inter     metadata, labels, captions, figures
+
+   The exception is `type-wordmark`: 48/56 on a phone and 72/80 from 768px up,
+   -0.02em, Faculty. It sets the one word "Motif" on the homepage and nothing
+   else. It is a deliberate size outside the ramp, approved for that word, so
+   the scanner holds it to exactly those numbers and no other rule may use them.
 
    One body leading. The public pages' reading columns used 23px; at 20px a
    paragraph is still comfortable, and a long column is given air between its
@@ -265,6 +270,21 @@
     font-weight: 400;
     letter-spacing: -0.02em;
     line-height: 1.75rem;
+  }
+
+  .type-wordmark {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 3.5rem;
+  }
+
+  @media (width >= 48rem) {
+    .type-wordmark {
+      font-size: 4.5rem;
+      line-height: 5rem;
+    }
   }
 
   .type-heading,

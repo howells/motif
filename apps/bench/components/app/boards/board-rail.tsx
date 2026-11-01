@@ -19,7 +19,7 @@ const row =
   "flex min-h-control items-center gap-2 rounded-panel px-3 type-body text-muted hover:text-ink aria-[current=page]:bg-surface aria-[current=page]:font-medium aria-[current=page]:text-ink";
 
 /** The member's places: Boards with the Inbox first, then Library, the
- * Bench (the owner's alone) and Settings. A new Board is named "Untitled
+ * Bench (the owner's alone), Settings and a plain link to the Docs. A new Board is named "Untitled
  * Board" and renamed in place. */
 export function BoardRail({
   boards,
@@ -130,6 +130,11 @@ export function BoardRail({
             href="/settings"
           >
             Settings
+          </Link>
+        </li>
+        <li>
+          <Link className={row} href="/docs" prefetch={false}>
+            Docs
           </Link>
         </li>
       </ul>

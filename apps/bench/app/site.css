@@ -904,3 +904,118 @@
     flex: 1 1 100%;
   }
 }
+
+/* ── The homepage ─────────────────────────────────────────────────────
+   Drawn from the Paper boards "1 · Homepage · Editorial", desktop and phone.
+   Spacing is the scale; the 160px air above a desktop section is 128 + 32. */
+
+.site {
+  --page: 90rem;
+}
+
+/* 16px on a phone, 48px from 768px up, centred once the page is wider than
+   the board. Pictures that bleed on a phone take a negative margin of one
+   gutter. */
+.home-gutter {
+  margin-inline: auto;
+  max-inline-size: var(--page);
+  padding-inline: var(--spacing-4);
+  width: 100%;
+}
+
+@media (width >= 48rem) {
+  .home-gutter {
+    padding-inline: var(--spacing-12);
+  }
+}
+
+.home-section {
+  padding-block-start: var(--spacing-24);
+}
+
+@media (width >= 48rem) {
+  .home-section {
+    padding-block-start: calc(var(--spacing-32) + var(--spacing-8));
+  }
+}
+
+/* A row that scrolls sideways without drawing a scrollbar under the
+   pictures; it is still a focusable scroll region and takes arrow keys. */
+.home-strip {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.home-strip::-webkit-scrollbar {
+  display: none;
+}
+
+/* The Looks row starts on the page's gutter and runs off the right edge. */
+.home-looks {
+  display: flex;
+  gap: var(--spacing-3);
+  padding-inline: var(--spacing-4);
+}
+
+@media (width >= 48rem) {
+  .home-looks {
+    gap: var(--spacing-4);
+    padding-inline-end: var(--spacing-12);
+    padding-inline-start: max(
+      var(--spacing-12),
+      calc((100% - var(--page)) / 2 + var(--spacing-12))
+    );
+  }
+}
+
+/* The opening's command, with all six commands stacked on one grid cell so
+   the tallest sets the height and swapping never moves the list above it. */
+.home-dock {
+  display: grid;
+  min-block-size: var(--spacing-control);
+}
+
+.home-dock > code {
+  align-self: center;
+  grid-area: 1 / 1;
+  min-width: 0;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.home-dock > code[data-active] {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Layers that swap by opacity: the Mood plates, stacked in one box. */
+.home-layer {
+  opacity: 0;
+}
+
+.home-layer[data-active] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .home-dock > code {
+    transition:
+      opacity 180ms var(--ease-out),
+      visibility 0s 180ms;
+  }
+
+  .home-dock > code[data-active] {
+    transition:
+      opacity 180ms var(--ease-out),
+      visibility 0s 0s;
+  }
+
+  .home-layer {
+    transition: opacity 320ms ease-out;
+  }
+}
+
+/* The raised surface the secondary button sits on in the Paper boards. */
+.app-button.home-button-raised {
+  background: #fff;
+}
