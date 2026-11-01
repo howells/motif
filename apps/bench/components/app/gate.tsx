@@ -32,7 +32,7 @@ export function NotAMember({ viewer }: { readonly viewer: Viewer }) {
           body="This copy of Motif has no sign-in set up, so the App can’t open here. Every command still runs in your terminal."
           title="Sign-in isn’t set up"
           action={
-            <Link className="app-button self-start" href="/setup">
+            <Link className="app-button self-start" href="/docs/setup">
               Set up the CLI
             </Link>
           }

@@ -5,8 +5,7 @@ import { usePathname } from "next/navigation";
 
 import type { NavItem } from "@/components/app/shell";
 
-/** The places, with the current one marked. Commands stays marked inside a
- * command and Compare, which is reached from one. */
+/** The places, with the current one marked. */
 export function NavLinks({
   className,
   items,
@@ -18,9 +17,7 @@ export function NavLinks({
   const current = (href: string) =>
     href === "/"
       ? pathname === "/"
-      : pathname === href ||
-        pathname.startsWith(`${href}/`) ||
-        (href === "/commands" && pathname.startsWith("/compare"));
+      : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <nav aria-label="Places" className={className}>

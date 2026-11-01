@@ -13,8 +13,7 @@ export const metadata: Metadata = {
 
 const ELSEWHERE = [
   { href: "/", label: "Home" },
-  { href: "/commands", label: "Commands" },
-  { href: "/setup", label: "Setup" },
+  { href: "/docs", label: "Docs" },
 ] as const;
 
 function EmailForm() {

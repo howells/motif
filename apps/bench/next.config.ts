@@ -1,5 +1,8 @@
 import type { NextConfig } from "next";
 
+/** The docs site's own Vercel project (`apps/docs`). */
+const DOCS_ORIGIN = "https://motif-docs.vercel.app";
+
 const nextConfig: NextConfig = {
   // The compiler memoizes components itself, which is why this app no longer
   // writes useMemo or useCallback by hand.
@@ -14,6 +17,26 @@ const nextConfig: NextConfig = {
     "@motif/bench-db",
     "@motif/bench-env",
   ],
+  // The docs are their own Blume project, served here under /docs.
+  async rewrites() {
+    return [
+      { destination: `${DOCS_ORIGIN}/docs`, source: "/docs" },
+      { destination: `${DOCS_ORIGIN}/docs/:path*`, source: "/docs/:path*" },
+    ];
+  },
+  // The pages the docs replaced. `/commands/:id` stays a route, because
+  // signed in it is the App's form for that Task.
+  async redirects() {
+    return [
+      { destination: "/docs/commands", permanent: true, source: "/commands" },
+      {
+        destination: "/docs/looks-and-moods",
+        permanent: true,
+        source: "/looks",
+      },
+      { destination: "/docs/setup", permanent: true, source: "/setup" },
+    ];
+  },
   images: {
     // Mock samples are generated as inline SVG placeholders by
     // `/api/mock-image` (no fal access this phase — see

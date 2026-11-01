@@ -1,12 +1,7 @@
-import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { PageHead } from "@/components/app/page-head";
 import { TaskWorkspace } from "@/components/app/task/workspace";
-import { Field } from "@/components/site/catalogue-fields";
-import { Command } from "@/components/site/chapter";
 import { getViewer } from "@/lib/app/auth/viewer";
 import type { PickedImage } from "@/lib/app/client/task-draft";
 import { getAppSql } from "@/lib/app/db";
@@ -20,7 +15,6 @@ import {
   commandTitle,
   isAppTaskId,
 } from "@/lib/site/commands";
-import { SITE } from "@/lib/site/content";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -56,8 +50,19 @@ const initialSource = async (
       };
 };
 
+/** Where a command is documented. Two catalogue ids have no page of their
+ * own in the docs: `series run` lives on `series`, and the error codes on
+ * the agents page. */
+const DOCS_PATHS: Readonly<Record<string, string>> = {
+  errors: "/docs/agents",
+  "series-run": "/docs/commands/series",
+};
+
+const docsPathFor = (id: string): string =>
+  DOCS_PATHS[id] ?? `/docs/commands/${id}`;
+
 /** One command. Signed in, the six App Tasks are working forms; everywhere
- * else the page shows what the command does and how to run it. */
+ * else the command is documented in the docs, so the page sends you there. */
 async function CommandPage({ params, searchParams }: Params) {
   const { id } = await params;
   const entry = commandEntry(id);
@@ -82,52 +87,7 @@ async function CommandPage({ params, searchParams }: Params) {
       />
     );
   }
-  const inApp = isAppTaskId(id);
-  return (
-    <main>
-      <PageHead
-        back={
-          <Link
-            className="type-small text-muted min-h-control flex items-center gap-1 md:hidden"
-            href="/commands"
-          >
-            <ChevronLeft aria-hidden="true" size={16} strokeWidth={1.5} />
-            Commands
-          </Link>
-        }
-        standfirst={entry.summary.replace(/\.$/u, "")}
-        title={commandTitle(entry)}
-      />
-      <div className="flex flex-col gap-8 px-4 py-6 md:px-8 md:py-8">
-        <div className="max-w-[60rem]">
-          <Field entry={entry} />
-        </div>
-        <div className="flex max-w-[40rem] flex-col gap-3">
-          <h2 className="type-body font-medium">In your terminal</h2>
-          <Command>{entry.usage}</Command>
-          <p className="type-small text-muted">
-            Install once with{" "}
-            <code className="type-small font-mono">{SITE.install}</code>, then
-            run it from any folder.
-          </p>
-        </div>
-        {inApp ? (
-          <div className="flex max-w-[40rem] flex-col items-start gap-3">
-            <h2 className="type-body font-medium">In the App</h2>
-            <p className="type-small text-muted">
-              Signed in, this page becomes the {commandTitle(entry)} form, with
-              your Library to work from.
-            </p>
-            <form action="/auth/sign-in" method="get">
-              <button className="app-button" type="submit">
-                Sign in to use it
-              </button>
-            </form>
-          </div>
-        ) : null}
-      </div>
-    </main>
-  );
+  return redirect(docsPathFor(id));
 }
 
 export default CommandPage;

@@ -75,10 +75,10 @@ function Head({
       <div className="flex min-w-0 flex-col gap-1">
         <Link
           className="type-small text-muted min-h-control flex items-center gap-1 md:hidden"
-          href="/commands"
+          href="/make"
         >
           <ChevronLeft aria-hidden="true" size={16} strokeWidth={1.5} />
-          Commands
+          Make
         </Link>
         <div className="flex flex-wrap items-baseline gap-x-3">
           <h1>{taskTitle(task)}</h1>
