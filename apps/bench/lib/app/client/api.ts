@@ -62,7 +62,7 @@ const parsed = <T>(schema: z.ZodType<T>, body: unknown, status: number): T => {
 export const api = async <T>(
   path: string,
   schema: z.ZodType<T>,
-  init?: { readonly body?: unknown; readonly method?: "POST" }
+  init?: { readonly body?: unknown; readonly method?: "PATCH" | "POST" }
 ): Promise<T> => {
   const response = await fetch(path, {
     body: init?.body === undefined ? undefined : JSON.stringify(init.body),

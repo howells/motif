@@ -196,6 +196,8 @@ export const retryRun = async (
 export interface ComparisonRequest {
   readonly aspect?: (typeof APP_ASPECTS)[number];
   readonly idempotencyKey: string;
+  readonly look?: string;
+  readonly mood?: string;
   readonly models: readonly string[];
   readonly prompt: string;
 }
@@ -227,6 +229,8 @@ export const startComparison = async (
         referenceAssetIds: [],
         task: "generate",
         ...(comparison.aspect !== undefined && { aspect: comparison.aspect }),
+        ...(comparison.look !== undefined && { look: comparison.look }),
+        ...(comparison.mood !== undefined && { mood: comparison.mood }),
       };
       const result = await plannedRun(
         sql,
@@ -259,7 +263,11 @@ export const startComparison = async (
   }
   const record: PlannedComparison = {
     id: comparisonId,
-    input: { aspect: comparison.aspect ?? null },
+    input: {
+      aspect: comparison.aspect ?? null,
+      look: comparison.look ?? null,
+      mood: comparison.mood ?? null,
+    },
     models,
     ownerId: member.id,
     prompt: comparison.prompt,

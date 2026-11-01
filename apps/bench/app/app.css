@@ -93,8 +93,9 @@
     border-inline-end: 1px solid var(--rule);
     display: flex;
     flex-direction: column;
+    gap: 1.25rem;
     inset-block-start: 0;
-    padding: 1.75rem 0.75rem 1.5rem;
+    padding: 1.5rem 0.75rem 1.25rem;
     position: sticky;
   }
 
@@ -108,10 +109,13 @@
 }
 
 .app-wordmark {
+  align-items: center;
+  display: flex;
   font-family: var(--font-display);
   font-size: 1.75rem;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 2rem;
+  min-block-size: 2.75rem;
   padding-inline: 0.75rem;
 }
 
@@ -119,7 +123,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding-block-start: 2.25rem;
+  padding-block-start: 0.5rem;
 }
 
 .app-nav a {
@@ -449,4 +453,607 @@
   .app a {
     -webkit-tap-highlight-color: transparent;
   }
+}
+
+/* ── Boards ─────────────────────────────────────────────────────────────
+   The node canvas, drawn from the "App · desktop" boards in Paper: white
+   cards on the paper ground, a hairline ring and a soft drop for depth, a
+   2px ink ring for the selected node and an amber ring for a Stale one. */
+
+.board {
+  --board-ring: rgb(28 27 26 / 10%);
+  --board-wire: rgb(28 27 26 / 45%);
+  --board-stale: #8b652b;
+  --board-card-shadow:
+    0 0 0 1px var(--board-ring), 0 1px 2px rgb(28 27 26 / 4%),
+    0 12px 24px -12px rgb(28 27 26 / 14%);
+  --board-float-shadow:
+    0 0 0 1px var(--board-ring), 0 12px 24px -12px rgb(28 27 26 / 18%);
+  --board-dialog-shadow:
+    0 0 0 1px rgb(28 27 26 / 12%), 0 2px 4px rgb(28 27 26 / 6%),
+    0 24px 48px -16px rgb(28 27 26 / 28%);
+}
+
+.board .react-flow__pane {
+  cursor: default;
+}
+
+.board .react-flow__pane.dragging {
+  cursor: grabbing;
+}
+
+.board-card {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: var(--board-card-shadow);
+  color: var(--ink);
+  transition: box-shadow 150ms;
+}
+
+.board-card.is-stale {
+  box-shadow:
+    0 0 0 1px rgb(139 101 43 / 55%),
+    0 1px 2px rgb(28 27 26 / 4%);
+}
+
+.board-card.is-selected {
+  box-shadow:
+    0 0 0 2px var(--ink),
+    0 12px 24px -12px rgb(28 27 26 / 18%);
+}
+
+.board-card.is-stale .board-image {
+  opacity: 0.4;
+}
+
+.board-title {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.5rem;
+}
+
+.board-mono {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.25rem;
+}
+
+.board-rule-top {
+  box-shadow: inset 0 1px 0 var(--rule);
+}
+
+.board-rule-bottom {
+  box-shadow: inset 0 -1px 0 var(--rule);
+}
+
+.board-outline {
+  box-shadow: inset 0 0 0 1px var(--rule);
+}
+
+/* A port: filled ink when a wire is on it, an open ring when not. React
+   Flow positions the handle; this only draws it, with a 24px hit area. */
+.board .react-flow__handle.board-port {
+  background: #fff;
+  block-size: 10px;
+  border: 0;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1.5px var(--board-wire);
+  inline-size: 10px;
+  min-block-size: 0;
+  min-inline-size: 0;
+  top: 17px;
+}
+
+.board .react-flow__handle.board-port::after {
+  content: "";
+  inset: -7px;
+  position: absolute;
+}
+
+.board .react-flow__handle.board-port.is-connected {
+  background: var(--ink);
+  box-shadow: none;
+}
+
+.board .react-flow__handle.board-port.connectingto,
+.board .react-flow__handle.board-port:hover {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+.board .react-flow__handle-left.board-port {
+  left: -5px;
+  transform: none;
+}
+
+.board .react-flow__handle-right.board-port {
+  right: -5px;
+  transform: none;
+}
+
+.board .react-flow__edge.selected .board-wire {
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+.board .react-flow__connection-path {
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+
+.board-chip {
+  align-items: center;
+  background: rgb(250 249 247 / 92%);
+  border-radius: 4px;
+  display: inline-flex;
+  font-size: 0.8125rem;
+  gap: 4px;
+  block-size: 24px;
+  line-height: 1.25rem;
+  padding-inline: 6px 8px;
+}
+
+.board-thumb {
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.board-thumb[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3.5px var(--ink);
+}
+
+.board-float {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: var(--board-float-shadow);
+}
+
+.board-dialog {
+  background: #fff;
+  border: 0;
+  border-radius: 4px;
+  box-shadow: var(--board-dialog-shadow);
+  color: var(--ink);
+  padding: 0;
+}
+
+.board-dialog::backdrop {
+  background: rgb(28 27 26 / 18%);
+}
+
+/* Two or three choices on the mount, the chosen one lifted onto white. */
+.board-segmented {
+  background: var(--surface);
+  border-radius: 4px;
+  display: grid;
+  gap: 2px;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  min-block-size: 44px;
+  padding: 3px;
+}
+
+.board-segmented > label,
+.board-segmented > button {
+  align-items: center;
+  border-radius: 2px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  font-size: 0.875rem;
+  gap: 8px;
+  justify-content: center;
+  line-height: 1.25rem;
+  padding-inline: 8px;
+  position: relative;
+}
+
+.board-segmented input {
+  appearance: none;
+  inset: 0;
+  margin: 0;
+  position: absolute;
+}
+
+.board-segmented > label:has(input:checked),
+.board-segmented > button[aria-pressed="true"] {
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(28 27 26 / 10%);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.board-segmented > label:has(input:focus-visible) {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+
+.board-button {
+  align-items: center;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 500;
+  gap: 8px;
+  justify-content: center;
+  line-height: 1.25rem;
+  min-block-size: 44px;
+  padding-inline: 14px;
+  transition:
+    background-color 150ms,
+    box-shadow 150ms;
+  white-space: nowrap;
+}
+
+@media (hover: hover) {
+  .board-button:hover:not(:disabled) {
+    box-shadow: inset 0 0 0 1px rgb(28 27 26 / 32%);
+  }
+
+  .board-button.is-ink:hover:not(:disabled) {
+    background: #000;
+  }
+
+  .board-quiet:hover:not(:disabled) {
+    background: var(--surface);
+  }
+}
+
+.board-button.is-ink {
+  background: var(--ink);
+  box-shadow: none;
+  color: var(--ground);
+}
+
+.board-button.is-white {
+  background: #fff;
+}
+
+.board-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.board-quiet {
+  align-items: center;
+  border-radius: 4px;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+
+.board-quiet:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.board-field {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  color: var(--ink);
+  font-size: 0.875rem;
+  inline-size: 100%;
+  line-height: 1.25rem;
+  min-block-size: 44px;
+  padding: 12px;
+}
+
+.board-field:focus {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+  outline: none;
+}
+
+select.board-field {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none' stroke='%231c1b1a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 8l4.5 4.5L14.5 8'/%3E%3C/svg%3E");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  padding-block: 0;
+  padding-inline: 12px 36px;
+}
+
+textarea.board-field {
+  resize: none;
+}
+
+.board-radio {
+  border-radius: 50%;
+  block-size: 16px;
+  box-shadow: inset 0 0 0 1.5px rgb(28 27 26 / 40%);
+  flex-shrink: 0;
+  inline-size: 16px;
+}
+
+.board-radio.is-on {
+  box-shadow: inset 0 0 0 5px var(--ink);
+}
+
+.board-box {
+  align-items: center;
+  border-radius: 3px;
+  block-size: 16px;
+  box-shadow: inset 0 0 0 1.5px rgb(28 27 26 / 40%);
+  color: var(--ground);
+  display: inline-flex;
+  flex-shrink: 0;
+  inline-size: 16px;
+  justify-content: center;
+}
+
+.board-box.is-on {
+  background: var(--ink);
+  box-shadow: none;
+}
+
+.board-progress {
+  background: rgb(28 27 26 / 12%);
+  block-size: 3px;
+  overflow: hidden;
+}
+
+.board-progress > span {
+  background: var(--ink);
+  block-size: 100%;
+  display: block;
+  transition: inline-size 1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .board-progress > span,
+  .board-card {
+    transition: none;
+  }
+}
+
+.board-rule-left {
+  box-shadow: inset 1px 0 0 var(--rule);
+}
+
+/* A screen's own name on a phone: the serif at title size, set tight. */
+.app-screen-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 2rem;
+}
+
+.board-stale-dot {
+  block-size: 8px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px var(--board-stale);
+  flex-shrink: 0;
+  inline-size: 8px;
+}
+
+.board-starter {
+  transition: box-shadow 150ms;
+}
+
+@media (hover: hover) {
+  .board-starter:hover {
+    box-shadow:
+      0 0 0 1px rgb(28 27 26 / 24%),
+      0 12px 24px -12px rgb(28 27 26 / 18%);
+  }
+
+  .board-plate-button:hover {
+    box-shadow: inset 0 0 0 1px rgb(243 243 243 / 60%);
+  }
+
+  .board-link:hover {
+    text-decoration-color: currentcolor;
+  }
+}
+
+.board-palette {
+  box-shadow:
+    0 0 0 1px rgb(28 27 26 / 12%),
+    0 32px 64px -24px rgb(28 27 26 / 40%);
+}
+
+/* Where a Compare image will land, a step lighter than the plate. */
+.board-plate-well {
+  background: #1f1f1f;
+}
+
+.board-plate-button {
+  box-shadow: inset 0 0 0 1px rgb(243 243 243 / 30%);
+  transition: box-shadow 150ms;
+}
+
+.board-link {
+  text-decoration-color: rgb(28 27 26 / 30%);
+  text-decoration-line: underline;
+  text-underline-offset: 3px;
+}
+
+/* A phone screen, the height of the viewport less the bottom bar. */
+.app-screen {
+  min-block-size: calc(100dvh - var(--bar));
+}
+
+.board-banner {
+  inline-size: 516px;
+  max-inline-size: calc(100% - 2rem);
+}
+
+.board-note {
+  max-inline-size: 28rem;
+}
+
+/* The Make prompt: white, ruled, a heavier rule while it has focus. */
+.app-prompt {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px var(--rule);
+  outline: none;
+}
+
+.app-prompt:focus {
+  box-shadow: inset 0 0 0 1.5px var(--ink);
+}
+
+/* The phone screens keep to a phone's width on anything larger. */
+.app-column {
+  max-inline-size: 30rem;
+}
+
+.board-plate-well.is-picked {
+  box-shadow:
+    0 0 0 2px #141414,
+    0 0 0 3.5px #f3f3f3;
+}
+
+/* The Library: a contact sheet on paper, one image opened on the plate. */
+.library-tile {
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.library-tile.is-open {
+  box-shadow:
+    0 0 0 2px var(--ground),
+    0 0 0 3.5px var(--ink);
+}
+
+.library-panel {
+  inline-size: 520px;
+}
+
+.library-step {
+  block-size: 44px;
+  border-radius: 4px;
+  inline-size: 64px;
+  overflow: hidden;
+  position: relative;
+}
+
+.library-step.is-here {
+  box-shadow:
+    0 0 0 2px var(--color-plate),
+    0 0 0 3.5px var(--color-plate-ink);
+}
+
+.library-plate-button {
+  align-items: center;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgb(243 243 243 / 30%);
+  color: var(--color-plate-ink);
+  display: inline-flex;
+  font-size: 0.875rem;
+  font-weight: 500;
+  justify-content: center;
+  line-height: 1.25rem;
+  min-block-size: 44px;
+  min-inline-size: 44px;
+}
+
+.library-plate-button.is-solid {
+  background: var(--color-plate-ink);
+  box-shadow: none;
+  color: var(--color-plate);
+}
+
+.library-plate-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+@media (hover: hover) {
+  .library-plate-button:not(.is-solid, :disabled):hover {
+    box-shadow: inset 0 0 0 1px rgb(243 243 243 / 60%);
+  }
+}
+
+.library-label {
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+
+.library-plate-button.is-bare {
+  box-shadow: none;
+}
+
+.library-panel {
+  padding-block-end: env(safe-area-inset-bottom);
+}
+
+/* A phone names the screen in the serif at title size; the desktop bar
+ * matches a Board's top bar. */
+.library-head {
+  block-size: 4rem;
+}
+
+.library-title {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 2rem;
+}
+
+@media (width >= 48rem) {
+  .library-head {
+    block-size: 3.75rem;
+    box-shadow: inset 0 -1px 0 var(--rule);
+  }
+
+  .library-title {
+    font-size: 1.125rem;
+    letter-spacing: 0;
+    line-height: 1.5rem;
+  }
+}
+
+/* Sign in: on a phone the field and button are a thumb's height. */
+.sign-in-field {
+  min-block-size: 52px;
+}
+
+@media (width >= 48rem) {
+  .sign-in-field {
+    min-block-size: 44px;
+  }
+}
+
+/* The shared notices carry their own page padding; here they sit in the
+   form's column. */
+.sign-in-notice > div {
+  padding: 0;
+}
+
+.sign-in-photo {
+  block-size: 45dvh;
+}
+
+.sign-in-form {
+  padding-block-end: max(1rem, env(safe-area-inset-bottom));
+}
+
+@media (width >= 48rem) {
+  .sign-in-photo {
+    block-size: auto;
+    inline-size: 53%;
+  }
+
+  .sign-in-form {
+    padding-block-end: 2.5rem;
+  }
+}
+
+/* A page outside the shell keeps the App's palette but not its rail grid. */
+.app.app-entry {
+  display: block;
 }

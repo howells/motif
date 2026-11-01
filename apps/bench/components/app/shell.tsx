@@ -1,10 +1,13 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { BoardRail } from "@/components/app/boards/board-rail";
+import type { RailBoard } from "@/components/app/boards/board-rail";
 import { NavLinks } from "@/components/app/nav-links";
 import { SpendMeter } from "@/components/app/spend-meter";
 import { dmMono, facultyGlyphic } from "@/components/site/fonts";
 import type { Viewer } from "@/lib/app/auth/viewer";
+import { ensureInbox, listBoards } from "@/lib/app/boards/store";
 import { monthSummary } from "@/lib/app/budget/ledger";
 import { getAppSql } from "@/lib/app/db";
 import { MASTHEAD_LINKS } from "@/lib/site/content";
@@ -21,12 +24,11 @@ const PUBLIC_NAV: readonly NavItem[] = [
   { href: "/setup", label: "Setup" },
 ];
 
-const MEMBER_NAV: readonly NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/commands", label: "Commands" },
-  { href: "/looks", label: "Looks" },
+/** On a phone the App is Make and Library; Boards need the room a larger
+ * screen gives them. */
+const MEMBER_BAR: readonly NavItem[] = [
+  { href: "/make", label: "Make" },
   { href: "/library", label: "Library" },
-  { href: "/settings", label: "Settings" },
 ];
 
 const spendOf = async (viewer: Viewer) => {
@@ -43,9 +45,25 @@ const spendOf = async (viewer: Viewer) => {
   };
 };
 
+const boardsOf = async (viewer: Viewer): Promise<readonly RailBoard[]> => {
+  const sql = getAppSql();
+  if (viewer.state !== "member" || sql === null) {
+    return [];
+  }
+  await ensureInbox(sql, viewer.member.id);
+  const boards = await listBoards(sql, viewer.member.id);
+  return boards.map((board) => ({
+    id: board.id,
+    images: board.images,
+    kind: board.kind,
+    name: board.name,
+  }));
+};
+
 /** One shell for the public site and the App: a left rail from 768px up, a
- * bottom bar below it. Signed in, Library joins the places and Settings takes
- * Setup's slot; the rail's foot carries the shared spend instead of sign-in. */
+ * bottom bar below it. Signed in, the rail is the member's Boards, Library
+ * and Settings, with the shared spend and the account at its foot; the
+ * phone's bar is Make and Library. */
 export async function Shell({
   children,
   viewer,
@@ -54,8 +72,10 @@ export async function Shell({
   readonly viewer: Viewer;
 }) {
   const member = viewer.state === "member" ? viewer.member : null;
-  const items = member === null ? PUBLIC_NAV : MEMBER_NAV;
-  const spend = await spendOf(viewer);
+  const [spend, boards] = await Promise.all([
+    spendOf(viewer),
+    boardsOf(viewer),
+  ]);
 
   return (
     <div className={`site app ${facultyGlyphic.variable} ${dmMono.variable}`}>
@@ -63,7 +83,11 @@ export async function Shell({
         <Link className="app-wordmark" href="/">
           Motif
         </Link>
-        <NavLinks className="app-nav" items={items} />
+        {member === null ? (
+          <NavLinks className="app-nav" items={PUBLIC_NAV} />
+        ) : (
+          <BoardRail boards={boards} />
+        )}
         <div className="mt-auto flex flex-col gap-4 px-3">
           {member === null ? (
             <>
@@ -106,7 +130,10 @@ export async function Shell({
         </div>
       </aside>
       <div className="app-main">{children}</div>
-      <NavLinks className="app-bar type-small" items={items} />
+      <NavLinks
+        className="app-bar type-small"
+        items={member === null ? PUBLIC_NAV : MEMBER_BAR}
+      />
     </div>
   );
 }

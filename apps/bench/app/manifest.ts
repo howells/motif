@@ -32,7 +32,7 @@ function manifest(): MetadataRoute.Manifest {
     name: SITE.name,
     scope: "/",
     short_name: SITE.name,
-    start_url: "/library",
+    start_url: "/make",
     theme_color: "#faf9f7",
   };
 }

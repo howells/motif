@@ -18,6 +18,6 @@ export async function GET(request: NextRequest) {
     baseURL: origin,
     onError: () =>
       NextResponse.redirect(new URL("/sign-in?failed=1", origin), 303),
-    returnPathname: "/library",
+    returnPathname: "/boards",
   })(request);
 }
