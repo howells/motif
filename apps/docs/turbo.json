@@ -1,0 +1,13 @@
+{
+  "extends": ["//"],
+  "tags": ["type:app", "scope:docs", "visibility:public"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "docs/commands/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"]
+    }
+  }
+}

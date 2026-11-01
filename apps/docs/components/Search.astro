@@ -1,0 +1,29 @@
+---
+// Blume's own search, with the paper board's field in front of it: a wide
+// "Search the docs" box with its shortcut, instead of an icon button. The
+// built-in dialog, index and ⌘K handling are untouched; the field only opens
+// them, and Blume's icon button is hidden by theme.css.
+import BlumeSearch from "blume/components/layout/Search.astro";
+
+const props = Astro.props;
+---
+
+<BlumeSearch {...props} />
+<button class="docs-search-field" data-docs-search type="button">
+  <span>Search the docs</span>
+  <kbd data-docs-search-key>⌘K</kbd>
+</button>
+
+<script>
+  const field = document.querySelector<HTMLButtonElement>("[data-docs-search]");
+  const key = document.querySelector<HTMLElement>("[data-docs-search-key]");
+  const apple = /Mac|iPhone|iPad/u.test(navigator.userAgent);
+  if (key !== null && !apple) {
+    key.textContent = "Ctrl K";
+  }
+  field?.addEventListener("click", () => {
+    document
+      .querySelector<HTMLButtonElement>("[data-blume-search-open]")
+      ?.click();
+  });
+</script>

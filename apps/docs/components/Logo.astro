@@ -1,0 +1,17 @@
+---
+// The Motif wordmark: Faculty Glyphic, set here and nowhere else. Every
+// heading on the site stays Inter. The font ships as a local file through
+// Fontsource, so it is hashed, self-hosted and served under the docs base.
+import "@fontsource/faculty-glyphic/latin-400.css";
+
+interface Props {
+  logo?: { href?: string; text?: string } | null;
+  site: { title: string };
+}
+
+const { logo } = Astro.props;
+const href = logo?.href ?? "/";
+const text = logo?.text ?? "Motif";
+---
+
+<a aria-label={`${text} home`} class="docs-wordmark" href={href}>{text}</a>
