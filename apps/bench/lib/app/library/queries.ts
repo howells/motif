@@ -9,12 +9,16 @@ import { getOwnedGenerations } from "../tasks/store";
 import type { Generation } from "../tasks/store";
 
 export interface StackSummary {
+  /** The Board and node that made it, for an image made on a Board. */
+  readonly board: { readonly id: string; readonly name: string } | null;
   readonly comparisonId: string | null;
   readonly completedAt: Date;
   readonly costMicros: number;
   readonly latestId: string;
   readonly model: string;
   readonly outputAssetIds: readonly string[];
+  /** Whether it is its node's Pick right now. */
+  readonly picked: boolean;
   readonly prompt: string | null;
   readonly stackId: string;
   readonly task: string;
@@ -38,10 +42,17 @@ WITH latest AS (
    WHERE g.owner_id = $1
    GROUP BY g.stack_id
 )
-SELECT latest.*, stacks.versions, stacks.cost_micros, stacks.prompt
+SELECT latest.*, stacks.versions, stacks.cost_micros, stacks.prompt,
+       b.id AS board_id, b.name AS board_name,
+       (n.pick_asset_id IS NOT NULL AND n.pick_asset_id = latest.output_asset_ids->>0) AS picked
   FROM latest JOIN stacks USING (stack_id)
+  LEFT JOIN app_node_results r ON r.generation_id = latest.id AND r.owner_id = $1
+  LEFT JOIN app_boards b ON b.id = r.board_id AND b.owner_id = $1
+  LEFT JOIN app_nodes n ON n.id = r.node_id AND n.owner_id = $1
  WHERE ($2::text IS NULL OR stacks.prompt ILIKE '%' || $2 || '%')
    AND (NOT $3::boolean OR latest.comparison_id IS NOT NULL)
+   AND ($5::text IS NULL OR b.id = $5)
+   AND ($6::text IS NULL OR latest.task = $6)
  ORDER BY latest.completed_at DESC
  LIMIT $4`;
 
@@ -52,6 +63,10 @@ export const listStacks = async (
     readonly search?: string;
     readonly comparisonsOnly?: boolean;
     readonly limit?: number;
+    /** Only images made on this Board. */
+    readonly boardId?: string;
+    /** Only images made by this Task. */
+    readonly task?: string;
   } = {}
 ): Promise<StackSummary[]> => {
   const search = options.search?.trim();
@@ -62,19 +77,42 @@ export const listStacks = async (
       : search.replaceAll(/[%_\\]/gu, (match) => `\\${match}`),
     options.comparisonsOnly === true,
     Math.min(options.limit ?? 120, 240),
+    options.boardId ?? null,
+    options.task ?? null,
   ]);
-  return rows.map((row) => ({
-    comparisonId: textOrNull(row, "comparison_id"),
-    completedAt: date(row, "completed_at"),
-    costMicros: integer(row, "cost_micros"),
-    latestId: text(row, "id"),
-    model: text(row, "model"),
-    outputAssetIds: stringArray(row, "output_asset_ids"),
-    prompt: textOrNull(row, "prompt"),
-    stackId: text(row, "stack_id"),
-    task: text(row, "task"),
-    versions: integer(row, "versions"),
-  }));
+  return rows.map((row) => {
+    const boardId = textOrNull(row, "board_id");
+    return {
+      board:
+        boardId === null
+          ? null
+          : { id: boardId, name: text(row, "board_name") },
+      comparisonId: textOrNull(row, "comparison_id"),
+      completedAt: date(row, "completed_at"),
+      costMicros: integer(row, "cost_micros"),
+      latestId: text(row, "id"),
+      model: text(row, "model"),
+      outputAssetIds: stringArray(row, "output_asset_ids"),
+      picked: row.picked === true,
+      prompt: textOrNull(row, "prompt"),
+      stackId: text(row, "stack_id"),
+      task: text(row, "task"),
+      versions: integer(row, "versions"),
+    };
+  });
+};
+
+const IMAGES = `
+SELECT COALESCE(sum(jsonb_array_length(output_asset_ids)), 0)::int AS images
+  FROM app_generations WHERE owner_id = $1 AND status = 'completed'`;
+
+/** How many images the owner has made, all told. */
+export const countImages = async (
+  sql: AppSql,
+  ownerId: string
+): Promise<number> => {
+  const [row] = await sql(IMAGES, [ownerId]);
+  return row === undefined ? 0 : integer(row, "images");
 };
 
 const STACK_IDS = `

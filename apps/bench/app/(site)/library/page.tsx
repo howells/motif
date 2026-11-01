@@ -9,11 +9,7 @@ export const metadata: Metadata = { title: "Library" };
 async function LibraryPage() {
   const viewer = await getViewer();
   return (
-    <MembersOnly
-      standfirst="Your Generations, latest first"
-      title="Library"
-      viewer={viewer}
-    >
+    <MembersOnly title="Library" viewer={viewer}>
       {() => <LibraryView />}
     </MembersOnly>
   );

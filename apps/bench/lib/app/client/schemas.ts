@@ -42,12 +42,14 @@ export const GenerationViewSchema = z.object({
 });
 
 export const StackViewSchema = z.object({
+  board: z.object({ id: z.string(), name: z.string() }).nullable(),
   comparisonId: z.string().nullable(),
   completedAt: z.string(),
   costMicros: z.number(),
   cover: Output.nullable(),
   latestId: z.string(),
   model: z.string(),
+  picked: z.boolean(),
   prompt: z.string().nullable(),
   stackId: z.string(),
   task: z.string(),
@@ -58,7 +60,10 @@ export const GenerationReply = z.object({ generation: GenerationViewSchema });
 export const GenerationsReply = z.object({
   generations: z.array(GenerationViewSchema),
 });
-export const StacksReply = z.object({ stacks: z.array(StackViewSchema) });
+export const StacksReply = z.object({
+  images: z.number(),
+  stacks: z.array(StackViewSchema),
+});
 export const StartedReply = z.object({ generationId: z.string() });
 export const ComparisonStartedReply = z.object({
   comparisonId: z.string().nullable(),
@@ -145,3 +150,31 @@ export const UploadReply = z.object({
 
 /** A reply whose body the page doesn't read. */
 export const Ignored = z.unknown();
+
+const MadeFromStepSchema = z.object({
+  assetId: z.string(),
+  generationId: z.string(),
+  task: z.string(),
+  url: z.string(),
+});
+
+export const LibraryItemReply = z.object({
+  item: z.object({
+    assetId: z.string(),
+    board: z.object({ id: z.string(), name: z.string() }).nullable(),
+    completedAt: z.string().nullable(),
+    costMicros: z.number().nullable(),
+    generationId: z.string(),
+    height: z.number().nullable(),
+    madeFrom: z.array(MadeFromStepSchema),
+    mode: z.string().nullable(),
+    modelName: z.string(),
+    nodeId: z.string().nullable(),
+    prompt: z.string().nullable(),
+    task: z.string(),
+    url: z.string(),
+    width: z.number().nullable(),
+  }),
+});
+
+export type LibraryItemData = z.infer<typeof LibraryItemReply>["item"];

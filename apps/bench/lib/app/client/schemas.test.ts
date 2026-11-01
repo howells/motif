@@ -47,12 +47,14 @@ describe("the browser's reply schemas", () => {
     expect(
       StackViewSchema.safeParse(
         stackView({
+          board: { id: "brd_1", name: "Apothecary shelf" },
           comparisonId: null,
           completedAt: new Date("2026-10-01T10:00:20Z"),
           costMicros: 39_000,
           latestId: "gen_1",
           model: "banana21",
           outputAssetIds: [],
+          picked: true,
           prompt: null,
           stackId: "stk_1",
           task: "generate",

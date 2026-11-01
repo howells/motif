@@ -87,12 +87,14 @@ export const generationView = (generation: Generation): GenerationView => ({
 });
 
 export interface StackView {
+  readonly board: { readonly id: string; readonly name: string } | null;
   readonly comparisonId: string | null;
   readonly completedAt: string;
   readonly costMicros: number;
   readonly cover: { readonly assetId: string; readonly url: string } | null;
   readonly latestId: string;
   readonly model: string;
+  readonly picked: boolean;
   readonly prompt: string | null;
   readonly stackId: string;
   readonly task: string;
@@ -102,6 +104,7 @@ export interface StackView {
 export const stackView = (stack: StackSummary): StackView => {
   const first = stack.outputAssetIds[0];
   return {
+    board: stack.board,
     comparisonId: stack.comparisonId,
     completedAt: stack.completedAt.toISOString(),
     costMicros: stack.costMicros,
@@ -109,6 +112,7 @@ export const stackView = (stack: StackSummary): StackView => {
       first === undefined ? null : { assetId: first, url: mediaUrl(first) },
     latestId: stack.latestId,
     model: stack.model,
+    picked: stack.picked,
     prompt: stack.prompt,
     stackId: stack.stackId,
     task: stack.task,
