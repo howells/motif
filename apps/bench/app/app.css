@@ -163,12 +163,17 @@
   }
 }
 
-.app-head h1 {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 2rem;
+/* The App's one title role: a screen's name, a Settings section, the Library.
+   Set in Inter. The serif belongs to the wordmark alone. */
+.app-head h1,
+.app-screen-title,
+.library-title,
+.app .type-title {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+  line-height: 1.75rem;
 }
 
 /* ── Controls ──────────────────────────────────────────────────────── */
@@ -506,11 +511,14 @@
   opacity: 0.4;
 }
 
-.board-title {
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  font-weight: 400;
-  line-height: 1.5rem;
+/* The smaller role: a node's name, a panel's heading, the line a run is on. */
+.board-title,
+.board-beat-current {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  line-height: 1.375rem;
 }
 
 .board-mono {
@@ -829,6 +837,19 @@ textarea.board-field {
   isolation: isolate;
 }
 
+/* While a node is made its old image is veiled in paper, so the lines read
+   in ink on any photograph. The alpha is `VEIL_ALPHA` in lib/app/boards/veil.ts. */
+.board-veil {
+  backdrop-filter: blur(4px) saturate(0.4);
+  background: rgb(250 249 247 / 88%);
+}
+
+/* The result thumbnails sit inside the bottom of the well, on a soft
+   gradient, so a finished node never grows. */
+.board-well-foot {
+  background: linear-gradient(to top, rgb(28 27 26 / 50%), transparent);
+}
+
 .board-live-breathe {
   animation: board-breathe 5s ease-in-out infinite;
   background: radial-gradient(
@@ -873,14 +894,6 @@ textarea.board-field {
   );
 }
 
-.board-beat-current {
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
-  font-weight: 400;
-  letter-spacing: -0.005em;
-  line-height: 1.375rem;
-}
-
 .board-beat {
   animation: board-beat-in 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -889,22 +902,44 @@ textarea.board-field {
   animation: board-beat-lift 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.board-rail > span {
-  background: var(--ink);
-  block-size: 1px;
-  flex: 1;
-  opacity: 0.7;
+/* A hairline of time under the current line. With the owner's typical time
+   it fills toward it; without one it only sweeps. */
+.board-time-rail {
+  background: rgb(28 27 26 / 16%);
+  block-size: 2px;
+  display: block;
+  overflow: hidden;
+  position: relative;
 }
 
-.board-rail.on-plate > span {
+.board-time-rail.on-plate {
+  background: rgb(243 243 243 / 22%);
+}
+
+.board-time-fill,
+.board-time-sweep {
+  background: var(--ink);
+  display: block;
+  inset-block: 0;
+  position: absolute;
+}
+
+.board-time-rail.on-plate .board-time-fill,
+.board-time-rail.on-plate .board-time-sweep {
   background: #f3f3f3;
 }
 
-.board-rail > span.is-current {
-  animation: board-breathe 1.6s ease-in-out infinite;
-  block-size: 2px;
-  margin-block: -0.5px;
-  opacity: 1;
+.board-time-fill {
+  inline-size: 100%;
+  inset-inline-start: 0;
+  transform-origin: left center;
+  transition: transform 1s linear;
+}
+
+.board-time-sweep {
+  animation: board-sweep 2.4s ease-in-out infinite;
+  inline-size: 30%;
+  inset-inline-start: 0;
 }
 
 .board-beat-dot {
@@ -976,6 +1011,15 @@ textarea.board-field {
   }
 }
 
+@keyframes board-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(340%);
+  }
+}
+
 @keyframes board-travel {
   from {
     stroke-dashoffset: 0;
@@ -1000,8 +1044,16 @@ textarea.board-field {
   .board-live-breathe,
   .board-live-shimmer,
   .board-beat-dot,
-  .board-rail > span.is-current {
+  .board-time-sweep {
     animation: none;
+  }
+
+  .board-time-sweep {
+    transform: translateX(120%);
+  }
+
+  .board-time-fill {
+    transition: none;
   }
 
   .board-live-shimmer {
@@ -1024,15 +1076,6 @@ textarea.board-field {
   .board-reveal {
     animation: board-beat-fade 240ms linear both;
   }
-}
-
-/* A screen's own name on a phone: the serif at title size, set tight. */
-.app-screen-title {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 2rem;
 }
 
 .board-stale-dot {
@@ -1196,18 +1239,10 @@ textarea.board-field {
   padding-block-end: env(safe-area-inset-bottom);
 }
 
-/* A phone names the screen in the serif at title size; the desktop bar
- * matches a Board's top bar. */
+/* A phone names the screen at title size; the desktop bar matches a
+ * Board's top bar. */
 .library-head {
   block-size: 4rem;
-}
-
-.library-title {
-  font-family: var(--font-display);
-  font-size: 1.75rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
-  line-height: 2rem;
 }
 
 @media (width >= 48rem) {
@@ -1217,9 +1252,9 @@ textarea.board-field {
   }
 
   .library-title {
-    font-size: 1.125rem;
-    letter-spacing: 0;
-    line-height: 1.5rem;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+    line-height: 1.375rem;
   }
 }
 

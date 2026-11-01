@@ -40,9 +40,9 @@ import type { Generation } from "../tasks/store";
 import { NODE_LABELS, staleAfterPick } from "./model";
 import { modelName } from "./names";
 import { buildRequests, inputFor, pickSizes, quoteNode } from "./plan";
-import { appendRunEvent } from "./run-event-store";
-import { RunEventGate, eventsOf, isTerminal, sayFor } from "./run-events";
-import type { RunEventInput, Say } from "./run-events";
+import { sayFor } from "./run-events";
+import type { Say } from "./run-events";
+import { recordStream } from "./run-record";
 import {
   claimRun,
   endRun,
@@ -51,17 +51,19 @@ import {
   runStatus,
 } from "./run-store";
 import type { BoardRun, RunStep } from "./run-store";
+import { typicalDurationMs } from "./run-timing";
 import {
   armHomeLine,
   askingLine,
   compareHoldLine,
+  Narrator,
   holdLine,
   pickLine,
   priceLine,
   readLine,
   settledLine,
   staleLine,
-  workerLine,
+  typicalLine,
 } from "./run-voice";
 import type { Line } from "./run-voice";
 import { completeNode, getGraph, markStale, recordResult } from "./store";
@@ -159,6 +161,40 @@ const started = (result: StartResult, label: string): readonly string[] => {
   return result.generationIds;
 };
 
+/** What this owner's history says the Model takes, as a line. The history is
+ * a nicety: if it can't be read, nothing is said about duration and the run
+ * goes on. */
+const typicalFor = async (
+  ctx: RunContext,
+  model: string,
+  name: string
+): Promise<Line | null> => {
+  try {
+    const ms = await typicalDurationMs(ctx.sql, ctx.member.id, model);
+    return ms === null ? null : typicalLine(name, ms);
+  } catch (error) {
+    console.error(
+      `[board run] ${ctx.run.id} couldn't read ${model}'s history`,
+      error
+    );
+    return null;
+  }
+};
+
+/** Several lines, one after another and in order. */
+const tellAll = async (
+  say: Say,
+  lines: readonly Line[],
+  prefix = ""
+): Promise<void> => {
+  const [line, ...rest] = lines;
+  if (line === undefined) {
+    return;
+  }
+  await tell(say, line, prefix);
+  await tellAll(say, rest, prefix);
+};
+
 const tell = async (
   say: Say,
   line: Line | null,
@@ -199,8 +235,13 @@ const settle = async (
     );
   }
   // The worker reports as it goes; each report is said before it moves on.
+  const narrator = new Narrator({
+    name,
+    origin: first.submittedAt?.getTime() ?? ctx.deps.now(),
+    typical: async () => await typicalFor(ctx, first.model, name),
+  });
   const observe = async (event: WorkerEvent) => {
-    await tell(say, workerLine(event, name), lead);
+    await tellAll(say, await narrator.lines(event, ctx.deps.now()), lead);
   };
   for (;;) {
     await advanceGeneration(
@@ -259,7 +300,7 @@ const prepare = async (ctx: RunContext, nodeId: string, say: Say) => {
     throw new StepFailedError(`${label}: ${priced.reason}`);
   }
   const approved = stepOf(ctx, nodeId).micros;
-  await tell(say, priceLine(priced.micros, approved, input.kind === "image"));
+  await tell(say, priceLine(priced.listMicros, priced.micros, approved));
   if (priced.micros > approved) {
     throw new StepFailedError(
       `${label} would hold ${formatUsd(priced.micros)} on its real image, more than the ${formatUsd(approved)} you approved, so it hasn't started.`
@@ -586,41 +627,6 @@ const compareModelsOf = async (
 };
 
 /**
- * Keep what the workflow says as it works. The steps only emit; this is the
- * one place the stream becomes rows. A beat that can't be kept is logged and
- * the run goes on: the feed is decoration, and the workflow it describes
- * spends money.
- */
-const recordStream = async (
-  ctx: RunContext,
-  chunks: AsyncIterable<unknown>
-): Promise<void> => {
-  const gate = new RunEventGate(ctx.deps.now);
-  let full = false;
-  // One at a time and in order: a beat's place is the one after the last.
-  const keep = async (events: readonly RunEventInput[]): Promise<void> => {
-    const [raw, ...rest] = events;
-    if (raw === undefined) {
-      return;
-    }
-    const event = gate.accept(raw);
-    if (event !== null && !(full && !isTerminal(event.kind))) {
-      try {
-        full =
-          (await appendRunEvent(ctx.sql, ctx.member.id, ctx.run.id, event)) ===
-          "full";
-      } catch (error) {
-        console.error(`[board run] ${ctx.run.id} couldn't keep a beat`, error);
-      }
-    }
-    await keep(rest);
-  };
-  for await (const chunk of chunks) {
-    await keep(eventsOf(chunk, ctx.outcome));
-  }
-};
-
-/**
  * Drive a run as far as this invocation can. Safe to call from any number
  * of requests: only the holder of the run's lease drives it.
  */
@@ -653,7 +659,16 @@ export const driveRun = async (
     );
     const handle = await workflow.createRun();
     const stream = handle.stream({ inputData: { runId } });
-    await recordStream(ctx, stream.fullStream);
+    await recordStream(
+      {
+        now: ctx.deps.now,
+        outcome: ctx.outcome,
+        ownerId: member.id,
+        runId: ctx.run.id,
+        sql,
+      },
+      stream.fullStream
+    );
     const result = await stream.result;
     if (result.status === "success") {
       if (await stopped(ctx)) {

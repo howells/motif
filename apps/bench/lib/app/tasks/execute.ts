@@ -64,6 +64,14 @@ export type WorkerEvent =
       readonly status: string;
       readonly queuePosition: number | undefined;
     }
+  /** fal was asked again and nothing had changed. */
+  | {
+      readonly kind: "polled";
+      readonly status: string;
+      readonly queuePosition: number | undefined;
+    }
+  /** Lines fal wrote since the last poll. */
+  | { readonly kind: "logs"; readonly lines: readonly string[] }
   | { readonly kind: "downloading"; readonly count: number }
   | {
       readonly kind: "stored";
@@ -109,26 +117,44 @@ const notifier = (observe: WorkerObserver | undefined) => {
       : (event) => {
           chain = deliver(chain, observe, event);
         };
-  const flush = async () => {
+  /** Wait for what has been handed over; never raises. */
+  const drain = async () => {
     await chain;
+  };
+  /** Wait, then raise what the observer threw. */
+  const flush = async () => {
+    await drain();
     if (failed) {
       throw failure;
     }
   };
-  return { flush, notify };
+  return { drain, flush, notify };
 };
 
-/** Report fal's queue only when its status or place in line changes. */
+/** Report fal's queue when its status or place in line changes, say so when
+ * it was asked and nothing had, and pass on new log lines. */
 const queueReporter = (notify: Notify) => {
   let status: string | undefined;
   let position: number | undefined;
-  return (next: string, queuePosition: number | undefined) => {
+  return (
+    next: string,
+    queuePosition?: number,
+    logs?: readonly { readonly message: string }[]
+  ) => {
     if (next === status && queuePosition === position) {
-      return;
+      notify({ kind: "polled", queuePosition, status: next });
+    } else {
+      status = next;
+      position = queuePosition;
+      notify({ kind: "queue", queuePosition, status: next });
     }
-    status = next;
-    position = queuePosition;
-    notify({ kind: "queue", queuePosition, status: next });
+    const lines = (logs ?? []).flatMap((line) => {
+      const message = line.message.trim();
+      return message === "" ? [] : [message];
+    });
+    if (lines.length > 0) {
+      notify({ kind: "logs", lines });
+    }
   };
 };
 
@@ -568,7 +594,7 @@ export const advanceGeneration = async (
   if (leaseToken === null) {
     return;
   }
-  const { flush, notify } = notifier(observe);
+  const { drain, flush, notify } = notifier(observe);
   try {
     const generation = await getOwnedGeneration(sql, ownerId, id);
     if (generation === null) {
@@ -613,6 +639,8 @@ export const advanceGeneration = async (
     }
     await flush();
   } finally {
+    // Nothing is written for this Generation after it has stopped working.
+    await drain();
     await releaseLease(sql, id, leaseToken);
   }
 };

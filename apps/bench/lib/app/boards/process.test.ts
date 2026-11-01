@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  FILL_CEILING,
   beatsOfNode,
+  easedShare,
   foldBeats,
+  latestRunOf,
+  makingOf,
   offsetLabel,
+  processForNode,
   processOf,
   recent,
   summaryOf,
 } from "./process";
+import type { RunRef } from "./process";
 import type { Beat, RunEventKind } from "./run-events";
 
 const NODE = `nod_${"a".repeat(32)}`;
@@ -153,5 +159,96 @@ describe("summaryOf", () => {
 
   it("is empty with nothing to summarise", () => {
     expect(summaryOf([])).toBe("");
+  });
+});
+
+describe("easedShare", () => {
+  it("quickens then slows, and is never full", () => {
+    const typical = 50_000;
+    const at = (seconds: number) => easedShare(seconds * 1000, typical);
+    expect(at(0)).toBe(0);
+    expect(at(5)).toBeGreaterThan(0.15);
+    expect(at(25) - at(0)).toBeGreaterThan(at(50) - at(25));
+    expect(at(50) - at(25)).toBeGreaterThan(at(100) - at(75));
+    expect(at(50)).toBeGreaterThan(0.8);
+    expect(at(50)).toBeLessThan(0.9);
+    for (const seconds of [10, 50, 100, 500, 5000]) {
+      expect(at(seconds)).toBeLessThan(1);
+      expect(at(seconds)).toBeLessThanOrEqual(FILL_CEILING);
+    }
+  });
+
+  it("cannot run backwards or divide by nothing", () => {
+    expect(easedShare(-5, 1000)).toBe(0);
+    expect(easedShare(1000, 0)).toBe(0);
+  });
+});
+
+describe("makingOf", () => {
+  const usually = beat(7, "make", "Grok usually takes about 50 s", {
+    at: 400,
+    data: { typicalMs: 50_000 },
+  });
+
+  it("reads the owner's typical time and when fal began from the beat that said it", () => {
+    const making = makingOf([beat(6, "make", "fal is making it"), usually]);
+    expect(making).toStrictEqual({
+      startedAt: Date.parse("2026-11-01T10:00:00.400Z"),
+      typicalMs: 50_000,
+    });
+  });
+
+  it("is absent without history, so the rail only sweeps", () => {
+    expect(makingOf([beat(6, "make", "fal is making it")])).toBeNull();
+    expect(makingOf([])).toBeNull();
+  });
+});
+
+describe("a node and its panel", () => {
+  const runs: RunRef[] = [
+    { id: "brun_new", nodeIds: [NODE], status: "running" },
+    { id: "brun_old", nodeIds: [NODE, OTHER], status: "completed" },
+  ];
+  const feed = (runId: string | null, count: number) => ({
+    beats: Array.from({ length: count }, (_, i) =>
+      beat(i + 1, "read", `Line ${i + 1}`)
+    ),
+    runId,
+  });
+
+  it("read the same beats of the same run, so they cannot disagree", () => {
+    // Asked twice, as the node and the panel ask it, of the same feeds.
+    const feeds = [feed("brun_new", 8), feed("brun_old", 3)];
+    const node = processForNode(runs, feeds, NODE);
+    const panel = processForNode(runs, feeds, NODE);
+    expect(panel).toStrictEqual(node);
+    expect(node.beats).toHaveLength(8);
+    expect(node.live).toBe(true);
+  });
+
+  it("follow the newest run even while an older one is also held", () => {
+    const feeds = [feed("brun_old", 3), feed("brun_new", 8)];
+    expect(processForNode(runs, feeds, NODE).beats).toHaveLength(8);
+    expect(latestRunOf(runs, NODE)?.id).toBe("brun_new");
+    expect(latestRunOf(runs, OTHER)?.id).toBe("brun_old");
+  });
+
+  it("have nothing until the newest run's feed arrives", () => {
+    expect(
+      processForNode(runs, [feed("brun_old", 3)], NODE).beats
+    ).toHaveLength(0);
+  });
+});
+
+describe("summaryOf, with waiting beats", () => {
+  it("does not count 'still making it' as steps", () => {
+    const beats = [
+      beat(1, "begin", "Starting", { at: 0 }),
+      beat(2, "make", "fal is making it", { at: 500 }),
+      beat(3, "wait", "Still making it, 15 s in", { at: 15_500 }),
+      beat(4, "wait", "Still making it, 30 s in", { at: 30_500 }),
+      beat(5, "done", "Finished", { at: 31_000 }),
+    ];
+    expect(summaryOf(beats)).toBe("1 step · 31 s");
   });
 });

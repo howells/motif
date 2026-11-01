@@ -314,7 +314,7 @@ export function Inspector({
   readonly node: NodeViewData;
   readonly options: TaskOptions;
 }) {
-  const { openRun, process, select } = useBoard();
+  const { now, openRun, process, select } = useBoard();
   const runnable = isRunnable(node.kind);
   return (
     <aside
@@ -342,7 +342,7 @@ export function Inspector({
         <TaskFields node={node} />
         {runnable && node.kind !== "compare" ? <Results node={node} /> : null}
         {runnable ? (
-          <ProcessLog key={node.id} process={process(node.id)} />
+          <ProcessLog key={node.id} now={now} process={process(node.id)} />
         ) : null}
       </div>
       {runnable ? (

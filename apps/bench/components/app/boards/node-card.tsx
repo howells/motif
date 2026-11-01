@@ -31,6 +31,7 @@ import {
 } from "@/lib/app/boards/canvas";
 import type { NodeViewOf, RunState } from "@/lib/app/boards/canvas";
 import { NODE_LABELS, inputOf, isRunnable } from "@/lib/app/boards/model";
+import { makingOf } from "@/lib/app/boards/process";
 import type {
   NodeViewData,
   ResultViewData,
@@ -139,25 +140,27 @@ function LiveWell({
   readonly run: Extract<RunState, { state: "running" | "waiting" }>;
 }) {
   const { now, process } = useBoard();
+  const { beats } = process(node.id);
   const elapsed = elapsedOf(run.since, now);
+  // Only this owner's own history speaks of how long it usually takes.
+  const typical = makingOf(beats)?.typicalMs ?? null;
   return (
     <div className="board-live absolute inset-0">
       <LiveGlow />
       <div className="absolute inset-x-0 top-0 flex items-baseline justify-between px-3.5 pt-2.5">
-        <span className="type-small text-muted">
+        <span className="type-small text-ink">
           {makingLabel(node, run.expected)}
         </span>
-        <span className="board-mono text-muted">
+        <span className="type-small text-muted tabular-nums">
           {formatSeconds(elapsed)}
-          {run.typicalMs === null
-            ? ""
-            : ` of about ${formatSeconds(run.typicalMs)}`}
+          {typical === null ? "" : ` of about ${formatSeconds(typical)}`}
         </span>
       </div>
       <div className="absolute inset-x-0 bottom-0 px-3.5 pb-3">
         <LiveBeats
-          beats={process(node.id).beats}
+          beats={beats}
           depth={IMAGE_HEIGHT[node.kind] >= 150 ? 2 : 1}
+          now={now}
         />
       </div>
     </div>
@@ -191,7 +194,7 @@ function Making({
             : makingLabel(node, images)}
         </span>
         {run.state === "running" ? (
-          <span className="board-mono text-muted">
+          <span className="type-small text-muted tabular-nums">
             {formatSeconds(elapsed)}
             {typical === null ? "" : ` of about ${formatSeconds(typical)}`}
           </span>
@@ -230,79 +233,80 @@ function ImageArea({
     setArrived(wasBusy && !busy);
   }
   return (
-    <>
-      <div
-        className="bg-surface relative overflow-hidden"
-        style={{ blockSize: height }}
-      >
-        {node.pick === null ? (
-          node.kind === "source" ? (
-            <button
-              className="nodrag text-muted hover:text-ink absolute inset-0 flex flex-col items-center justify-center gap-1 text-sm"
-              onClick={() => {
-                chooseSource(node.id);
-              }}
-              type="button"
-            >
-              <PlusIcon />
-              Choose an image
-            </button>
-          ) : busy ? null : (
-            <span className="type-small text-muted absolute inset-0 flex items-center justify-center">
-              {node.price?.ok === false
-                ? "Not ready to run"
-                : "Run to see it here"}
-            </span>
-          )
-        ) : (
-          <div
-            className={`board-image absolute inset-0 transition-opacity ${busy ? "opacity-45" : ""} ${arrived ? "board-reveal" : ""}`}
-            key={arrived ? node.pick.assetId : "settled"}
+    <div
+      className="bg-surface relative overflow-hidden"
+      style={{ blockSize: height }}
+    >
+      {node.pick === null ? (
+        node.kind === "source" ? (
+          <button
+            className="nodrag text-muted hover:text-ink absolute inset-0 flex flex-col items-center justify-center gap-1 text-sm"
+            onClick={() => {
+              chooseSource(node.id);
+            }}
+            type="button"
           >
-            <MediaImage
-              alt={`${NODE_LABELS[node.kind]} Pick`}
-              fit={
-                node.kind === "reframe" || node.kind === "cutout"
-                  ? "contain"
-                  : "cover"
-              }
-              sizes={`${NODE_WIDTH[node.kind]}px`}
-              src={node.pick.url}
-            />
-          </div>
-        )}
-        {node.pick !== null && images.length > 1 && !busy ? (
-          <span className="board-chip absolute bottom-2 left-2">
+            <PlusIcon />
+            Choose an image
+          </button>
+        ) : busy ? null : (
+          <span className="type-small text-muted absolute inset-0 flex items-center justify-center">
+            {node.price?.ok === false
+              ? "Not ready to run"
+              : "Run to see it here"}
+          </span>
+        )
+      ) : (
+        <div
+          className={`board-image absolute inset-0 ${arrived ? "board-reveal" : ""}`}
+          key={arrived ? node.pick.assetId : "settled"}
+        >
+          <MediaImage
+            alt={`${NODE_LABELS[node.kind]} Pick`}
+            fit={
+              node.kind === "reframe" || node.kind === "cutout"
+                ? "contain"
+                : "cover"
+            }
+            sizes={`${NODE_WIDTH[node.kind]}px`}
+            src={node.pick.url}
+          />
+        </div>
+      )}
+      {node.pick !== null && busy ? (
+        <span aria-hidden="true" className="board-veil absolute inset-0" />
+      ) : null}
+      {node.pick !== null && thumbs.length > 1 && !busy ? (
+        <div className="board-well-foot absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 px-2 pt-8 pb-2">
+          <span className="board-chip">
             <CheckIcon size={14} />
             Pick
           </span>
-        ) : null}
-        {run.state === "idle" ? null : <Making node={node} run={run} />}
-      </div>
-      {thumbs.length > 1 ? (
-        <ul className="flex gap-2 px-3.5 pt-2.5">
-          {thumbs.map((image) => (
-            <li key={image.assetId}>
-              <button
-                aria-label={
-                  image.assetId === node.pick?.assetId
-                    ? "The Pick"
-                    : "Make this the Pick"
-                }
-                aria-pressed={image.assetId === node.pick?.assetId}
-                className="board-thumb nodrag bg-surface block size-11"
-                onClick={() => {
-                  makePick(node, image.assetId);
-                }}
-                type="button"
-              >
-                <MediaImage alt="" sizes="44px" src={image.url} />
-              </button>
-            </li>
-          ))}
-        </ul>
+          <ul className="flex gap-1">
+            {thumbs.slice(0, 3).map((image) => (
+              <li key={image.assetId}>
+                <button
+                  aria-label={
+                    image.assetId === node.pick?.assetId
+                      ? "The Pick"
+                      : "Make this the Pick"
+                  }
+                  aria-pressed={image.assetId === node.pick?.assetId}
+                  className="board-thumb nodrag bg-surface block size-8"
+                  onClick={() => {
+                    makePick(node, image.assetId);
+                  }}
+                  type="button"
+                >
+                  <MediaImage alt="" sizes="32px" src={image.url} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       ) : null}
-    </>
+      {run.state === "idle" ? null : <Making node={node} run={run} />}
+    </div>
   );
 }
 
@@ -510,7 +514,7 @@ function CompareCard({
   readonly run: RunState;
   readonly selected: boolean;
 }) {
-  const { openRun, process, stop } = useBoard();
+  const { now, openRun, process, stop } = useBoard();
   const [open, setOpen] = useState(true);
   const fastest = fastestOf(node);
   const live = process(node.id);
@@ -539,7 +543,7 @@ function CompareCard({
       />
       {open ? (
         <div className={`bg-plate p-4 ${node.stale ? "board-image" : ""}`}>
-          {live.live ? <PlateProcess process={live} /> : null}
+          {live.live ? <PlateProcess now={now} process={live} /> : null}
           <CompareColumns node={node} />
         </div>
       ) : null}

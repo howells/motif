@@ -127,10 +127,16 @@ export interface TaskInput {
   ephemeral?: boolean;
   /**
    * Called on each poll of fal's queue with its status ("queued",
-   * "processing", "completed", "failed") and, while queued, the place in line. Passing
-   * it runs a fal generation through the queue, since only the queue reports.
+   * "processing", "completed", "failed") and, while queued, the place in line. When fal has
+   * written new log lines since the last poll, they come as the third argument
+   * (new lines only). Passing it runs a fal generation through the queue, since
+   * only the queue reports.
    */
-  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void;
+  onProgress?: (
+    status: JobStatus["status"],
+    queuePosition?: number,
+    logs?: readonly { message: string; timestamp: string }[]
+  ) => void;
   /**
    * Called once, as soon as fal's queue accepts the run, with its request id
    * and before any wait. Keep it to `resume` the same job after a restart

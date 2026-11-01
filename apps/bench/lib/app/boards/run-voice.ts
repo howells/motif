@@ -64,21 +64,28 @@ export const readLine = (node: BoardNode, graph: Graph): Line => {
   };
 };
 
-/** Pricing again, and holding to what was approved. */
+/** The price on what the node reads now, as the approval showed it: the list
+ * price, not the hold. The approved hold is mentioned only when it differs
+ * from the hold now. */
 export const priceLine = (
-  micros: number,
-  approved: number,
-  onImage: boolean
+  listMicros: number,
+  holdMicros: number,
+  approvedMicros: number
 ): Line => ({
-  data: { approvedMicros: approved, micros },
+  data: { approvedMicros, holdMicros, listMicros },
   kind: "price",
-  text: `Pricing again ${onImage ? "on the real image" : "on what it reads now"}: ${formatUsd(micros)}, within the ${formatUsd(approved)} you approved`,
+  text:
+    holdMicros === approvedMicros
+      ? `Price checked again: ${formatUsd(listMicros)}`
+      : `Price checked again: ${formatUsd(listMicros)} (you approved holding up to ${formatUsd(approvedMicros)})`,
 });
 
+/** What is held, which can be more than the price: headroom for a Model that
+ * bills by usage. */
 export const holdLine = (boundMicros: number): Line => ({
   data: { micros: boundMicros },
   kind: "hold",
-  text: `Holding ${formatUsd(boundMicros)} until fal settles`,
+  text: `Holding up to ${formatUsd(boundMicros)} until fal settles`,
 });
 
 /** fal's queue, in the words a person would use. */
@@ -122,6 +129,10 @@ export const workerLine = (event: WorkerEvent, name: string): Line | null => {
     }
     case "queue": {
       return queueLine(event.status, event.queuePosition);
+    }
+    case "logs":
+    case "polled": {
+      return null;
     }
     case "downloading": {
       return {
@@ -197,7 +208,7 @@ export const compareHoldLine = (
   return {
     data: { micros: total, models: holds.length },
     kind: "hold",
-    text: `Holding ${list(holds.map((hold) => `${hold.name} ${formatUsd(hold.micros)}`))} together, ${formatUsd(total)} in all`,
+    text: `Holding up to ${formatUsd(total)} together: ${list(holds.map((hold) => `${hold.name} ${formatUsd(hold.micros)}`))}`,
   };
 };
 
@@ -217,3 +228,130 @@ export const armHomeLine = (
   kind: "arm",
   text: `${name} came back${first ? " first" : ""}${ms === null ? "" : `, ${formatSeconds(ms)}`}`,
 });
+
+/** What the owner's own history says this Model takes: said once, when fal
+ * starts making. */
+export const typicalLine = (name: string, ms: number): Line => ({
+  data: { model: name, typicalMs: ms },
+  kind: "make",
+  text: `${name} usually takes about ${formatSeconds(ms)}`,
+});
+
+/** A line fal wrote while it worked, as it wrote it. */
+export const logLine = (message: string): Line => ({
+  kind: "log",
+  text: message,
+});
+
+/** How often a wait with no news says it is still going. */
+export const ELAPSED_EVERY_MS = 15_000;
+
+/**
+ * Notices when fal has gone quiet. It is told every worker event with the
+ * time, and answers with "Still making it, 30 s in" once the status has
+ * stood for `ELAPSED_EVERY_MS` since the last thing said. A new status or a
+ * new place in line counts as news and starts the count again. `origin` is
+ * when the wait began as far as is known: a run picked up from an earlier
+ * drive counts from when it was sent, not from when it was found.
+ */
+export class Waiting {
+  readonly #origin: number;
+  #status: string | undefined;
+  #since: number;
+  #last: number;
+
+  constructor(origin: number) {
+    this.#origin = origin;
+    this.#since = origin;
+    this.#last = origin;
+  }
+
+  see(event: WorkerEvent, at: number): Line | null {
+    if (event.kind === "queue") {
+      if (event.status !== this.#status) {
+        this.#since = this.#status === undefined ? this.#origin : at;
+        this.#status = event.status;
+      }
+      this.#last = at;
+      return null;
+    }
+    if (event.kind !== "polled" || at - this.#last < ELAPSED_EVERY_MS) {
+      return null;
+    }
+    const elapsed = formatSeconds(at - this.#since);
+    this.#last = at;
+    if (event.status === "processing" || event.status === "in_progress") {
+      return {
+        data: { elapsedMs: at - this.#since },
+        kind: "wait",
+        text: `Still making it, ${elapsed} in`,
+      };
+    }
+    if (event.status === "queued") {
+      return {
+        data: { elapsedMs: at - this.#since },
+        kind: "wait",
+        text: `Still in the queue, ${elapsed} in`,
+      };
+    }
+    return null;
+  }
+}
+
+/** Log lines of fal's one Generation says: a chatty Model must not fill the
+ * run's places. */
+export const MAX_LOG_LINES = 10;
+
+/**
+ * What one Generation says as the worker reports, in order: the queue in
+ * plain words, a still-working line when fal has gone quiet, fal's own log
+ * lines (few), the owner's typical time when fal starts making, and the image
+ * coming back. Time and the history lookup are handed in.
+ */
+export class Narrator {
+  readonly #name: string;
+  readonly #waiting: Waiting;
+  readonly #typical: () => Promise<Line | null>;
+  #logsSaid = 0;
+  #typicalAsked = false;
+
+  constructor(options: {
+    readonly name: string;
+    readonly origin: number;
+    readonly typical: () => Promise<Line | null>;
+  }) {
+    this.#name = options.name;
+    this.#waiting = new Waiting(options.origin);
+    this.#typical = options.typical;
+  }
+
+  async lines(event: WorkerEvent, at: number): Promise<Line[]> {
+    if (event.kind === "logs") {
+      const room = Math.max(0, MAX_LOG_LINES - this.#logsSaid);
+      const said = event.lines.slice(0, room);
+      this.#logsSaid += said.length;
+      return said.map((line) => logLine(line));
+    }
+    const out: Line[] = [];
+    const waited = this.#waiting.see(event, at);
+    if (waited !== null) {
+      out.push(waited);
+    }
+    const spoken = workerLine(event, this.#name);
+    if (spoken !== null) {
+      out.push(spoken);
+    }
+    if (
+      event.kind === "queue" &&
+      event.status === "processing" &&
+      !this.#typicalAsked
+    ) {
+      this.#typicalAsked = true;
+      const typical = await this.#typical();
+      if (typical !== null) {
+        out.push(typical);
+      }
+    }
+    return out;
+  }
+}

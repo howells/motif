@@ -1273,6 +1273,58 @@ describe("createMotif run", () => {
     expect(output.cost).toStrictEqual({ basis: "measured", usd: 0.48 });
   }, 10_000);
 
+  it("hands onProgress only the log lines fal wrote since the last poll", async () => {
+    const endpoint = FAL_TOOLS["topaz-restore"].endpoint;
+    const statuses = [
+      {
+        logs: [{ message: "loading", timestamp: "2026-11-01T10:00:00Z" }],
+        status: "IN_PROGRESS",
+      },
+      {
+        logs: [
+          { message: "loading", timestamp: "2026-11-01T10:00:00Z" },
+          { message: "denoising", timestamp: "2026-11-01T10:00:03Z" },
+        ],
+        status: "IN_PROGRESS",
+      },
+      {
+        logs: [
+          { message: "loading", timestamp: "2026-11-01T10:00:00Z" },
+          { message: "denoising", timestamp: "2026-11-01T10:00:03Z" },
+        ],
+        status: "COMPLETED",
+      },
+    ];
+    const { fetch } = fakeFetch((call) => {
+      if (call.method === "POST") {
+        return {
+          data: {
+            request_id: "req-l",
+            response_url: `https://queue.fal.run/${endpoint}/requests/req-l`,
+          },
+        };
+      }
+      if (call.url.includes("/status")) {
+        return { data: statuses.shift() };
+      }
+      return {
+        data: {
+          image: { height: 1000, url: "https://fal.media/f.png", width: 1000 },
+        },
+      };
+    });
+    const heard: (readonly string[] | undefined)[] = [];
+    const result = await client(fetch).restore({
+      image: IMAGE,
+      onProgress: (_status, _position, logs) => {
+        heard.push(logs?.map((line) => line.message));
+      },
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(heard).toStrictEqual([["loading"], ["denoising"], undefined]);
+  }, 15_000);
+
   it("puts the rigged mesh first when a mesh run rigs", async () => {
     const endpoint = FAL_TOOLS["meshy-v7"].endpoint;
     const mesh = "https://fal.media/files/mesh.glb";

@@ -24,8 +24,8 @@ export const foldBeats = (
 export const beatsOfNode = (beats: readonly Beat[], nodeId: string): Beat[] =>
   beats.filter((beat) => beat.nodeId === nodeId);
 
-/** Beats that are bookends rather than steps. */
-const BOOKENDS = new Set<RunEventKind>(["begin", "done", "run", "end"]);
+/** Beats that are bookends or reassurance rather than steps. */
+const BOOKENDS = new Set<RunEventKind>(["begin", "done", "run", "end", "wait"]);
 
 /** The quiet label for a kind of beat. */
 export const KIND_LABELS: Readonly<Record<RunEventKind, string>> = {
@@ -40,6 +40,7 @@ export const KIND_LABELS: Readonly<Record<RunEventKind, string>> = {
   make: "Making",
   pick: "Pick",
   price: "Price",
+  log: "fal",
   queue: "Queue",
   read: "Reading",
   run: "Run",
@@ -47,6 +48,7 @@ export const KIND_LABELS: Readonly<Record<RunEventKind, string>> = {
   settle: "Cost",
   stale: "Stale",
   store: "Stored",
+  wait: "Waiting",
 };
 
 const ms = (beat: Beat): number => Date.parse(beat.at);
@@ -136,4 +138,79 @@ export const summaryOf = (beats: readonly Beat[]): string => {
   const failure = beats.find((beat) => beat.kind === "error");
   const tail = failure === undefined ? moneyTail(beats) : failure.text;
   return tail === null ? parts.join(" · ") : [...parts, tail].join(" · ");
+};
+
+// ── One source for the node and its panel ───────────────────────────────
+
+/** A run as far as finding a node's process needs it. */
+export interface RunRef {
+  readonly id: string;
+  readonly nodeIds: readonly string[];
+  readonly status: "completed" | "failed" | "running" | "stopped";
+}
+
+/** The beats held for one run. */
+export interface Feed {
+  readonly runId: string | null;
+  readonly beats: readonly Beat[];
+}
+
+/** The newest run that touched a node. `runs` is newest first. */
+export const latestRunOf = <R extends RunRef>(
+  runs: readonly R[],
+  nodeId: string
+): R | undefined => runs.find((run) => run.nodeIds.includes(nodeId));
+
+/**
+ * What the latest run said about a node, from whichever held feed is for that
+ * run. The node on the canvas and its panel both ask this, of the same runs
+ * and the same feeds, so they cannot disagree.
+ */
+export const processForNode = (
+  runs: readonly RunRef[],
+  feeds: readonly Feed[],
+  nodeId: string
+): NodeProcess => {
+  const run = latestRunOf(runs, nodeId);
+  const feed = feeds.find((item) => run !== undefined && item.runId === run.id);
+  return run === undefined || feed === undefined
+    ? NO_PROCESS
+    : processOf(beatsOfNode(feed.beats, nodeId), run.status);
+};
+
+// ── Waiting for fal ─────────────────────────────────────────────────────
+
+export interface Making {
+  /** When fal began making it, by the clock of the beat that said so. */
+  readonly startedAt: number;
+  readonly typicalMs: number;
+}
+
+/** What the beats say about how long this should take: set by the beat that
+ * gave this owner's typical time, and absent without one. */
+export const makingOf = (beats: readonly Beat[]): Making | null => {
+  const beat = beats.findLast(
+    (candidate) =>
+      candidate.kind === "make" && typeof candidate.data?.typicalMs === "number"
+  );
+  const typicalMs = beat === undefined ? null : numberOf(beat, "typicalMs");
+  return beat === undefined || typicalMs === null || typicalMs <= 0
+    ? null
+    : { startedAt: ms(beat), typicalMs };
+};
+
+/** The most the fill ever shows: the image coming back is what completes it. */
+export const FILL_CEILING = 0.97;
+
+/**
+ * How far along to draw a wait that usually takes `typicalMs`, `elapsedMs`
+ * in: quick at first, slowing as the time comes, and never full. At the
+ * typical time it shows about 86%.
+ */
+export const easedShare = (elapsedMs: number, typicalMs: number): number => {
+  if (typicalMs <= 0) {
+    return 0;
+  }
+  const x = Math.max(0, elapsedMs) / typicalMs;
+  return FILL_CEILING * (1 - Math.exp(-2.2 * x));
 };

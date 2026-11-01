@@ -51,17 +51,26 @@ export async function GET(
     after
   );
   const encoder = new TextEncoder();
+  // A reader that has gone is not written to, even if a frame was in flight.
+  const deliver = (
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    next: IteratorResult<string>
+  ): void => {
+    if (closed) {
+      return;
+    }
+    if (next.done === true) {
+      controller.close();
+      return;
+    }
+    controller.enqueue(encoder.encode(next.value));
+  };
   const body = new ReadableStream<Uint8Array>({
     cancel() {
       closed = true;
     },
     async pull(controller) {
-      const next = await frames.next();
-      if (next.done === true) {
-        controller.close();
-        return;
-      }
-      controller.enqueue(encoder.encode(next.value));
+      deliver(controller, await frames.next());
     },
   });
   return new Response(body, {

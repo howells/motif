@@ -20,6 +20,8 @@ export const RUN_EVENT_KINDS = [
   "send",
   "queue",
   "make",
+  "wait",
+  "log",
   "image",
   "store",
   "settle",

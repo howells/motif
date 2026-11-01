@@ -327,7 +327,7 @@ describe("advanceGeneration", () => {
     ]);
   });
 
-  it("tells an observer what it is doing, reporting fal's queue only when it changes", async () => {
+  it("tells an observer what it is doing, separating a change in fal's queue from a poll that found none", async () => {
     const { deps } = depsWith(async (_task, input) => {
       input.onSubmitted?.("req-1");
       input.onProgress?.("queued", 3);
@@ -347,8 +347,10 @@ describe("advanceGeneration", () => {
       { kind: "sending" },
       { kind: "accepted", requestId: "req-1" },
       { kind: "queue", queuePosition: 3, status: "queued" },
+      { kind: "polled", queuePosition: 3, status: "queued" },
       { kind: "queue", queuePosition: 1, status: "queued" },
       { kind: "queue", queuePosition: undefined, status: "processing" },
+      { kind: "polled", queuePosition: undefined, status: "processing" },
       { kind: "queue", queuePosition: undefined, status: "completed" },
       { count: 1, kind: "downloading" },
       {
@@ -359,6 +361,26 @@ describe("advanceGeneration", () => {
         width: 16,
       },
     ]);
+  });
+
+  it("passes on the log lines fal wrote, trimmed and without blanks", async () => {
+    const { deps } = depsWith(async (_task, input) => {
+      input.onSubmitted?.("req-1");
+      input.onProgress?.("processing", undefined, [
+        { message: "  loading weights ", timestamp: "t" },
+        { message: "   ", timestamp: "t" },
+        { message: "denoising", timestamp: "t" },
+      ]);
+      return ok(output());
+    });
+    const seen: WorkerEvent[] = [];
+    await advanceGeneration(sql, OWNER, ID, deps, (event) => {
+      seen.push(event);
+    });
+    expect(seen).toContainEqual({
+      kind: "logs",
+      lines: ["loading weights", "denoising"],
+    });
   });
 
   it("reports the queue while it resumes a run fal already has", async () => {

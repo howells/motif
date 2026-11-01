@@ -49,7 +49,7 @@ import {
   wireRefusal,
 } from "@/lib/app/boards/model";
 import type { NodeKind, RunScope } from "@/lib/app/boards/model";
-import { NO_PROCESS, beatsOfNode, processOf } from "@/lib/app/boards/process";
+import { latestRunOf, processForNode } from "@/lib/app/boards/process";
 import {
   besidePlacement,
   clearPlacement,
@@ -417,25 +417,27 @@ function Editor({
   const boxOf = useReveal(view, canvas.selectedId, frame);
 
   // The run going now is heard live. The panel also reads the latest run of
-  // the selected node, which may be an earlier one that has finished.
+  // the selected node, which may be an earlier one that has finished. The
+  // node and its panel ask `process` of these same feeds.
   const runningId = view.runs.find((run) => run.status === "running")?.id;
+  // The run just watched stays held after it ends, so the node and its panel
+  // keep what it said instead of fetching it all again.
+  const [lastRunning, setLastRunning] = useState<string | null>(null);
+  if (runningId !== undefined && runningId !== lastRunning) {
+    setLastRunning(runningId);
+  }
+  const watchedId = runningId ?? lastRunning;
   const selectedRun =
     canvas.selectedId === null
       ? undefined
-      : view.runs.find((run) => run.nodeIds.includes(canvas.selectedId ?? ""));
-  const live = useRunBeats(runningId ?? null, data.refresh);
+      : latestRunOf(view.runs, canvas.selectedId);
+  const live = useRunBeats(watchedId, data.refresh);
   const earlier = useRunBeats(
-    selectedRun !== undefined && selectedRun.id !== runningId
+    selectedRun !== undefined && selectedRun.id !== watchedId
       ? selectedRun.id
       : null
   );
-  const processFor = (nodeId: string) => {
-    const run = view.runs.find((item) => item.nodeIds.includes(nodeId));
-    const feed = [live, earlier].find((item) => item.runId === run?.id);
-    return run === undefined || feed === undefined
-      ? NO_PROCESS
-      : processOf(beatsOfNode(feed.beats, nodeId), run.status);
-  };
+  const feeds = [live, earlier];
 
   const addNode = async (kind: NodeKind) => {
     setAdding(false);
@@ -469,7 +471,7 @@ function Editor({
     openRun: (nodeId, scope) => {
       setRunning({ nodeId, scope });
     },
-    process: processFor,
+    process: (nodeId) => processForNode(view.runs, feeds, nodeId),
     select: canvas.select,
     selectedId: canvas.selectedId,
     stop: (runId) => {

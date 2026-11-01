@@ -176,15 +176,28 @@ export async function getToolResult(
 export async function awaitQueuedRequest(
   exec: FalRequestExecutor,
   job: QueuedToolJob,
-  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void
+  onProgress?: (
+    status: JobStatus["status"],
+    queuePosition?: number,
+    logs?: readonly { message: string; timestamp: string }[]
+  ) => void
 ): Promise<Result<FalRequestResult, MotifError>> {
+  // fal sends the whole log on every poll; the caller is told only what is new.
+  let logsSeen = 0;
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
     const status = await checkToolStatus(exec, job);
     if (status.isErr()) {
       return err(status.error);
     }
 
-    onProgress?.(status.value.status, status.value.queuePosition);
+    const logs = status.value.logs ?? [];
+    const fresh = logs.slice(logs.length < logsSeen ? 0 : logsSeen);
+    logsSeen = logs.length;
+    if (fresh.length > 0) {
+      onProgress?.(status.value.status, status.value.queuePosition, fresh);
+    } else {
+      onProgress?.(status.value.status, status.value.queuePosition);
+    }
 
     if (status.value.status === "completed") {
       const result = await getToolResult(exec, job);
@@ -214,7 +227,11 @@ export async function awaitQueuedRequest(
 export async function runRequestQueued(
   exec: FalRequestExecutor,
   prepared: PreparedFalRequest,
-  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void,
+  onProgress?: (
+    status: JobStatus["status"],
+    queuePosition?: number,
+    logs?: readonly { message: string; timestamp: string }[]
+  ) => void,
   onSubmitted?: (requestId: string) => void
 ): Promise<Result<FalRequestResult, MotifError>> {
   const job = await submitRequest(exec, prepared);
@@ -254,7 +271,11 @@ export async function submitTool(
 export async function runToolQueued(
   exec: FalRequestExecutor,
   options: ToolRunOptions,
-  onProgress?: (status: JobStatus["status"], queuePosition?: number) => void
+  onProgress?: (
+    status: JobStatus["status"],
+    queuePosition?: number,
+    logs?: readonly { message: string; timestamp: string }[]
+  ) => void
 ): Promise<Result<ToolResponse, MotifError>> {
   const request = buildToolRequest(options);
   if (request.isErr()) {
