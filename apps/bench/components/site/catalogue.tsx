@@ -2,11 +2,12 @@ import { Field } from "@/components/site/catalogue-fields";
 import { ChapterHead } from "@/components/site/chapter";
 import type { CatalogueEntry, CatalogueGroup } from "@/lib/site/catalogue";
 import { CATALOGUE } from "@/lib/site/catalogue";
+import { commandTitle } from "@/lib/site/commands";
 
 function Rail({ entry }: { readonly entry: CatalogueEntry }) {
   return (
     <div className="site-rail">
-      <h3 className="type-body">{entry.verb}</h3>
+      <h3 className="type-body">{commandTitle(entry)}</h3>
       <code className="site-rail-usage type-small font-mono">
         {entry.usage}
       </code>

@@ -25,6 +25,7 @@ import { buildRequest, emptyDraft } from "@/lib/app/client/task-draft";
 import type { Draft, PickedImage } from "@/lib/app/client/task-draft";
 import { uploadImage } from "@/lib/app/client/upload-image";
 import type { GenerationView } from "@/lib/app/views";
+import { taskTitle } from "@/lib/site/commands";
 import type { AppTaskId } from "@/lib/site/commands";
 
 /** The same value, but only once it has stopped changing for `ms`. */
@@ -80,7 +81,7 @@ function Head({
           Commands
         </Link>
         <div className="flex flex-wrap items-baseline gap-x-3">
-          <h1>{task}</h1>
+          <h1>{taskTitle(task)}</h1>
           <p className="type-body text-muted">{summary}</p>
         </div>
       </div>

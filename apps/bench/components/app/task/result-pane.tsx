@@ -10,7 +10,7 @@ import { chargeLine } from "@/lib/app/client/charge";
 import { isInFlight, useGeneration } from "@/lib/app/client/use-generation";
 import { formatSeconds, formatUsd } from "@/lib/app/money";
 import type { GenerationView } from "@/lib/app/views";
-import { SOURCE_TASK_IDS } from "@/lib/site/commands";
+import { SOURCE_TASK_IDS, taskTitle } from "@/lib/site/commands";
 
 /** Seconds since a moment, ticking once a second while shown. */
 function Elapsed({ since }: { readonly since: string }) {
@@ -171,7 +171,7 @@ function Finished({ generation }: { readonly generation: GenerationView }) {
             href={`/commands/${task}?source=${shown.assetId}`}
             key={task}
           >
-            {task}
+            {taskTitle(task)}
           </Link>
         ))}
       </nav>

@@ -75,6 +75,15 @@ export const commandEntry = (id: string): CatalogueEntry | undefined =>
 export const commandName = (entry: CatalogueEntry): string =>
   entry.verb.replace(/^--/u, "");
 
+/** A Task's name as the interface shows it: `erase` → `Erase`,
+ * `try-on` → `Try-on`. Lowercase stays for what you type in a terminal. */
+export const taskTitle = (id: string): string =>
+  `${id.slice(0, 1).toUpperCase()}${id.slice(1)}`;
+
+/** The command as a heading names it: `series run` → `Series run`. */
+export const commandTitle = (entry: CatalogueEntry): string =>
+  taskTitle(commandName(entry));
+
 /** A summary as a table cell, without its full stop. */
 export const shortSummary = (entry: CatalogueEntry): string =>
   entry.summary.replace(/\.$/u, "");

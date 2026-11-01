@@ -10,6 +10,7 @@ import { StacksReply } from "@/lib/app/client/schemas";
 import type { PickedImage } from "@/lib/app/client/task-draft";
 import { fitForUpload, uploadImage } from "@/lib/app/client/upload-image";
 import type { StackView } from "@/lib/app/views";
+import { taskTitle } from "@/lib/site/commands";
 
 type Cover = NonNullable<StackView["cover"]>;
 
@@ -200,7 +201,8 @@ export function SourcePicker({
                 <li key={stack.stackId}>
                   <button
                     aria-label={
-                      stack.prompt ?? `${stack.task} with ${stack.model}`
+                      stack.prompt ??
+                      `${taskTitle(stack.task)} with ${stack.model}`
                     }
                     className="app-thumb w-full"
                     disabled={busy}

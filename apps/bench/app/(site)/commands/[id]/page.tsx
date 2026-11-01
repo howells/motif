@@ -1,45 +1,26 @@
-import { CREATIVE_TAXONOMY, LOOKS } from "@howells/motif-sdk";
 import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { PageHead } from "@/components/app/page-head";
-import type { TaskOptions } from "@/components/app/task/fields";
 import { TaskWorkspace } from "@/components/app/task/workspace";
 import { Field } from "@/components/site/catalogue-fields";
 import { Command } from "@/components/site/chapter";
 import { getViewer } from "@/lib/app/auth/viewer";
-import { MAX_IMAGES_PER_RUN, MAX_REFERENCES } from "@/lib/app/budget/policy";
 import type { PickedImage } from "@/lib/app/client/task-draft";
 import { getAppSql } from "@/lib/app/db";
 import { isAppId } from "@/lib/app/ids";
 import { getOwnedAsset } from "@/lib/app/media/assets";
-import { APP_ASPECTS } from "@/lib/app/tasks/request";
+import { TASK_OPTIONS } from "@/lib/app/tasks/options";
 import { mediaUrl } from "@/lib/app/views";
 import {
   LIBRARY_IDS,
   commandEntry,
-  commandName,
+  commandTitle,
   isAppTaskId,
 } from "@/lib/site/commands";
 import { SITE } from "@/lib/site/content";
-
-const OPTIONS: TaskOptions = {
-  aspects: APP_ASPECTS,
-  looks: LOOKS.map((look) => ({
-    acceptsMood: look.acceptsMood,
-    aspect: look.aspect,
-    id: look.id,
-    label: look.label,
-  })),
-  maxImages: MAX_IMAGES_PER_RUN,
-  maxReferences: MAX_REFERENCES,
-  moods: CREATIVE_TAXONOMY.mood.map((mood) => ({
-    id: mood.id,
-    label: mood.label,
-  })),
-};
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -51,7 +32,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const entry = commandEntry(id);
   return entry === undefined
     ? {}
-    : { description: entry.summary, title: commandName(entry) };
+    : { description: entry.summary, title: commandTitle(entry) };
 }
 
 /** A Source handed over from a result or the Library, if it is the
@@ -94,7 +75,7 @@ async function CommandPage({ params, searchParams }: Params) {
       <TaskWorkspace
         initialSource={source}
         key={source?.assetId ?? "none"}
-        options={OPTIONS}
+        options={TASK_OPTIONS}
         summary={entry.summary.replace(/\.$/u, "")}
         task={id}
         usage={entry.usage}
@@ -115,7 +96,7 @@ async function CommandPage({ params, searchParams }: Params) {
           </Link>
         }
         standfirst={entry.summary.replace(/\.$/u, "")}
-        title={commandName(entry)}
+        title={commandTitle(entry)}
       />
       <div className="flex flex-col gap-8 px-4 py-6 md:px-10 md:py-8">
         <div className="max-w-[60rem]">
@@ -133,7 +114,7 @@ async function CommandPage({ params, searchParams }: Params) {
           <div className="flex max-w-[40rem] flex-col items-start gap-3">
             <h2 className="type-body font-medium">In the App</h2>
             <p className="type-small text-muted">
-              Signed in, this page becomes the {commandName(entry)} form, with
+              Signed in, this page becomes the {commandTitle(entry)} form, with
               your Library to work from.
             </p>
             <form action="/auth/sign-in" method="get">
