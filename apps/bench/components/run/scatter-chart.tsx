@@ -2,6 +2,7 @@
 
 import type { ModelAggregate } from "@motif/bench-core";
 
+import { modelNameOf } from "@/lib/model-names";
 import type { ModelQuality } from "@/lib/verdicts";
 
 interface ScatterPoint {
@@ -16,12 +17,11 @@ interface ScatterChartProps {
 }
 
 /** Fixed pixel geometry, not a percentage width. Scaling an SVG scales its
- * type with it, which would put a fifth size on a page the spec caps at four
- * — so the chart keeps its natural size and the container scrolls when the
- * viewport is narrower than it is. */
-const WIDTH = 1040;
-const HEIGHT = 360;
-const MARGIN = { bottom: 46, left: 40, right: 120, top: 30 };
+ * type with it, which would put a sixth size on the screen, so the chart keeps
+ * its natural size and its container scrolls on a narrower viewport. */
+const WIDTH = 880;
+const HEIGHT = 440;
+const MARGIN = { bottom: 44, left: 48, right: 144, top: 16 };
 
 const buildPoints = (
   timing: readonly ModelAggregate[],
@@ -68,8 +68,8 @@ const paretoFrontier = (points: readonly ScatterPoint[]): ScatterPoint[] =>
     .toSorted((left, right) => left.costUsd - right.costUsd);
 
 /** Gridlines and tick labels. Quality's domain is the star scale's fixed
- * 0–5, not the observed range: rescaling to the data would make a run where
- * every model was rated 3.9–4.1 look like a dramatic spread. */
+ * 0 to 5, not the observed range: rescaling to the data would make a run where
+ * every Model was rated 3.9 to 4.1 look like a dramatic spread. */
 const Axes = ({
   maxCost,
   xFor,
@@ -83,17 +83,17 @@ const Axes = ({
     {[0, 1, 2, 3, 4, 5].map((tick) => (
       <g key={`y-${tick}`}>
         <line
-          className="stroke-border-soft"
+          className="stroke-border"
           x1={MARGIN.left}
           x2={WIDTH - MARGIN.right}
           y1={yFor(tick)}
           y2={yFor(tick)}
         />
         <text
-          className="fill-muted"
+          className="fill-ink"
           fontSize={13}
           textAnchor="end"
-          x={MARGIN.left - 10}
+          x={MARGIN.left - 12}
           y={yFor(tick) + 4}
         >
           {tick}
@@ -102,12 +102,12 @@ const Axes = ({
     ))}
     {[0, 0.25, 0.5, 0.75, 1].map((fraction) => (
       <text
-        className="fill-muted"
+        className="fill-ink"
         fontSize={13}
         key={`x-${fraction}`}
         textAnchor="middle"
         x={xFor(fraction * maxCost)}
-        y={HEIGHT - MARGIN.bottom + 18}
+        y={HEIGHT - MARGIN.bottom + 24}
       >
         ${(fraction * maxCost).toFixed(3)}
       </text>
@@ -115,25 +115,16 @@ const Axes = ({
   </>
 );
 
-/** Cost/quality scatter with the Pareto frontier traced — inline SVG, no
- * chart library (`docs/arc/bench/BRIEF.md`, UI section). Only models with
- * both a known cost and at least one star rating plot; everything else is
- * the same pre-rating empty state the verdict strip uses.
- *
- * The accent is spent on the frontier alone: on-frontier models are forest,
- * dominated ones are muted, and the grid is `border-soft` hairlines. Colour
- * is doing one job here — "these are the models worth considering" — and
- * every mark also carries its alias as text. */
+/** Cost against quality with the Pareto frontier traced, as inline SVG with no
+ * chart library. Only Models with both a known cost and at least one rating
+ * plot. Green marks the frontier and does only that job: the Models worth
+ * considering. The rest are grey, and every mark carries its Model's name. */
 export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
   const points = buildPoints(timing, quality);
+  const ratings = quality.reduce((sum, entry) => sum + entry.ratedCount, 0);
 
   if (points.length === 0) {
-    return (
-      <p className="text-muted type-small max-w-[52ch]">
-        No cost/quality pairs yet — rate some images on the Images tab and the
-        Pareto frontier appears here.
-      </p>
-    );
+    return <p className="text-muted type-small">Not rated</p>;
   }
 
   const maxCost = Math.max(...points.map((point) => point.costUsd), 0.001);
@@ -156,79 +147,68 @@ export const ScatterChart = ({ quality, timing }: ScatterChartProps) => {
   const frontierSet = new Set(frontier.map((point) => point.modelAlias));
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* No scroll container here: the chart keeps its fixed geometry and the
-          run pane's `ScrollFrame` owns both axes, so a viewport narrower than
-          1040px scrolls the pane rather than nesting a second scroller. */}
-      <div>
+    <div className="flex flex-col gap-4">
+      <div className="type-small flex items-center justify-between gap-4">
+        <span className="text-muted">Mean rating</span>
+        <span className="text-muted flex items-center gap-2">
+          <span aria-hidden="true" className="bg-ok h-px w-6" />
+          Pareto frontier
+        </span>
+      </div>
+      <div className="overflow-x-auto">
         <svg
-          aria-label="Cost versus quality scatter plot with the Pareto frontier highlighted"
+          aria-label="Mean rating against cost per image, with the Pareto frontier"
           className="block tabular-nums"
           height={HEIGHT}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
           width={WIDTH}
         >
-          <title>Cost versus quality, with the Pareto frontier traced</title>
-
-          {/* Axis titles sit outside the plot, at the two ends the eye already
-              travels to: quality above its scale, cost below its own. */}
-          <text className="fill-muted" fontSize={13} x={0} y={13}>
-            quality ★
-          </text>
-          <text
-            className="fill-muted"
-            fontSize={13}
-            textAnchor="end"
-            x={WIDTH - MARGIN.right}
-            y={HEIGHT - 6}
-          >
-            cost per image
-          </text>
+          <title>Mean rating against cost per image</title>
 
           <Axes maxCost={maxCost} xFor={xFor} yFor={yFor} />
 
           {frontier.length > 1 ? (
             <path
-              className="stroke-accent"
+              className="stroke-ok"
               d={frontierPath}
               fill="none"
-              strokeDasharray="3 3"
-              strokeWidth={1.25}
+              strokeWidth={1.5}
             />
           ) : null}
 
           {points.map((point) => {
             const onFrontier = frontierSet.has(point.modelAlias);
+            const x = xFor(point.costUsd);
+            const y = yFor(point.quality);
             return (
               <g key={point.modelAlias}>
                 <circle
-                  className={onFrontier ? "fill-accent" : "fill-muted"}
-                  cx={xFor(point.costUsd)}
-                  cy={yFor(point.quality)}
-                  r={onFrontier ? 4.5 : 3}
+                  className={onFrontier ? "fill-ok" : "fill-muted"}
+                  cx={x}
+                  cy={y}
+                  r={4}
                 />
-                {/* Sits above-right of the mark, not level with it: the
-                    frontier path passes through the point, and a vertically
-                    centred label is struck through by the dashed line. */}
-                <text
-                  className={onFrontier ? "fill-ink" : "fill-muted"}
-                  fontSize={13}
-                  x={xFor(point.costUsd) + 7}
-                  y={yFor(point.quality) - 7}
-                >
-                  {point.modelAlias}
+                {/* Under and to the right of the mark, so the frontier line
+                    that runs through it never strikes the name out. */}
+                <text fontSize={13} x={x + 16} y={y + 4}>
+                  <tspan className="fill-ink" fontWeight={500}>
+                    {modelNameOf(point.modelAlias)}
+                  </tspan>
+                  <tspan className="fill-muted" dx={8}>
+                    {point.quality.toFixed(1)} ★
+                  </tspan>
                 </text>
               </g>
             );
           })}
         </svg>
       </div>
-      <p className="text-muted type-small max-w-[68ch]">
-        The dashed line traces the Pareto frontier: models nothing else in this
-        run beats on both price and quality. Anything below and right of it is
-        dominated — you can have its quality for less, or more quality for its
-        price.
-      </p>
+      <div className="type-small flex items-center justify-between gap-4">
+        <span className="text-muted">Cost per image</span>
+        <span className="text-muted">
+          {ratings} rating{ratings === 1 ? "" : "s"} · costs estimated
+        </span>
+      </div>
     </div>
   );
 };

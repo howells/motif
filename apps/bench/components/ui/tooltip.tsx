@@ -3,11 +3,10 @@
 import { Tooltip as TooltipPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 
+import { usePortalContainer } from "@/lib/portal";
 import { cn } from "@/lib/utils";
 
-/** shadcn/ui's `tooltip` on house tokens — ink plate, paper text, no
- * shadow. Used for the one thing the spec asks a tooltip to carry: the
- * reason behind an `inconclusive` judgment. */
+/** A tooltip on the paper palette: a hairlined panel, not a dark chip. */
 export const TooltipProvider = ({
   delayDuration = 120,
   ...props
@@ -32,20 +31,22 @@ export const TooltipContent = ({
   className,
   sideOffset = 6,
   ...props
-}: ComponentProps<typeof TooltipPrimitive.Content>) => (
-  <TooltipPrimitive.Portal>
-    <TooltipPrimitive.Content
-      className={cn(
-        "bg-ink text-background rounded-control type-small z-50 max-w-[280px] origin-(--radix-tooltip-content-transform-origin) px-3 py-2 text-balance",
-        "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
-        className
-      )}
-      data-slot="tooltip-content"
-      sideOffset={sideOffset}
-      {...props}
-    >
-      {children}
-      <TooltipPrimitive.Arrow className="bg-ink fill-ink z-50 size-2 translate-y-[calc(-50%_-_1px)] rotate-45" />
-    </TooltipPrimitive.Content>
-  </TooltipPrimitive.Portal>
-);
+}: ComponentProps<typeof TooltipPrimitive.Content>) => {
+  const container = usePortalContainer();
+  return (
+    <TooltipPrimitive.Portal container={container}>
+      <TooltipPrimitive.Content
+        className={cn(
+          "bg-background text-ink border-border rounded-control type-small z-50 max-w-[280px] border px-3 py-2 text-balance",
+          "animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+          className
+        )}
+        data-slot="tooltip-content"
+        sideOffset={sideOffset}
+        {...props}
+      >
+        {children}
+      </TooltipPrimitive.Content>
+    </TooltipPrimitive.Portal>
+  );
+};

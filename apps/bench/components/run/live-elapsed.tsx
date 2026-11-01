@@ -91,7 +91,7 @@ const usePrefersReducedMotion = (): boolean => {
  * does — a counter that changes its own unit as it climbs cannot be read as
  * one rising number. */
 const formatElapsed = (ms: number, whole: boolean): string =>
-  `${(ms / 1000).toFixed(whole ? 0 : 1)}s`;
+  `${(ms / 1000).toFixed(whole ? 0 : 1)} s`;
 
 interface LiveElapsedProps {
   /** Milliseconds elapsed as of the moment the server built the response. */
@@ -135,7 +135,7 @@ export const LiveElapsed = ({ elapsedMs }: LiveElapsedProps) => {
       // latency is the value worth hearing, and it arrives as ordinary
       // content.
       aria-label="Generating"
-      className="text-plate-muted tabular-nums"
+      className="text-muted tabular-nums"
       role="timer"
     >
       {/* Under `prefers-reduced-motion` a digit flickering ten times a second

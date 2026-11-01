@@ -1,117 +1,102 @@
 "use client";
 
-import { Aperto } from "@patternmode/aperto";
+import { RotateCcwIcon } from "lucide-react";
 
-import "@patternmode/aperto/styles.css";
-
+import { useRetrySamples } from "@/lib/queries";
 import type {
   ManualRatingRecord,
   RunSummary,
   SampleRecord,
 } from "@/lib/runs/types";
+import { groupByModel } from "@/lib/sample-order";
 
-import {
-  apertoIndexBySampleId,
-  renderBenchImage,
-  toApertoMedia,
-} from "./aperto-media";
-import { RetryBar } from "./retry-bar";
 import { SampleFrame } from "./sample-frame";
 
 interface ContactSheetProps {
   readonly manualRatings: readonly ManualRatingRecord[];
+  readonly onInspect: (sampleId: string) => void;
   readonly run: RunSummary;
   readonly samples: readonly SampleRecord[];
 }
 
-/** The one dark surface in the app, and the one deliberate departure from
- * the house theme (`docs/design/specs/design-bench.md`): image quality
- * cannot be judged against warm white, because a bright, slightly-yellow
- * surround shifts both perceived contrast and colour temperature — exactly
- * the judgement this page asks for. The plate is near-achromatic for the
- * same reason: any hue in the surround biases the comparison.
- *
- * It is a *surface*, not a card: it fills its scroll frame edge to edge and
- * the frames sit on the ground with a 20px gutter rather than in bordered
- * boxes. The frame around it is a `ScrollFrame` owned by the run
- * pane, so this component sets no height and no overflow of its own.
- *
- * Frames are square, uniform, and start at 240px. A contact sheet is uniform
- * *small* frames — the point is scanning many at once, and full size belongs
- * in the expanded view, which is one click away.
- *
- * The track is `auto-fill` with `minmax(240px, 1fr)`. The rule this replaces
- * was "`auto-fill` with a fixed track, never `auto-fit` with `1fr`", on the
- * grounds that `1fr` stretches the columns when there are few samples and
- * turns a two-model smoke run into a slideshow. That is true of **`auto-fit`**
- * — it collapses the empty tracks, so two samples inherit the whole width. It
- * is not true of `auto-fill`, which *keeps* the empty tracks: two samples
- * still occupy two columns of four and the bed stays honestly part-empty.
- *
- * Holding the track at exactly 240px instead left a quarter of the plate — a
- * 225px column of unused near-black down the right-hand edge at 1440px — with
- * no way to read it as a margin. `1fr` spends that on the images, which are
- * the thing the plate exists to show. */
+/** How many images failed, and one control to run exactly those again. The
+ * server works out what is retryable from the run's current state, so a stale
+ * poll cannot ask it to repeat an image that has since landed. It shows only
+ * once the run has settled, because a retry on a running run is refused. */
+const RetryBar = ({
+  run,
+  samples,
+}: {
+  readonly run: RunSummary;
+  readonly samples: readonly SampleRecord[];
+}) => {
+  const retry = useRetrySamples(run.id);
+  const failed = samples.filter((sample) => sample.status === "failed");
+  if (failed.length === 0 || run.status === "running") {
+    return null;
+  }
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+      <p className="text-muted type-small tabular-nums">
+        {failed.length} of {samples.length} failed
+      </p>
+      <button
+        className="app-button"
+        disabled={retry.isPending}
+        onClick={() => {
+          retry.mutate(null);
+        }}
+        type="button"
+      >
+        <RotateCcwIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+        {retry.isPending ? "Retrying" : `Retry ${failed.length} failed`}
+      </button>
+      {retry.error === null ? null : (
+        <p className="text-bad type-small w-full">{retry.error.message}</p>
+      )}
+    </div>
+  );
+};
+
+/** The run's images, grouped by Model: a column per Model on a wide screen,
+ * with its samples stacked beneath, and a two-up sheet on a phone. Frames are
+ * square and the grid's tracks are fixed by the width, so nothing moves when
+ * an image lands. */
 export const ContactSheet = ({
   manualRatings,
+  onInspect,
   run,
   samples,
 }: ContactSheetProps) => {
   const ratingBySample = new Map(
     manualRatings.map((entry) => [entry.sampleId, entry])
   );
-  // Aperto owns the expanded view now, so there is no open-sample state here:
-  // the thumbnail *is* the trigger and the transition is a shared element
-  // rather than a separate dialog mounting a second copy of the image.
-  const media = toApertoMedia(samples);
-  const apertoIndex = apertoIndexBySampleId(samples);
-  // The dropped/coerced lines are per-model, so one frame carries them and its
-  // neighbour does not — which staggers the annotation blocks and pulls the
-  // lattice out of alignment. Decided once for the whole sheet: if any sample
-  // has them, every annotation reserves the line.
-  const anyDrops = samples.some((sample) => sample.droppedParams.length > 0);
-  const anyCoerces = samples.some((sample) => sample.coercedParams.length > 0);
-
   if (samples.length === 0) {
-    return (
-      <p className="bg-plate text-plate-muted type-small px-4 py-12">
-        No samples yet. Frames appear here as each model is dispatched.
-      </p>
-    );
+    return <p className="text-muted type-small p-4 md:p-6">No images yet</p>;
   }
 
   return (
-    <div className="bg-plate p-4">
-      {/* Tracks from 160px on a phone (so the sheet still lands 2-up in a
-          358px column as the spec requires) and from 240px above `sm`,
-          packed from the start. `auto-fill` fixes the column *count* from
-          the minimum; `1fr` then spends the remainder on the frames rather
-          than leaving it dark at the edge.
-
-          The gutter is 20px, not the 1px of the original contact sheet. That
-          hairline made sense when the sheet was a dark inset cut into paper —
-          the frames read as one object against a contrasting surround. On a
-          single dark ground there is no contrasting surround, so butted
-          frames merge into one another and the ground has to do the
-          separating instead. */}
+    <div className="flex flex-col gap-6 px-4 pt-2 pb-6 md:px-6">
       <RetryBar run={run} samples={samples} />
-      <Aperto.Group media={media} renderImage={renderBenchImage}>
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] justify-start gap-4 sm:grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
-          {samples.map((sample) => (
-            <SampleFrame
-              apertoIndex={apertoIndex.get(sample.id)}
-              contended={run.concurrency > 1}
-              key={sample.id}
-              manualRating={ratingBySample.get(sample.id)}
-              reserveCoercesLine={anyCoerces}
-              reserveDropsLine={anyDrops}
-              retryable={run.status !== "running"}
-              runId={run.id}
-              sample={sample}
-            />
-          ))}
-        </div>
-      </Aperto.Group>
+      <div className="grid grid-cols-2 gap-x-3 gap-y-6 md:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] md:gap-x-6">
+        {groupByModel(samples).map(([alias, group]) => (
+          <div
+            className="contents md:flex md:min-w-0 md:flex-col md:gap-6"
+            key={alias}
+          >
+            {group.map((sample) => (
+              <SampleFrame
+                key={sample.id}
+                manualRating={ratingBySample.get(sample.id)}
+                onInspect={onInspect}
+                retryable={run.status !== "running"}
+                run={run}
+                sample={sample}
+              />
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

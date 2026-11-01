@@ -1,260 +1,242 @@
 "use client";
 
-import { Aperto } from "@patternmode/aperto";
+import { RotateCcwIcon } from "lucide-react";
+import Image from "next/image";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { formatDimensions, formatMs, formatUsd } from "@/lib/format";
-import type { ManualRatingRecord, SampleRecord } from "@/lib/runs/types";
-import { cn } from "@/lib/utils";
+import { formatDimensions, formatSeconds, formatUsd } from "@/lib/format";
+import { modelNameOf } from "@/lib/model-names";
+import { useRetrySamples } from "@/lib/queries";
+import type {
+  ManualRatingRecord,
+  RunSummary,
+  SampleErrorCode,
+  SampleRecord,
+} from "@/lib/runs/types";
 
 import { JudgePanel } from "./judge-panel";
 import { LiveElapsed } from "./live-elapsed";
-import { SampleError } from "./sample-error";
 
-/** What the run had to change to reach this model, on one line.
- *
- * `drops` and `coerces` used to occupy a line each, reserved on every frame
- * whether or not it had anything to say — so a model that coerced nothing
- * still carried two blank lines and the caption showed visible holes where
- * the reservation sat. One line, both halves, reserved once.
- *
- * Still a non-breaking space rather than a fixed height when reserved, so the
- * held line is exactly one line of this type at this size. */
-const ParamLine = ({
-  coerced,
-  dropped,
-  reserve,
-}: {
-  readonly coerced: readonly string[];
-  readonly dropped: readonly string[];
-  readonly reserve: boolean;
-}) => {
-  const parts = [
-    dropped.length === 0 ? null : `drops ${dropped.join(", ")}`,
-    coerced.length === 0 ? null : `coerces ${coerced.join(", ")}`,
-  ].filter((part) => part !== null);
-
-  if (parts.length === 0 && !reserve) {
-    return null;
-  }
-  return (
-    <span className="text-plate-muted/70 type-small truncate">
-      {parts.length === 0 ? " " : parts.join(" · ")}
-    </span>
-  );
+/** What went wrong, in the words a person would use. The vocabulary is closed:
+ * provider text never reaches the store, so it never reaches the screen. */
+const ERROR_COPY: Record<SampleErrorCode, string> = {
+  DOWNLOAD_FAILED: "Download failed",
+  HTTP_4XX: "Request rejected",
+  HTTP_5XX: "Provider error",
+  INTERRUPTED: "Interrupted",
+  NO_IMAGE: "No image returned",
+  RATE_LIMITED: "Rate limited",
+  SAFETY: "Blocked by the safety filter",
+  TIMEOUT: "Provider timeout",
 };
 
-/** The tallest an annotation gets: alias with latency, cost with dimensions,
- * the params line, the judge verdict where a historical run carries one, and
- * the star row — plus the block's own padding. Held as a floor on every cell
- * so a model that dropped nothing does not sit shorter than its neighbour and
- * pull the lattice out of alignment.
- *
- * It was 176px: seven mono lines at one size and one weight under every
- * picture, taller than the 160px frame it captions on a phone and 42% of the
- * cell on a desktop, which read as a log dump rather than a caption. Pairing
- * alias with latency and cost with dimensions on shared baselines, and folding
- * drops and coerces into one line, carries the same information in four. */
-const ANNOTATION_MIN_HEIGHT = "min-h-[104px]";
+const PARAM_LABEL: Record<string, string> = {
+  aspect: "Aspect",
+  outputFormat: "Format",
+  resolution: "Resolution",
+  seed: "Seed",
+};
 
-/** The right-hand figure on the alias line: a stopwatch while the sample is
- * in the air, the measured latency once it lands, and the qualifiers that
- * say when that latency is not comparable with its neighbours'.
- *
- * One slot for both numbers, so nothing moves when the count settles — it
- * changes weight and stops. The qualifiers are suppressed while counting:
- * `±3s` and `contended` qualify a *measurement*, and until the sample
- * settles there isn't one to qualify.
- *
- * The marks lead and the number trails, so every latency in a column lands
- * on the same right edge whether or not its model carries a qualifier. */
-const LatencyCell = ({
-  contended,
-  sample,
+const labelOf = (param: string): string =>
+  PARAM_LABEL[param] ?? `${param.slice(0, 1).toUpperCase()}${param.slice(1)}`;
+
+/** What the run did to reach this Model, in one line: what it ignored, what it
+ * changed, and otherwise the resolution it asked for. */
+const paramNote = (sample: SampleRecord, run: RunSummary): string => {
+  const parts = [
+    ...sample.droppedParams.map((param) => `${labelOf(param)} ignored`),
+    ...sample.coercedParams.map(
+      (entry) => `${labelOf(entry.param)} ${entry.to}`
+    ),
+  ];
+  if (
+    !sample.droppedParams.includes("resolution") &&
+    !sample.coercedParams.some((entry) => entry.param === "resolution")
+  ) {
+    parts.unshift(`Resolution ${run.resolution}`);
+  }
+  return parts.join(" · ");
+};
+
+/** The right-hand figure on the first line: a stopwatch while the image is in
+ * the air and the measured provider time once it lands, with the one mark that
+ * says the time is only good to about three seconds. */
+const LatencyCell = ({ sample }: { readonly sample: SampleRecord }) => (
+  <span className="text-muted type-small flex shrink-0 items-baseline gap-2 tabular-nums">
+    {sample.queuePolled && sample.elapsedMs === null ? (
+      <Tooltip>
+        <TooltipTrigger className="cursor-help">±3 s</TooltipTrigger>
+        <TooltipContent>
+          Queued by the provider, so good to about 3 s
+        </TooltipContent>
+      </Tooltip>
+    ) : null}
+    {sample.elapsedMs === null ? (
+      sample.status === "completed" ? (
+        formatSeconds(sample.providerMs)
+      ) : null
+    ) : (
+      <LiveElapsed elapsedMs={sample.elapsedMs} />
+    )}
+  </span>
+);
+
+/** A failed image says why and offers its own retry, because a failure is
+ * usually spotted while looking at the frame it belongs to. */
+const FailedTile = ({
+  errorCode,
+  retryable,
+  runId,
+  sampleId,
 }: {
-  readonly contended: boolean;
-  readonly sample: SampleRecord;
+  readonly errorCode: SampleErrorCode | null;
+  readonly retryable: boolean;
+  readonly runId: string;
+  readonly sampleId: string;
 }) => {
-  const counting = sample.elapsedMs !== null;
-
+  const retry = useRetrySamples(runId);
   return (
-    <span className="text-plate-ink type-small ml-auto flex shrink-0 items-baseline gap-2 tabular-nums">
-      {sample.queuePolled && !counting ? (
-        <Tooltip>
-          <TooltipTrigger className="text-warn cursor-help">±3s</TooltipTrigger>
-          <TooltipContent>
-            This provider reports through a polled queue, so its latency is only
-            accurate to about three seconds. Do not compare it directly with the
-            others.
-          </TooltipContent>
-        </Tooltip>
+    <div className="bg-surface flex size-full flex-col items-center justify-center gap-2 p-4 text-center">
+      <p className="type-body">Generation failed</p>
+      <p className="text-muted type-small">
+        {errorCode === null ? "Unknown reason" : ERROR_COPY[errorCode]}
+      </p>
+      {retryable ? (
+        <button
+          className="app-button"
+          disabled={retry.isPending}
+          onClick={() => {
+            retry.mutate([sampleId]);
+          }}
+          type="button"
+        >
+          <RotateCcwIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+          {retry.isPending ? "Retrying" : "Retry"}
+        </button>
       ) : null}
-      {contended && !counting ? (
-        <Tooltip>
-          <TooltipTrigger className="text-warn cursor-help">
-            contended
-          </TooltipTrigger>
-          <TooltipContent>
-            This run generated more than one image at a time, so latencies
-            include queueing against each other and are not comparable with a
-            serial run.
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
-      {sample.elapsedMs === null ? (
-        formatMs(sample.providerMs)
-      ) : (
-        <LiveElapsed elapsedMs={sample.elapsedMs} />
+      {retry.error === null ? null : (
+        <p className="text-bad type-small">{retry.error.message}</p>
       )}
-    </span>
+    </div>
   );
 };
 
 interface SampleFrameProps {
-  readonly contended: boolean;
   readonly manualRating: ManualRatingRecord | undefined;
-  /** Index into the parent `Aperto.Group`'s media array, or `undefined` for
-   * a sample with no image (failed, pending). */
-  readonly apertoIndex?: number;
-  /** Set when *some* sample in the sheet coerced a param — this frame then
-   * holds the line even if it coerced nothing, so the annotation blocks stay
-   * the same height and the lattice stays aligned. */
-  readonly reserveCoercesLine: boolean;
-  readonly reserveDropsLine: boolean;
-  /** False while the parent run is still generating — `planRetry` refuses a
-   * retry on a `running` run (a pending sample is in the air and
-   * re-dispatching it would pay for the same image twice), so the frame
-   * hides the control rather than offering one that is guaranteed to be
-   * declined. */
+  readonly onInspect: (sampleId: string) => void;
+  /** False while the run is still generating: a retry on a running run would
+   * pay for an image that is already in the air, so the control is withheld. */
   readonly retryable: boolean;
-  readonly runId: string;
+  readonly run: RunSummary;
   readonly sample: SampleRecord;
 }
 
-/** One cell of the contact sheet: a square frame with zero radius, and its
- * annotation directly beneath in mono — not a card
- * (`docs/design/specs/design-bench.md`).
- *
- * The frame is square and `object-cover` regardless of the run's requested
- * aspect, because a contact sheet is *uniform* frames — ragged rows are
- * harder to scan than a cropped thumbnail is misleading, and the expanded
- * view one click away shows the untouched full-resolution image. Its size is
- * fixed by the grid track, so nothing reflows when an image lands.
- *
- * The contention and queue-granularity marks sit *beside the latency* rather
- * than floating over the image, because that is the number they qualify:
- * both mean "this figure is not comparable to the others in the column".
- *
- * Both the thumbnail and the expanded view render through one `renderImage`
- * with `unoptimized` set — see `aperto-media.tsx`. They previously disagreed
- * (optimized thumbnail, unoptimized full-res), which meant two different URLs
- * and a refetch on every expansion. */
+/** One image and its caption: the Model, the time, the cost, what the run did
+ * to reach it, and the rating. The frame is square and cropped to fill, so a
+ * row of mixed aspects stays a row. Opening it shows the whole image. */
 export const SampleFrame = ({
-  contended,
   manualRating,
-  apertoIndex,
-  reserveCoercesLine,
-  reserveDropsLine,
+  onInspect,
   retryable,
-  runId,
+  run,
   sample,
-}: SampleFrameProps) => (
-  <figure className="bg-plate m-0 flex min-w-0 flex-col">
-    <div className="bg-plate relative aspect-square w-full">
-      {sample.status === "completed" &&
-      sample.imageUrl !== null &&
-      apertoIndex !== undefined ? (
-        // Aperto owns the trigger and the shared-element transition into the
-        // expanded view. The hover outline is the only thing telling you a
-        // frame opens, so it stays: `accent-soft` rather than the accent
-        // itself, so the outline reads as a hover state and not as one of the
-        // two accent-filled elements the shell spec allows. Drawn inside the
-        // frame so it never crosses the gutter.
-        <Aperto.Thumbnail
-          className="hover:outline-accent-soft focus-visible:outline-plate-ink relative block size-full cursor-zoom-in outline-1 -outline-offset-1 outline-transparent transition-[outline-color] duration-150 [&_img]:size-full"
-          index={apertoIndex}
-        />
-      ) : null}
+}: SampleFrameProps) => {
+  const name = modelNameOf(sample.modelAlias, sample.modelName);
+  const settled = sample.status === "completed" || sample.status === "failed";
+  const failed = sample.status === "failed";
+  const completed = sample.status === "completed";
 
-      {sample.status === "failed" ? (
-        <SampleError
-          errorCode={sample.errorCode}
-          retryable={retryable}
-          runId={runId}
-          sampleId={sample.id}
-        />
-      ) : null}
-
-      {sample.status === "pending" || sample.status === "running" ? (
-        <Skeleton className="rounded-frame size-full" />
-      ) : null}
-    </div>
-
-    {/* Two columns, not one: the alias and the cost read down the left of the
-        sheet while latency and dimensions right-align into their own columns.
-        Every track in a row is the same width, so right-aligning puts the
-        latencies of a whole column of models on one edge — which is the
-        comparison the sheet exists to make. */}
-    <figcaption
-      className={cn("flex flex-col gap-1 px-3 py-3", ANNOTATION_MIN_HEIGHT)}
-    >
-      <span className="flex items-baseline gap-2">
-        {/* The alias is a name, not a measurement — you read it, you do not
-            scan a column of them for an outlier. Body font. The two figures
-            beneath and beside it keep mono, because those *are* scanned down
-            the grid, and that contrast is what makes the mono mean
-            something. */}
-        <span className="text-plate-ink type-small truncate">
-          {sample.modelAlias}
-        </span>
-
-        {/* A failed attempt has no latency and no real cost — only an estimate
-            that was never spent. Printing either (or an em dash standing in
-            for them) would put numbers in a comparison column that cannot be
-            compared, so the failed frame carries its alias and its reason and
-            nothing else.
-
-            Where there is a latency, the marks lead and the number trails, so
-            every latency in a column lands on the same right edge whether or
-            not its model carries a qualifier. */}
-        {sample.status === "failed" ? null : (
-          <LatencyCell contended={contended} sample={sample} />
+  return (
+    <figure className="m-0 flex min-w-0 flex-col gap-2">
+      <div className="bg-surface relative aspect-square w-full">
+        {completed && sample.imageUrl !== null ? (
+          <button
+            aria-label={`Open ${name}, sample ${sample.sampleIndex}`}
+            className="absolute inset-0 block size-full cursor-zoom-in"
+            onClick={() => {
+              onInspect(sample.id);
+            }}
+            type="button"
+          >
+            <Image
+              alt={`${name}, sample ${sample.sampleIndex}`}
+              className="object-cover"
+              fill
+              sizes="(width < 48rem) 50vw, 33vw"
+              src={sample.imageUrl}
+              unoptimized
+            />
+          </button>
+        ) : null}
+        {failed ? (
+          <FailedTile
+            errorCode={sample.errorCode}
+            retryable={retryable}
+            runId={run.id}
+            sampleId={sample.id}
+          />
+        ) : null}
+        {settled ? null : (
+          <div className="type-body flex size-full items-center justify-center">
+            Generating
+          </div>
         )}
-      </span>
+      </div>
 
-      {sample.status === "failed" ? null : (
-        <span className="text-plate-muted type-small flex items-baseline gap-2 tabular-nums">
-          {formatUsd(sample.costRefinedMicros ?? sample.costEstimatedMicros)}
-          <span className="text-plate-muted/70 ml-auto shrink-0">
-            {formatDimensions(sample.width, sample.height)}
+      <figcaption className="flex flex-col gap-2">
+        <div className="type-small flex items-baseline justify-between gap-2">
+          <span className="truncate font-medium">{name}</span>
+          {failed ? (
+            <span className="text-muted shrink-0">Failed</span>
+          ) : (
+            <LatencyCell sample={sample} />
+          )}
+        </div>
+        <div className="text-muted type-small flex justify-between gap-2 tabular-nums">
+          <span>
+            {failed
+              ? "Cost unavailable"
+              : settled
+                ? formatUsd(
+                    sample.costRefinedMicros ?? sample.costEstimatedMicros
+                  )
+                : "Waiting"}
           </span>
-        </span>
-      )}
-
-      {/* Reserving the line keeps the judge verdict and the star row on one
-          baseline across the row. A failed frame has no latency, cost or
-          verdict to align to, so it opts out rather than carrying a stray
-          gap. */}
-      <ParamLine
-        coerced={sample.coercedParams.map((entry) => entry.param)}
-        dropped={sample.droppedParams}
-        reserve={
-          (reserveDropsLine || reserveCoercesLine) && sample.status !== "failed"
-        }
-      />
-
-      {sample.status === "completed" ? (
-        <JudgePanel
-          manualRating={manualRating}
-          runId={runId}
-          sampleId={sample.id}
-        />
-      ) : null}
-    </figcaption>
-  </figure>
-);
+          {settled && !failed ? (
+            <span>{formatDimensions(sample.width, sample.height)}</span>
+          ) : null}
+        </div>
+        <p className="text-muted type-small">{paramNote(sample, run)}</p>
+        {completed ? (
+          <>
+            <div className="max-md:hidden">
+              <JudgePanel
+                manualRating={manualRating}
+                runId={run.id}
+                sampleId={sample.id}
+              />
+            </div>
+            <button
+              className="app-button type-body justify-between md:hidden"
+              onClick={() => {
+                onInspect(sample.id);
+              }}
+              type="button"
+            >
+              <span className="tabular-nums">
+                {manualRating === undefined
+                  ? "Not rated"
+                  : `${manualRating.stars} ★`}
+              </span>
+              <span className="text-muted type-small">Rate</span>
+            </button>
+          </>
+        ) : null}
+      </figcaption>
+    </figure>
+  );
+};

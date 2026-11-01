@@ -3,19 +3,12 @@
 import { Popover as PopoverPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 
+import { usePortalContainer } from "@/lib/portal";
 import { cn } from "@/lib/utils";
 
-/** shadcn/ui's `popover` on house tokens. The model picker lives in one
- * (`docs/design/specs/design-bench-shell.md`): it is a decision made once per
- * run, and as a page section it was the largest thing on screen for the
- * smallest question on it.
- *
- * The stock `shadow-md` stays, for the same reason `dialog` keeps its
- * `shadow-lg` — the "zero box-shadow" guardrail is about panels and surfaces,
- * and Patternmode ships shadcn's overlays with their shadows intact.
- *
- * Radix owns `Escape`, focus return and click-outside, so nothing here
- * re-implements them. */
+/** A popover on the paper palette: a panel with a hairline, no shadow, drawn
+ * inside the shell so the tokens resolve. Radix owns `Escape`, focus return
+ * and click-outside, so nothing here re-implements them. */
 export const Popover = (
   props: ComponentProps<typeof PopoverPrimitive.Root>
 ) => <PopoverPrimitive.Root data-slot="popover" {...props} />;
@@ -29,17 +22,20 @@ export const PopoverContent = ({
   className,
   sideOffset = 8,
   ...props
-}: ComponentProps<typeof PopoverPrimitive.Content>) => (
-  <PopoverPrimitive.Portal data-slot="popover-portal">
-    <PopoverPrimitive.Content
-      align={align}
-      className={cn(
-        "border-border bg-surface animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 rounded-panel z-50 border p-4 shadow-md outline-none",
-        className
-      )}
-      data-slot="popover-content"
-      sideOffset={sideOffset}
-      {...props}
-    />
-  </PopoverPrimitive.Portal>
-);
+}: ComponentProps<typeof PopoverPrimitive.Content>) => {
+  const container = usePortalContainer();
+  return (
+    <PopoverPrimitive.Portal container={container} data-slot="popover-portal">
+      <PopoverPrimitive.Content
+        align={align}
+        className={cn(
+          "border-border bg-background text-ink rounded-panel z-50 border outline-none",
+          className
+        )}
+        data-slot="popover-content"
+        sideOffset={sideOffset}
+        {...props}
+      />
+    </PopoverPrimitive.Portal>
+  );
+};

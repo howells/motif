@@ -1,164 +1,112 @@
 "use client";
 
-import { ScrollFrame } from "@patternmode/scrollframe";
+import { PlusIcon, XIcon } from "lucide-react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { formatRelativeToNow, formatUsd } from "@/lib/format";
+import { formatRunDate, formatUsd } from "@/lib/format";
 import { useRuns } from "@/lib/queries";
-import type { RunSummary } from "@/lib/runs/types";
+import type { RunStatus, RunSummary } from "@/lib/runs/types";
 import { cn } from "@/lib/utils";
 
-/** How far a run has got, for the entry the main pane is showing. The list
- * endpoint returns no per-sample counts, so only the selected run — whose
- * detail the shell already has — can show `7 of 24`; every other running run
- * shows its status badge alone. */
-export interface RailProgress {
-  readonly done: number;
-  readonly total: number;
-}
-
 interface RunsRailProps {
+  readonly onNewRun: () => void;
   readonly onSelect: (runId: string) => void;
-  readonly progress: RailProgress | null;
   readonly selectedRunId: string | null;
 }
 
-/** Status as a 5px disc rather than an outlined pill.
- *
- * Nine pills stacked down a 220px column were the loudest thing in the rail
- * and the least important — a rounded border, its own padding and a mono face
- * spent on a word that repeats on almost every row. The disc keeps the colour
- * cue at a fraction of the weight, and the status *word* still appears in the
- * meta line below it, so this never carries meaning by colour alone
- * (`docs/design/specs/design-bench.md`: "Every status carries a text label"). */
-const STATUS_TONE: Record<string, string> = {
+/** Status as a disc: green when it finished, red when it did not, ink while it
+ * runs. The word is on the run itself, so colour never carries it alone. */
+const STATUS_TONE: Record<RunStatus, string> = {
+  cancelled: "bg-faint",
   completed: "bg-ok",
   failed: "bg-bad",
-  partial: "bg-warn",
-  running: "bg-warn",
+  partial: "bg-bad",
+  pending: "bg-faint",
+  running: "bg-ink",
 };
 
-const StatusDot = ({ status }: { readonly status: string }) => (
+const StatusDot = ({ status }: { readonly status: RunStatus }) => (
   <span
     aria-hidden="true"
-    className={cn(
-      "size-1 shrink-0 rounded-full",
-      STATUS_TONE[status] ?? "bg-muted"
-    )}
+    className={cn("size-2 shrink-0 rounded-full", STATUS_TONE[status])}
   />
 );
 
-/** One run, at a glance.
- *
- * Every run in this tool tends to carry the *same* prompt — it is the constant
- * the comparison holds still. Leading each entry with it therefore printed one
- * identical paragraph nine times and buried the only things that actually
- * differ: how many models, when, what it cost, how it ended. So the entry now
- * leads with the shape of the run and keeps the prompt for the selected entry
- * alone, as a caption rather than a headline. */
+/** One run: its prompt on a line, then when it was made and what it cost.
+ * Every run tends to carry the same prompt, so the date is what tells them
+ * apart. */
 const RunEntry = ({
+  detailed,
   isSelected,
   onSelect,
-  progress,
   run,
 }: {
+  readonly detailed: boolean;
   readonly isSelected: boolean;
   readonly onSelect: (runId: string) => void;
-  readonly progress: RailProgress | null;
   readonly run: RunSummary;
 }) => (
   <li>
     <button
       aria-current={isSelected ? "true" : undefined}
       className={cn(
-        "border-t-border-soft flex w-full cursor-pointer flex-col gap-1 border-t border-l-2 px-3 py-2 text-left transition-colors duration-150",
-        isSelected
-          ? "border-l-accent bg-surface-soft"
-          : "hover:bg-surface-soft border-l-transparent"
+        "rounded-control flex w-full cursor-pointer flex-col gap-1 p-3 text-left transition-colors duration-150",
+        isSelected ? "bg-surface" : "hover:bg-surface"
       )}
       onClick={() => {
         onSelect(run.id);
       }}
       type="button"
     >
-      <span className="flex w-full items-center gap-2">
+      <span className="flex items-center gap-2">
         <StatusDot status={run.status} />
-        <span className="text-ink type-small">
-          {run.models.length} model{run.models.length === 1 ? "" : "s"}
-        </span>
-        {/* The one figure in the rail set in tabular numerals. Costs right-align into
-            a single column nine rows deep and are read against each other —
-            "which run was the expensive one" is the question the column
-            answers, and tabular figures are what let you answer it by
-            scanning. Everything else here is read one row at a time. */}
-        <span className="text-muted type-small ml-auto tabular-nums">
-          {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
-          {run.costActualMicros === null ? " est" : ""}
-        </span>
+        <span className="type-small truncate">{run.prompt}</span>
       </span>
-
-      {/* Indented past the disc so the meta line hangs off the count above it
-          rather than starting a second column. */}
-      <span className="text-muted type-small flex flex-wrap items-baseline gap-x-2 pl-3">
-        <span>
-          {progress === null
-            ? run.status
-            : `${progress.done} of ${progress.total}`}
-        </span>
-        <span aria-hidden="true">·</span>
-        <span>{formatRelativeToNow(run.createdAt)}</span>
-        {run.isMock ? (
-          <>
-            <span aria-hidden="true">·</span>
-            <span>mock</span>
-          </>
-        ) : null}
-        {run.stale ? (
-          <>
-            <span aria-hidden="true">·</span>
-            <span className="text-bad">stale</span>
-          </>
-        ) : null}
-      </span>
-
-      {/* The selected entry shows its prompt: it is the only place the run's
-          own subject appears once the composer above became a forward-looking
-          draft rather than a description of what is on screen. */}
-      {isSelected ? (
-        <span className="text-muted type-small line-clamp-2 pl-3">
-          {run.prompt}
+      {detailed ? (
+        <span className="text-muted type-small pl-4 tabular-nums">
+          {run.models.length} model{run.models.length === 1 ? "" : "s"} ·{" "}
+          {run.samplesPerModel} sample{run.samplesPerModel === 1 ? "" : "s"} ·{" "}
+          {run.aspect}
         </span>
       ) : null}
+      <span className="text-muted type-small flex justify-between pl-4 tabular-nums">
+        <span>{formatRunDate(run.createdAt)}</span>
+        <span>
+          {formatUsd(run.costActualMicros ?? run.costEstimatedMicros)}
+        </span>
+      </span>
     </button>
   </li>
 );
 
-const RunList = ({ onSelect, progress, selectedRunId }: RunsRailProps) => {
+const RunList = ({
+  detailed = false,
+  onSelect,
+  selectedRunId,
+}: Pick<RunsRailProps, "onSelect" | "selectedRunId"> & {
+  readonly detailed?: boolean;
+}) => {
   const { data, isError, isLoading } = useRuns();
   const runs = data?.runs ?? [];
 
   if (isLoading) {
-    return <p className="text-muted type-small px-3 py-3">Loading runs…</p>;
+    return <p className="text-muted type-small px-3 py-3">Loading runs</p>;
   }
   if (isError) {
-    return (
-      <p className="text-muted type-small px-3 py-3">
-        Could not load runs. The app&apos;s own store may be unavailable.
-      </p>
-    );
+    return <p className="text-bad type-small px-3 py-3">Could not load runs</p>;
   }
   if (runs.length === 0) {
-    return <p className="text-muted type-small px-3 py-3">No runs yet.</p>;
+    return <p className="text-muted type-small px-3 py-3">No runs yet</p>;
   }
 
   return (
-    <ul className="m-0 flex list-none flex-col p-0">
+    <ul className="m-0 flex list-none flex-col gap-1 p-0">
       {runs.map((run) => (
         <RunEntry
+          detailed={detailed}
           isSelected={run.id === selectedRunId}
           key={run.id}
           onSelect={onSelect}
-          progress={run.id === selectedRunId ? progress : null}
           run={run}
         />
       ))}
@@ -166,65 +114,95 @@ const RunList = ({ onSelect, progress, selectedRunId }: RunsRailProps) => {
   );
 };
 
-/** Sentence case in the body font, not a tracked uppercase mono eyebrow.
- *
- * A column of runs does not need to be labelled `RUNS`; what the heading is
- * actually worth is the count, which says how much history there is without
- * the user scrolling to find out. */
+const NewRunButton = ({ onNewRun }: Pick<RunsRailProps, "onNewRun">) => (
+  <button className="app-button w-full" onClick={onNewRun} type="button">
+    <PlusIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+    New run
+  </button>
+);
+
+/** The heading with the count of runs beside it. */
 const RailHeading = () => {
   const { data } = useRuns();
   const count = data?.runs.length;
   return (
-    <span className="text-ink type-small flex items-baseline gap-2">
-      Runs
+    <>
+      <span>Runs</span>
       {count === undefined ? null : (
-        <span className="text-muted type-small">{count}</span>
+        <span className="text-muted type-small tabular-nums">{count}</span>
       )}
-    </span>
+    </>
   );
 };
 
-/** Every run, newest first, in its own scroll frame — one of the shell's
- * exactly three (`docs/design/specs/design-bench-shell.md`). This is what
- * makes the app a bench rather than a form: from any result you can reach
- * every other result in one click, without leaving the screen.
- *
- * Its 64px header is deliberately the verdict strip's height, so the rule
- * under it continues the rule under the verdicts straight across the shell. */
-export const RunsRail = (props: RunsRailProps) => (
-  <aside className="border-border hidden w-[220px] shrink-0 flex-col border-r md:flex">
-    <div className="border-border flex h-16 shrink-0 items-center border-b px-3">
+/** Every run, newest first, in a column of its own beside the pane. It holds
+ * its place as the page scrolls, and scrolls on its own when the list is
+ * longer than the screen. */
+export const RunsRail = ({
+  onNewRun,
+  onSelect,
+  selectedRunId,
+}: RunsRailProps) => (
+  <aside
+    aria-label="Runs"
+    className="border-border bg-background hidden w-[280px] shrink-0 flex-col border-r md:sticky md:top-0 md:flex md:h-dvh"
+  >
+    <div className="type-title flex h-[3.75rem] shrink-0 items-center justify-between px-6">
       <RailHeading />
     </div>
-    <ScrollFrame
-      aria-label="Runs"
-      className="min-h-0 flex-1"
-      fadeColor="var(--color-background)"
-      fadeSize={24}
-    >
-      <RunList {...props} />
-    </ScrollFrame>
+    <div className="px-6 pb-4">
+      <NewRunButton onNewRun={onNewRun} />
+    </div>
+    <div className="min-h-0 flex-1 overflow-y-auto px-3 pb-6">
+      <RunList onSelect={onSelect} selectedRunId={selectedRunId} />
+    </div>
   </aside>
 );
 
-/** Below `md` the rail has nowhere to live, so it becomes a sheet behind the
- * top bar's `Runs` button. Document scroll is permitted at this size, so the
- * sheet's list scrolls with the dialog rather than inside a fourth frame. */
+/** Below `md` the column has nowhere to live, so it is a sheet behind the
+ * composer's Runs button. */
 export const RunsSheet = ({
+  onNewRun,
   onOpenChange,
   open,
-  ...props
+  onSelect,
+  selectedRunId,
 }: RunsRailProps & {
   readonly onOpenChange: (open: boolean) => void;
   readonly open: boolean;
 }) => (
   <Dialog onOpenChange={onOpenChange} open={open}>
-    <DialogContent className="top-0 left-0 h-dvh w-[300px] max-w-[85vw] translate-x-0 translate-y-0 gap-0 rounded-none border-y-0 border-l-0 p-0">
-      <DialogTitle className="border-border flex h-14 shrink-0 items-center border-b px-3">
-        <RailHeading />
-      </DialogTitle>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <RunList {...props} />
+    <DialogContent
+      aria-describedby={undefined}
+      className="h-[calc(100dvh-var(--bar)-var(--spacing-24))]"
+    >
+      <div className="flex shrink-0 items-center justify-between gap-4 px-4 pt-4 pb-4">
+        <DialogTitle className="flex items-baseline gap-2">
+          <RailHeading />
+        </DialogTitle>
+        <button
+          aria-label="Close"
+          className="board-quiet hover:bg-surface"
+          onClick={() => {
+            onOpenChange(false);
+          }}
+          type="button"
+        >
+          <XIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+        </button>
+      </div>
+      <div className="shrink-0 px-4 pb-4">
+        <button
+          className="app-button is-primary w-full"
+          onClick={onNewRun}
+          type="button"
+        >
+          <PlusIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+          New run
+        </button>
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4">
+        <RunList detailed onSelect={onSelect} selectedRunId={selectedRunId} />
       </div>
     </DialogContent>
   </Dialog>

@@ -1,37 +1,21 @@
 "use client";
 
-import { BENCH_ROUTES, outputFormatReach } from "@motif/bench-core";
-import { ChevronDownIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { BENCH_ROUTES } from "@motif/bench-core";
+import { CheckIcon, ChevronDownIcon, PlusIcon, XIcon } from "lucide-react";
+import { useState, useSyncExternalStore } from "react";
+import type { ComponentType, ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Field } from "@/components/app/controls";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  ASPECT_DIALECT_TABLE,
-  BENCH_ASPECTS,
-  isUniformAspect,
-} from "@/lib/aspect";
+import { BENCH_ASPECTS, isUniformAspect } from "@/lib/aspect";
 import type { BenchAspect } from "@/lib/aspect";
 import { formatUsd } from "@/lib/format";
-import { modelTierGroups } from "@/lib/model-tiers";
+import { modelNameOf, modelPriceUsd } from "@/lib/model-names";
 import type { RunDraft, RunDraftPatch } from "@/lib/run-spec";
 import { cheapestModelAliases, DEFAULT_MODEL_COUNT } from "@/lib/run-spec";
 import type {
@@ -43,9 +27,10 @@ import { BENCH_OUTPUT_FORMATS } from "@/lib/runs/types";
 import { cn } from "@/lib/utils";
 
 const RESOLUTIONS = ["0.5K", "1K", "2K", "4K"] as const;
+const SAMPLE_COUNTS = [1, 2, 3, 4] as const;
+const PARALLEL_COUNTS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
-/** The sentinel for "no format requested". Radix's Select cannot hold an
- * empty-string value, and `null` is not a `SelectItem` value either, so the
+/** The value for "no format requested": a select cannot hold `null`, and the
  * one draft state that is genuinely absence needs a name on the wire. */
 const FORMAT_DEFAULT = "model-default";
 
@@ -61,215 +46,429 @@ const toOutputFormat = (value: string): RunSpecInput["outputFormat"] =>
       (value as NonNullable<RunSpecInput["outputFormat"]>)
     : null;
 
-const usdFromDollars = (usd: number): string =>
-  formatUsd(Math.round(usd * 1_000_000));
+const usd = (dollars: number): string =>
+  formatUsd(Math.round(dollars * 1_000_000));
 
-/** The dry run for one model, as a tooltip on its chip: endpoint, what the
- * request drops, what it coerces, p95 and worst-case price. This is the old
- * preview table's content, per row — moved next to the decision it informs
- * (`docs/design/specs/design-bench-shell.md`: "Preview stops being a wall").
- * It is still a real dry run — `previewRun` aligns and prices with zero fal
- * calls. */
-const ModelDryRun = ({
-  row,
-}: {
-  readonly row: PreviewModelRow | undefined;
-}) => {
+/** True from the width where the Bench has a rail, and so a popover rather
+ * than a sheet. */
+const useIsWide = (): boolean =>
+  useSyncExternalStore(
+    (onChange) => {
+      const query = globalThis.matchMedia("(width >= 48rem)");
+      query.addEventListener("change", onChange);
+      return () => {
+        query.removeEventListener("change", onChange);
+      };
+    },
+    () => globalThis.matchMedia("(width >= 48rem)").matches,
+    () => true
+  );
+
+/** What the dry run says about one Model, in a few words. */
+const rowNote = (row: PreviewModelRow | undefined): string | null => {
   if (row === undefined) {
-    return <span>Not in the current dry run.</span>;
+    return null;
   }
   if (!row.ok) {
-    return (
-      <span>
-        {row.errorMessage ?? "This model could not be aligned"} — it will be
-        excluded from the run.
-      </span>
-    );
+    return "Left out of the run";
   }
-  return (
-    <span className="flex flex-col gap-1">
-      <span className="text-muted type-small">{row.endpoint}</span>
-      <span>
-        drops{" "}
-        {row.dropped.length === 0
-          ? "nothing"
-          : row.dropped.map((entry) => entry.param).join(", ")}
-        {" · coerces "}
-        {row.coerced.length === 0
-          ? "nothing"
-          : row.coerced
-              .map((entry) => `${entry.param} ${entry.from} → ${entry.to}`)
-              .join("; ")}
-      </span>
-      <span>
-        {row.speedP95Seconds === null
-          ? "timeout floor"
-          : `p95 ${row.speedP95Seconds}s`}{" "}
-        · {usdFromDollars(row.worstCaseCostUsd)} / image
-        {row.usesQueue ? " · queue ±3s" : ""}
-      </span>
-    </span>
+  const parts = row.dropped.map(
+    (entry) =>
+      `${entry.param.slice(0, 1).toUpperCase()}${entry.param.slice(1)} ignored`
   );
+  return parts.length === 0 ? null : parts.join(" · ");
 };
 
-/** One model chip. Selection reads as an accent *edge*, never a fill — the
- * 2px left border is present in both states so toggling never reflows the
- * row (unchanged from the old picker, `docs/design/specs/design-bench.md`).
- * The warn dot means this model's dry run drops or coerces something; the
- * detail is in the tooltip. */
-const ModelChip = ({
-  alias,
-  costUsd,
-  onToggle,
-  row,
-  selected,
-}: {
-  readonly alias: string;
-  readonly costUsd: number;
-  readonly onToggle: () => void;
-  readonly row: PreviewModelRow | undefined;
-  readonly selected: boolean;
-}) => {
-  const altered =
-    row !== undefined &&
-    (!row.ok || row.dropped.length > 0 || row.coerced.length > 0);
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          aria-pressed={selected}
-          className={cn(
-            "rounded-control inline-flex cursor-pointer items-center gap-2 border border-l-2 px-2 py-1 transition-colors duration-150",
-            selected
-              ? "border-border border-l-accent bg-surface-soft text-ink"
-              : "border-border bg-surface text-muted hover:border-ink hover:text-ink border-l-transparent hover:border-l-transparent"
-          )}
-          onClick={onToggle}
-          type="button"
-        >
-          <span className="type-small">{alias}</span>
-          <span className="text-muted type-small">
-            {usdFromDollars(costUsd)}
-          </span>
-          {altered ? (
-            <span aria-hidden className="text-warn type-small">
-              ●
-            </span>
-          ) : null}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <ModelDryRun row={row} />
-      </TooltipContent>
-    </Tooltip>
-  );
-};
+interface BodyProps {
+  readonly draft: RunDraft;
+  readonly onClose: () => void;
+  readonly onPatch: (patch: RunDraftPatch) => void;
+  readonly onToggleModel: (alias: string) => void;
+  readonly preview: PreviewResult | undefined;
+  readonly Title: ComponentType<{ readonly children: ReactNode }>;
+}
 
-const Field = ({
-  children,
-  htmlFor,
-  label,
+const Select = ({
+  id,
+  onChange,
+  options,
+  value,
 }: {
-  readonly children: ReactNode;
-  readonly htmlFor: string;
-  readonly label: ReactNode;
+  readonly id: string;
+  readonly onChange: (value: string) => void;
+  readonly options: readonly {
+    readonly label: string;
+    readonly value: string;
+  }[];
+  readonly value: string;
 }) => (
-  <div className="flex min-w-0 flex-col gap-1">
-    <label className="text-muted type-small" htmlFor={htmlFor}>
-      {label}
-    </label>
-    {children}
+  <select
+    className="app-select"
+    id={id}
+    onChange={(event) => {
+      onChange(event.target.value);
+    }}
+    value={value}
+  >
+    {options.map((option) => (
+      <option key={option.value} value={option.value}>
+        {option.label}
+      </option>
+    ))}
+  </select>
+);
+
+const plain = (values: readonly (number | string)[]) =>
+  values.map((value) => ({ label: String(value), value: String(value) }));
+
+const Header = ({
+  onClose,
+  Title,
+  title,
+}: Pick<BodyProps, "onClose" | "Title"> & { readonly title: string }) => (
+  <div className="flex items-center justify-between gap-4">
+    <Title>{title}</Title>
+    <button
+      aria-label="Close"
+      className="board-quiet hover:bg-surface"
+      onClick={onClose}
+      type="button"
+    >
+      <XIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+    </button>
   </div>
 );
 
-/** The aspect-coercion warning, unchanged in substance
- * (`docs/arc/bench/BRIEF.md`, UI section) and now sitting beside the aspect
- * control itself rather than three sections below it. */
-const AspectCoercionNote = ({ aspect }: { readonly aspect: BenchAspect }) => {
-  if (isUniformAspect(aspect)) {
-    return null;
-  }
-  const dialects = ASPECT_DIALECT_TABLE[aspect];
-  return (
-    <p className="border-border border-l-warn bg-surface-soft text-muted rounded-panel type-small border border-l-2 px-3 py-2">
-      <span className="text-ink">Aspect coercion is not uniform.</span> At{" "}
-      <span>{aspect}</span> the three sizing dialects disagree: aspect_ratio →{" "}
-      <span>{dialects.aspectRatio}</span>, image_size_enum →{" "}
-      <span>{dialects.falImageSizeEnum}</span>, gpt_size →{" "}
-      <span>{dialects.gptSize}</span>. Models will be framed differently, so
-      quality comparisons across models are compromised. Use <span>1:1</span>{" "}
-      for an honest comparison.
-    </p>
-  );
-};
-
-/** The aggregate reading of the dry run — what the per-chip tooltips say,
- * counted. It never grows with the model count, which is why the popover
- * needs no scroll region of its own at desktop sizes. */
-/** What a requested format actually buys, counted against the current
- * selection. A format that reaches 14 of 20 models is still worth asking for
- * — the other 6 report it as a dropped param, which is the comparison this
- * tool exists to make visible — but you should know that before you spend. */
-const OutputFormatNote = ({ draft }: { readonly draft: RunDraft }) => {
-  if (draft.outputFormat === null) {
-    return null;
-  }
-  // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- draft.models only ever holds aliases toggled from BENCH_ROUTES (see toggleModel), and outputFormatReach ignores anything MODELS has no entry for
-  const aliases = [...draft.models] as Parameters<typeof outputFormatReach>[0];
-  const { dropped, supported } = outputFormatReach(aliases, draft.outputFormat);
-  return (
-    <p className="text-muted type-small">
-      <span className="text-ink">
-        {draft.outputFormat} reaches {supported} of {aliases.length} selected
-        models.
-      </span>{" "}
-      {dropped === 0
-        ? "Every model in this run returns the same container."
-        : `The other ${dropped} have no format control; each will record outputFormat as a dropped param.`}
-    </p>
-  );
-};
-
-const DryRunSummary = ({
+/** Every Model, selected ones first, each a checkbox with its price. */
+const ModelsView = ({
+  draft,
+  onClose,
+  onBack,
+  onPatch,
+  onToggleModel,
   preview,
-}: {
-  readonly preview: PreviewResult | undefined;
-}) => {
-  if (preview === undefined) {
+  Title,
+}: BodyProps & { readonly onBack: () => void }) => {
+  const rowByAlias = new Map(
+    (preview?.models ?? []).map((model) => [model.alias, model])
+  );
+  const selected = BENCH_ROUTES.filter((route) =>
+    draft.models.has(route.alias)
+  );
+  const others = BENCH_ROUTES.filter((route) => !draft.models.has(route.alias));
+  const images = draft.models.size * draft.samplesPerModel;
+
+  const row = (alias: string) => {
+    const note = rowNote(rowByAlias.get(alias));
     return (
-      <p className="text-muted type-small">
-        Dry run pending. It costs nothing — no request reaches a provider.
-      </p>
+      <li key={alias}>
+        <label className="border-border min-h-control flex cursor-pointer items-center gap-4 border-b py-3">
+          <input
+            checked={draft.models.has(alias)}
+            className="accent-ink size-4 shrink-0"
+            onChange={() => {
+              onToggleModel(alias);
+            }}
+            type="checkbox"
+          />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="type-body truncate font-medium">
+              {modelNameOf(alias)}
+            </span>
+            {note === null ? null : (
+              <span className="text-muted type-small">{note}</span>
+            )}
+          </span>
+          <span className="type-small tabular-nums">
+            {usd(modelPriceUsd(alias))}
+          </span>
+        </label>
+      </li>
     );
-  }
-  const coerces = preview.models.filter(
-    (model) => model.ok && model.coerced.length > 0
-  ).length;
-  const drops = preview.models.filter(
-    (model) => model.ok && model.dropped.length > 0
-  ).length;
+  };
+
   return (
-    <p className="text-muted type-small">
-      Dry run:{" "}
-      <span className="text-ink">
-        {preview.models.length - preview.failedCount}
-      </span>{" "}
-      of <span>{preview.models.length}</span> align · <span>{coerces}</span>{" "}
-      coerce a parameter · <span>{drops}</span> drop one
-      {preview.failedCount > 0 ? (
+    <div className="flex flex-col gap-4">
+      <Header onClose={onClose} Title={Title} title="Models" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-muted type-small tabular-nums">
+          {draft.models.size} selected
+        </p>
+        <div className="flex items-center">
+          {[
+            {
+              label: `Cheapest ${DEFAULT_MODEL_COUNT}`,
+              models: new Set(cheapestModelAliases(DEFAULT_MODEL_COUNT)),
+            },
+            {
+              label: "All",
+              models: new Set(BENCH_ROUTES.map((route) => route.alias)),
+            },
+            { label: "None", models: new Set<string>() },
+          ].map((choice) => (
+            <button
+              className="board-quiet type-small text-muted hover:text-ink px-3"
+              key={choice.label}
+              onClick={() => {
+                onPatch({ models: choice.models });
+              }}
+              type="button"
+            >
+              {choice.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <ul className="m-0 flex list-none flex-col p-0">
+        {selected.map((route) => row(route.alias))}
+      </ul>
+      {others.length === 0 ? null : (
         <>
-          {" · "}
-          <span className="text-warn">{preview.failedCount}</span> will be
-          excluded
+          <p className="text-muted type-small">Other models</p>
+          <ul className="m-0 flex list-none flex-col p-0">
+            {others.map((route) => row(route.alias))}
+          </ul>
         </>
-      ) : null}
-      {" · "}
-      <span className="text-ink">
-        {usdFromDollars(preview.totalWorstCaseCostUsd)}
-      </span>{" "}
-      worst case. Hover a model for its aligned request. Nothing here reaches a
-      provider.
-    </p>
+      )}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <p className="text-muted type-small tabular-nums">
+          {images} images ·{" "}
+          {preview === undefined
+            ? "Estimating"
+            : usd(preview.totalWorstCaseCostUsd)}{" "}
+          · Estimate from a dry run
+        </p>
+        <button
+          className="app-button is-primary max-md:w-full md:w-[6.75rem]"
+          onClick={onBack}
+          type="button"
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/** The run's settings: the Models in it, and the seven choices that shape
+ * what comes back and what it costs. */
+const SettingsView = ({
+  draft,
+  onClose,
+  onModels,
+  onPatch,
+  onToggleModel,
+  preview,
+  Title,
+}: BodyProps & { readonly onModels: () => void }) => {
+  const images = draft.models.size * draft.samplesPerModel;
+  const ignoringResolution =
+    preview?.models.filter(
+      (model) =>
+        model.ok && model.dropped.some((entry) => entry.param === "resolution")
+    ).length ?? 0;
+  const reach =
+    draft.outputFormat === null
+      ? null
+      : BENCH_ROUTES.filter(
+          (route) =>
+            draft.models.has(route.alias) &&
+            !(
+              preview?.models
+                .find((model) => model.alias === route.alias)
+                ?.dropped.some((entry) => entry.param === "outputFormat") ??
+              false
+            )
+        ).length;
+  const selectedRoutes = BENCH_ROUTES.filter((route) =>
+    draft.models.has(route.alias)
+  );
+  const notes = [
+    ignoringResolution === 0
+      ? null
+      : `${ignoringResolution} model${ignoringResolution === 1 ? "" : "s"} ignore${ignoringResolution === 1 ? "s" : ""} resolution`,
+    isUniformAspect(draft.aspect) ? null : "Framing not uniform",
+    reach === null
+      ? null
+      : `${draft.outputFormat} reaches ${reach} of ${draft.models.size}`,
+    draft.concurrency > 1 ? "Timings contended" : null,
+  ].filter((note) => note !== null);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <Header onClose={onClose} Title={Title} title="Models & settings" />
+
+      <div className="max-md:hidden">
+        <ul className="m-0 flex list-none flex-col p-0">
+          {selectedRoutes.map((route) => (
+            <li key={route.alias}>
+              <button
+                aria-label={`Remove ${modelNameOf(route.alias)}`}
+                className="border-border min-h-control flex w-full cursor-pointer items-center gap-4 border-b py-3 text-left"
+                onClick={() => {
+                  onToggleModel(route.alias);
+                }}
+                type="button"
+              >
+                <CheckIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+                <span className="type-body flex-1 truncate font-medium">
+                  {modelNameOf(route.alias)}
+                </span>
+                <span className="text-muted type-small tabular-nums">
+                  {usd(route.pricing.estimatedCostUsd)} / image
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <button className="app-button mt-2" onClick={onModels} type="button">
+          <PlusIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+          Add models
+        </button>
+      </div>
+
+      <div className="flex items-center justify-between gap-4 md:hidden">
+        <p className="type-body">Models</p>
+        <button className="app-button" onClick={onModels} type="button">
+          <ChevronDownIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+          {draft.models.size} selected
+        </button>
+      </div>
+
+      <div className="border-border grid grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-3 md:border-t md:pt-6">
+        <Field htmlFor="bench-samples" label="Samples per model">
+          <Select
+            id="bench-samples"
+            onChange={(value) => {
+              onPatch({ samplesPerModel: Number(value) });
+            }}
+            options={plain(SAMPLE_COUNTS)}
+            value={String(draft.samplesPerModel)}
+          />
+        </Field>
+        <Field htmlFor="bench-concurrency" label="Parallel">
+          <Select
+            id="bench-concurrency"
+            onChange={(value) => {
+              onPatch({ concurrency: Number(value) });
+            }}
+            options={plain(PARALLEL_COUNTS)}
+            value={String(draft.concurrency)}
+          />
+        </Field>
+        <Field htmlFor="bench-aspect" label="Aspect">
+          <Select
+            id="bench-aspect"
+            onChange={(value) => {
+              if (isBenchAspect(value)) {
+                onPatch({ aspect: value });
+              }
+            }}
+            options={plain(BENCH_ASPECTS)}
+            value={draft.aspect}
+          />
+        </Field>
+        <Field htmlFor="bench-resolution" label="Resolution">
+          <Select
+            id="bench-resolution"
+            onChange={(value) => {
+              if (isResolution(value)) {
+                onPatch({ resolution: value });
+              }
+            }}
+            options={plain(RESOLUTIONS)}
+            value={draft.resolution}
+          />
+        </Field>
+        <Field htmlFor="bench-format" label="Format">
+          <Select
+            id="bench-format"
+            onChange={(value) => {
+              onPatch({ outputFormat: toOutputFormat(value) });
+            }}
+            options={[
+              { label: "Model default", value: FORMAT_DEFAULT },
+              ...BENCH_OUTPUT_FORMATS.map((format) => ({
+                label: format,
+                value: format,
+              })),
+            ]}
+            value={draft.outputFormat ?? FORMAT_DEFAULT}
+          />
+        </Field>
+        <Field htmlFor="bench-seed-enabled" label="Fixed seed">
+          <Select
+            id="bench-seed-enabled"
+            onChange={(value) => {
+              onPatch({ seedEnabled: value === "on" });
+            }}
+            options={[
+              { label: "Off", value: "off" },
+              { label: "On", value: "on" },
+            ]}
+            value={draft.seedEnabled ? "on" : "off"}
+          />
+        </Field>
+      </div>
+
+      <div className="border-border grid grid-cols-2 gap-x-4 gap-y-4 border-t pt-6 md:grid-cols-3">
+        <Field htmlFor="bench-max-cost" label="Stop above">
+          <input
+            className="app-input tabular-nums"
+            id="bench-max-cost"
+            min={0.01}
+            onChange={(event) => {
+              onPatch({ maxEstimatedCostUsd: Number(event.target.value) });
+            }}
+            step={0.01}
+            type="number"
+            value={draft.maxEstimatedCostUsd}
+          />
+        </Field>
+        {draft.seedEnabled ? (
+          <Field htmlFor="bench-seed" label="Seed">
+            <input
+              className="app-input tabular-nums"
+              id="bench-seed"
+              onChange={(event) => {
+                onPatch({ seed: Number(event.target.value) });
+              }}
+              type="number"
+              value={draft.seed}
+            />
+          </Field>
+        ) : null}
+        <div
+          className={cn(
+            "type-small flex flex-col items-end justify-end text-right",
+            draft.seedEnabled ? "col-span-2 md:col-span-1" : "md:col-span-2"
+          )}
+        >
+          <p className="text-muted tabular-nums">Estimate from a dry run</p>
+          <p className="tabular-nums">
+            {images} images ·{" "}
+            {preview === undefined
+              ? "Estimating"
+              : usd(preview.totalWorstCaseCostUsd)}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="text-muted type-small flex flex-col">
+          {notes.map((note) => (
+            <p key={note}>{note}</p>
+          ))}
+        </div>
+        <button
+          className="app-button is-primary max-md:w-full md:w-[6.75rem]"
+          onClick={onClose}
+          type="button"
+        >
+          Done
+        </button>
+      </div>
+    </div>
   );
 };
 
@@ -280,291 +479,97 @@ interface ModelsPopoverProps {
   readonly preview: PreviewResult | undefined;
 }
 
-type SectionProps = Omit<ModelsPopoverProps, "preview">;
-
-/** Count plus the three selections worth one click: the default five, the
- * full sweep, and none. */
-const SelectionHeader = ({
-  draft,
-  onPatch,
-}: Omit<SectionProps, "onToggleModel">) => (
-  <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-    <h2>Models</h2>
-    <div className="text-muted type-small flex items-center gap-3">
-      <span>
-        <span>{draft.models.size}</span> of <span>{BENCH_ROUTES.length}</span>{" "}
-        selected
-      </span>
-      <Button
-        onClick={() => {
-          onPatch({
-            models: new Set(cheapestModelAliases(DEFAULT_MODEL_COUNT)),
-          });
-        }}
-        type="button"
-        variant="ghost"
-      >
-        {DEFAULT_MODEL_COUNT} cheapest
-      </Button>
-      <Button
-        onClick={() => {
-          onPatch({
-            models: new Set(BENCH_ROUTES.map((route) => route.alias)),
-          });
-        }}
-        type="button"
-        variant="ghost"
-      >
-        All
-      </Button>
-      <Button
-        onClick={() => {
-          onPatch({ models: new Set() });
-        }}
-        type="button"
-        variant="ghost"
-      >
-        None
-      </Button>
-    </div>
-  </div>
+const PanelTitle = ({ children }: { readonly children: ReactNode }) => (
+  <h2 className="type-title">{children}</h2>
 );
 
-/** All models, grouped by price tier. Tier labels stay sentence-case muted
- * text, deliberately not uppercase eyebrows. */
-const ModelGroups = ({
-  draft,
-  onToggleModel,
-  preview,
-}: Omit<ModelsPopoverProps, "onPatch">) => {
-  const rowByAlias = new Map(
-    (preview?.models ?? []).map((model) => [model.alias, model])
-  );
-  return (
-    <>
-      {modelTierGroups().map((group) =>
-        group.routes.length === 0 ? null : (
-          <div className="flex flex-col gap-2" key={group.label}>
-            <p className="text-muted type-small">{group.label}</p>
-            <div className="flex flex-wrap gap-1">
-              {group.routes.map((route) => (
-                <ModelChip
-                  alias={route.alias}
-                  costUsd={route.pricing.estimatedCostUsd}
-                  key={route.alias}
-                  onToggle={() => {
-                    onToggleModel(route.alias);
-                  }}
-                  row={rowByAlias.get(route.alias)}
-                  selected={draft.models.has(route.alias)}
-                />
-              ))}
-            </div>
-          </div>
-        )
-      )}
-    </>
-  );
-};
-
-/** The five fields that decide what shape of file comes back. */
-const ShapeFields = ({
-  draft,
-  onPatch,
-}: Omit<SectionProps, "onToggleModel">) => (
-  <div className="border-border grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-3 sm:grid-cols-5">
-    <Field htmlFor="bench-samples" label="Samples per model">
-      <Input
-        id="bench-samples"
-        max={4}
-        min={1}
-        onChange={(event) => {
-          onPatch({ samplesPerModel: Number(event.target.value) });
-        }}
-        type="number"
-        value={draft.samplesPerModel}
-      />
-    </Field>
-
-    <Field
-      htmlFor="bench-concurrency"
-      label={
-        draft.concurrency > 1 ? (
-          <span className="text-warn">Parallel — contended</span>
-        ) : (
-          "Parallel"
-        )
-      }
-    >
-      <Input
-        id="bench-concurrency"
-        max={8}
-        min={1}
-        onChange={(event) => {
-          onPatch({ concurrency: Number(event.target.value) });
-        }}
-        type="number"
-        value={draft.concurrency}
-      />
-    </Field>
-
-    <Field htmlFor="bench-aspect" label="Aspect">
-      <Select
-        onValueChange={(value) => {
-          if (isBenchAspect(value)) {
-            onPatch({ aspect: value });
-          }
-        }}
-        value={draft.aspect}
-      >
-        <SelectTrigger id="bench-aspect">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {BENCH_ASPECTS.map((value) => (
-            <SelectItem key={value} value={value}>
-              {value}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </Field>
-
-    <Field htmlFor="bench-resolution" label="Resolution">
-      <Select
-        onValueChange={(value) => {
-          if (isResolution(value)) {
-            onPatch({ resolution: value });
-          }
-        }}
-        value={draft.resolution}
-      >
-        <SelectTrigger id="bench-resolution">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {RESOLUTIONS.map((value) => (
-            <SelectItem key={value} value={value}>
-              {value}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </Field>
-
-    <Field htmlFor="bench-format" label="Format">
-      <Select
-        onValueChange={(value) => {
-          onPatch({ outputFormat: toOutputFormat(value) });
-        }}
-        value={draft.outputFormat ?? FORMAT_DEFAULT}
-      >
-        <SelectTrigger id="bench-format">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {/* Default is a real choice, not an empty state: it is the only
-              setting under which each model returns its own native container,
-              which is what every run before this control did. */}
-          <SelectItem value={FORMAT_DEFAULT}>default</SelectItem>
-          {BENCH_OUTPUT_FORMATS.map((value) => (
-            <SelectItem key={value} value={value}>
-              {value}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </Field>
-  </div>
+const SheetTitle = ({ children }: { readonly children: ReactNode }) => (
+  <DialogTitle>{children}</DialogTitle>
 );
 
-/** Seed and the hard cost cap — how the run *behaves* rather than what it
- * produces. The cap is still enforced server-side; this is only where it is
- * set. */
-const BehaviourFields = ({
-  draft,
-  onPatch,
-}: Omit<SectionProps, "onToggleModel">) => (
-  <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-    <div className="flex items-center gap-2">
-      <Checkbox
-        checked={draft.seedEnabled}
-        id="bench-seed-enabled"
-        onCheckedChange={(checked) => {
-          onPatch({ seedEnabled: checked === true });
-        }}
-      />
-      <label className="text-muted type-small" htmlFor="bench-seed-enabled">
-        Fixed seed
-      </label>
-      <Input
-        aria-label="Seed value"
-        className="w-[80px]"
-        disabled={!draft.seedEnabled}
-        onChange={(event) => {
-          onPatch({ seed: Number(event.target.value) });
-        }}
-        type="number"
-        value={draft.seed}
-      />
-    </div>
-
-    <div className="flex items-center gap-2">
-      <label className="text-muted type-small" htmlFor="bench-max-cost">
-        Stop above
-      </label>
-      <Input
-        className="w-[88px]"
-        id="bench-max-cost"
-        min={0.01}
-        onChange={(event) => {
-          onPatch({ maxEstimatedCostUsd: Number(event.target.value) });
-        }}
-        step={0.01}
-        type="number"
-        value={draft.maxEstimatedCostUsd}
-      />
-    </div>
-  </div>
-);
-
-/** The whole run configuration behind one `Models ▾` trigger. It used to be
- * the largest thing on the page — 24 chips in three tiers plus a settings
- * block plus a preview table — for a decision made once per run, while the
- * prompt was one field above it. As a popover it costs no permanent space,
- * and Radix closes it on `Escape`.
- *
- * At `md` and up the content fits without scrolling, which is what keeps the
- * shell's "exactly three scroll containers" true while it is open; the
- * `overflow-y-auto` is a floor for a short viewport, not the normal case. */
+/** The whole run configuration behind one button that says how many Models are
+ * in the run. A popover under the composer on a wide screen and a sheet above
+ * the bottom bar on a phone, with the same two views in both: the settings,
+ * and the list of every Model. Radix closes either on `Escape`. */
 export const ModelsPopover = ({
   draft,
   onPatch,
   onToggleModel,
   preview,
-}: ModelsPopoverProps) => (
-  <Popover>
-    <PopoverTrigger asChild>
-      <Button type="button">
-        Models
-        <span className="text-muted">{draft.models.size}</span>
-        <ChevronDownIcon />
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent className="flex max-h-[calc(100dvh-5rem)] w-[min(760px,calc(100vw-1.5rem))] flex-col gap-3 overflow-y-auto">
-      <SelectionHeader draft={draft} onPatch={onPatch} />
-      <ModelGroups
-        draft={draft}
-        onToggleModel={onToggleModel}
-        preview={preview}
+}: ModelsPopoverProps) => {
+  const wide = useIsWide();
+  const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"models" | "settings">("settings");
+
+  const change = (next: boolean) => {
+    setOpen(next);
+    if (!next) {
+      setView("settings");
+    }
+  };
+  const close = () => {
+    change(false);
+  };
+
+  const body = (Title: BodyProps["Title"]) => {
+    const props = {
+      draft,
+      onClose: close,
+      onPatch,
+      onToggleModel,
+      preview,
+      Title,
+    };
+    return view === "models" ? (
+      <ModelsView
+        {...props}
+        onBack={() => {
+          setView("settings");
+        }}
       />
-      <ShapeFields draft={draft} onPatch={onPatch} />
-      <BehaviourFields draft={draft} onPatch={onPatch} />
-      <AspectCoercionNote aspect={draft.aspect} />
-      <OutputFormatNote draft={draft} />
-      <div className="border-border border-t pt-3">
-        <DryRunSummary preview={preview} />
-      </div>
-    </PopoverContent>
-  </Popover>
-);
+    ) : (
+      <SettingsView
+        {...props}
+        onModels={() => {
+          setView("models");
+        }}
+      />
+    );
+  };
+
+  const count = draft.models.size;
+  const trigger = (
+    <button
+      aria-label={`Models and settings, ${count} selected`}
+      className="app-button max-md:flex-1 md:w-[8.25rem]"
+      type="button"
+    >
+      <ChevronDownIcon aria-hidden="true" size={18} strokeWidth={1.5} />
+      <span className="font-medium tabular-nums">
+        {count === 0 ? "No models" : `${count} model${count === 1 ? "" : "s"}`}
+      </span>
+    </button>
+  );
+
+  return (
+    <>
+      <Popover onOpenChange={change} open={open && wide}>
+        <PopoverTrigger asChild>{trigger}</PopoverTrigger>
+        <PopoverContent
+          className="app-panel max-h-[calc(100dvh-var(--spacing-32))] w-[min(40rem,calc(100vw-var(--spacing-12)))] overflow-y-auto p-6"
+          collisionPadding={24}
+        >
+          {body(PanelTitle)}
+        </PopoverContent>
+      </Popover>
+      <Dialog onOpenChange={change} open={open && !wide}>
+        <DialogContent
+          aria-describedby={undefined}
+          className="overflow-y-auto px-4 pt-4 pb-4"
+        >
+          {body(SheetTitle)}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

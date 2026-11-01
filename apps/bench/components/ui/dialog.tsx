@@ -3,14 +3,13 @@
 import { Dialog as DialogPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 
+import { usePortalContainer } from "@/lib/portal";
 import { cn } from "@/lib/utils";
 
-/** shadcn/ui's `dialog` on house tokens, trimmed to the parts this app uses.
- * The stock `shadow-lg` stays (Patternmode keeps it); what is gone is the
- * built-in close button. That was for the lightbox, which supplied its own
- * chrome; Aperto owns the expanded image view now and the only dialog left
- * is the mobile runs drawer (`runs-rail.tsx`), which dismisses on overlay
- * tap and `Escape` and carries no close control of its own. */
+/** A phone's sheet on the paper palette, sitting on top of the bottom bar's
+ * edge so the bar stays in view. It is the Runs list and the Bench's
+ * settings on a phone; a wider screen has a rail and a popover instead.
+ * Radix owns focus, `Escape` and the overlay tap. */
 export const Dialog = (props: ComponentProps<typeof DialogPrimitive.Root>) => (
   <DialogPrimitive.Root data-slot="dialog" {...props} />
 );
@@ -29,9 +28,7 @@ export const DialogOverlay = ({
 }: ComponentProps<typeof DialogPrimitive.Overlay>) => (
   <DialogPrimitive.Overlay
     className={cn(
-      // Deep enough that the page behind it stops competing with the image
-      // being judged, which is the only thing this app opens a dialog for.
-      "bg-ink/85 animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fixed inset-0 z-50",
+      "bg-plate/45 animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fixed inset-x-0 top-0 bottom-[var(--bar)] z-50",
       className
     )}
     data-slot="dialog-overlay"
@@ -43,28 +40,31 @@ export const DialogContent = ({
   children,
   className,
   ...props
-}: ComponentProps<typeof DialogPrimitive.Content>) => (
-  <DialogPrimitive.Portal data-slot="dialog-portal">
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      className={cn(
-        "border-border bg-surface animate-in fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 rounded-panel fixed top-1/2 left-1/2 z-50 flex max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[min(1100px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col border shadow-lg",
-        className
-      )}
-      data-slot="dialog-content"
-      {...props}
-    >
-      {children}
-    </DialogPrimitive.Content>
-  </DialogPrimitive.Portal>
-);
+}: ComponentProps<typeof DialogPrimitive.Content>) => {
+  const container = usePortalContainer();
+  return (
+    <DialogPrimitive.Portal container={container} data-slot="dialog-portal">
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        className={cn(
+          "bg-background text-ink rounded-t-panel animate-in fade-in-0 slide-in-from-bottom-4 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 fixed inset-x-0 bottom-[var(--bar)] z-50 flex max-h-[calc(100dvh-var(--bar)-var(--spacing-24))] flex-col outline-none",
+          className
+        )}
+        data-slot="dialog-content"
+        {...props}
+      >
+        {children}
+      </DialogPrimitive.Content>
+    </DialogPrimitive.Portal>
+  );
+};
 
 export const DialogTitle = ({
   className,
   ...props
 }: ComponentProps<typeof DialogPrimitive.Title>) => (
   <DialogPrimitive.Title
-    className={cn("font-medium", className)}
+    className={cn("type-title", className)}
     data-slot="dialog-title"
     {...props}
   />

@@ -27,10 +27,15 @@ const PUBLIC_NAV: readonly NavItem[] = [
 ];
 
 /** On a phone the App is Make and Library; Boards need the room a larger
- * screen gives them. */
+ * screen gives them. The owner's bar also reaches the Bench. */
 const MEMBER_BAR: readonly NavItem[] = [
   { href: "/make", label: "Make" },
   { href: "/library", label: "Library" },
+];
+
+const OWNER_BAR: readonly NavItem[] = [
+  ...MEMBER_BAR,
+  { href: "/bench", label: "Bench" },
 ];
 
 const spendOf = async (viewer: Viewer): Promise<SpendData | null> => {
@@ -57,10 +62,11 @@ const boardsOf = async (viewer: Viewer): Promise<readonly RailBoard[]> => {
   }));
 };
 
-/** One shell for the public site and the App: a left rail from 768px up, a
- * bottom bar below it. Signed in, the rail is the member's Boards, Library
- * and Settings, with your own spend and the account at its foot; the
- * phone's bar is Make and Library. */
+/** One shell for the public site, the App and the Bench: a left rail from
+ * 768px up, a bottom bar below it. Signed in, the rail is the member's Boards,
+ * Library and Settings (and, for the owner, the Bench), with your own spend
+ * and the account at its foot; the phone's bar is Make and Library, and the
+ * Bench for the owner. */
 export async function Shell({
   children,
   viewer,
@@ -69,6 +75,7 @@ export async function Shell({
   readonly viewer: Viewer;
 }) {
   const member = viewer.state === "member" ? viewer.member : null;
+  const owner = member?.role === "owner";
   const [spend, boards] = await Promise.all([
     spendOf(viewer),
     boardsOf(viewer),
@@ -83,7 +90,7 @@ export async function Shell({
         {member === null ? (
           <NavLinks className="app-nav" items={PUBLIC_NAV} />
         ) : (
-          <BoardRail boards={boards} />
+          <BoardRail boards={boards} owner={owner} />
         )}
         <div className="mt-auto flex flex-col gap-4 px-3">
           {member === null ? (
@@ -129,7 +136,7 @@ export async function Shell({
       <div className="app-main">{children}</div>
       <NavLinks
         className="app-bar type-small"
-        items={member === null ? PUBLIC_NAV : MEMBER_BAR}
+        items={member === null ? PUBLIC_NAV : owner ? OWNER_BAR : MEMBER_BAR}
       />
     </div>
   );

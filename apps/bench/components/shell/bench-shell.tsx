@@ -4,30 +4,15 @@ import { useRouter } from "next/navigation";
 import type { ReactNode, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 
+import { Composer } from "@/components/shell/composer";
 import { RunPane } from "@/components/shell/run-pane";
 import { RunsRail, RunsSheet } from "@/components/shell/runs-rail";
-import type { RailProgress } from "@/components/shell/runs-rail";
 import { RunSelectionProvider } from "@/components/shell/selection";
 import type { RunSelection } from "@/components/shell/selection";
-import { TopBar } from "@/components/shell/top-bar";
+import { PortalContext } from "@/lib/portal";
 import { ApiError, useCreateRun, usePreview, useRun } from "@/lib/queries";
 import type { RunDraftPatch } from "@/lib/run-spec";
 import { initialRunDraft, specFromDraft, toggleModel } from "@/lib/run-spec";
-import type { RunDetail } from "@/lib/runs/types";
-
-const railProgressFor = (
-  detail: RunDetail | undefined
-): RailProgress | null => {
-  if (detail === undefined || detail.run.status !== "running") {
-    return null;
-  }
-  return {
-    done: detail.samples.filter(
-      (sample) => sample.status === "completed" || sample.status === "failed"
-    ).length,
-    total: detail.samples.length,
-  };
-};
 
 const messageFor = (error: unknown, fallback: string): string =>
   error instanceof ApiError ? error.message : fallback;
@@ -97,26 +82,24 @@ const useShellShortcuts = (
   }, [onRun, promptRef]);
 };
 
-/** The whole app, as one screen.
+/** The Bench, inside the site's shell.
  *
  * It lives in the bench layout rather than in a page so that `/bench` and
- * `/bench/runs/[id]` never remount it: a run URL is still a real deep link, but
- * it is a *selection* inside this shell, not a second layout
- * (`docs/design/specs/design-bench-shell.md`). Pages are reduced to a
- * `RouteRun` that reports the id in the URL and renders nothing.
+ * `/bench/runs/[id]` never remount it: a run URL is still a real deep link,
+ * but it is a *selection* inside this shell, not a second layout. Pages are
+ * reduced to a `RouteRun` that reports the id in the URL and renders nothing.
  *
- * Three regions, and the document never scrolls at `md` and above (the
- * `data-bench-shell` attribute is what `globals.css` keys that lock on): a fixed
- * 56px top bar, a fixed 220px rail with its own scroll frame, and a main
- * pane of pinned 64px verdicts, one scroll frame, and a 40px tab bar.
+ * The page scrolls. Two regions sit in the shared shell's main area: the
+ * column of runs, which holds its place beside the pane, and the pane, which
+ * is the head naming the view, the composer for the next run, and the run.
  *
- * The top bar is deliberately forward-looking — it composes the *next* run,
- * which is why its summary line carries an estimate. Selecting a run in the
- * rail therefore does not rewrite it; the selected run's own prompt is shown
- * in full in its rail entry, and its shape in the tab bar's meta line. */
+ * The composer describes the *next* run, so choosing a past run does not
+ * rewrite it. `portal` is where popovers, sheets and tooltips are drawn: inside
+ * the shell, where the paper palette applies, not on the document body. */
 export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
   const [draft, setDraft] = useState(initialRunDraft);
   const [runsSheetOpen, setRunsSheetOpen] = useState(false);
+  const [portal, setPortal] = useState<HTMLElement | null>(null);
   const promptRef = useRef<HTMLInputElement>(null);
 
   const createRun = useCreateRun();
@@ -163,61 +146,63 @@ export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
 
   useShellShortcuts(promptRef, handleRun);
 
-  const progress = railProgressFor(detail);
+  const startNewRun = () => {
+    selectRun(null);
+  };
 
   return (
     <RunSelectionProvider value={selection}>
       {children}
-      <div
-        className="flex min-h-dvh flex-col md:h-dvh md:min-h-0 md:overflow-hidden"
-        data-bench-shell
-      >
-        <TopBar
-          canRun={canRun}
-          draft={draft}
-          isRunning={isRunning}
-          onOpenRuns={() => {
-            setRunsSheetOpen(true);
-          }}
-          onPatch={patch}
-          onRun={handleRun}
-          onToggleModel={onToggleModel}
-          preview={preview.data}
-          promptRef={promptRef}
-          runError={
-            createRun.isError
-              ? messageFor(createRun.error, "Could not start the run.")
-              : null
-          }
-        />
-
-        <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+      <PortalContext.Provider value={portal}>
+        <div className="flex min-h-dvh flex-col md:flex-row">
           <RunsRail
+            onNewRun={startNewRun}
             onSelect={selectRun}
-            progress={progress}
             selectedRunId={selectedRunId}
           />
           <RunPane
+            composer={
+              <Composer
+                canRun={canRun}
+                draft={draft}
+                isRunning={isRunning}
+                onOpenRuns={() => {
+                  setRunsSheetOpen(true);
+                }}
+                onPatch={patch}
+                onRun={handleRun}
+                onToggleModel={onToggleModel}
+                preview={preview.data}
+                promptRef={promptRef}
+                runError={
+                  createRun.isError
+                    ? messageFor(createRun.error, "Could not start the run")
+                    : null
+                }
+              />
+            }
             detail={detail}
             draft={draft}
             errorMessage={
               selectedRunId !== null && selectedRun.isError
-                ? messageFor(selectedRun.error, "Could not load this run.")
+                ? messageFor(selectedRun.error, "Could not load this run")
                 : null
             }
             isLoading={selectedRunId !== null && selectedRun.isLoading}
+            preview={preview.data}
             runId={selectedRunId}
           />
         </div>
-      </div>
 
-      <RunsSheet
-        onOpenChange={setRunsSheetOpen}
-        onSelect={selectRun}
-        open={runsSheetOpen}
-        progress={progress}
-        selectedRunId={selectedRunId}
-      />
+        <RunsSheet
+          onNewRun={startNewRun}
+          onOpenChange={setRunsSheetOpen}
+          onSelect={selectRun}
+          open={runsSheetOpen}
+          selectedRunId={selectedRunId}
+        />
+      </PortalContext.Provider>
+      <div ref={setPortal} />
     </RunSelectionProvider>
   );
 };

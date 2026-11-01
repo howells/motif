@@ -2,19 +2,9 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** shadcn/ui's `table` on house tokens. Rules are `border-soft` hairlines
- * between rows and a `border` rule under the header — no zebra fill, no row
- * hover wash: the numbers are the content, and a tinted row would compete
- * with the one thing this table highlights (the best value in a row).
- *
- * Column headers are the one place besides the verdict labels where mono
- * small-caps is allowed (`docs/design/specs/design-bench.md`, Typography). */
-// No scroll container of its own any more. A fourteen-model comparison is
-// 2440px wide and used to need one here, plus `contain: paint` to stop that
-// width reaching the *document's* scrollable overflow in Chromium. Both are
-// gone because the table is now rendered inside the run pane's `ScrollFrame`,
-// which owns the horizontal axis; a second nested scroller would have been a
-// fourth scroll container in a shell the spec allows exactly three.
+/** A table on paper: hairlines between rows and no fill, so the figures are
+ * the content. Rows are one control tall. The page scrolls it sideways when a
+ * long run has more Models than the width holds. */
 export const Table = ({ className, ...props }: ComponentProps<"table">) => (
   <table
     className={cn("w-full caption-bottom border-collapse", className)}
@@ -36,7 +26,7 @@ export const TableHeader = ({
 
 export const TableBody = ({ className, ...props }: ComponentProps<"tbody">) => (
   <tbody
-    className={cn("[&_tr:last-child]:border-0", className)}
+    className={cn("[&_tr:last-child]:border-b", className)}
     data-slot="table-body"
     {...props}
   />
@@ -44,26 +34,17 @@ export const TableBody = ({ className, ...props }: ComponentProps<"tbody">) => (
 
 export const TableRow = ({ className, ...props }: ComponentProps<"tr">) => (
   <tr
-    className={cn("border-border-soft border-b", className)}
+    className={cn("border-border h-control border-b", className)}
     data-slot="table-row"
     {...props}
   />
 );
 
-/** Column headers in the body font, sentence case, muted and regular weight.
- *
- * They were tracked uppercase mono, which did two bad things: it shouted over
- * the figures underneath — the only thing in a comparison table anyone reads —
- * and it destroyed the model aliases, printing `FLUX-FAST` and `SEEDREAM45`
- * for names whose real casing is lowercase. A header only has to say which
- * column this is; position and the rule beneath it already do most of that
- * work. */
+/** A column header names the column: muted, sentence case, regular weight. */
 export const TableHead = ({ className, ...props }: ComponentProps<"th">) => (
   <th
     className={cn(
-      // `font-[450]` explicitly: `th` is bold in the UA stylesheet, and a
-      // header heavier than its own column of figures inverts the hierarchy.
-      "text-muted type-small px-3 py-2 text-left align-bottom whitespace-nowrap first:pl-0 last:pr-0",
+      "text-muted type-small px-3 py-2 text-left align-middle whitespace-nowrap first:pl-0 last:pr-0",
       className
     )}
     data-slot="table-head"
@@ -73,7 +54,7 @@ export const TableHead = ({ className, ...props }: ComponentProps<"th">) => (
 
 export const TableCell = ({ className, ...props }: ComponentProps<"td">) => (
   <td
-    className={cn("px-3 py-3 align-top first:pl-0 last:pr-0", className)}
+    className={cn("px-3 py-2 align-middle first:pl-0 last:pr-0", className)}
     data-slot="table-cell"
     {...props}
   />

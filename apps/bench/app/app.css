@@ -203,6 +203,12 @@
   font-weight: 500;
 }
 
+/* A square button that holds one icon. */
+.app-button.is-icon {
+  min-inline-size: var(--spacing-control);
+  padding-inline: 0;
+}
+
 .app-button.is-quiet {
   background: var(--surface);
   border-color: transparent;
@@ -330,6 +336,13 @@
 
 .app-meter > span + span {
   background: #6b6866;
+}
+
+/* A white card on the paper: the Bench's image details and its settings. */
+.app-panel {
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-panel);
 }
 
 /* The dark plate an image is judged on. */

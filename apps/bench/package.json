@@ -19,7 +19,6 @@
     "@motif/bench-core": "workspace:*",
     "@motif/bench-db": "workspace:*",
     "@motif/bench-env": "workspace:*",
-    "@patternmode/aperto": "catalog:",
     "@patternmode/scrollframe": "catalog:",
     "@tanstack/react-query": "catalog:",
     "@vercel/blob": "catalog:",
