@@ -54,6 +54,84 @@ export interface WorkerDeps {
   readonly now: () => number;
 }
 
+/** What the worker tells a caller who is watching, as it happens. The worker
+ * behaves the same with or without one. */
+export type WorkerEvent =
+  | { readonly kind: "sending" }
+  | { readonly kind: "accepted"; readonly requestId: string }
+  | {
+      readonly kind: "queue";
+      readonly status: string;
+      readonly queuePosition: number | undefined;
+    }
+  | { readonly kind: "downloading"; readonly count: number }
+  | {
+      readonly kind: "stored";
+      readonly count: number;
+      readonly width: number;
+      readonly height: number;
+      readonly bytes: number;
+    };
+
+export type WorkerObserver = (event: WorkerEvent) => void | Promise<void>;
+
+type Notify = (event: WorkerEvent) => void;
+
+const ignore: Notify = () => {
+  // Nobody is watching.
+};
+
+/** Hands events to an observer one after another, off the worker's path. A
+ * failure of the observer is kept and raised when the worker is done. */
+const notifier = (observe: WorkerObserver | undefined) => {
+  let chain: Promise<void> = Promise.resolve();
+  let failure: unknown;
+  let failed = false;
+  const deliver = async (
+    before: Promise<void>,
+    watcher: WorkerObserver,
+    event: WorkerEvent
+  ): Promise<void> => {
+    // `before` never rejects: every delivery keeps its own failure.
+    await before;
+    try {
+      await watcher(event);
+    } catch (error) {
+      if (!failed) {
+        failed = true;
+        failure = error;
+      }
+    }
+  };
+  const notify: Notify =
+    observe === undefined
+      ? ignore
+      : (event) => {
+          chain = deliver(chain, observe, event);
+        };
+  const flush = async () => {
+    await chain;
+    if (failed) {
+      throw failure;
+    }
+  };
+  return { flush, notify };
+};
+
+/** Report fal's queue only when its status or place in line changes. */
+const queueReporter = (notify: Notify) => {
+  let status: string | undefined;
+  let position: number | undefined;
+  return (next: string, queuePosition: number | undefined) => {
+    if (next === status && queuePosition === position) {
+      return;
+    }
+    status = next;
+    position = queuePosition;
+    notify({ kind: "queue", queuePosition, status: next });
+  };
+};
+
 export const liveWorkerDeps = (falKey: string): WorkerDeps => ({
   client: createMotif({ falKey }),
   dataUrl: assetDataUrl,
@@ -169,7 +247,8 @@ const complete = async (
   generation: Generation,
   output: TaskOutput,
   deps: WorkerDeps,
-  leaseToken: string
+  leaseToken: string,
+  notify: Notify
 ): Promise<void> => {
   const files = output.files.filter((file) => IMAGE_KEYS.has(file.key));
   if (files.length === 0) {
@@ -191,6 +270,8 @@ const complete = async (
     return;
   }
   let stored: string[];
+  const seen: { width: number; height: number; bytes: number }[] = [];
+  notify({ count: files.length, kind: "downloading" });
   try {
     stored = await Promise.all(
       files.map(async (file) => {
@@ -210,9 +291,18 @@ const complete = async (
           ownerId: generation.ownerId,
           width: facts.width,
         });
+        seen.push({
+          bytes: bytes.byteLength,
+          height: facts.height,
+          width: facts.width,
+        });
         return asset.id;
       })
     );
+    const [first] = seen;
+    if (first !== undefined) {
+      notify({ count: stored.length, kind: "stored", ...first });
+    }
   } catch (error) {
     // A result that can never be kept ends the run; anything else (a dropped
     // download, storage briefly away) leaves it for the next worker to resume.
@@ -310,7 +400,8 @@ const submit = async (
   sql: AppSql,
   generation: Generation,
   deps: WorkerDeps,
-  leaseToken: string
+  leaseToken: string,
+  notify: Notify
 ): Promise<void> => {
   const request = requestOf(generation);
   const resolved = await realImages(sql, generation, request, deps);
@@ -372,11 +463,15 @@ const submit = async (
   }
   let requestId: string | null = null;
   let recorded: Promise<void> = Promise.resolve();
+  notify({ kind: "sending" });
+  const reportQueue = queueReporter(notify);
   const result = await deps.client.run(request.task, {
     ...input,
+    onProgress: reportQueue,
     onSubmitted: (id) => {
       requestId = id;
       recorded = recordSubmitted(sql, generation.id, id, leaseToken);
+      notify({ kind: "accepted", requestId: id });
     },
   });
   await recorded;
@@ -387,7 +482,7 @@ const submit = async (
     status: accepted ? ("submitted" as const) : ("submitting" as const),
   };
   if (result.isOk()) {
-    await complete(sql, current, result.value, deps, leaseToken);
+    await complete(sql, current, result.value, deps, leaseToken, notify);
     return;
   }
   if (accepted) {
@@ -434,7 +529,8 @@ const resume = async (
   sql: AppSql,
   generation: Generation,
   deps: WorkerDeps,
-  leaseToken: string
+  leaseToken: string,
+  notify: Notify
 ): Promise<void> => {
   if (generation.requestId === null) {
     return;
@@ -447,11 +543,11 @@ const resume = async (
   const input = toTaskInput(request, resolved.images, generation.model);
   const result = await deps.client.resume(
     request.task,
-    input,
+    { ...input, onProgress: queueReporter(notify) },
     generation.requestId
   );
   if (result.isOk()) {
-    await complete(sql, generation, result.value, deps, leaseToken);
+    await complete(sql, generation, result.value, deps, leaseToken, notify);
     return;
   }
   await afterAcceptance(sql, generation, result.error, leaseToken);
@@ -465,12 +561,14 @@ export const advanceGeneration = async (
   sql: AppSql,
   ownerId: string,
   id: string,
-  deps: WorkerDeps
+  deps: WorkerDeps,
+  observe?: WorkerObserver
 ): Promise<void> => {
   const leaseToken = await claimLease(sql, id, ownerId);
   if (leaseToken === null) {
     return;
   }
+  const { flush, notify } = notifier(observe);
   try {
     const generation = await getOwnedGeneration(sql, ownerId, id);
     if (generation === null) {
@@ -478,7 +576,7 @@ export const advanceGeneration = async (
     }
     switch (generation.status) {
       case "reserved": {
-        await submit(sql, generation, deps, leaseToken);
+        await submit(sql, generation, deps, leaseToken, notify);
         break;
       }
       case "submitting": {
@@ -504,7 +602,7 @@ export const advanceGeneration = async (
         break;
       }
       case "submitted": {
-        await resume(sql, generation, deps, leaseToken);
+        await resume(sql, generation, deps, leaseToken, notify);
         break;
       }
       case "completed":
@@ -513,6 +611,7 @@ export const advanceGeneration = async (
         break;
       }
     }
+    await flush();
   } finally {
     await releaseLease(sql, id, leaseToken);
   }

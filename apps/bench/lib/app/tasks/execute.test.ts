@@ -9,7 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Asset } from "../media/assets";
 import { advanceGeneration } from "./execute";
-import type { WorkerDeps } from "./execute";
+import type { WorkerDeps, WorkerEvent } from "./execute";
 import * as store from "./store";
 import type { Ending, Generation } from "./store";
 
@@ -325,6 +325,81 @@ describe("advanceGeneration", () => {
         },
       },
     ]);
+  });
+
+  it("tells an observer what it is doing, reporting fal's queue only when it changes", async () => {
+    const { deps } = depsWith(async (_task, input) => {
+      input.onSubmitted?.("req-1");
+      input.onProgress?.("queued", 3);
+      input.onProgress?.("queued", 3);
+      input.onProgress?.("queued", 1);
+      input.onProgress?.("processing");
+      input.onProgress?.("processing");
+      input.onProgress?.("completed");
+      return ok(output());
+    });
+    const seen: WorkerEvent[] = [];
+    await advanceGeneration(sql, OWNER, ID, deps, async (event) => {
+      await Promise.resolve();
+      seen.push(event);
+    });
+    expect(seen).toEqual([
+      { kind: "sending" },
+      { kind: "accepted", requestId: "req-1" },
+      { kind: "queue", queuePosition: 3, status: "queued" },
+      { kind: "queue", queuePosition: 1, status: "queued" },
+      { kind: "queue", queuePosition: undefined, status: "processing" },
+      { kind: "queue", queuePosition: undefined, status: "completed" },
+      { count: 1, kind: "downloading" },
+      {
+        bytes: PNG.byteLength,
+        count: 1,
+        height: 16,
+        kind: "stored",
+        width: 16,
+      },
+    ]);
+  });
+
+  it("reports the queue while it resumes a run fal already has", async () => {
+    vi.mocked(store.getOwnedGeneration).mockResolvedValue(
+      generation({ requestId: "req-9", status: "submitted" })
+    );
+    const { deps } = depsWith(async () => ok(output()), {
+      resume: async (_task, input) => {
+        input.onProgress?.("processing");
+        return ok(output());
+      },
+    });
+    const seen: WorkerEvent[] = [];
+    await advanceGeneration(sql, OWNER, ID, deps, (event) => {
+      seen.push(event);
+    });
+    expect(seen.map((event) => event.kind)).toEqual([
+      "queue",
+      "downloading",
+      "stored",
+    ]);
+  });
+
+  it("raises what its observer throws, after the worker has finished its own part", async () => {
+    const { deps } = depsWith(async (_task, input) => {
+      input.onSubmitted?.("req-1");
+      return ok(output());
+    });
+    await expect(
+      advanceGeneration(sql, OWNER, ID, deps, () => {
+        throw new Error("the feed closed");
+      })
+    ).rejects.toThrow("the feed closed");
+    expect(store.endGeneration).toHaveBeenCalledWith(
+      sql,
+      ID,
+      expect.any(Array),
+      expect.objectContaining({ status: "completed" }),
+      LEASE
+    );
+    expect(store.releaseLease).toHaveBeenCalledWith(sql, ID, LEASE);
   });
 
   it("keeps the whole hold when fal returns no price", async () => {

@@ -4,6 +4,7 @@ import { createContext, use } from "react";
 
 import type { Vocabulary } from "@/lib/app/boards/canvas";
 import type { RunScope, SettingsPatch } from "@/lib/app/boards/model";
+import type { NodeProcess } from "@/lib/app/boards/process";
 import type {
   BoardViewData,
   NodeViewData,
@@ -15,6 +16,8 @@ export interface BoardActions {
   readonly words: Vocabulary;
   readonly selectedId: string | null;
   readonly now: number;
+  /** What the latest run said about a node, while it works and after. */
+  readonly process: (nodeId: string) => NodeProcess;
   readonly select: (nodeId: string | null) => void;
   readonly editSettings: (node: NodeViewData, patch: SettingsPatch) => void;
   readonly makePick: (node: NodeViewData, assetId: string) => void;

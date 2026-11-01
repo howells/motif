@@ -34,6 +34,7 @@ export {
   appMembers,
   appNodeResults,
   appNodes,
+  appRunEvents,
   appSettings,
   appWires,
 } from "./app-schema";

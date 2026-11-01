@@ -485,3 +485,35 @@ export const appBoardRuns = pgTable(
     check("app_board_runs_approved_check", sql`${table.approvedMicros} > 0`),
   ]
 );
+
+/**
+ * What a Board run said as it worked, in order: the process the canvas shows
+ * while it waits. Written only from the workflow's own stream, one row per
+ * beat, `seq` counting up within a run so a client can ask for what it has
+ * not yet seen. Bounded per run by the writer; never read for results.
+ */
+export const appRunEvents = pgTable(
+  "app_run_events",
+  {
+    createdAt: timestamptz("created_at").defaultNow().notNull(),
+    data: jsonb("data").$type<
+      Record<string, string | number | boolean | null>
+    >(),
+    id: bigint("id", { mode: "number" })
+      .primaryKey()
+      .generatedAlwaysAsIdentity(),
+    kind: text("kind").notNull(),
+    nodeId: text("node_id"),
+    ownerId: text("owner_id")
+      .notNull()
+      .references(() => appMembers.id, { onDelete: "restrict" }),
+    runId: text("run_id")
+      .notNull()
+      .references(() => appBoardRuns.id, { onDelete: "restrict" }),
+    seq: integer("seq").notNull(),
+    text: text("text").notNull(),
+  },
+  (table) => [
+    uniqueIndex("app_run_events_run_seq_unique").on(table.runId, table.seq),
+  ]
+);

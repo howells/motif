@@ -14,6 +14,7 @@ import {
   ModelChoice,
 } from "@/components/app/boards/inspector-models";
 import { Results } from "@/components/app/boards/inspector-results";
+import { ProcessLog } from "@/components/app/boards/process";
 import { MediaImage } from "@/components/app/media-image";
 import type { TaskOptions } from "@/components/app/task/fields";
 import { modelsOf } from "@/lib/app/boards/canvas";
@@ -313,7 +314,7 @@ export function Inspector({
   readonly node: NodeViewData;
   readonly options: TaskOptions;
 }) {
-  const { openRun, select } = useBoard();
+  const { openRun, process, select } = useBoard();
   const runnable = isRunnable(node.kind);
   return (
     <aside
@@ -340,6 +341,9 @@ export function Inspector({
         {node.kind === "source" ? <SourceFields node={node} /> : null}
         <TaskFields node={node} />
         {runnable && node.kind !== "compare" ? <Results node={node} /> : null}
+        {runnable ? (
+          <ProcessLog key={node.id} process={process(node.id)} />
+        ) : null}
       </div>
       {runnable ? (
         <footer className="board-rule-top flex shrink-0 flex-col gap-3 px-6 pt-4 pb-5">

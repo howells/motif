@@ -104,6 +104,11 @@ export const useBoardData = (initial: BoardViewData) => {
   // the run settles, without a reload.
   useAfterSettle(runningId !== null);
 
+  /** Read the Board again now: a Pick was kept, or the run ended. */
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: key });
+  };
+
   const apply = (next: BoardViewData) => {
     queryClient.setQueryData(key, next);
   };
@@ -199,6 +204,7 @@ export const useBoardData = (initial: BoardViewData) => {
     moved,
     now,
     problem,
+    refresh,
     send,
     setProblem,
     started,

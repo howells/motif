@@ -4,8 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { ChevronLeftIcon } from "@/components/app/boards/icons";
+import { LiveBeats, LiveGlow } from "@/components/app/boards/process";
 import { useNow } from "@/components/app/boards/use-now";
+import { useRunBeats } from "@/components/app/boards/use-run-beats";
 import { MediaImage } from "@/components/app/media-image";
+import type { Beat } from "@/lib/app/boards/run-events";
 import { api, messageOf } from "@/lib/app/client/api";
 import { RunResultsReply } from "@/lib/app/client/board-schemas";
 import type {
@@ -84,6 +87,37 @@ function PlateNote({
         </span>
       )}
     </>
+  );
+}
+
+/** The plate while the run is working: what it says it is doing, on the
+ * same glow and rail the canvas uses. */
+function LivePlate({
+  beats,
+  now,
+  reply,
+}: {
+  readonly beats: readonly Beat[];
+  readonly now: number;
+  readonly reply: RunResultsData | undefined;
+}) {
+  const run = reply?.run;
+  return (
+    <div className="board-live absolute inset-0">
+      <LiveGlow tone="plate" />
+      <div className="absolute inset-x-0 top-0 flex items-baseline justify-between px-5 pt-4">
+        <span className="type-small text-plate-muted">Making</span>
+        {run === undefined ? null : (
+          <span className="board-mono text-plate-muted">
+            {formatSeconds(Math.max(0, now - Date.parse(run.createdAt)))}
+            {typicalOf(reply?.results[0])}
+          </span>
+        )}
+      </div>
+      <div className="absolute inset-x-0 bottom-0 px-5 pb-5">
+        <LiveBeats beats={beats} depth={3} tone="plate" />
+      </div>
+    </div>
   );
 }
 
@@ -173,7 +207,12 @@ export function MakeResult({
     refetchInterval: (query) =>
       query.state.data?.run.status === "running" ? 2000 : false,
   });
-  const now = useNow(reply.data?.run.status === "running");
+  const running = reply.data?.run.status === "running";
+  const now = useNow(running);
+  const feed = useRunBeats(running ? runId : null, () => {
+    void reply.refetch();
+  });
+  const beats = feed.beats.filter((beat) => beat.nodeId !== null);
   useAfterSettle(reply.data?.run.status === "running");
   const result = reply.data?.results[0];
   const output = result?.outputs[0];
@@ -194,7 +233,9 @@ export function MakeResult({
         <h1 className="app-screen-title">Inbox</h1>
       </header>
       <div className="bg-plate relative aspect-square w-full">
-        {output === undefined ? (
+        {output === undefined && running && beats.length > 0 ? (
+          <LivePlate beats={beats} now={now} reply={reply.data} />
+        ) : output === undefined ? (
           <div className="text-plate-muted absolute inset-0 flex flex-col items-center justify-center gap-1 px-8 text-center">
             <PlateNote
               error={reply.isError ? messageOf(reply.error) : null}

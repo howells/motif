@@ -37,6 +37,7 @@ import {
   useBoardData,
   useCanvas,
 } from "@/components/app/boards/use-board";
+import { useRunBeats } from "@/components/app/boards/use-run-beats";
 import { Wire } from "@/components/app/boards/wire";
 import type { TaskOptions } from "@/components/app/task/fields";
 import { SourcePicker } from "@/components/app/task/source-picker";
@@ -48,6 +49,7 @@ import {
   wireRefusal,
 } from "@/lib/app/boards/model";
 import type { NodeKind, RunScope } from "@/lib/app/boards/model";
+import { NO_PROCESS, beatsOfNode, processOf } from "@/lib/app/boards/process";
 import {
   besidePlacement,
   clearPlacement,
@@ -414,6 +416,27 @@ function Editor({
 
   const boxOf = useReveal(view, canvas.selectedId, frame);
 
+  // The run going now is heard live. The panel also reads the latest run of
+  // the selected node, which may be an earlier one that has finished.
+  const runningId = view.runs.find((run) => run.status === "running")?.id;
+  const selectedRun =
+    canvas.selectedId === null
+      ? undefined
+      : view.runs.find((run) => run.nodeIds.includes(canvas.selectedId ?? ""));
+  const live = useRunBeats(runningId ?? null, data.refresh);
+  const earlier = useRunBeats(
+    selectedRun !== undefined && selectedRun.id !== runningId
+      ? selectedRun.id
+      : null
+  );
+  const processFor = (nodeId: string) => {
+    const run = view.runs.find((item) => item.nodeIds.includes(nodeId));
+    const feed = [live, earlier].find((item) => item.runId === run?.id);
+    return run === undefined || feed === undefined
+      ? NO_PROCESS
+      : processOf(beatsOfNode(feed.beats, nodeId), run.status);
+  };
+
   const addNode = async (kind: NodeKind) => {
     setAdding(false);
     const before = new Set(view.nodes.map((node) => node.id));
@@ -446,6 +469,7 @@ function Editor({
     openRun: (nodeId, scope) => {
       setRunning({ nodeId, scope });
     },
+    process: processFor,
     select: canvas.select,
     selectedId: canvas.selectedId,
     stop: (runId) => {

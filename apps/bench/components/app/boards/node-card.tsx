@@ -12,6 +12,11 @@ import {
   PlusIcon,
   StopIcon,
 } from "@/components/app/boards/icons";
+import {
+  LiveBeats,
+  LiveGlow,
+  PlateProcess,
+} from "@/components/app/boards/process";
 import { MediaImage } from "@/components/app/media-image";
 import {
   IMAGE_HEIGHT,
@@ -120,6 +125,45 @@ function Rows({ node }: { readonly node: NodeViewData }) {
 const elapsedOf = (since: string, now: number): number =>
   Math.max(0, now - Date.parse(since));
 
+const makingLabel = (node: NodeViewData, images: number): string =>
+  node.kind === "upscale"
+    ? "Upscaling"
+    : `Making ${images} ${images === 1 ? "image" : "images"}`;
+
+/** The well of a node being made, reading out what the run is doing. */
+function LiveWell({
+  node,
+  run,
+}: {
+  readonly node: NodeViewData;
+  readonly run: Extract<RunState, { state: "running" | "waiting" }>;
+}) {
+  const { now, process } = useBoard();
+  const elapsed = elapsedOf(run.since, now);
+  return (
+    <div className="board-live absolute inset-0">
+      <LiveGlow />
+      <div className="absolute inset-x-0 top-0 flex items-baseline justify-between px-3.5 pt-2.5">
+        <span className="type-small text-muted">
+          {makingLabel(node, run.expected)}
+        </span>
+        <span className="board-mono text-muted">
+          {formatSeconds(elapsed)}
+          {run.typicalMs === null
+            ? ""
+            : ` of about ${formatSeconds(run.typicalMs)}`}
+        </span>
+      </div>
+      <div className="absolute inset-x-0 bottom-0 px-3.5 pb-3">
+        <LiveBeats
+          beats={process(node.id).beats}
+          depth={IMAGE_HEIGHT[node.kind] >= 150 ? 2 : 1}
+        />
+      </div>
+    </div>
+  );
+}
+
 function Making({
   node,
   run,
@@ -127,7 +171,10 @@ function Making({
   readonly node: NodeViewData;
   readonly run: Extract<RunState, { state: "running" | "waiting" }>;
 }) {
-  const { now } = useBoard();
+  const { now, process } = useBoard();
+  if (run.state === "running" && process(node.id).beats.length > 0) {
+    return <LiveWell node={node} run={run} />;
+  }
   const elapsed = elapsedOf(run.since, now);
   const typical = run.typicalMs;
   const share =
@@ -141,9 +188,7 @@ function Making({
         <span className="text-sm leading-5 font-medium">
           {run.state === "waiting"
             ? "Waiting for the node before"
-            : node.kind === "upscale"
-              ? "Upscaling"
-              : `Making ${images} ${images === 1 ? "image" : "images"}`}
+            : makingLabel(node, images)}
         </span>
         {run.state === "running" ? (
           <span className="board-mono text-muted">
@@ -176,6 +221,14 @@ function ImageArea({
   const images = imagesOf(node);
   const busy = run.state !== "idle";
   const thumbs = images.slice(0, 4);
+  // A node that has just finished shows its image with a gentle reveal. The
+  // flag is set when the run ends, in render, so the image never flashes in.
+  const [wasBusy, setWasBusy] = useState(busy);
+  const [arrived, setArrived] = useState(false);
+  if (busy !== wasBusy) {
+    setWasBusy(busy);
+    setArrived(wasBusy && !busy);
+  }
   return (
     <>
       <div
@@ -203,7 +256,8 @@ function ImageArea({
           )
         ) : (
           <div
-            className={`board-image absolute inset-0 transition-opacity ${busy ? "opacity-45" : ""}`}
+            className={`board-image absolute inset-0 transition-opacity ${busy ? "opacity-45" : ""} ${arrived ? "board-reveal" : ""}`}
+            key={arrived ? node.pick.assetId : "settled"}
           >
             <MediaImage
               alt={`${NODE_LABELS[node.kind]} Pick`}
@@ -456,9 +510,10 @@ function CompareCard({
   readonly run: RunState;
   readonly selected: boolean;
 }) {
-  const { openRun, stop } = useBoard();
+  const { openRun, process, stop } = useBoard();
   const [open, setOpen] = useState(true);
   const fastest = fastestOf(node);
+  const live = process(node.id);
   return (
     <div
       className={`board-card ${selected ? "is-selected" : ""} ${node.stale ? "is-stale" : ""}`}
@@ -484,6 +539,7 @@ function CompareCard({
       />
       {open ? (
         <div className={`bg-plate p-4 ${node.stale ? "board-image" : ""}`}>
+          {live.live ? <PlateProcess process={live} /> : null}
           <CompareColumns node={node} />
         </div>
       ) : null}

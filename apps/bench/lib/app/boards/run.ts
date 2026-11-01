@@ -32,13 +32,17 @@ import { z } from "zod";
 import type { Member } from "../auth/members";
 import { formatUsd } from "../money";
 import { advanceGeneration } from "../tasks/execute";
-import type { WorkerDeps } from "../tasks/execute";
+import type { WorkerDeps, WorkerEvent } from "../tasks/execute";
 import { startComparison, startRun } from "../tasks/start";
 import type { StartResult } from "../tasks/start";
 import { getOwnedGeneration } from "../tasks/store";
 import type { Generation } from "../tasks/store";
 import { NODE_LABELS, staleAfterPick } from "./model";
+import { modelName } from "./names";
 import { buildRequests, inputFor, pickSizes, quoteNode } from "./plan";
+import { appendRunEvent } from "./run-event-store";
+import { RunEventGate, eventsOf, isTerminal, sayFor } from "./run-events";
+import type { RunEventInput, Say } from "./run-events";
 import {
   claimRun,
   endRun,
@@ -47,6 +51,19 @@ import {
   runStatus,
 } from "./run-store";
 import type { BoardRun, RunStep } from "./run-store";
+import {
+  armHomeLine,
+  askingLine,
+  compareHoldLine,
+  holdLine,
+  pickLine,
+  priceLine,
+  readLine,
+  settledLine,
+  staleLine,
+  workerLine,
+} from "./run-voice";
+import type { Line } from "./run-voice";
 import { completeNode, getGraph, markStale, recordResult } from "./store";
 import type { BoardNode } from "./store";
 
@@ -142,16 +159,63 @@ const started = (result: StartResult, label: string): readonly string[] => {
   return result.generationIds;
 };
 
-/** Take a Generation to its end, or stop when this invocation's time runs
- * out. Any number of callers may do this at once; only a lease holder acts. */
-const settle = async (ctx: RunContext, id: string): Promise<Generation> => {
+const tell = async (
+  say: Say,
+  line: Line | null,
+  prefix = ""
+): Promise<void> => {
+  if (line !== null) {
+    await say(line.kind, `${prefix}${line.text}`, line.data);
+  }
+};
+
+/**
+ * Take a Generation to its end, or stop when this invocation's time runs
+ * out. Any number of callers may do this at once; only a lease holder acts.
+ * What it does on the way is said through `say`, each line led by `lead`
+ * (a Compare names the Model whose line it is).
+ */
+const settle = async (
+  ctx: RunContext,
+  id: string,
+  say: Say,
+  lead = ""
+): Promise<Generation> => {
+  const first = await getOwnedGeneration(ctx.sql, ctx.member.id, id);
+  if (first === null) {
+    throw new StepFailedError("A run went missing.");
+  }
+  const name = modelName(first.model);
+  if (first.status === "reserved") {
+    // A Compare said every Model's hold together when it reserved them.
+    if (lead === "") {
+      await tell(say, holdLine(first.boundMicros));
+    }
+  } else if (IN_FLIGHT.has(first.status)) {
+    await tell(
+      say,
+      { kind: "send", text: "Already with fal, picking it back up" },
+      lead
+    );
+  }
+  // The worker reports as it goes; each report is said before it moves on.
+  const observe = async (event: WorkerEvent) => {
+    await tell(say, workerLine(event, name), lead);
+  };
   for (;;) {
-    await advanceGeneration(ctx.sql, ctx.member.id, id, ctx.deps.worker);
+    await advanceGeneration(
+      ctx.sql,
+      ctx.member.id,
+      id,
+      ctx.deps.worker,
+      observe
+    );
     const generation = await getOwnedGeneration(ctx.sql, ctx.member.id, id);
     if (generation === null) {
       throw new StepFailedError("A run went missing.");
     }
     if (!IN_FLIGHT.has(generation.status)) {
+      await tell(say, settledLine(generation), lead);
       return generation;
     }
     if (ctx.deps.now() >= ctx.deadline) {
@@ -180,9 +244,10 @@ const stepOf = (ctx: RunContext, nodeId: string): RunStep => {
 
 /** Build the node's requests from what feeds it now, and check the price
  * against what the run approved for it. */
-const prepare = async (ctx: RunContext, nodeId: string) => {
+const prepare = async (ctx: RunContext, nodeId: string, say: Say) => {
   const { graph, node } = await loadNode(ctx, nodeId);
   const label = NODE_LABELS[node.kind];
+  await tell(say, readLine(node, graph));
   const sizes = await pickSizes(ctx.sql, ctx.member.id, graph);
   const input = inputFor(node, graph, sizes);
   const built = buildRequests(node, input);
@@ -194,6 +259,7 @@ const prepare = async (ctx: RunContext, nodeId: string) => {
     throw new StepFailedError(`${label}: ${priced.reason}`);
   }
   const approved = stepOf(ctx, nodeId).micros;
+  await tell(say, priceLine(priced.micros, approved, input.kind === "image"));
   if (priced.micros > approved) {
     throw new StepFailedError(
       `${label} would hold ${formatUsd(priced.micros)} on its real image, more than the ${formatUsd(approved)} you approved, so it hasn't started.`
@@ -208,7 +274,8 @@ const finish = async (
   ctx: RunContext,
   node: BoardNode,
   graph: Awaited<ReturnType<typeof getGraph>>,
-  generations: readonly Generation[]
+  generations: readonly Generation[],
+  say: Say
 ) => {
   const pick = generations.find(
     (generation) =>
@@ -223,6 +290,7 @@ const finish = async (
     );
   }
   await completeNode(ctx.sql, ctx.member.id, node.id, pick);
+  await tell(say, pickLine());
   const below = staleAfterPick(
     node.id,
     graph.nodes.map((candidate) =>
@@ -231,6 +299,9 @@ const finish = async (
     graph.wires
   );
   await markStale(ctx.sql, ctx.member.id, below);
+  if (below.length > 0) {
+    await tell(say, staleLine(below.length));
+  }
 };
 
 const stopped = async (ctx: RunContext): Promise<boolean> =>
@@ -252,12 +323,13 @@ const skipped = (nodeId: string): Receipt => ({
 /** One Task node: reserve, run, settle, Pick. */
 const runTaskNode = async (
   ctx: RunContext,
-  nodeId: string
+  nodeId: string,
+  say: Say
 ): Promise<Receipt> => {
   if (await stopped(ctx)) {
     return skipped(nodeId);
   }
-  const { graph, node, requests } = await prepare(ctx, nodeId);
+  const { graph, node, requests } = await prepare(ctx, nodeId, say);
   const [request] = requests;
   if (request === undefined) {
     throw new StepFailedError(`${NODE_LABELS[node.kind]} has nothing to run.`);
@@ -275,9 +347,9 @@ const runTaskNode = async (
     })
   );
   const generations = await Promise.all(
-    ids.map(async (id) => await settle(ctx, id))
+    ids.map(async (id) => await settle(ctx, id, say))
   );
-  await finish(ctx, node, graph, generations);
+  await finish(ctx, node, graph, generations, say);
   return { generationIds: [...ids], nodeId, status: "done" };
 };
 
@@ -291,12 +363,13 @@ type Reserved = z.infer<typeof ReservedSchema>;
 /** Compare, step one: hold every Model's price together, or none. */
 const reserveCompare = async (
   ctx: RunContext,
-  nodeId: string
+  nodeId: string,
+  say: Say
 ): Promise<Reserved> => {
   if (await stopped(ctx)) {
     return { byModel: {}, nodeId, status: "skipped" };
   }
-  const { requests } = await prepare(ctx, nodeId);
+  const { requests } = await prepare(ctx, nodeId, say);
   const first = requests[0];
   if (first?.task !== "generate") {
     throw new StepFailedError("Compare needs a Prompt.");
@@ -324,11 +397,18 @@ const reserveCompare = async (
     ids.map(async (id) => await getOwnedGeneration(ctx.sql, ctx.member.id, id))
   );
   const byModel: Record<string, string> = {};
+  const holds: { name: string; micros: number }[] = [];
   for (const generation of generations) {
     if (generation !== null) {
       byModel[generation.model] = generation.id;
+      holds.push({
+        micros: generation.boundMicros,
+        name: modelName(generation.model),
+      });
     }
   }
+  await tell(say, askingLine(holds.length));
+  await tell(say, compareHoldLine(holds));
   return { byModel, nodeId, status: "reserved" };
 };
 
@@ -350,26 +430,39 @@ const compareWorkflow = (
 ) => {
   const reserve = createStep({
     description: "Hold every Model's price for this Comparison together.",
-    execute: async () =>
-      await guarded(ctx, async () => await reserveCompare(ctx, nodeId)),
+    execute: async ({ writer }) =>
+      await guarded(
+        ctx,
+        async () => await reserveCompare(ctx, nodeId, sayFor(writer, nodeId))
+      ),
     id: `reserve-${nodeId}`,
     inputSchema: z.unknown(),
     outputSchema: ReservedSchema,
     retries: 0,
   });
+  // The Models run side by side in this process, so the order they come home
+  // in is read from one place.
+  const home = { first: false };
   const arms = models.map((model) =>
     createStep({
       description: `Run ${model} for this Comparison.`,
-      execute: async ({ inputData }) => {
+      execute: async ({ inputData, writer }) => {
         const reserved = inputData[reserve.id];
         const id = reserved?.byModel[model];
         if (reserved?.status !== "reserved" || id === undefined) {
           return { generationId: null, model, ok: false };
         }
+        const say = sayFor(writer, nodeId);
+        const name = modelName(model);
         const generation = await guarded(
           ctx,
-          async () => await settle(ctx, id)
+          async () => await settle(ctx, id, say, `${name}: `)
         );
+        if (generation.status === "completed") {
+          const wasFirst = !home.first;
+          home.first = true;
+          await tell(say, armHomeLine(name, generation.providerMs, wasFirst));
+        }
         return {
           generationId: id,
           model,
@@ -385,7 +478,8 @@ const compareWorkflow = (
   );
   const collect = createStep({
     description: "Pick the first image that came back.",
-    execute: async ({ inputData }): Promise<Receipt> => {
+    execute: async ({ inputData, writer }): Promise<Receipt> => {
+      const say = sayFor(writer, nodeId);
       const ids = Object.values(inputData).flatMap((arm) =>
         arm.generationId === null ? [] : [arm.generationId]
       );
@@ -404,7 +498,7 @@ const compareWorkflow = (
         const generations = found.filter(
           (generation): generation is Generation => generation !== null
         );
-        await finish(ctx, node, graph, generations);
+        await finish(ctx, node, graph, generations, say);
         return { generationIds: ids, nodeId, status: "done" } satisfies Receipt;
       });
     },
@@ -430,8 +524,11 @@ const compareWorkflow = (
 const taskStep = (ctx: RunContext, nodeId: string) =>
   createStep({
     description: "Run one node: reserve its price, call fal, keep its Pick.",
-    execute: async () =>
-      await guarded(ctx, async () => await runTaskNode(ctx, nodeId)),
+    execute: async ({ writer }) =>
+      await guarded(
+        ctx,
+        async () => await runTaskNode(ctx, nodeId, sayFor(writer, nodeId))
+      ),
     id: `node-${nodeId}`,
     inputSchema: z.unknown(),
     outputSchema: ReceiptSchema,
@@ -489,6 +586,41 @@ const compareModelsOf = async (
 };
 
 /**
+ * Keep what the workflow says as it works. The steps only emit; this is the
+ * one place the stream becomes rows. A beat that can't be kept is logged and
+ * the run goes on: the feed is decoration, and the workflow it describes
+ * spends money.
+ */
+const recordStream = async (
+  ctx: RunContext,
+  chunks: AsyncIterable<unknown>
+): Promise<void> => {
+  const gate = new RunEventGate(ctx.deps.now);
+  let full = false;
+  // One at a time and in order: a beat's place is the one after the last.
+  const keep = async (events: readonly RunEventInput[]): Promise<void> => {
+    const [raw, ...rest] = events;
+    if (raw === undefined) {
+      return;
+    }
+    const event = gate.accept(raw);
+    if (event !== null && !(full && !isTerminal(event.kind))) {
+      try {
+        full =
+          (await appendRunEvent(ctx.sql, ctx.member.id, ctx.run.id, event)) ===
+          "full";
+      } catch (error) {
+        console.error(`[board run] ${ctx.run.id} couldn't keep a beat`, error);
+      }
+    }
+    await keep(rest);
+  };
+  for await (const chunk of chunks) {
+    await keep(eventsOf(chunk, ctx.outcome));
+  }
+};
+
+/**
  * Drive a run as far as this invocation can. Safe to call from any number
  * of requests: only the holder of the run's lease drives it.
  */
@@ -520,7 +652,9 @@ export const driveRun = async (
       await compareModelsOf(sql, member.id, run)
     );
     const handle = await workflow.createRun();
-    const result = await handle.start({ inputData: { runId } });
+    const stream = handle.stream({ inputData: { runId } });
+    await recordStream(ctx, stream.fullStream);
+    const result = await stream.result;
     if (result.status === "success") {
       if (await stopped(ctx)) {
         return;
