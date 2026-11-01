@@ -115,7 +115,7 @@ const ViewRow = ({
   readonly onSelect: (tab: TabId) => void;
   readonly tab: TabId;
 }) => {
-  const running = detail.run.status === "running";
+  const running = detail.run.status === "running" && !detail.run.stale;
   const now = useNow(running);
   const completed = detail.samples.filter(
     (sample) => sample.status === "completed"

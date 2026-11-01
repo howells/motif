@@ -25,7 +25,13 @@ interface Readout {
 /** One leader: what it is, the figure, and the Model that holds it. The
  * answer's two lines are the same shape whether or not there is an answer, so
  * the strip keeps its height before anything has been rated. */
-const Cell = ({ readout }: { readonly readout: Readout }) => (
+const Cell = ({
+  nameOf,
+  readout,
+}: {
+  readonly nameOf: (alias: string) => string;
+  readonly readout: Readout;
+}) => (
   <div className="flex min-w-0 flex-col md:flex-1 md:basis-0">
     <span className="text-muted type-small">{readout.label}</span>
     {readout.pick === null ? (
@@ -33,9 +39,7 @@ const Cell = ({ readout }: { readonly readout: Readout }) => (
     ) : (
       <span className="type-small flex flex-col tabular-nums">
         <span>{readout.value(readout.pick)}</span>
-        <span className="font-medium">
-          {modelNameOf(readout.pick.modelAlias)}
-        </span>
+        <span className="font-medium">{nameOf(readout.pick.modelAlias)}</span>
       </span>
     )}
   </div>
@@ -70,12 +74,16 @@ const RunState = ({ detail }: { readonly detail: RunDetail }) => {
     (sample) => sample.status === "completed"
   ).length;
   const done = run.status === "running" ? settled : completed;
+  // A run still marked running after its worker went away has stopped.
+  const stopped = run.status === "running" && run.stale;
 
   return (
     <div className="type-small flex shrink-0 flex-col md:w-36 md:items-end">
       <span className="flex items-center gap-2 tabular-nums">
-        <span className={`font-medium ${STATUS_TONE[run.status]}`}>
-          {STATUS_WORD[run.status]}
+        <span
+          className={`font-medium ${stopped ? "text-bad" : STATUS_TONE[run.status]}`}
+        >
+          {stopped ? "Stopped" : STATUS_WORD[run.status]}
         </span>
         <span className="text-muted">
           {done} of {samples.length}
@@ -95,7 +103,6 @@ const RunState = ({ detail }: { readonly detail: RunDetail }) => {
         <span className="text-muted">Framing not uniform</span>
       )}
       {run.isMock ? <span className="text-muted">Mock</span> : null}
-      {run.stale ? <span className="text-bad">Stale</span> : null}
     </div>
   );
 };
@@ -112,6 +119,12 @@ export const VerdictStrip = ({
   readonly detail: RunDetail;
   readonly quality: readonly ModelQuality[];
 }) => {
+  // The name each Model ran under, so a retired Model keeps its name.
+  const recorded = new Map(
+    detail.samples.map((sample) => [sample.modelAlias, sample.modelName])
+  );
+  const nameOf = (alias: string) => modelNameOf(alias, recorded.get(alias));
+
   const starsOf = (pick: VerdictPick): number | null =>
     quality.find((entry) => entry.modelAlias === pick.modelAlias)?.meanStars ??
     null;
@@ -147,7 +160,7 @@ export const VerdictStrip = ({
     <div className="border-border flex flex-col gap-4 border-b px-4 py-4 md:flex-row md:gap-6 md:px-6">
       <div className="grid grid-cols-2 gap-x-6 gap-y-4 md:flex md:flex-1 md:gap-6">
         {readouts.map((readout) => (
-          <Cell key={readout.label} readout={readout} />
+          <Cell key={readout.label} nameOf={nameOf} readout={readout} />
         ))}
       </div>
       <RunState detail={detail} />

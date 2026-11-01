@@ -11,7 +11,9 @@ export const formatUsd = (micros: number | null): string => {
     return "Unknown";
   }
   const usd = micros / 1_000_000;
-  return usd < 0.01 && usd > 0 ? `$${usd.toFixed(4)}` : `$${usd.toFixed(2)}`;
+  return usd < 0.01 && usd > 0
+    ? `$${usd.toFixed(4).replace(/0$/u, "")}`
+    : `$${usd.toFixed(2)}`;
 };
 
 export const formatMs = (ms: number | null): string => {

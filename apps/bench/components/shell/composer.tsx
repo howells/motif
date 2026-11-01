@@ -98,13 +98,11 @@ export const Composer = ({
         type="text"
         value={draft.prompt}
       />
-      <button
-        className="app-button md:hidden"
-        onClick={onOpenRuns}
-        type="button"
-      >
-        Runs
-      </button>
+      <div className="flex md:hidden">
+        <button className="app-button" onClick={onOpenRuns} type="button">
+          Runs
+        </button>
+      </div>
       <ModelsPopover
         draft={draft}
         onPatch={onPatch}

@@ -2,6 +2,7 @@
 
 import { RotateCcwIcon } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
 
 import {
   Tooltip,
@@ -149,11 +150,20 @@ export const SampleFrame = ({
   const settled = sample.status === "completed" || sample.status === "failed";
   const failed = sample.status === "failed";
   const completed = sample.status === "completed";
+  // A stored image can go missing (rows from before images moved to Blob
+  // point at a disk that is gone); the frame says so rather than showing
+  // a broken image.
+  const [missing, setMissing] = useState(false);
 
   return (
     <figure className="m-0 flex min-w-0 flex-col gap-2">
       <div className="bg-surface relative aspect-square w-full">
-        {completed && sample.imageUrl !== null ? (
+        {completed && sample.imageUrl !== null && missing ? (
+          <div className="text-muted type-small flex size-full items-center justify-center">
+            Image unavailable
+          </div>
+        ) : null}
+        {completed && sample.imageUrl !== null && !missing ? (
           <button
             aria-label={`Open ${name}, sample ${sample.sampleIndex}`}
             className="absolute inset-0 block size-full cursor-zoom-in"
@@ -166,6 +176,9 @@ export const SampleFrame = ({
               alt={`${name}, sample ${sample.sampleIndex}`}
               className="object-cover"
               fill
+              onError={() => {
+                setMissing(true);
+              }}
               sizes="(width < 48rem) 50vw, 33vw"
               src={sample.imageUrl}
               unoptimized
@@ -220,20 +233,22 @@ export const SampleFrame = ({
                 sampleId={sample.id}
               />
             </div>
-            <button
-              className="app-button type-body justify-between md:hidden"
-              onClick={() => {
-                onInspect(sample.id);
-              }}
-              type="button"
-            >
-              <span className="tabular-nums">
-                {manualRating === undefined
-                  ? "Not rated"
-                  : `${manualRating.stars} ★`}
-              </span>
-              <span className="text-muted type-small">Rate</span>
-            </button>
+            <div className="flex md:hidden">
+              <button
+                className="app-button type-body flex-1 justify-between"
+                onClick={() => {
+                  onInspect(sample.id);
+                }}
+                type="button"
+              >
+                <span className="tabular-nums">
+                  {manualRating === undefined
+                    ? "Not rated"
+                    : `${manualRating.stars} ★`}
+                </span>
+                <span className="text-muted type-small">Rate</span>
+              </button>
+            </div>
           </>
         ) : null}
       </figcaption>

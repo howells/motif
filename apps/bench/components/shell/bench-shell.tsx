@@ -130,7 +130,9 @@ export const BenchShell = ({ children }: { readonly children: ReactNode }) => {
 
   const selectedRun = useRun(selectedRunId ?? "");
   const detail = selectedRun.data;
-  const isRunning = detail?.run.status === "running" || createRun.isPending;
+  const isRunning =
+    (detail?.run.status === "running" && !detail.run.stale) ||
+    createRun.isPending;
   const canRun = specIsRunnable && !isRunning;
 
   const handleRun = () => {
