@@ -100,7 +100,7 @@ function CapSetting({
   const dollars = Number(typed);
   return (
     <form
-      className="flex flex-col gap-2"
+      className="flex flex-col"
       onSubmit={(event) => {
         event.preventDefault();
         if (Number.isFinite(dollars) && dollars >= 0) {
@@ -133,7 +133,7 @@ function CapSetting({
         </span>
       </div>
       {saveCap.error === null ? null : (
-        <p className="type-small text-bad">{messageOf(saveCap.error)}</p>
+        <p className="type-small text-bad pt-2">{messageOf(saveCap.error)}</p>
       )}
     </form>
   );
@@ -448,10 +448,9 @@ export function SettingsView({ me }: { readonly me: SettingsMember }) {
             </button>
           </form>
         }
-        standfirst="Spending, people and this device"
         title="Settings"
       />
-      <div className="grid gap-12 px-4 py-8 md:px-8 lg:grid-cols-[minmax(0,40rem)_minmax(0,22rem)] lg:gap-12">
+      <div className="grid gap-12 px-4 py-8 md:px-6 lg:grid-cols-[minmax(0,40rem)_minmax(0,22rem)] lg:gap-12">
         <div className="flex flex-col gap-12">
           <Spending me={me} names={names} />
           {me.owner ? (
@@ -478,7 +477,7 @@ export function SettingsView({ me }: { readonly me: SettingsMember }) {
             <h2 className="type-title" id="account">
               Account
             </h2>
-            <p className="flex flex-wrap justify-between gap-2">
+            <p className="flex flex-col gap-1">
               <span className="type-body text-muted">Signed in as</span>
               <span className="type-body">{me.email}</span>
             </p>

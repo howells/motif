@@ -197,9 +197,10 @@ function MakeHeader({ memberName }: { readonly memberName: string }) {
   return (
     <header className="flex h-14 shrink-0 items-center justify-between pr-2 pl-4">
       <h1 className="app-screen-title">Make</h1>
+      {/* Phones reach Settings here; wider screens have it in the rail. */}
       <Link
         aria-label="Settings"
-        className="size-control flex items-center justify-center"
+        className="size-control flex items-center justify-center md:hidden"
         href="/settings"
       >
         <span className="bg-surface type-small flex size-7 items-center justify-center rounded-full">
@@ -246,7 +247,7 @@ function MakeFooter({
         </p>
       )}
       <button
-        className="bg-ink text-background type-body rounded-panel flex h-13 items-center justify-center font-medium disabled:opacity-40"
+        className="bg-ink text-background type-body rounded-panel disabled:bg-surface disabled:text-faint flex h-13 items-center justify-center font-medium"
         disabled={price === undefined || blocked || pending}
         type="submit"
       >

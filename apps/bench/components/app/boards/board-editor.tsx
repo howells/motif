@@ -24,11 +24,10 @@ import {
   BoardName,
   EmptyBoard,
   StaleBanner,
-  ZoomControl,
+  Toolbar,
 } from "@/components/app/boards/board-chrome";
 import { BoardContext } from "@/components/app/boards/board-context";
 import type { BoardActions } from "@/components/app/boards/board-context";
-import { PlusIcon } from "@/components/app/boards/icons";
 import { Inspector } from "@/components/app/boards/inspector";
 import { NodeCard } from "@/components/app/boards/node-card";
 import {
@@ -253,25 +252,10 @@ function Canvas({
   );
 }
 
-function EditorHeader({
-  board,
-  onAdd,
-}: {
-  readonly board: BoardViewData["board"];
-  readonly onAdd: () => void;
-}) {
+function EditorHeader({ board }: { readonly board: BoardViewData["board"] }) {
   return (
-    <header className="board-rule-bottom flex h-15 shrink-0 items-center justify-between gap-4 pr-4 pl-6">
+    <header className="board-rule-bottom flex h-15 shrink-0 items-center gap-4 pr-4 pl-6">
       <BoardName board={board} />
-      <button
-        className="board-button is-white pr-4 pl-3"
-        onClick={onAdd}
-        type="button"
-      >
-        <PlusIcon />
-        Add node
-        <kbd className="type-small text-muted">⌘K</kbd>
-      </button>
     </header>
   );
 }
@@ -320,13 +304,15 @@ function RunApproval({
 }
 
 /** What floats over the canvas: the Stale banner, the empty Board's
- * starters, a problem, and the zoom. */
+ * starters, a problem, and the toolbar. */
 function Stage({
   data,
+  onAdd,
   onRunStale,
   onStart,
 }: {
   readonly data: BoardData;
+  readonly onAdd: () => void;
   readonly onRunStale: (nodeId: string) => void;
   readonly onStart: (kind: NodeKind) => void;
 }) {
@@ -348,7 +334,7 @@ function Stage({
           problem={data.problem}
         />
       )}
-      <ZoomControl />
+      <Toolbar onAdd={onAdd} />
     </>
   );
 }
@@ -485,17 +471,15 @@ function Editor({
 
   return (
     <BoardContext value={actions}>
-      <EditorHeader
-        board={view.board}
-        onAdd={() => {
-          setAdding(true);
-        }}
-      />
+      <EditorHeader board={view.board} />
       <div className="flex min-h-0 flex-1">
         <div className="relative min-w-0 flex-1" ref={frame}>
           <Canvas canvas={canvas} data={data} />
           <Stage
             data={data}
+            onAdd={() => {
+              setAdding(true);
+            }}
             onRunStale={(nodeId) => {
               setRunning({ nodeId, scope: "downstream" });
             }}

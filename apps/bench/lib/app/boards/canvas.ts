@@ -124,38 +124,6 @@ export const expectedImages = (node: NodeViewData): number => {
   }
 };
 
-/** The short line at the right of a node's header. */
-export const headerMeta = (
-  node: NodeViewData,
-  run: RunState
-): { readonly text: string; readonly tone: "muted" | "warning" } | null => {
-  if (run.state === "running") {
-    return { text: "Running", tone: "muted" };
-  }
-  if (run.state === "waiting") {
-    return { text: "Waiting", tone: "muted" };
-  }
-  if (node.stale) {
-    return { text: "Stale", tone: "warning" };
-  }
-  if (node.kind === "source") {
-    return node.pick === null ? null : { text: "Your photo", tone: "muted" };
-  }
-  if (node.kind === "compare") {
-    const models = modelsOf(node).length;
-    return models === 0
-      ? null
-      : {
-          text: `${plural(models, "Model", "Models")}, 1 image each`,
-          tone: "muted",
-        };
-  }
-  const images = imagesOf(node).length;
-  return images === 0
-    ? null
-    : { text: plural(images, "image", "images"), tone: "muted" };
-};
-
 const aspectLabel = (aspect: string | undefined): string =>
   aspect === undefined ? "From the Look" : aspect.replace(":", " : ");
 
@@ -170,7 +138,6 @@ const nameOf = (
 export interface PropertyRow {
   readonly label: string;
   readonly value: string;
-  readonly mono?: boolean;
 }
 
 const TIER_LABEL = {
@@ -227,8 +194,8 @@ const sourceRows = (node: NodeViewOf<"source">): readonly PropertyRow[] => {
   return [
     ...(node.settings.name === undefined
       ? []
-      : [{ label: "File", mono: true, value: node.settings.name }]),
-    ...(size === null ? [] : [{ label: "Size", mono: true, value: size }]),
+      : [{ label: "File", value: node.settings.name }]),
+    ...(size === null ? [] : [{ label: "Size", value: size }]),
   ];
 };
 
@@ -240,7 +207,8 @@ const removeLabel = (node: NodeViewOf<"erase">): string => {
   return named === "" ? "Not said yet" : named;
 };
 
-/** The rows under a node's image: what it was asked to do, in words. */
+/** What a node was asked to do, in words, as the settings bar under a
+ * selected node reads it. */
 export const propertyRows = (
   node: NodeViewData,
   words: Vocabulary
@@ -292,11 +260,7 @@ export const propertyRows = (
     case "upscale": {
       const size = sizeOf(node);
       return [
-        {
-          label: "Size",
-          mono: size !== null,
-          value: size ?? `${node.settings.scale}×`,
-        },
+        { label: "Size", value: size ?? `${node.settings.scale}×` },
         { label: "Detail", value: DETAIL_LABEL[node.settings.detail] },
       ];
     }
@@ -307,6 +271,73 @@ export const propertyRows = (
       throw new TypeError("Unknown node kind.");
     }
   }
+};
+
+/** The quiet detail beside a node's name in the label row above it:
+ * what the run is doing, else the one setting that tells nodes apart. */
+export const nodeDetail = (
+  node: NodeViewData,
+  run: RunState
+): string | null => {
+  if (run.state === "running") {
+    return "Running";
+  }
+  if (run.state === "waiting") {
+    return "Waiting";
+  }
+  switch (node.kind) {
+    case "prompt": {
+      return null;
+    }
+    case "source": {
+      return node.pick === null ? null : "Your photo";
+    }
+    case "compare": {
+      const models = modelsOf(node).length;
+      return models === 0
+        ? null
+        : `${plural(models, "Model", "Models")}, 1 image each`;
+    }
+    case "generate":
+    case "vary":
+    case "cutout": {
+      return modelRow(node).value;
+    }
+    case "erase": {
+      return removeLabel(node);
+    }
+    case "reframe": {
+      return node.settings.aspect ?? "From the Look";
+    }
+    case "upscale": {
+      return `${node.settings.scale}×`;
+    }
+    default: {
+      throw new TypeError("Unknown node kind.");
+    }
+  }
+};
+
+/** `Quiet editorial · Window light`, under a Prompt's words; null with
+ * neither a Look nor a Mood. */
+export const promptLine = (
+  node: NodeViewOf<"prompt">,
+  words: Vocabulary
+): string | null => {
+  const named = [
+    nameOf(words.looks, node.settings.look),
+    nameOf(words.moods, node.settings.mood),
+  ].filter((name) => name !== null);
+  return named.length === 0 ? null : named.join(" · ");
+};
+
+/** `Seedream 4.0 · 16 : 9 · 4 images`, the settings bar's summary. */
+export const settingsLine = (node: NodeViewData, words: Vocabulary): string => {
+  const values = propertyRows(node, words).map((row) => row.value);
+  if (node.kind === "generate" || node.kind === "vary") {
+    values.push(plural(node.settings.count, "image", "images"));
+  }
+  return values.join(" · ");
 };
 
 /**
@@ -378,11 +409,6 @@ export const IMAGE_HEIGHT: Readonly<Record<NodeKind, number>> = {
   source: 131,
   upscale: 122,
   vary: 153,
-};
-
-export const LABEL_WIDTH: Readonly<Partial<Record<NodeKind, number>>> = {
-  prompt: 56,
-  reframe: 60,
 };
 
 /** How wide a node is drawn; Compare grows with its Models, three a row. */

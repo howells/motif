@@ -150,13 +150,15 @@
   flex-wrap: wrap;
   gap: var(--spacing-2) var(--spacing-4);
   justify-content: space-between;
-  padding: var(--spacing-4);
+  min-block-size: 4rem;
+  padding: var(--spacing-2) var(--spacing-4);
 }
 
+/* The same bar and gutter as the Library and a Board: 60px, 24px in. */
 @media (width >= 48rem) {
   .app-head {
-    min-block-size: var(--spacing-24);
-    padding: var(--spacing-4) var(--spacing-8);
+    min-block-size: 3.75rem;
+    padding: var(--spacing-2) var(--spacing-6);
   }
 }
 
@@ -399,9 +401,13 @@
   position: absolute;
 }
 
-.app :focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
+/* Layered, so a control that draws its own focus (`outline-none` on the input
+   inside a field, the Add node search) is not ringed twice. */
+@layer components {
+  .app :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
 }
 
 .app-plate :focus-visible {
@@ -440,14 +446,19 @@
 }
 
 /* ── Boards ─────────────────────────────────────────────────────────────
-   The node canvas, drawn from the "App · desktop" boards in Paper: white
-   cards on the paper ground, a hairline ring and a soft drop for depth, a
-   2px ink ring for the selected node and an amber ring for a Stale one. */
+   The node canvas, drawn from the "contact sheet on a light table" boards in
+   Paper: the content is the node. An image sits at its frame with a hairline
+   and a soft drop, a Prompt is a paper slip, and the Task, its detail and its
+   price sit in a label row above. Selection is a ring offset from the frame;
+   a Stale node is washed with paper and its wire dashed amber. */
 
 .board {
   --board-ring: rgb(28 27 26 / 10%);
   --board-wire: rgb(28 27 26 / 45%);
   --board-stale: #8b652b;
+  --board-frame-shadow:
+    0 0 0 1px rgb(28 27 26 / 8%), 0 1px 2px rgb(28 27 26 / 10%),
+    0 8px 24px rgb(28 27 26 / 8%);
   --board-card-shadow:
     0 0 0 1px var(--board-ring), 0 1px 2px rgb(28 27 26 / 4%),
     0 12px 24px -12px rgb(28 27 26 / 14%);
@@ -474,14 +485,77 @@
   transition: box-shadow 150ms;
 }
 
-.board-card.is-selected {
-  box-shadow:
-    0 0 0 2px var(--ink),
-    0 12px 24px -12px rgb(28 27 26 / 18%);
+/* The node itself: an image at its frame, or the Prompt's slip. Square
+   corners for a photograph, the control radius for paper. */
+.board-frame {
+  background: #fff;
+  box-shadow: var(--board-frame-shadow);
+  transition: box-shadow 150ms;
 }
 
-.board-card.is-stale .board-image {
-  opacity: 0.4;
+.board-slip {
+  border-radius: var(--radius-control);
+}
+
+/* Where an image will land: a dashed frame on the ground, nothing lifted. */
+.board-frame.is-empty {
+  background: transparent;
+  box-shadow: none;
+  outline: 1px dashed rgb(28 27 26 / 28%);
+  outline-offset: -1px;
+}
+
+/* Selected: a 1.5px ink ring 3px off the frame, the ground showing between. */
+.board-frame.is-selected,
+.board-group.is-selected {
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 4.5px var(--ink),
+    0 8px 24px rgb(28 27 26 / 10%);
+}
+
+.board-frame.is-empty.is-selected {
+  box-shadow:
+    0 0 0 3px var(--ground),
+    0 0 0 4.5px var(--ink);
+}
+
+.board-frame.is-picked {
+  box-shadow:
+    0 0 0 2px var(--ground),
+    0 0 0 3.5px var(--ink),
+    var(--board-frame-shadow);
+}
+
+/* A Stale image is washed with paper: still there, plainly out of date. */
+.board-frame.is-stale .board-image,
+.board-group .board-image {
+  filter: saturate(0.4);
+  opacity: 0.45;
+}
+
+/* The fold on a Compare's label row: a small chevron with a 44px reach. */
+.board-fold {
+  align-items: center;
+  block-size: 20px;
+  border-radius: var(--radius-control);
+  color: var(--muted);
+  display: inline-flex;
+  inline-size: 20px;
+  justify-content: center;
+  position: relative;
+}
+
+.board-fold::after {
+  content: "";
+  inset: calc(var(--spacing-3) * -1);
+  position: absolute;
+}
+
+@media (hover: hover) {
+  .board-fold:hover {
+    color: var(--ink);
+  }
 }
 
 .board-figure {
@@ -500,18 +574,20 @@
   box-shadow: inset 0 0 0 1px var(--rule);
 }
 
-/* A port: filled ink when a wire is on it, an open ring when not. React
-   Flow positions the handle; this only draws it, with a 24px hit area. */
+/* A port: an 8px ring on the frame's middle, filled ink when a wire is on
+   it. React Flow positions the handle; this only draws it, with a 24px hit
+   area. */
 .board .react-flow__handle.board-port {
-  background: #fff;
-  block-size: 8px;
+  background: var(--ground);
+  block-size: var(--spacing-2);
   border: 0;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 1.5px var(--board-wire);
-  inline-size: 8px;
+  box-shadow: inset 0 0 0 1px rgb(28 27 26 / 60%);
+  inline-size: var(--spacing-2);
   min-block-size: 0;
   min-inline-size: 0;
-  top: calc(var(--spacing-control) / 2 - var(--spacing-1));
+  top: calc(50% - var(--spacing-1));
+  z-index: 1;
 }
 
 .board .react-flow__handle.board-port::after {
@@ -612,8 +688,19 @@
   display: flex;
   gap: var(--spacing-2);
   justify-content: center;
+  /* A fieldset's grid does not stretch its rows to the fieldset's height, so
+     each option sets its own: the track less its padding. The selected option
+     then fills the track, and its label sits on the centre line. */
+  min-block-size: calc(var(--spacing-control) - var(--spacing-2));
   padding-inline: var(--spacing-2);
   position: relative;
+}
+
+/* The track's padding is part of each option's target, so it is 44px tall. */
+.board-segmented > button::before {
+  content: "";
+  inset: calc(var(--spacing-1) * -1) 0;
+  position: absolute;
 }
 
 .board-segmented input {
@@ -683,6 +770,18 @@
   opacity: 0.4;
 }
 
+/* A primary action that can't run yet sits back on the paper as a quiet
+   surface with its label legible, rather than a washed-out grey slab. */
+.board-button.is-ink:disabled,
+.app-button.is-primary:disabled,
+.app-button.is-primary[aria-disabled="true"] {
+  background: var(--surface);
+  border-color: var(--surface);
+  box-shadow: none;
+  color: var(--faint);
+  opacity: 1;
+}
+
 .board-quiet {
   align-items: center;
   border-radius: var(--radius-control);
@@ -699,17 +798,26 @@
   opacity: 0.4;
 }
 
+/* The field's size and padding sit in a layer so the utilities beside it
+   (`w-auto`, `w-72`, `py-0`, `h-10`) win. Unlayered, they lost: the Library's
+   Board and Task selects each took the full row and fell off the screen. */
+@layer components {
+  .board-field {
+    inline-size: 100%;
+    min-block-size: var(--spacing-control);
+    padding: var(--spacing-3);
+  }
+}
+
 .board-field {
   background: #fff;
   border-radius: var(--radius-control);
   box-shadow: inset 0 0 0 1px var(--rule);
   color: var(--ink);
-  inline-size: 100%;
-  min-block-size: var(--spacing-control);
-  padding: var(--spacing-3);
 }
 
-.board-field:focus {
+.board-field:focus,
+.board-field:has(input:focus-visible) {
   box-shadow: inset 0 0 0 1.5px var(--ink);
   outline: none;
 }
@@ -771,7 +879,8 @@ textarea.board-field {
 
 @media (prefers-reduced-motion: reduce) {
   .board-progress > span,
-  .board-card {
+  .board-card,
+  .board-frame {
     transition: none;
   }
 }
@@ -1049,10 +1158,6 @@ textarea.board-field {
       0 12px 24px -12px rgb(28 27 26 / 18%);
   }
 
-  .board-plate-button:hover {
-    box-shadow: inset 0 0 0 1px rgb(243 243 243 / 60%);
-  }
-
   .board-link:hover {
     text-decoration-color: currentcolor;
   }
@@ -1064,25 +1169,23 @@ textarea.board-field {
     0 32px 64px -24px rgb(28 27 26 / 40%);
 }
 
-/* Where a Compare image will land, a step lighter than the plate. */
-.board-plate-well {
-  background: #1f1f1f;
-}
-
-.board-plate-button {
-  box-shadow: inset 0 0 0 1px rgb(243 243 243 / 30%);
-  transition: box-shadow 150ms;
-}
-
 .board-link {
   text-decoration-color: rgb(28 27 26 / 30%);
   text-decoration-line: underline;
   text-underline-offset: 3px;
 }
 
-/* A phone screen, the height of the viewport less the bottom bar. */
+/* A phone screen, the height of the viewport less the bottom bar. The main
+   column's extra breathing room under scrolling pages is dropped here, or the
+   screen overshoots the viewport and the page scrolls by that much. */
 .app-screen {
-  min-block-size: calc(100dvh - var(--bar));
+  min-block-size: calc(100dvh - var(--bar) - env(safe-area-inset-top));
+}
+
+@media (width < 48rem) {
+  .app-main:has(.app-screen) {
+    padding-block-end: var(--bar);
+  }
 }
 
 .board-banner {

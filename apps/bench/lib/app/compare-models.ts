@@ -5,6 +5,7 @@
 import { TASKS } from "@howells/motif-sdk";
 
 import type { CompareModel } from "@/components/app/compare/compare-setup";
+import { modelName } from "@/lib/app/boards/names";
 import { BOUNDED_GENERATION_MODELS } from "@/lib/app/budget/bounds";
 
 export const compareModels = (): CompareModel[] => {
@@ -16,6 +17,7 @@ export const compareModels = (): CompareModel[] => {
     const position = order.indexOf(model);
     return {
       model,
+      name: modelName(model),
       rank: position === -1 ? null : position + 1,
       tier: ranked.find((entry) => entry.model === model)?.tier ?? null,
     };

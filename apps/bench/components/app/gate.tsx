@@ -15,7 +15,7 @@ function Notice({
   readonly title: string;
 }) {
   return (
-    <div className="flex max-w-[34rem] flex-col gap-4 px-4 py-12 md:px-8">
+    <div className="flex max-w-[34rem] flex-col gap-4 px-4 py-12 md:px-6">
       <h2 className="type-title">{title}</h2>
       <p className="type-body text-muted">{body}</p>
       {action}
@@ -32,7 +32,11 @@ export function NotAMember({ viewer }: { readonly viewer: Viewer }) {
           body="This copy of Motif has no sign-in set up, so the App can’t open here. Every command still runs in your terminal."
           title="Sign-in isn’t set up"
           action={
-            <Link className="app-button self-start" href="/docs/setup">
+            <Link
+              className="app-button self-start"
+              href="/docs/setup"
+              prefetch={false}
+            >
               Set up the CLI
             </Link>
           }

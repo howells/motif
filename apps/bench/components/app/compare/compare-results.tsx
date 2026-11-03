@@ -50,10 +50,12 @@ const costOf = (generation: GenerationView): number | null =>
 
 function Tile({
   generation,
+  name,
   onRetry,
   retrying,
 }: {
   readonly generation: GenerationView;
+  readonly name: string;
   readonly onRetry: () => void;
   readonly retrying: boolean;
 }) {
@@ -71,7 +73,7 @@ function Tile({
             target="_blank"
           >
             <MediaImage
-              alt={`${generation.model}’s result`}
+              alt={`${name}’s result`}
               sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 33vw"
               src={output.url}
             />
@@ -103,7 +105,7 @@ function Tile({
         ) : null}
       </div>
       <p className="flex items-baseline justify-between gap-3">
-        <span className="app-value truncate">{generation.model}</span>
+        <span className="type-body truncate">{name}</span>
         <span className="app-value text-muted">
           {failed
             ? generation.costStatus === "released"
@@ -122,6 +124,70 @@ function Tile({
         </span>
       </p>
     </li>
+  );
+}
+
+/** Cost against Motif's ranking, best-ranked first. */
+function Ranking({
+  failed,
+  nameOf,
+  rankOf,
+  runs,
+}: {
+  readonly failed: readonly GenerationView[];
+  readonly nameOf: (model: string) => string;
+  readonly rankOf: (model: string) => number | null;
+  readonly runs: readonly GenerationView[];
+}) {
+  return (
+    <div className="px-4 py-6 md:px-6">
+      <ul className="flex max-w-[44rem] flex-col">
+        {runs
+          .toSorted((a, b) => (rankOf(a.model) ?? 99) - (rankOf(b.model) ?? 99))
+          .map((generation) => {
+            const cost = costOf(generation);
+            const widest = Math.max(
+              1,
+              ...runs.map((run) => costOf(run) ?? run.boundMicros)
+            );
+            return (
+              <li
+                className="border-border grid grid-cols-[minmax(7rem,12rem)_minmax(3rem,1fr)_auto] items-center gap-3 border-b py-3"
+                key={generation.id}
+              >
+                <span className="type-body truncate">
+                  {nameOf(generation.model)}
+                </span>
+                <span className="bg-surface block h-2">
+                  <span
+                    className="bg-ink block h-full"
+                    style={{
+                      inlineSize: `${((cost ?? generation.boundMicros) / widest) * 100}%`,
+                      opacity: cost === null ? 0.35 : 1,
+                    }}
+                  />
+                </span>
+                <span className="type-small text-muted text-right">
+                  {rankOf(generation.model) === null
+                    ? "not ranked"
+                    : `ranked ${rankOf(generation.model)}`}
+                  {" · "}
+                  {cost === null ? "cost unknown" : formatUsd(cost)}
+                </span>
+              </li>
+            );
+          })}
+      </ul>
+      <p className="type-small text-muted max-w-[44rem] pt-3">
+        Ranking is Motif’s generation order, taken from the Arena text-to-image
+        board. A pale bar is a hold, not a cost.
+      </p>
+      {failed.map((generation) => (
+        <p className="type-small text-muted pt-1" key={generation.id}>
+          {nameOf(generation.model)}: {chargeLine(generation)}
+        </p>
+      ))}
+    </div>
   );
 }
 
@@ -177,7 +243,7 @@ export function CompareResults({
     return (
       <>
         <PageHead title="Compare Models" />
-        <p className="type-body text-bad px-4 py-8 md:px-8" role="alert">
+        <p className="type-body text-bad px-4 py-8 md:px-6" role="alert">
           {messageOf(comparison.error)}
         </p>
       </>
@@ -203,6 +269,9 @@ export function CompareResults({
     .toSorted((a, b) => (a.costMicros ?? 0) - (b.costMicros ?? 0))[0];
   const rankOf = (model: string) =>
     ranks.find((entry) => entry.model === model)?.rank ?? null;
+  // A Model since dropped from the bounded list keeps its id as its name.
+  const nameOf = (model: string) =>
+    ranks.find((entry) => entry.model === model)?.name ?? model;
 
   return (
     <main>
@@ -218,13 +287,13 @@ export function CompareResults({
         standfirst={data.prompt}
         title="Compare Models"
       />
-      <dl className="border-border grid grid-cols-2 gap-4 border-b px-4 py-4 md:grid-cols-4 md:px-8">
+      <dl className="border-border grid grid-cols-2 gap-4 border-b px-4 py-4 md:grid-cols-4 md:px-6">
         <div>
           <dt className="type-small text-muted">Quickest this time</dt>
           <dd className="type-body">
             {fastest === undefined
               ? "—"
-              : `${fastest.model}, ${formatSeconds(fastest.elapsedMs ?? 0)}`}
+              : `${nameOf(fastest.model)}, ${formatSeconds(fastest.elapsedMs ?? 0)}`}
           </dd>
         </div>
         <div>
@@ -232,7 +301,7 @@ export function CompareResults({
           <dd className="type-body">
             {cheapest === undefined
               ? "—"
-              : `${cheapest.model}, ${formatUsd(cheapest.costMicros ?? 0)}`}
+              : `${nameOf(cheapest.model)}, ${formatUsd(cheapest.costMicros ?? 0)}`}
           </dd>
         </div>
         <div>
@@ -247,7 +316,7 @@ export function CompareResults({
         </div>
       </dl>
       <div
-        className="border-border flex gap-4 border-b px-4 md:px-8"
+        className="border-border flex gap-4 border-b px-4 md:px-6"
         role="tablist"
       >
         {(
@@ -273,7 +342,7 @@ export function CompareResults({
       </div>
 
       {failed.length > 0 ? (
-        <output className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 md:px-8">
+        <output className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 md:px-6">
           <div className="flex flex-col">
             <span className="type-body">
               {failed.length} of {runs.length}{" "}
@@ -296,17 +365,18 @@ export function CompareResults({
         </output>
       ) : null}
       {retry.error === null ? null : (
-        <p className="type-small text-bad px-4 pt-2 md:px-8">
+        <p className="type-small text-bad px-4 pt-2 md:px-6">
           {messageOf(retry.error)}
         </p>
       )}
 
       {tab === "images" ? (
-        <ul className="grid gap-6 px-4 py-6 sm:grid-cols-2 md:px-8 lg:grid-cols-3">
+        <ul className="grid gap-6 px-4 py-6 sm:grid-cols-2 md:px-6 lg:grid-cols-3">
           {runs.map((generation) => (
             <Tile
               generation={generation}
               key={generation.id}
+              name={nameOf(generation.model)}
               onRetry={() => {
                 retry.mutate([generation]);
               }}
@@ -317,7 +387,7 @@ export function CompareResults({
       ) : null}
 
       {tab === "table" ? (
-        <div className="overflow-x-auto px-4 py-6 md:px-8">
+        <div className="overflow-x-auto px-4 py-6 md:px-6">
           <table className="w-full min-w-[34rem] border-collapse text-left">
             <thead>
               <tr className="border-border type-small text-muted border-b">
@@ -341,8 +411,8 @@ export function CompareResults({
             <tbody>
               {runs.map((generation) => (
                 <tr className="border-border border-b" key={generation.id}>
-                  <th className="app-value py-3" scope="row">
-                    {generation.model}
+                  <th className="type-body py-3" scope="row">
+                    {nameOf(generation.model)}
                   </th>
                   <td className="type-small py-3">{generation.status}</td>
                   <td className="app-value py-3 text-right">
@@ -371,56 +441,7 @@ export function CompareResults({
       ) : null}
 
       {tab === "quality" ? (
-        <div className="px-4 py-6 md:px-8">
-          <ul className="flex max-w-[44rem] flex-col">
-            {runs
-              .toSorted(
-                (a, b) => (rankOf(a.model) ?? 99) - (rankOf(b.model) ?? 99)
-              )
-              .map((generation) => {
-                const cost = costOf(generation);
-                const widest = Math.max(
-                  1,
-                  ...runs.map((run) => costOf(run) ?? run.boundMicros)
-                );
-                return (
-                  <li
-                    className="border-border grid grid-cols-[7rem_1fr_auto] items-center gap-3 border-b py-3"
-                    key={generation.id}
-                  >
-                    <span className="app-value truncate">
-                      {generation.model}
-                    </span>
-                    <span className="bg-surface block h-2">
-                      <span
-                        className="bg-ink block h-full"
-                        style={{
-                          inlineSize: `${((cost ?? generation.boundMicros) / widest) * 100}%`,
-                          opacity: cost === null ? 0.35 : 1,
-                        }}
-                      />
-                    </span>
-                    <span className="type-small text-muted text-right">
-                      {rankOf(generation.model) === null
-                        ? "not ranked"
-                        : `ranked ${rankOf(generation.model)}`}
-                      {" · "}
-                      {cost === null ? "cost unknown" : formatUsd(cost)}
-                    </span>
-                  </li>
-                );
-              })}
-          </ul>
-          <p className="type-small text-muted max-w-[44rem] pt-3">
-            Ranking is Motif’s generation order, taken from the Arena
-            text-to-image board. A pale bar is a hold, not a cost.
-          </p>
-          {failed.map((generation) => (
-            <p className="type-small text-muted pt-1" key={generation.id}>
-              {generation.model}: {chargeLine(generation)}
-            </p>
-          ))}
-        </div>
+        <Ranking failed={failed} nameOf={nameOf} rankOf={rankOf} runs={runs} />
       ) : null}
     </main>
   );

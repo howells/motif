@@ -17,11 +17,12 @@ import type {
 } from "@/lib/app/client/board-schemas";
 import { formatUsd } from "@/lib/app/money";
 
-export function ZoomControl() {
+/** The floating toolbar under the canvas: zoom, Fit and Add node. */
+export function Toolbar({ onAdd }: { readonly onAdd: () => void }) {
   const { fitView, zoomIn, zoomOut } = useReactFlow();
   const { zoom } = useViewport();
   return (
-    <div className="board-float h-control absolute right-4 bottom-4 z-10 flex items-center">
+    <div className="board-float absolute bottom-6 left-1/2 z-10 flex h-13 w-max -translate-x-1/2 items-center px-1">
       <button
         aria-label="Zoom out"
         className="board-quiet hover:bg-surface"
@@ -47,13 +48,23 @@ export function ZoomControl() {
       </button>
       <span aria-hidden="true" className="bg-border h-5 w-px" />
       <button
-        className="board-quiet type-small hover:bg-surface px-4"
+        className="board-quiet type-small hover:bg-surface"
         onClick={() => {
           void fitView({ duration: 200, padding: 0.2 });
         }}
         type="button"
       >
         Fit
+      </button>
+      <span aria-hidden="true" className="bg-border mx-2 h-5 w-px" />
+      <button
+        className="board-quiet type-small hover:bg-surface gap-2 px-3 font-medium"
+        onClick={onAdd}
+        type="button"
+      >
+        <PlusIcon size={16} />
+        Add node
+        <kbd className="type-small text-muted">⌘K</kbd>
       </button>
     </div>
   );

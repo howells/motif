@@ -62,10 +62,15 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
   const tier = node.settings.tier ?? "balanced";
   const chosen = node.settings.model ?? options.data?.motifChoice ?? null;
   const models = options.data?.models ?? [];
-  const ordered = [
-    ...models.filter((model) => model.model === options.data?.motifChoice),
-    ...models.filter((model) => model.model !== options.data?.motifChoice),
-  ];
+  // Motif's choice first, then the node's own, so the Model it runs is always
+  // in the short list and never hidden under All Models.
+  const rankOf = (model: ModelOption) =>
+    model.model === options.data?.motifChoice
+      ? 0
+      : model.model === chosen
+        ? 1
+        : 2;
+  const ordered = models.toSorted((a, b) => rankOf(a) - rankOf(b));
   const shown = all ? ordered : ordered.slice(0, 3);
   return (
     <>

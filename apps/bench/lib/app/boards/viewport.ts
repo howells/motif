@@ -20,8 +20,8 @@ export interface Viewport {
   readonly zoom: number;
 }
 
-/** A card's header, property rows and footer around its image, roughly. */
-export const CARD_CHROME = 160;
+/** The label row above a node's image, and the gap under it. */
+export const CARD_CHROME = 36;
 
 /** A card's height before the canvas has measured it. */
 export const estimatedHeight = (kind: NodeKind): number =>

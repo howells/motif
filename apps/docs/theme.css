@@ -271,11 +271,15 @@
   overflow-wrap: break-word;
 }
 
+/* The word sits where it did; the button around it is a full 44px target. */
 .prose pre > [data-blume-copy] {
+  display: inline-flex;
+  align-items: center;
   width: auto;
-  height: auto;
+  height: var(--docs-control);
+  padding-inline: 0.5rem;
   top: 50%;
-  right: 1rem;
+  right: 0.5rem;
   transform: translateY(-50%);
   background: transparent;
   color: var(--blume-foreground);
@@ -506,6 +510,12 @@
   }
   [data-blume-search-open] {
     display: inline-flex;
+  }
+  /* The menu and search buttons are 44px targets; the icons stay put. */
+  [data-blume-header] button:has(> svg) {
+    min-width: var(--docs-control);
+    min-height: var(--docs-control);
+    justify-content: center;
   }
 }
 

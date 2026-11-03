@@ -17,6 +17,8 @@ import { ComparisonStartedReply } from "@/lib/app/client/schemas";
 
 export interface CompareModel {
   readonly model: string;
+  /** The display name, "Seedream 5.0", not `seedream5`. */
+  readonly name: string;
   /** Position in Motif's generation ranking, 1 first; null when unranked. */
   readonly rank: number | null;
   readonly tier: string | null;
@@ -90,11 +92,8 @@ export function CompareSetup({
 
   return (
     <main>
-      <PageHead
-        standfirst="One prompt, several Models, side by side"
-        title="Compare Models"
-      />
-      <div className="flex max-w-[44rem] flex-col gap-6 px-4 py-6 md:px-8">
+      <PageHead title="Compare Models" />
+      <div className="flex max-w-[44rem] flex-col gap-6 px-4 py-6 md:px-6">
         <Field htmlFor="compare-prompt" label="Prompt">
           <textarea
             className="app-textarea"
@@ -145,7 +144,7 @@ export function CompareSetup({
                       }}
                       type="checkbox"
                     />
-                    <span className="app-value flex-1">{entry.model}</span>
+                    <span className="type-body flex-1">{entry.name}</span>
                     <span className="type-small text-muted">
                       {entry.rank === null
                         ? "not ranked"

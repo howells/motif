@@ -271,7 +271,7 @@ export function LibraryPanel({
       ) : null}
       {item === undefined ? null : (
         <>
-          <div className="relative mx-6 mt-2 aspect-video shrink-0">
+          <div className="relative mx-6 mt-2 aspect-[4/3] max-h-[45dvh] shrink-0">
             <MediaImage
               alt={item.prompt ?? taskTitle(item.task)}
               fit="contain"

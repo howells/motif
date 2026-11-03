@@ -40,9 +40,9 @@ export function Wire({
         interactionWidth={16}
         path={path}
         style={{
-          stroke: stale ? "rgb(139 101 43 / 70%)" : "rgb(28 27 26 / 45%)",
+          stroke: stale ? "#b9892b" : "rgb(28 27 26 / 35%)",
           strokeDasharray: stale ? "4 4" : undefined,
-          strokeWidth: 1.5,
+          strokeWidth: 1.25,
         }}
       />
       {making ? (

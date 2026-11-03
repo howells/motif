@@ -187,19 +187,17 @@ describe(BoardEditor, () => {
         ),
       })
     );
-    // The well is a fixed height; the row of thumbnails is inside it.
+    // The frame is a fixed height; the row of thumbnails is inside it.
     const card = html.slice(html.indexOf(">Generate<"));
-    const well = card.indexOf("bg-surface relative overflow-hidden");
+    const frame = card.indexOf("board-frame relative");
     const foot = card.indexOf("board-well-foot");
-    const wellEnd = card.indexOf("</div></div>", foot);
-    expect(well).toBeGreaterThan(-1);
-    expect(foot).toBeGreaterThan(well);
-    expect(card.slice(foot, wellEnd).match(/board-thumb/gu)?.length).toBe(2);
+    const footEnd = card.indexOf("</ul>", foot);
+    expect(frame).toBeGreaterThan(-1);
+    expect(foot).toBeGreaterThan(frame);
+    expect(card.slice(foot, footEnd).match(/board-thumb/gu)?.length).toBe(2);
     // Each is a 44 px target.
-    expect(card.slice(foot, wellEnd).match(/size-control/gu)?.length).toBe(2);
-    expect(card.slice(foot, wellEnd)).toContain(">Pick<");
-    // And nothing beneath the well but the rows and the footer.
-    expect(card).not.toMatch(/<ul class="flex gap-2 px-3\.5 pt-2\.5">/u);
+    expect(card.slice(foot, footEnd).match(/size-control/gu)?.length).toBe(2);
+    expect(card.slice(foot, footEnd)).toContain(">Pick<");
   });
 
   it("veils the old image of a node a run is working on", () => {

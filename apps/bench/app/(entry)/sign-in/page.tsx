@@ -68,7 +68,7 @@ async function SignInPage({
         />
       </div>
       <div className="sign-in-form flex flex-1 flex-col px-4 pt-6 md:px-16 md:py-12">
-        <Link className="app-screen-title self-start" href="/">
+        <Link className="type-heading self-start" href="/">
           Motif
         </Link>
         <p className="library-label text-muted pt-1 md:hidden">
@@ -99,12 +99,13 @@ async function SignInPage({
           )}
         </div>
         <div className="flex-1" />
-        <nav aria-label="Elsewhere" className="hidden gap-4 md:flex">
+        <nav aria-label="Elsewhere" className="-my-3 hidden gap-4 md:flex">
           {ELSEWHERE.map((link) => (
             <Link
-              className="library-label text-muted hover:text-ink"
+              className="library-label text-muted hover:text-ink min-h-control inline-flex items-center"
               href={link.href}
               key={link.href}
+              prefetch={link.href === "/docs" ? false : undefined}
             >
               {link.label}
             </Link>

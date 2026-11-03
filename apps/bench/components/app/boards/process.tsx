@@ -141,32 +141,6 @@ export function LiveGlow({ tone = "paper" }: { readonly tone?: Tone }) {
   );
 }
 
-/** A Compare's process, on its dark plate, above the Models' wells. */
-export function PlateProcess({
-  now,
-  process,
-}: {
-  readonly now: number;
-  readonly process: NodeProcess;
-}) {
-  if (process.beats.length === 0) {
-    return null;
-  }
-  return (
-    <div className="board-plate-well board-live rounded-panel relative mb-4 h-40 overflow-hidden">
-      <LiveGlow tone="plate" />
-      <div className="absolute inset-x-0 bottom-0 px-4 pb-4">
-        <LiveBeats
-          beats={process.beats}
-          now={now}
-          origin={process.origin ?? now}
-          tone="plate"
-        />
-      </div>
-    </div>
-  );
-}
-
 /**
  * The settings panel's Process: every beat of the node's latest run in
  * order, each with the seconds since the run began, always climbing, and the
