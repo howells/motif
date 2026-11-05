@@ -45,6 +45,7 @@ import {
   NODE_KINDS,
   inputOf,
   outputOf,
+  formatOf,
   wireRefusal,
 } from "@/lib/app/boards/model";
 import type { NodeKind, RunScope } from "@/lib/app/boards/model";
@@ -162,6 +163,7 @@ const useWiring = (data: BoardData) => {
       ? undefined
       : {
           id: node.id,
+          format: formatOf(node),
           kind: node.kind,
           pickAssetId: node.pick?.assetId ?? null,
           stale: node.stale,

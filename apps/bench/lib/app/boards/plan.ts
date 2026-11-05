@@ -18,9 +18,10 @@ import { quote } from "../tasks/plan";
 import type { Alternative, OwnedInputs } from "../tasks/plan";
 import { TaskRequestSchema } from "../tasks/request";
 import type { AppTaskRequest } from "../tasks/request";
-import { NODE_LABELS, runLevels, upstreamOf } from "./model";
+import { formatOf, NODE_LABELS, runLevels, upstreamOf } from "./model";
 import type { BoardTier, KindSettings, NodeKind, RunScope } from "./model";
 import { modelName } from "./names";
+import { markupFor, outputRequest } from "./plan-output";
 import type { BoardNode, Graph } from "./store";
 
 export interface Size {
@@ -31,6 +32,8 @@ export interface Size {
 /** What feeds a node, as far as is known before it runs. */
 export type NodeInput =
   | { readonly kind: "none" }
+  /** Something is wired in that can't be used, and why. */
+  | { readonly kind: "unusable"; readonly reason: string }
   | {
       readonly kind: "text";
       readonly prompt: string;
@@ -180,6 +183,7 @@ const fromText = (
   return parsed({
     ...creative,
     ...choice(generate),
+    ...outputRequest(generate),
     ...(generate.aspect !== undefined && { aspect: generate.aspect }),
     count: generate.count,
     prompt: input.prompt,
@@ -193,13 +197,20 @@ const fromImage = (
     KindSettings,
     { kind: "cutout" | "erase" | "reframe" | "upscale" | "vary" }
   >,
-  sourceAssetId: string
+  input: Extract<NodeInput, { kind: "image" }>
 ): Built => {
+  const sourceAssetId = input.assetId;
   switch (node.kind) {
     case "vary": {
       const vary = node.settings;
+      const markup = markupFor(vary, input);
+      if ("reason" in markup) {
+        return { ok: false, reason: markup.reason };
+      }
       return parsed({
         ...choice(vary),
+        ...outputRequest(vary),
+        ...markup,
         count: vary.count,
         ...(vary.prompt.trim() !== "" && { prompt: vary.prompt }),
         sourceAssetId,
@@ -278,8 +289,11 @@ export const buildRequests = (node: KindSettings, input: NodeInput): Built => {
     case "reframe":
     case "cutout":
     case "upscale": {
+      if (input.kind === "unusable") {
+        return { ok: false, reason: input.reason };
+      }
       return input.kind === "image"
-        ? fromImage(node, input.assetId)
+        ? fromImage(node, input)
         : { ok: false, reason: needsImage(node.kind) };
     }
     default: {
@@ -324,6 +338,13 @@ export const inputFor = (
   }
   if (upstream.kind === "prompt") {
     return textInput(upstream);
+  }
+  const format = formatOf(upstream);
+  if (format !== undefined) {
+    return {
+      kind: "unusable",
+      reason: `${NODE_LABELS[upstream.kind]} makes ${format === "gif" ? "a GIF" : "an SVG"}, which can't feed another Task.`,
+    };
   }
   const plannedSize = planned.get(upstream.id);
   if (plannedSize !== undefined) {
@@ -385,10 +406,21 @@ const syntheticAsset = (id: string, ownerId: string, size: Size): Asset => ({
 });
 
 const inputsFor = (
+  node: KindSettings,
   input: NodeInput,
   ownerId: string,
   references: readonly Asset[]
 ): OwnedInputs => ({
+  // Markup decides which Models qualify, so the quote carries it too.
+  markup:
+    input.kind === "image" &&
+    node.kind === "vary" &&
+    node.settings.markupAssetId !== undefined
+      ? {
+          ...syntheticAsset(node.settings.markupAssetId, ownerId, input.size),
+          kind: "markup",
+        }
+      : null,
   mask: null,
   parent: null,
   references,
@@ -499,7 +531,7 @@ export const quoteNode = (
   let usage = false;
   const models: string[] = [];
   for (const request of built.requests) {
-    const quoted = quote(request, inputsFor(input, ownerId, references));
+    const quoted = quote(request, inputsFor(node, input, ownerId, references));
     if (quoted.kind === "invalid") {
       return {
         alternatives: [],

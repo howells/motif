@@ -208,6 +208,7 @@ const realImages = async (
   const ids = [
     ...(named.source === undefined ? [] : [named.source]),
     ...(named.mask === undefined ? [] : [named.mask]),
+    ...(named.markup === undefined ? [] : [named.markup]),
     ...named.references,
   ];
   const assets = await getOwnedAssets(sql, generation.ownerId, ids);
@@ -218,6 +219,8 @@ const realImages = async (
   const source =
     named.source === undefined ? null : (byId.get(named.source) ?? null);
   const mask = named.mask === undefined ? null : (byId.get(named.mask) ?? null);
+  const markup =
+    named.markup === undefined ? null : (byId.get(named.markup) ?? null);
   const references = named.references.flatMap((id) => {
     const asset = byId.get(id);
     return asset === undefined ? [] : [asset];
@@ -226,6 +229,7 @@ const realImages = async (
     assets: { references, source },
     images: {
       ...(mask !== null && { mask: await deps.dataUrl(mask) }),
+      ...(markup !== null && { markup: await deps.dataUrl(markup) }),
       references: await Promise.all(
         references.map(async (asset) => await deps.dataUrl(asset))
       ),
@@ -464,6 +468,7 @@ const submit = async (
   const bound = boundFor(
     { ...plan.value, task: request.task },
     boundContextOf({
+      markup: null,
       mask: null,
       parent: null,
       references: resolved.assets.references,

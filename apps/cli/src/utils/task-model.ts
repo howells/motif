@@ -66,6 +66,8 @@ function exitMissingKey(key: string, format: OutputFormat): never {
 
 /** Task flags a Model can refuse, keyed by the SDK capability they ask for. */
 const FLAG_BLOCKERS: Readonly<Record<string, string>> = {
+  markup: "--markup",
+  markupImageUrl: "--markup",
   maskImageUrl: "--mask",
   rig: "--rig",
   "transparent output": "--transparent",

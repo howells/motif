@@ -1,10 +1,17 @@
 /** Model choices for the existing Board inspector. */
 import { TASKS } from "@howells/motif-sdk";
+import { MODELS } from "@motif/bench-core/sdk-internal";
 import type { AppSql } from "@motif/bench-db/app-sql";
 
 import { BOUNDED_GENERATION_MODELS } from "../budget/bounds";
-import { chosenModel, isRunnable, isTaskKind, withModel } from "./model";
-import type { KindSettings, NodeKind } from "./model";
+import {
+  BOARD_QUALITIES,
+  chosenModel,
+  isRunnable,
+  isTaskKind,
+  withModel,
+} from "./model";
+import type { BoardQuality, KindSettings, NodeKind } from "./model";
 import { modelName } from "./names";
 import { inputFor, pickSizes, quoteNode } from "./plan";
 import type { StepQuote } from "./plan";
@@ -23,6 +30,8 @@ export interface ModelChoice {
   readonly tier: string;
   /** Billed by usage: priced at a fixed hold per image. */
   readonly usage: boolean;
+  /** Quality levels the Model takes; empty when it takes none. */
+  readonly qualities: readonly BoardQuality[];
 }
 
 export interface NodeOptions {
@@ -33,6 +42,57 @@ export interface NodeOptions {
 const RANKED_LIMIT = 8;
 
 const usageOf = (quoted: StepQuote): boolean => quoted.ok && quoted.usage;
+
+const qualitiesOf = (model: string): readonly BoardQuality[] => {
+  const config = MODELS[model];
+  if (config?.supportsQuality !== true) {
+    return [];
+  }
+  const offered: readonly string[] = config.supportedQualities ?? [
+    "low",
+    "medium",
+    "high",
+  ];
+  return BOARD_QUALITIES.filter((level) => offered.includes(level));
+};
+
+/** The node as Motif would choose for it: no Model named, and none of the
+ * fields only a named Model takes (quality, GIF frames). */
+const motifAsk = (node: KindSettings): KindSettings => {
+  const open = withModel(node);
+  switch (open.kind) {
+    case "generate": {
+      const {
+        frameCount: _frames,
+        frameMs: _length,
+        quality: _quality,
+        ...settings
+      } = open.settings;
+      return { kind: open.kind, settings };
+    }
+    case "vary": {
+      const {
+        frameCount: _frames,
+        frameMs: _length,
+        quality: _quality,
+        ...settings
+      } = open.settings;
+      return { kind: open.kind, settings };
+    }
+    case "compare":
+    case "cutout":
+    case "erase":
+    case "prompt":
+    case "reframe":
+    case "source":
+    case "upscale": {
+      return open;
+    }
+    default: {
+      throw new TypeError("Unknown node kind.");
+    }
+  }
+};
 
 /** The Models a node of this kind could ask, best ranked first. Compare
  * offers only Models with a listed price, so its holds are ceilings. */
@@ -79,7 +139,7 @@ export const nodeOptions = async (
   const sizes = await pickSizes(sql, ownerId, graph);
   const input = inputFor(node, graph, sizes);
   const motif = quoteNode(
-    { ...node, ...withModel(node) },
+    { ...node, ...motifAsk(node) },
     input,
     ownerId,
     sizes
@@ -122,6 +182,7 @@ export const nodeOptions = async (
       model: candidate.model,
       name: modelName(candidate.model),
       reason: priced.ok ? null : priced.reason,
+      qualities: qualitiesOf(candidate.model),
       tier: candidate.tier,
       usage: usageOf(priced),
     });

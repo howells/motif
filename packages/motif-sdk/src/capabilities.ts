@@ -8,7 +8,26 @@
  */
 
 import { GENERATION_MODELS, MODELS } from "./models";
-import type { ModelConfig } from "./types";
+import type { ImageOutputFormat, ModelConfig } from "./types";
+
+const DEFAULT_OUTPUT_FORMATS: readonly ImageOutputFormat[] = [
+  "jpeg",
+  "png",
+  "webp",
+];
+
+/** The output formats a Model returns, for an edit when `editing` is set.
+ * A Model that takes no format returns none it can be asked for. */
+export function outputFormatsOf(
+  config: ModelConfig,
+  editing: boolean
+): readonly ImageOutputFormat[] {
+  if (config.supportsOutputFormat !== true) {
+    return [];
+  }
+  const formats = config.supportedOutputFormats ?? DEFAULT_OUTPUT_FORMATS;
+  return editing ? (config.supportedEditOutputFormats ?? formats) : formats;
+}
 
 type Capability = (config: ModelConfig) => boolean;
 
@@ -28,6 +47,7 @@ export const OPTION_CAPABILITIES = {
     config.sizeMode === "gpt_size" || config.sizeMode === "image_size_enum",
   inputFidelity: (config) => config.sizeMode === "gpt_size",
   limitGenerations: (config) => config.supportsLimitGenerations === true,
+  markupImageUrl: (config) => config.supportsMarkupImage === true,
   maskImageUrl: (config) => config.supportsMaskImage === true,
   negativePrompt: (config) => config.supportsNegativePrompt === true,
   numImages: (config) => config.supportsNumImages,

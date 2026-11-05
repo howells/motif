@@ -16,10 +16,11 @@ describe(buildGenerateBody, () => {
         transparent: true,
       });
       expect(generated.endpoint).toBe(
-        `openai/gpt-image-2.5/${model}/text-to-image`
+        `openai/gpt-image-2.6/${model}/text-to-image`
       );
       expect(generated.body).toMatchObject({
-        quality: "xhigh",
+        quality: "high",
+        reasoning_effort: "xhigh",
         background: "transparent",
         output_format: "png",
       });
@@ -30,13 +31,24 @@ describe(buildGenerateBody, () => {
         editImageUrls: ["https://example.com/vase.png"],
         maskImageUrl: "https://example.com/mask.png",
       });
-      expect(edited.endpoint).toBe(`openai/gpt-image-2.5/${model}/edit`);
+      expect(edited.endpoint).toBe(`openai/gpt-image-2.6/${model}/edit`);
       expect(edited.body).toMatchObject({
-        quality: "max",
+        quality: "high",
+        reasoning_effort: "max",
         mask_url: "https://example.com/mask.png",
         image_urls: ["https://example.com/vase.png"],
       });
       expect(edited.body).not.toHaveProperty("mask_image_url");
+      // An edit with no aspect keeps the edited image's shape.
+      expect(edited.body.image_size).toBe("auto");
+      expect(
+        buildGenerateBody({
+          aspect: "16:9",
+          editImageUrls: ["https://example.com/vase.png"],
+          model,
+          prompt: "Change the glaze",
+        }).body.image_size
+      ).not.toBe("auto");
       expect(estimateCost(model)).toBeNull();
       expect(() =>
         buildGenerateBody({
@@ -52,15 +64,18 @@ describe(buildGenerateBody, () => {
   );
 
   it.each(["flare", "sunburst"])(
-    "uses the benchmarked max default for %s, with an explicit override",
+    "defaults %s to max reasoning effort, with an explicit override",
     (model) => {
       expect(
-        buildGenerateBody({ model, prompt: "A poster" }).body.quality
-      ).toBe("max");
-      expect(
-        buildGenerateBody({ model, prompt: "A poster", quality: "high" }).body
-          .quality
-      ).toBe("high");
+        buildGenerateBody({ model, prompt: "A poster" }).body
+      ).toMatchObject({ quality: "high", reasoning_effort: "max" });
+      const low = buildGenerateBody({
+        model,
+        prompt: "A poster",
+        quality: "low",
+      }).body;
+      expect(low.quality).toBe("low");
+      expect(low).not.toHaveProperty("reasoning_effort");
     }
   );
 
@@ -96,7 +111,7 @@ describe(buildGenerateBody, () => {
     ).toThrow("at most 1 reference");
   });
 
-  it("rejects 2.5-only quality on older GPT models", () => {
+  it("rejects xhigh and max quality on older GPT models", () => {
     expect(() =>
       buildGenerateBody({
         model: "gpt2",

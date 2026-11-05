@@ -99,6 +99,12 @@ export interface TaskInput {
   prompt?: string;
   /** Mask image: https URL or data URL. */
   mask?: string;
+  /**
+   * Markup image: https URL or data URL. A transparent PNG of annotations
+   * (circles, arrows, notes) the size of the image being edited, guiding its
+   * edit. generate with references and vary take it; it can't join a mask.
+   */
+  markup?: string;
   /** Reference images: https URLs or data URLs. restyle and try-on take exactly one. */
   references?: readonly string[];
   aspect?: AspectRatio;

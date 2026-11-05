@@ -94,11 +94,13 @@ export async function videoSource(
 }
 
 const IMAGE_FORMAT_BY_EXTENSION: Readonly<
-  Record<string, "jpeg" | "png" | "webp">
+  Record<string, "gif" | "jpeg" | "png" | "svg" | "webp">
 > = {
+  ".gif": "gif",
   ".jpeg": "jpeg",
   ".jpg": "jpeg",
   ".png": "png",
+  ".svg": "svg",
   ".webp": "webp",
 };
 

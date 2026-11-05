@@ -167,7 +167,8 @@ export const appHolds = pgTable(
   ]
 );
 
-/** A private image: an upload, a mask drawn in the App, or a Task's output.
+/** A private image: an upload, a mask or markup drawn in the App, or a
+ * Task's output, which may be an animated GIF or an SVG.
  * Bytes live in the private Blob store at `blob_pathname`; they are served
  * only through the App's owner-checked media route. */
 export const appAssets = pgTable(
@@ -190,11 +191,11 @@ export const appAssets = pgTable(
     index("app_assets_owner_idx").on(table.ownerId, table.createdAt),
     check(
       "app_assets_kind_check",
-      sql`${table.kind} in ('upload', 'mask', 'output')`
+      sql`${table.kind} in ('upload', 'mask', 'markup', 'output')`
     ),
     check(
       "app_assets_content_type_check",
-      sql`${table.contentType} in ('image/jpeg', 'image/png', 'image/webp')`
+      sql`${table.contentType} in ('image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml')`
     ),
     check("app_assets_bytes_check", sql`${table.bytes} > 0`),
     check(

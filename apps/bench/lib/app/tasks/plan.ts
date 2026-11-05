@@ -18,6 +18,7 @@ import { boundFor } from "../budget/bounds";
 import type { Bound, Size } from "../budget/bounds";
 import { getOwnedAssets } from "../media/assets";
 import type { Asset } from "../media/assets";
+import { isFlatImage } from "../media/validate";
 import { assetIdsOf, toTaskInput } from "./request";
 import type { AppTaskRequest, ResolvedImages } from "./request";
 import { findProducer } from "./store";
@@ -25,6 +26,7 @@ import type { Generation } from "./store";
 
 export interface OwnedInputs {
   readonly mask: Asset | null;
+  readonly markup: Asset | null;
   readonly parent: Generation | null;
   readonly references: readonly Asset[];
   readonly source: Asset | null;
@@ -49,6 +51,10 @@ const sizeOf = (asset: Asset): Size => ({
   width: asset.width,
 });
 
+/** Drawn in the App to guide a Task, never a Source or Reference. */
+const drawn = (asset: Asset) =>
+  asset.kind === "mask" || asset.kind === "markup";
+
 /** Load every image a request names, all owned by the member, and check they
  * fit together. Another person's asset reads as missing. */
 export const resolveOwnedInputs = async (
@@ -60,6 +66,7 @@ export const resolveOwnedInputs = async (
   const wanted = [
     ...(named.source === undefined ? [] : [named.source]),
     ...(named.mask === undefined ? [] : [named.mask]),
+    ...(named.markup === undefined ? [] : [named.markup]),
     ...named.references,
   ];
   const assets = await getOwnedAssets(sql, member.id, wanted);
@@ -74,15 +81,51 @@ export const resolveOwnedInputs = async (
   const source =
     named.source === undefined ? null : (byId.get(named.source) ?? null);
   const mask = named.mask === undefined ? null : (byId.get(named.mask) ?? null);
+  const markup =
+    named.markup === undefined ? null : (byId.get(named.markup) ?? null);
   const references = named.references.flatMap((id) => {
     const asset = byId.get(id);
     return asset === undefined ? [] : [asset];
   });
-  if (source !== null && source.kind === "mask") {
-    return refusal(400, "MASK_AS_SOURCE", "A mask can't be a Source.");
+  if (source !== null && drawn(source)) {
+    return refusal(
+      400,
+      "MASK_AS_SOURCE",
+      `A ${source.kind} can't be a Source.`
+    );
   }
-  if (references.some((asset) => asset.kind === "mask")) {
-    return refusal(400, "MASK_AS_REFERENCE", "A mask can't be a Reference.");
+  if (references.some(drawn)) {
+    return refusal(
+      400,
+      "MASK_AS_REFERENCE",
+      "A mask or markup can't be a Reference."
+    );
+  }
+  if (
+    (source !== null && !isFlatImage(source.contentType)) ||
+    references.some((asset) => !isFlatImage(asset.contentType))
+  ) {
+    return refusal(
+      400,
+      "NOT_A_FLAT_IMAGE",
+      "A GIF or SVG can't be sent to another Task. Use a PNG, JPEG or WebP."
+    );
+  }
+  if (markup !== null) {
+    if (markup.kind !== "markup") {
+      return refusal(400, "NOT_MARKUP", "That image isn't markup.");
+    }
+    if (
+      source === null ||
+      markup.width !== source.width ||
+      markup.height !== source.height
+    ) {
+      return refusal(
+        400,
+        "MARKUP_SIZE",
+        "The markup must be the same size as the Source. Draw it again on this image."
+      );
+    }
   }
   if (mask !== null) {
     if (mask.kind !== "mask") {
@@ -113,13 +156,16 @@ export const resolveOwnedInputs = async (
     source !== null && source.kind === "output"
       ? await findProducer(sql, member.id, source.id)
       : null;
-  return { mask, ok: true, parent, references, source };
+  return { markup, mask, ok: true, parent, references, source };
 };
 
 /** Placeholder images for planning: the SDK reads sizes from `sourceSize`,
  * never from these URLs, and nothing is fetched. */
 export const placeholderImages = (inputs: OwnedInputs): ResolvedImages => ({
   ...(inputs.mask !== null && { mask: "https://motif.invalid/mask.png" }),
+  ...(inputs.markup !== null && {
+    markup: "https://motif.invalid/markup.png",
+  }),
   references: inputs.references.map(
     (_, index) => `https://motif.invalid/reference-${index}.png`
   ),

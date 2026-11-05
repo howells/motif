@@ -7,7 +7,7 @@ import {
   ImageSizeBoundsError,
   RESOLUTION_LONG_EDGE,
 } from "./aspects";
-import { UnsupportedOptionError } from "./capabilities";
+import { outputFormatsOf, UnsupportedOptionError } from "./capabilities";
 import type { ModelOption } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import { MODELS } from "./models";
@@ -213,6 +213,21 @@ function validateGenerateOptions(
   if (options.maskImageUrl !== undefined && !hasEditImages) {
     throw new Error("maskImageUrl requires editImageUrls");
   }
+  if (
+    options.markupImageUrl !== undefined &&
+    config.supportsMarkupImage !== true
+  ) {
+    unsupported(config, "markupImageUrl");
+  }
+  if (options.markupImageUrl !== undefined && !hasEditImages) {
+    throw new Error("markupImageUrl requires editImageUrls");
+  }
+  if (
+    options.markupImageUrl !== undefined &&
+    options.maskImageUrl !== undefined
+  ) {
+    throw new Error("A markup image can't be combined with a mask.");
+  }
   if (options.seed !== undefined && config.supportsSeed !== true) {
     unsupported(config, "seed");
   }
@@ -352,6 +367,7 @@ export function buildGenerateBody(options: GenerateOptions): {
     imagePromptStrength,
     limitGenerations,
     maskImageUrl,
+    markupImageUrl,
     seed,
     outputFormat,
     quality,
@@ -398,7 +414,10 @@ export function buildGenerateBody(options: GenerateOptions): {
 
     case "image_size_enum": {
       body.image_size =
-        normalizedImageSize ?? falImageSizeFor(config, aspect, resolution);
+        normalizedImageSize ??
+        (config.autoEditSize === true && hasEditImages && !explicitAspect
+          ? "auto"
+          : falImageSizeFor(config, aspect, resolution));
       break;
     }
 
@@ -423,7 +442,16 @@ export function buildGenerateBody(options: GenerateOptions): {
   }
 
   if (config.supportsQuality === true) {
-    body.quality = quality ?? config.defaultQuality ?? "high";
+    const level = quality ?? config.defaultQuality ?? "high";
+    if (
+      config.supportsReasoningEffort === true &&
+      (level === "xhigh" || level === "max")
+    ) {
+      body.quality = "high";
+      body.reasoning_effort = level;
+    } else {
+      body.quality = level;
+    }
   }
 
   if (config.supportsBackground === true && background) {
@@ -452,12 +480,10 @@ export function buildGenerateBody(options: GenerateOptions): {
     config.supportsOutputFormat === true &&
     transparent !== true
   ) {
-    if (
-      config.supportedOutputFormats &&
-      !config.supportedOutputFormats.includes(outputFormat)
-    ) {
+    const formats = outputFormatsOf(config, hasEditImages);
+    if (!formats.includes(outputFormat)) {
       throw new Error(
-        `${config.name} supports output formats: ${config.supportedOutputFormats.join(", ")}`
+        `${config.name} ${hasEditImages ? "edits support" : "supports"} output formats: ${formats.join(", ")}`
       );
     }
     body.output_format = outputFormat;
@@ -585,6 +611,9 @@ export function buildGenerateBody(options: GenerateOptions): {
     config.supportsMaskImage === true
   ) {
     body[config.maskImageField ?? "mask_image_url"] = maskImageUrl;
+  }
+  if (markupImageUrl !== undefined && config.supportsMarkupImage === true) {
+    body.markup_image_url = markupImageUrl;
   }
 
   return { body, endpoint };

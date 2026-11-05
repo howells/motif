@@ -12,14 +12,14 @@ import { get, put } from "@vercel/blob";
 
 import { newId } from "../ids";
 import { date, integer, text } from "../rows";
-import type { ImageType } from "./validate";
+import type { MediaType } from "./validate";
 
-export type AssetKind = "mask" | "output" | "upload";
+export type AssetKind = "markup" | "mask" | "output" | "upload";
 
 export interface Asset {
   readonly blobPathname: string;
   readonly bytes: number;
-  readonly contentType: ImageType;
+  readonly contentType: MediaType;
   readonly createdAt: Date;
   readonly height: number;
   readonly id: string;
@@ -35,11 +35,26 @@ export class StorageUnavailableError extends Error {
   }
 }
 
-const EXTENSIONS: Readonly<Record<ImageType, string>> = {
+export const EXTENSIONS: Readonly<Record<MediaType, string>> = {
+  "image/gif": "gif",
   "image/jpeg": "jpg",
   "image/png": "png",
+  "image/svg+xml": "svg",
   "image/webp": "webp",
 };
+
+const MEDIA_TYPES: ReadonlySet<string> = new Set(Object.keys(EXTENSIONS));
+const isMediaType = (value: string): value is MediaType =>
+  MEDIA_TYPES.has(value);
+
+const ASSET_KINDS: ReadonlySet<string> = new Set([
+  "markup",
+  "mask",
+  "output",
+  "upload",
+]);
+const isAssetKind = (value: string): value is AssetKind =>
+  ASSET_KINDS.has(value);
 
 const blobToken = (): string => {
   const token = getAppCredentials().blobToken;
@@ -49,22 +64,23 @@ const blobToken = (): string => {
   return token;
 };
 
+const fail = (message: string): never => {
+  throw new TypeError(message);
+};
+
 const assetOf = (row: Readonly<Record<string, unknown>>): Asset => {
   const type = text(row, "content_type");
   const kind = text(row, "kind");
   return {
     blobPathname: text(row, "blob_pathname"),
     bytes: integer(row, "bytes"),
-    contentType:
-      type === "image/png"
-        ? "image/png"
-        : type === "image/webp"
-          ? "image/webp"
-          : "image/jpeg",
+    contentType: isMediaType(type)
+      ? type
+      : fail(`Unknown content type ${type} on an asset.`),
     createdAt: date(row, "created_at"),
     height: integer(row, "height"),
     id: text(row, "id"),
-    kind: kind === "mask" ? "mask" : kind === "output" ? "output" : "upload",
+    kind: isAssetKind(kind) ? kind : fail(`Unknown asset kind ${kind}.`),
     ownerId: text(row, "owner_id"),
     width: integer(row, "width"),
   };
@@ -81,7 +97,7 @@ export const storeAsset = async (
   sql: AppSql,
   input: {
     readonly bytes: Uint8Array;
-    readonly contentType: ImageType;
+    readonly contentType: MediaType;
     readonly height: number;
     readonly kind: AssetKind;
     readonly ownerId: string;

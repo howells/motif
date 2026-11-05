@@ -72,8 +72,8 @@ export const fitForUpload = async (file: File): Promise<Blob> => {
 
 export const uploadImage = async (
   blob: Blob,
-  kind: "image" | "mask",
-  name = kind === "mask" ? "mask.png" : "photo.jpg"
+  kind: "image" | "markup" | "mask",
+  name = kind === "image" ? "photo.jpg" : `${kind}.png`
 ): Promise<UploadedAsset> => {
   const form = new FormData();
   form.append("file", blob, name);

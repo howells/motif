@@ -152,6 +152,11 @@ function generateSchema() {
             "Save output locally, send X-Fal-Store-IO: 0, skip Motif history, then delete fal request IO payloads when fal returns a request id",
           type: "boolean",
         },
+        markupImageUrl: {
+          description:
+            "Local path of a transparent PNG of annotations (arrows, circles, notes) the size of the first edit image, guiding its edit. Needs editImages; can't join a mask",
+          type: "string",
+        },
         maskImageUrl: {
           description: "Mask image URL for supported edit/inpainting models",
           type: "string",
@@ -716,6 +721,7 @@ function describeCommand(
     command: schema.command,
     description: schema.description,
     ...taskRouting(commandTask(name)),
+    ...taskDetails(name),
     ...schema,
   };
 }
@@ -739,6 +745,15 @@ function taskDetails(command: string): Record<string, unknown> {
     modes: (definition.modes ?? []).map(({ id, summary }) => ({ id, summary })),
     models: [...new Set(definition.models.map((entry) => entry.model))],
     rankedFrom: definition.rankedFrom,
+    rankedAt: definition.rankedAt,
+    basis: definition.basis,
+    ranking: definition.models.map((entry) => ({
+      model: entry.model,
+      tier: entry.tier,
+      ...(entry.mode === undefined ? {} : { mode: entry.mode }),
+      benchmark: entry.benchmark ?? null,
+    })),
+    ...(command === "generate" ? { referenceRankingTask: "vary" } : {}),
   };
 }
 

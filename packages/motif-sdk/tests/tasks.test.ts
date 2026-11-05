@@ -165,10 +165,13 @@ describe(TASKS, () => {
 
   it("offers vary the same edit-capable choices as generate", () => {
     expect(
-      [...TASKS.vary.models].sort((a, b) => a.model.localeCompare(b.model))
+      TASKS.vary.models
+        .map(({ model, tier }) => ({ model, tier }))
+        .sort((a, b) => a.model.localeCompare(b.model))
     ).toStrictEqual(
       TASKS.generate.models
         .filter(({ model }) => MODELS[model]?.supportsEdit === true)
+        .map(({ model, tier }) => ({ model, tier }))
         .sort((a, b) => a.model.localeCompare(b.model))
     );
   });

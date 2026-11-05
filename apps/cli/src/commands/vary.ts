@@ -34,6 +34,7 @@ import type { VerbOptions } from "./verbs/shared";
 
 interface VaryOptions extends VerbOptions {
   look?: string;
+  markup?: string;
   mood?: string | false;
   num?: string;
   prompt?: string;
@@ -101,9 +102,18 @@ async function vary(
   } catch (error) {
     handleError(error, "INVALID_IMAGE_PATH", emitOpts.format);
   }
+  let markup: string | undefined;
+  try {
+    markup = hasText(options.markup)
+      ? await imageSource(options.markup)
+      : undefined;
+  } catch (error) {
+    handleError(error, "INVALID_IMAGE_PATH", emitOpts.format);
+  }
 
   const reusable =
     common.model === undefined &&
+    markup === undefined &&
     creative?.look === undefined &&
     generation !== undefined &&
     resolveTaskModel(
@@ -118,6 +128,7 @@ async function vary(
     image: source,
     ...(reusable && { model: generation.model }),
     ...(hasText(prompt) && { prompt }),
+    ...(markup !== undefined && { markup }),
     ...(numImages > 1 && { count: numImages }),
     ...(hasText(creative?.look) && { look: creative.look }),
     ...(hasText(creative?.mood) && { mood: creative.mood }),
@@ -160,7 +171,11 @@ export function registerVary(program: Command, config: MotifConfig): void {
     .option("-n, --num <count>", "Number of variations 1-4 (default 1)")
     .option("--look <id>", "House look id, e.g. editorial")
     .option("--mood <id>", "Light mood id, e.g. overcast")
-    .option("--no-mood", "Drop any mood");
+    .option("--no-mood", "Drop any mood")
+    .option(
+      "--markup <path>",
+      "A transparent PNG the size of the image, with arrows, circles and notes guiding the edit"
+    );
   withCommonOptions(command).action(async (image: string | undefined) => {
     await vary(image, command.opts<VaryOptions>(), config);
   });

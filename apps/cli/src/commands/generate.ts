@@ -352,6 +352,7 @@ async function referenceSources(
   }
 }
 
+/** A mask or markup image path, read as a data URL. */
 async function maskSource(
   mask: string | undefined,
   emitOpts: EmitOptions
@@ -427,12 +428,22 @@ export async function generateImage(
         )
       : undefined
   );
+  if (!hasText(rawOutput) && outputFormat !== undefined) {
+    outputPath = outputPath.replace(
+      /\.png$/u,
+      outputFormat === "jpeg" ? ".jpg" : `.${outputFormat}`
+    );
+  }
   const transparent = (options.transparent ?? stdinData?.transparent) === true;
   const ephemeral = (options.ephemeral ?? stdinData?.ephemeral) === true;
   const editPaths = resolveEditPaths(editFiles, emitOpts.format);
   const references = await referenceSources(editPaths, emitOpts);
   const mask = await maskSource(
     options.mask ?? stdinData?.maskImageUrl,
+    emitOpts
+  );
+  const markup = await maskSource(
+    options.markup ?? stdinData?.markupImageUrl,
     emitOpts
   );
   const common = commonInput(
@@ -460,6 +471,7 @@ export async function generateImage(
     ...(transparent && { transparent }),
     ...(references !== undefined && { references }),
     ...(mask !== undefined && { mask }),
+    ...(markup !== undefined && { markup }),
     ...(hasText(creative?.look) && { look: creative.look }),
     ...(hasText(creative?.mood) && { mood: creative.mood }),
     ...(ephemeral && { ephemeral }),

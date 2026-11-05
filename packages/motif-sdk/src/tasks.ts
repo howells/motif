@@ -17,6 +17,12 @@
  * names none. A Model can appear once per mode.
  */
 
+import { imageModelBenchmark } from "./image-benchmarks";
+import type {
+  ImageBenchmarkTask,
+  ImageModelBenchmark,
+} from "./image-benchmarks";
+
 export const TIERS = ["fast", "balanced", "quality"] as const;
 
 /** How far a Task trades cost and speed for quality. */
@@ -32,6 +38,7 @@ export type Capability =
   | "aspect"
   | "count"
   | "image"
+  | "markup"
   | "mask"
   | "negativePrompt"
   | "outputFormat"
@@ -47,6 +54,8 @@ export interface RankedModel {
   readonly model: string;
   /** The Tier this Model is offered at. */
   readonly tier: Tier;
+  /** Published evidence for this Task; null means this route is unscored. */
+  readonly benchmark?: ImageModelBenchmark | null;
   /** The mode this entry serves. Absent for the Task's plain job. */
   readonly mode?: string;
   /** Capabilities this Model has for this Task beyond its registry profile. */
@@ -86,60 +95,76 @@ const HAND_RANKED_AT = "2026-09-16";
 // benchmark data on each Model.
 const IMAGE_RANKED_AT = "2026-10-29";
 
-const GENERATION_MODELS_RANKED: readonly RankedModel[] = [
-  { model: "sunburst", tier: "quality" },
-  { model: "flare", tier: "quality" },
-  { model: "gpt2", tier: "quality" },
-  { model: "seedream5", tier: "quality" },
-  { model: "gpt", tier: "quality" },
-  { model: "mai-image-2.5-pro", tier: "quality" },
-  { model: "banana21", tier: "balanced" },
-  { model: "grok-image-2", tier: "balanced" },
-  { model: "muse-image", tier: "balanced" },
-  { model: "banana2", tier: "balanced" },
-  { model: "qwen3", tier: "balanced" },
-  { model: "mai-image-2.5", tier: "balanced" },
-  { model: "banana", tier: "balanced" },
-  { model: "ideogram4", tier: "balanced" },
-  { model: "flux2-flex", tier: "balanced" },
-  { model: "recraft41", tier: "balanced" },
-  { model: "flux2-pro", tier: "balanced" },
-  { model: "krea3", tier: "balanced" },
-  { model: "grok-image-quality", tier: "balanced" },
-  {
-    model: "ideogram3-transparent",
-    requires: ["transparency"],
-    supports: ["transparency"],
-    tier: "balanced",
-  },
-  { model: "banana2-lite", tier: "fast" },
-  { model: "grok-image", tier: "fast" },
-  { model: "seedream5-lite", tier: "fast" },
-  { model: "flux2-turbo", tier: "fast" },
-];
+function withImageBenchmarks(
+  models: readonly RankedModel[],
+  task: ImageBenchmarkTask
+): readonly RankedModel[] {
+  return models.map((entry) => ({
+    ...entry,
+    benchmark: imageModelBenchmark(entry.model, task),
+  }));
+}
 
-const EDITING_MODELS_RANKED: readonly RankedModel[] = [
-  { model: "sunburst", tier: "quality" },
-  { model: "flare", tier: "quality" },
-  { model: "gpt2", tier: "quality" },
-  { model: "seedream5", tier: "quality" },
-  { model: "gpt", tier: "quality" },
-  { model: "mai-image-2.5-pro", tier: "quality" },
-  { model: "grok-image-2", tier: "balanced" },
-  { model: "banana21", tier: "balanced" },
-  { model: "mai-image-2.5", tier: "balanced" },
-  { model: "muse-image", tier: "balanced" },
-  { model: "grok-image-quality", tier: "balanced" },
-  { model: "banana", tier: "balanced" },
-  { model: "banana2", tier: "balanced" },
-  { model: "krea3", tier: "balanced" },
-  { model: "qwen3", tier: "balanced" },
-  { model: "flux2-pro", tier: "balanced" },
-  { model: "flux2-flex", tier: "balanced" },
-  { model: "grok-image", tier: "fast" },
-  { model: "banana2-lite", tier: "fast" },
-  { model: "seedream5-lite", tier: "fast" },
-];
+const GENERATION_MODELS_RANKED: readonly RankedModel[] = withImageBenchmarks(
+  [
+    { model: "sunburst", tier: "quality" },
+    { model: "flare", tier: "quality" },
+    { model: "gpt2", tier: "quality" },
+    { model: "seedream5", tier: "quality" },
+    { model: "gpt", tier: "quality" },
+    { model: "mai-image-2.5-pro", tier: "quality" },
+    { model: "banana21", tier: "balanced" },
+    { model: "grok-image-2", tier: "balanced" },
+    { model: "muse-image", tier: "balanced" },
+    { model: "banana2", tier: "balanced" },
+    { model: "qwen3", tier: "balanced" },
+    { model: "mai-image-2.5", tier: "balanced" },
+    { model: "banana", tier: "balanced" },
+    { model: "ideogram4", tier: "balanced" },
+    { model: "flux2-flex", tier: "balanced" },
+    { model: "recraft41", tier: "balanced" },
+    { model: "flux2-pro", tier: "balanced" },
+    { model: "krea3", tier: "balanced" },
+    { model: "grok-image-quality", tier: "balanced" },
+    {
+      model: "ideogram3-transparent",
+      requires: ["transparency"],
+      supports: ["transparency"],
+      tier: "balanced",
+    },
+    { model: "banana2-lite", tier: "fast" },
+    { model: "grok-image", tier: "fast" },
+    { model: "seedream5-lite", tier: "fast" },
+    { model: "flux2-turbo", tier: "fast" },
+  ],
+  "text-to-image"
+);
+
+const EDITING_MODELS_RANKED: readonly RankedModel[] = withImageBenchmarks(
+  [
+    { model: "sunburst", tier: "quality" },
+    { model: "flare", tier: "quality" },
+    { model: "gpt2", tier: "quality" },
+    { model: "seedream5", tier: "quality" },
+    { model: "gpt", tier: "quality" },
+    { model: "mai-image-2.5-pro", tier: "quality" },
+    { model: "grok-image-2", tier: "balanced" },
+    { model: "banana21", tier: "balanced" },
+    { model: "mai-image-2.5", tier: "balanced" },
+    { model: "muse-image", tier: "balanced" },
+    { model: "grok-image-quality", tier: "balanced" },
+    { model: "banana", tier: "balanced" },
+    { model: "banana2", tier: "balanced" },
+    { model: "krea3", tier: "balanced" },
+    { model: "qwen3", tier: "balanced" },
+    { model: "flux2-pro", tier: "balanced" },
+    { model: "flux2-flex", tier: "balanced" },
+    { model: "grok-image", tier: "fast" },
+    { model: "banana2-lite", tier: "fast" },
+    { model: "seedream5-lite", tier: "fast" },
+  ],
+  "image-edit-single-image"
+);
 
 /** Every Task with a Model. A Task is absent here until it has at least one Model. */
 export const TASKS = {

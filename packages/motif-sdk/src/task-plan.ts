@@ -12,7 +12,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { aspectToGptSize, ImageSizeBoundsError } from "./aspects";
-import { UnsupportedOptionError } from "./capabilities";
+import { outputFormatsOf, UnsupportedOptionError } from "./capabilities";
 import type { ModelOption } from "./capabilities";
 import { CreativeOptionError, enrichPrompt } from "./creative";
 import type { CreativeDirection } from "./creative";
@@ -43,7 +43,12 @@ import { videoPlan } from "./task-plan-video";
 import { isTaskId, TASKS } from "./tasks";
 import type { RankedModel, TaskId } from "./tasks";
 import { isFalToolId } from "./tools";
-import type { GenerateOptions, ModelConfig, ProviderRoute } from "./types";
+import type {
+  GenerateOptions,
+  ImageQuality,
+  ModelConfig,
+  ProviderRoute,
+} from "./types";
 
 export { INVALID_OPTION } from "./task-plan-shared";
 
@@ -86,11 +91,12 @@ function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
     aspect: input.aspect,
     count: input.count,
     look: task === "generate" || task === "vary" ? input.look : undefined,
+    markup: input.markup !== undefined,
     mask: input.mask !== undefined,
     mode: input.mode,
     model: input.model,
     negativePrompt: input.negativePrompt !== undefined,
-    outputFormat: input.outputFormat !== undefined,
+    outputFormat: input.outputFormat,
     references,
     // 2K is every generation Model's default size, so it asks for nothing.
     resolution:
@@ -301,6 +307,7 @@ const GENERATION_FIELDS: ReadonlySet<CarriedField> = new Set([
   "aspect",
   "count",
   "look",
+  "markup",
   "mask",
   "mood",
   "negativePrompt",
@@ -312,11 +319,25 @@ const GENERATION_FIELDS: ReadonlySet<CarriedField> = new Set([
   "transparent",
 ]);
 
+const IMAGE_QUALITIES: readonly ImageQuality[] = [
+  "auto",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+];
+
+function isImageQuality(value: unknown): value is ImageQuality {
+  return IMAGE_QUALITIES.some((level) => level === value);
+}
+
 /** The TaskInput field behind each option `buildGenerateBody` can refuse. */
 const FIELD_FOR_OPTION: Partial<Record<ModelOption, CarriedField>> = {
   aspect: "aspect",
   background: "transparent",
   "image editing": "references",
+  markupImageUrl: "markup",
   maskImageUrl: "mask",
   negativePrompt: "negativePrompt",
   numImages: "count",
@@ -381,6 +402,14 @@ function generationPlan(
     ...(task === "vary" && input.image !== undefined ? [input.image] : []),
     ...(input.references ?? []),
   ];
+  if (input.markup !== undefined && editImageUrls.length === 0) {
+    return err(
+      invalidOption(
+        "Markup applies to the image being edited; pass references.",
+        { field: "markup", requires: "references" }
+      )
+    );
+  }
   if (input.mask !== undefined && editImageUrls.length === 0) {
     return err(
       invalidOption("A mask applies to a reference image; pass references.", {
@@ -404,17 +433,32 @@ function generationPlan(
   }
   if (
     input.outputFormat !== undefined &&
-    config.supportedOutputFormats !== undefined &&
-    !config.supportedOutputFormats.includes(input.outputFormat)
+    !outputFormatsOf(config, editImageUrls.length > 0).includes(
+      input.outputFormat
+    )
   ) {
     return err(cannotCarry("outputFormat", model, task));
   }
 
+  // `params.quality` goes through `buildGenerateBody`, which checks it against
+  // the Model's levels and maps xhigh and max to `reasoning_effort` where fal
+  // takes them there.
+  const { quality, ...params } = input.params ?? {};
+  const liftQuality = config.supportsQuality === true && quality !== undefined;
+  if (liftQuality && !isImageQuality(quality)) {
+    return err(
+      invalidOption(
+        `params.quality must be one of ${IMAGE_QUALITIES.join(", ")}.`,
+        { field: "params", key: "quality" }
+      )
+    );
+  }
   const options: GenerateOptions = {
     aspect: input.aspect,
     background: input.transparent === true ? "transparent" : undefined,
     creative: creativeOf(input),
     editImageUrls: editImageUrls.length > 0 ? editImageUrls : undefined,
+    markupImageUrl: input.markup,
     maskImageUrl: input.mask,
     model,
     negativePrompt: input.negativePrompt,
@@ -424,6 +468,7 @@ function generationPlan(
       task === "vary" && (input.prompt ?? "") === ""
         ? VARY_PROMPT
         : (input.prompt ?? ""),
+    quality: liftQuality && isImageQuality(quality) ? quality : undefined,
     resolution: input.resolution,
     seed: input.seed,
   };
@@ -435,7 +480,7 @@ function generationPlan(
   }
   const merged = mergeParams(
     built.body,
-    input.params,
+    liftQuality ? params : input.params,
     ownedGenerationKeys(input)
   );
   if (merged.isErr()) {

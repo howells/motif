@@ -1,6 +1,7 @@
 import { appError, authorise } from "@/lib/app/http/guard";
 import { isAppId } from "@/lib/app/ids";
 import {
+  EXTENSIONS,
   getOwnedAsset,
   readAssetBytes,
   streamAsset,
@@ -8,12 +9,6 @@ import {
 import { previewWidthOf, resizeImage } from "@/lib/app/media/resize";
 
 export const dynamic = "force-dynamic";
-
-const EXTENSIONS: Readonly<Record<string, string>> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-};
 
 /** Every image is private to its owner and never runs as a document. */
 const PRIVATE_IMAGE = {
@@ -25,7 +20,8 @@ const PRIVATE_IMAGE = {
 /** One private image, to its owner only. Anyone else, and any id that
  * doesn't exist, gets the same 404. `?w=` asks for a smaller WebP copy, at
  * one of the widths `next/image` uses; the original comes back when it is
- * no wider than that. */
+ * no wider than that, and always for a GIF or SVG, so an animation keeps
+ * moving and a vector stays sharp. */
 export async function GET(
   request: Request,
   context: RouteContext<"/api/app/media/[assetId]">
@@ -47,7 +43,9 @@ export async function GET(
   if (width === undefined) {
     return appError(400, "INVALID_WIDTH", "That image width isn't offered.");
   }
-  if (width !== null && width < asset.width) {
+  const flat =
+    asset.contentType !== "image/gif" && asset.contentType !== "image/svg+xml";
+  if (flat && width !== null && width < asset.width) {
     const preview = await resizeImage(await readAssetBytes(asset), width);
     return new Response(Buffer.from(preview), {
       headers: { ...PRIVATE_IMAGE, "Content-Type": "image/webp" },
@@ -58,7 +56,7 @@ export async function GET(
     return appError(404, "NOT_FOUND", "Not found.");
   }
   const download = params.get("download") === "1";
-  const extension = EXTENSIONS[asset.contentType] ?? "img";
+  const extension = EXTENSIONS[asset.contentType];
   return new Response(stream, {
     headers: {
       ...PRIVATE_IMAGE,

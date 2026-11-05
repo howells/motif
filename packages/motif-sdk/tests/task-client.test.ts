@@ -397,6 +397,83 @@ describe("createMotif plan", () => {
     });
   });
 
+  it("chooses a Model that returns the format asked for", () => {
+    const gif = planned("generate", { outputFormat: "gif", prompt: "x" });
+    expect(["sunburst", "flare"]).toContain(gif.model);
+    expect(gif.body.output_format).toBe("gif");
+    const svg = planned("generate", { outputFormat: "svg", prompt: "x" });
+    expect(svg.body.output_format).toBe("svg");
+    expect(
+      refused("generate", {
+        model: "flare",
+        outputFormat: "svg",
+        prompt: "x",
+        references: [IMAGE],
+      }).message
+    ).toMatch(/outputFormat|svg/u);
+    expect(
+      refused("generate", { model: "banana", outputFormat: "gif", prompt: "x" })
+        .message
+    ).toMatch(/outputFormat|gif/u);
+  });
+
+  it("sends markup with a vary, choosing a Model that takes it", () => {
+    const markup = "https://example.com/markup.png";
+    const plan = planned("vary", { image: IMAGE, markup, prompt: "x" });
+    expect(["sunburst", "flare"]).toContain(plan.model);
+    expect(plan.body).toMatchObject({
+      image_urls: [IMAGE],
+      markup_image_url: markup,
+    });
+    expect(
+      refused("vary", { image: IMAGE, markup, model: "banana" }).message
+    ).toMatch(/markup/u);
+    expect(refused("generate", { markup, prompt: "x" }).message).toContain(
+      "pass references"
+    );
+    expect(
+      refused("vary", {
+        image: IMAGE,
+        markup,
+        mask: "https://example.com/mask.png",
+        model: "flare",
+      }).message
+    ).toContain("can't be combined with a mask");
+  });
+
+  it("sends params.quality xhigh to GPT Image 2.6 as reasoning effort", () => {
+    const plan = planned("generate", {
+      model: "flare",
+      params: { quality: "xhigh" },
+      prompt: "x",
+    });
+    expect(plan.body).toMatchObject({
+      quality: "high",
+      reasoning_effort: "xhigh",
+    });
+    const low = planned("generate", {
+      model: "sunburst",
+      params: { quality: "low" },
+      prompt: "x",
+    });
+    expect(low.body.quality).toBe("low");
+    expect(low.body).not.toHaveProperty("reasoning_effort");
+    expect(
+      refused("generate", {
+        model: "flare",
+        params: { quality: "ultra" },
+        prompt: "x",
+      }).message
+    ).toContain("quality must be one of");
+    expect(
+      refused("generate", {
+        model: "gpt2",
+        params: { quality: "max" },
+        prompt: "x",
+      }).message
+    ).toContain("quality must be one of");
+  });
+
   it("prices params that change the image count or resolution", () => {
     const base = planned("generate", { model: "banana", prompt: "x" });
     const four = planned("generate", {

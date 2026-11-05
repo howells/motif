@@ -26,7 +26,9 @@ export async function POST(request: Request) {
     return appError(400, "INVALID_UPLOAD", "Send the image as a form upload.");
   }
   const file = form.get("file");
-  const kind = form.get("kind") === "mask" ? "mask" : "image";
+  const requested = form.get("kind");
+  const kind =
+    requested === "mask" || requested === "markup" ? requested : "image";
   if (!(file instanceof File)) {
     return appError(400, "NO_FILE", "Choose an image to upload.");
   }
@@ -42,7 +44,7 @@ export async function POST(request: Request) {
       bytes: inspected.bytes,
       contentType: inspected.contentType,
       height: inspected.height,
-      kind: kind === "mask" ? "mask" : "upload",
+      kind: kind === "image" ? "upload" : kind,
       ownerId: auth.member.id,
       width: inspected.width,
     });

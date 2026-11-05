@@ -135,3 +135,55 @@ describe("toTaskInput", () => {
     });
   });
 });
+
+describe("GPT Image 2.6 options", () => {
+  it("turns format, frames and quality into the SDK's fields", () => {
+    const request = parsed({
+      format: "gif",
+      frames: { count: 12, durationMs: 120 },
+      idempotencyKey: KEY,
+      model: "flare",
+      prompt: "a flame",
+      quality: "max",
+      task: "generate",
+    });
+    expect(toTaskInput(request, IMAGES)).toMatchObject({
+      outputFormat: "gif",
+      params: { frame_count: 12, frame_duration_ms: 120, quality: "max" },
+    });
+  });
+
+  it("refuses frames without a GIF, and frames or quality without a Model", () => {
+    const base = { idempotencyKey: KEY, prompt: "a flame", task: "generate" };
+    const framesAlone = parseTaskRequest({
+      ...base,
+      frames: { count: 4, durationMs: 100 },
+      model: "flare",
+    });
+    expect(framesAlone.ok ? "" : framesAlone.message).toContain("GIF");
+    const qualityAlone = parseTaskRequest({ ...base, quality: "low" });
+    expect(qualityAlone.ok ? "" : qualityAlone.message).toContain(
+      "Choose a Model"
+    );
+    expect(
+      parseTaskRequest({
+        ...base,
+        format: "svg",
+        task: "vary",
+        sourceAssetId: SOURCE,
+      })
+    ).toMatchObject({ ok: false });
+  });
+
+  it("sends a vary's markup with its Source", () => {
+    const request = parsed({
+      idempotencyKey: KEY,
+      markupAssetId: MASK,
+      sourceAssetId: SOURCE,
+      task: "vary",
+    });
+    expect(
+      toTaskInput(request, { ...IMAGES, markup: "data:markup" })
+    ).toMatchObject({ image: "data:source", markup: "data:markup" });
+  });
+});

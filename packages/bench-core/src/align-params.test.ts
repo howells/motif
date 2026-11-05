@@ -54,7 +54,7 @@ const FORCE_PROBES: Record<string, unknown> = {
 };
 
 describe("GENERATION_MODELS coverage", () => {
-  it("includes the GPT Image 2.5 aliases", () => {
+  it("includes the GPT Image 2.6 aliases", () => {
     expect(GENERATION_MODELS).toContain("flare");
     expect(GENERATION_MODELS).toContain("sunburst");
   });

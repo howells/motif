@@ -20,6 +20,7 @@ export const CARRIED_FIELDS = [
   "video",
   "prompt",
   "mask",
+  "markup",
   "references",
   "boxes",
   "margin",

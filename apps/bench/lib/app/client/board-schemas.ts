@@ -5,7 +5,11 @@
  */
 import { z } from "zod";
 
-import { NODE_KINDS, NODE_SETTINGS } from "@/lib/app/boards/model";
+import {
+  BOARD_QUALITIES,
+  NODE_KINDS,
+  NODE_SETTINGS,
+} from "@/lib/app/boards/model";
 
 const Output = z.object({ assetId: z.string(), url: z.string() });
 
@@ -184,6 +188,7 @@ export const NodeOptionsSchema = z.object({
       model: z.string(),
       name: z.string(),
       reason: z.string().nullable(),
+      qualities: z.array(z.enum(BOARD_QUALITIES)),
       tier: z.string(),
       usage: z.boolean(),
     })

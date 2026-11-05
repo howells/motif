@@ -18,6 +18,7 @@
  * every Tier.
  */
 
+import { outputFormatsOf } from "./capabilities";
 import { getLook } from "./creative";
 import { LEGACY_GENERATION_MODELS, MODELS } from "./models";
 import type {
@@ -49,6 +50,8 @@ export interface TaskRequest {
   readonly references?: number;
   /** A mask image is passed in. */
   readonly mask?: boolean;
+  /** A markup image is passed in. */
+  readonly markup?: boolean;
   /** An aspect ratio is asked for, e.g. `"3:2"`. */
   readonly aspect?: string;
   /** A resolution tier is asked for, e.g. `"1K"`. */
@@ -57,7 +60,8 @@ export interface TaskRequest {
   readonly count?: number;
   readonly seed?: boolean;
   readonly negativePrompt?: boolean;
-  readonly outputFormat?: boolean;
+  /** An output format is asked for, e.g. `"gif"`. */
+  readonly outputFormat?: string;
   /** A rigged mesh wanted. */
   readonly rig?: boolean;
   /** The kind of Source passed in. Absent for a text-only request. */
@@ -125,6 +129,12 @@ export interface ModelProfile {
   readonly aspects?: readonly string[];
   /** Resolutions the Model accepts. Absent means any. */
   readonly resolutions?: readonly string[];
+  /** Output formats the Model returns, for a text request and an edit.
+   * Absent means any. */
+  readonly outputFormats?: {
+    readonly edit: readonly string[];
+    readonly text: readonly string[];
+  };
 }
 
 function generationProfile(config: ModelConfig): ModelProfile {
@@ -140,6 +150,9 @@ function generationProfile(config: ModelConfig): ModelProfile {
   }
   if (config.supportsMaskImage === true) {
     capabilities.add("mask");
+  }
+  if (config.supportsMarkupImage === true) {
+    capabilities.add("markup");
   }
   if ((config.sizeMode ?? "aspect_ratio") !== "none") {
     capabilities.add("aspect");
@@ -165,6 +178,10 @@ function generationProfile(config: ModelConfig): ModelProfile {
     keyedCapabilities: keyed,
     keys: [FAL_KEY],
     maxReferences: config.supportsEdit ? (config.maxReferenceImages ?? 1) : 0,
+    outputFormats: {
+      edit: outputFormatsOf(config, true),
+      text: outputFormatsOf(config, false),
+    },
     resolutions: config.supportedResolutions,
   };
 }
@@ -250,6 +267,9 @@ function requirements(request: TaskRequest): Capability[] {
   if (request.mask === true) {
     needed.push("mask");
   }
+  if (request.markup === true) {
+    needed.push("markup");
+  }
   if (request.aspect !== undefined) {
     needed.push("aspect");
   }
@@ -265,7 +285,7 @@ function requirements(request: TaskRequest): Capability[] {
   if (request.negativePrompt === true) {
     needed.push("negativePrompt");
   }
-  if (request.outputFormat === true) {
+  if (request.outputFormat !== undefined) {
     needed.push("outputFormat");
   }
   if (request.rig === true) {
@@ -288,6 +308,14 @@ function withinLimits(
   }
   if (capability === "resolution") {
     return accepts(profile.resolutions, request.resolution);
+  }
+  if (capability === "outputFormat") {
+    const editing =
+      (request.references ?? 0) > 0 || request.source !== undefined;
+    return accepts(
+      editing ? profile.outputFormats?.edit : profile.outputFormats?.text,
+      request.outputFormat
+    );
   }
   return true;
 }
@@ -356,9 +384,15 @@ const TIER_ORDER: Readonly<Record<Tier, readonly Tier[]>> = {
 
 function describeBlock(
   blockedBy: Blocker,
+  request: TaskRequest,
   missingKey?: string,
   missingInput?: true
 ): string {
+  if (blockedBy === "outputFormat" && request.outputFormat !== undefined) {
+    const editing =
+      (request.references ?? 0) > 0 || request.source !== undefined;
+    return `cannot return ${request.outputFormat}${editing ? " from an edit" : ""}`;
+  }
   if (missingInput === true) {
     return `needs a ${blockedBy} input`;
   }
@@ -490,7 +524,7 @@ function resolveFixed(
     task,
     result.blockedBy,
     unblockers,
-    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, result.missingKey, result.missingInput)}.`,
+    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput)}.`,
     result.missingKey
   );
 }

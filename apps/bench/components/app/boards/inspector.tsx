@@ -13,7 +13,9 @@ import {
   CompareModels,
   ModelChoice,
 } from "@/components/app/boards/inspector-models";
+import { OutputFields } from "@/components/app/boards/inspector-output";
 import { Results } from "@/components/app/boards/inspector-results";
+import { MarkupField } from "@/components/app/boards/markup-field";
 import { ProcessLog } from "@/components/app/boards/process";
 import { MediaImage } from "@/components/app/media-image";
 import type { TaskOptions } from "@/components/app/task/fields";
@@ -162,7 +164,9 @@ function VaryFields({ node }: { readonly node: NodeViewOf<"vary"> }) {
           value={node.settings.prompt}
         />
       </Section>
+      <MarkupField node={node} />
       <ModelChoice node={node} />
+      <OutputFields node={node} />
       <Samples node={node} />
     </>
   );
@@ -246,6 +250,7 @@ function TaskFields({ node }: { readonly node: NodeViewData }) {
         <>
           <ModelChoice node={node} />
           <AspectField allowLook node={node} />
+          <OutputFields node={node} />
           <Samples node={node} />
         </>
       );

@@ -155,3 +155,23 @@ describe(parseSettings, () => {
     expect(parseSettings("cutout", { prompt: "x" }).ok).toBe(false);
   });
 });
+
+describe("wires out of a GIF or SVG", () => {
+  it("are refused", () => {
+    const from = {
+      format: "gif" as const,
+      id: "a",
+      kind: "generate" as const,
+      pickAssetId: null,
+      stale: false,
+    };
+    const to = {
+      id: "b",
+      kind: "upscale" as const,
+      pickAssetId: null,
+      stale: false,
+    };
+    expect(wireRefusal(from, to, [])).toContain("GIF");
+    expect(wireRefusal({ ...from, format: undefined }, to, [])).toBeNull();
+  });
+});

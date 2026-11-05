@@ -110,4 +110,25 @@ describe("inspectOutput", () => {
     });
     await expect(inspectOutput(Buffer.from("<html>"))).resolves.toBeNull();
   });
+
+  it("keeps an animated GIF at one frame's size, and an SVG", async () => {
+    const frames = await sharp({
+      create: { background: "#c08040", channels: 3, height: 96, width: 40 },
+    })
+      .gif()
+      .toBuffer();
+    const animated = await sharp(frames, { animated: true })
+      .gif({ loop: 0 })
+      .toBuffer();
+    const gif = await inspectOutput(animated);
+    expect(gif).toMatchObject({ contentType: "image/gif", width: 40 });
+    const svg = Buffer.from(
+      '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg" width="120" height="80"><rect width="120" height="80"/></svg>'
+    );
+    await expect(inspectOutput(svg)).resolves.toStrictEqual({
+      contentType: "image/svg+xml",
+      height: 80,
+      width: 120,
+    });
+  });
 });

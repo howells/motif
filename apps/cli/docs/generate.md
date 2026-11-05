@@ -47,7 +47,7 @@ A look carries its own Model, so `--tier` has no effect when `--look` is set. Th
 | balanced | `banana21` (the default), `grok-image-2`, `muse-image`, `banana2`, `qwen3`, `mai-image-2.5`, `banana`, `ideogram4`, `flux2-flex`, `recraft41`, `flux2-pro`, `krea3`, `grok-image-quality`, `ideogram3-transparent` (only for `--transparent`) |
 | fast | `banana2-lite`, `grok-image`, `seedream5-lite`, `flux2-turbo` |
 
-Both orders follow Arena, read 29 October 2026. Editing has its own order: balanced starts with `grok-image-2`, then `banana21` and `krea3`, and fast starts with `grok-image`. A generation with `-e` uses that editing order. Sunburst and Flare default to the benchmarked `max` quality; lower settings remain available through `--param quality=high`.
+Both orders follow Arena, read 29 October 2026. Editing has its own order: balanced starts with `grok-image-2`, then `banana21` and `krea3`, and fast starts with `grok-image`. A generation with `-e` uses that editing order. Sunburst and Flare run GPT Image 2.6 and default to `max`, sent as `quality: "high"` with `reasoning_effort: "max"`; lower settings remain available through `--param quality=high`. GPT Image 2.6 is not yet on Arena, so their places follow the GPT Image 2.5 results.
 
 Older Models are absent from the curated list but remain usable through explicit overrides, pins and existing Looks: `gemini`, `gemini3`, `seedream4`, `seedream45`, `flux2-max`, `flux2-dev`, `flux`, `flux-fast`, `recraft`, `recraft4`, `ideogram`, `qwen`.
 
@@ -64,13 +64,28 @@ motif "a jazz night poster" -m ideogram4 --param rendering_speed=QUALITY --dry-r
 motif "an editorial portrait" -m flux2-flex --param num_inference_steps=40 --dry-run
 ```
 
-`--quality` values finer than the Tiers, such as `xhigh` or `max` on the GPT Image 2.5 Models, need `--param` with `--model`:
+`--quality` values finer than the Tiers, such as `xhigh` or `max` on the GPT Image 2.6 Models, need `--param` with `--model`:
 
 ```bash
 motif "a ceramic vase in window light" -m flare --param quality=xhigh --dry-run
 ```
 
 The old flags (`--quality`, `--rendering-speed`, `--thinking`, `--style`, `--background`, `--web-search` and the rest) exit `2` with `REMOVED_COMMAND` naming the replacement.
+
+### GIF, SVG and markup
+
+`--output-format gif` asks for an animated GIF and `--output-format svg` for a vector image. Only Sunburst and Flare make them, so Motif chooses one of those. SVG works from text only, not with `-e`. A GIF's frames and the length of each frame are Model-only fields: `frame_count` (2 to 64, default 9) and `frame_duration_ms` (20 to 2000, default 200).
+
+```bash
+motif "a candle flame flickering, seamless loop" --output-format gif -m sunburst --param frame_count=12 --dry-run
+motif "a flat line-art fox logo" --output-format svg --dry-run
+```
+
+`--markup <path>` guides an edit with a transparent PNG of arrows, circles and notes drawn at the size of the image being edited. It works with `vary` and with `-e`, can't join `--mask`, and limits the choice to Models that take markup:
+
+```bash
+motif vary photo.png --markup marks.png --prompt "make the circled cup blue" --dry-run
+```
 
 ## Looks and moods
 

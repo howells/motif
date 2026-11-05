@@ -83,6 +83,24 @@ const modelId = z
 const tier = z.enum(BOARD_TIERS).optional();
 const assetId = z.string().regex(/^ast_[0-9a-f]{32}$/u);
 
+/** Quality levels a Model may take; the Task request uses the same list. */
+export const BOARD_QUALITIES = [
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const;
+export type BoardQuality = (typeof BOARD_QUALITIES)[number];
+
+/** Output beyond a flat image, kept flat so a settings patch can set each
+ * value: GIF frames and speed, and a quality level. */
+const OUTPUT_SETTINGS = {
+  frameCount: z.int().min(2).max(64).optional(),
+  frameMs: z.int().min(20).max(2000).optional(),
+  quality: z.enum(BOARD_QUALITIES).optional(),
+};
+
 export const NODE_SETTINGS = {
   compare: z.strictObject({
     aspect: z.enum(BOARD_ASPECTS).optional(),
@@ -96,7 +114,10 @@ export const NODE_SETTINGS = {
     tier,
   }),
   generate: z.strictObject({
+    ...OUTPUT_SETTINGS,
     aspect: z.enum(BOARD_ASPECTS).optional(),
+    /** An animated GIF or an SVG instead of a flat image. */
+    format: z.enum(["gif", "svg"]).optional(),
     count: z.int().min(1).max(MAX_IMAGES).default(1),
     model: modelId,
     references: z.array(assetId).max(MAX_REFERENCES).default([]),
@@ -123,7 +144,14 @@ export const NODE_SETTINGS = {
     tier,
   }),
   vary: z.strictObject({
+    ...OUTPUT_SETTINGS,
     count: z.int().min(1).max(MAX_IMAGES).default(1),
+    /** An edit can return an animated GIF; SVG is made from text only. */
+    format: z.enum(["gif"]).optional(),
+    /** Markup drawn over the wired-in image, and which image that was, so
+     * markup drawn on an earlier Pick is never sent with a new one. */
+    markupAssetId: assetId.optional(),
+    markupDrawnOn: assetId.optional(),
     model: modelId,
     prompt: z.string().max(4000).default(""),
     tier,
@@ -278,6 +306,13 @@ export const withModel = (node: KindSettings, model?: string): KindSettings => {
   }
 };
 
+/** What a node makes when it isn't a flat image: an animated GIF or an SVG.
+ * Neither feeds another Task. */
+export const formatOf = (node: KindSettings): "gif" | "svg" | undefined =>
+  node.kind === "generate" || node.kind === "vary"
+    ? node.settings.format
+    : undefined;
+
 /** What a node takes in through its one input. */
 export type InputKind = "image" | "none" | "text";
 
@@ -303,6 +338,8 @@ export interface GraphNode {
   readonly kind: NodeKind;
   readonly pickAssetId: string | null;
   readonly stale: boolean;
+  /** Set when the node makes a GIF or SVG rather than a flat image. */
+  readonly format?: "gif" | "svg";
 }
 
 export interface GraphWire {
@@ -372,6 +409,9 @@ export const wireRefusal = (
     return input === "text"
       ? `${NODE_LABELS[to.kind]} takes a Prompt.`
       : `${NODE_LABELS[to.kind]} takes an image, not text.`;
+  }
+  if (from.format !== undefined) {
+    return `${NODE_LABELS[from.kind]} makes ${from.format === "gif" ? "a GIF" : "an SVG"}, which can't feed another Task.`;
   }
   if (downstreamOf(to.id, wires).includes(from.id)) {
     return "That wire would make a loop.";

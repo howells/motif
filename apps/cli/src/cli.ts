@@ -166,11 +166,18 @@ export async function runCli(
     // Output options
     .option("--transparent", "Transparent background PNG")
     .option("--mask <path>", "Mask image for an edit with -e")
+    .option(
+      "--markup <path>",
+      "Markup for an edit with -e: a transparent PNG of arrows, circles and notes"
+    )
     .option("--last", "Show last generation info")
     .option("--no-open", "Don't open image after generation")
     .option("--seed <n>", "Reproducible generation seed")
     .option("--negative <text>", "Negative prompt: what not to include")
-    .option("--output-format <format>", "Output format: jpeg, png, webp")
+    .option(
+      "--output-format <format>",
+      "Output format: jpeg, png, webp, gif, svg"
+    )
     // Creative direction
     .option("--look <id>", "House look id, e.g. editorial")
     .option("--mood <id>", "Light mood id, e.g. overcast")

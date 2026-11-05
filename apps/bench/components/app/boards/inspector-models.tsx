@@ -1,22 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useBoard } from "@/components/app/boards/board-context";
 import { CheckIcon, ChevronDownIcon } from "@/components/app/boards/icons";
 import { Section, Segments } from "@/components/app/boards/inspector-controls";
+import { useNodeOptions } from "@/components/app/boards/use-node-options";
 import { modelsOf } from "@/lib/app/boards/canvas";
 import type { NodeViewOf, TaskNodeView } from "@/lib/app/boards/canvas";
 import { BOARD_TIERS, MAX_COMPARE_MODELS } from "@/lib/app/boards/model";
 import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
-import { api, messageOf } from "@/lib/app/client/api";
-import { NodeOptionsSchema } from "@/lib/app/client/board-schemas";
-import type {
-  BoardViewData,
-  NodeOptionsData,
-  NodeViewData,
-} from "@/lib/app/client/board-schemas";
+import { messageOf } from "@/lib/app/client/api";
+import type { NodeOptionsData } from "@/lib/app/client/board-schemas";
 import { formatCap, formatUsd } from "@/lib/app/money";
 
 const TIER_LABEL = {
@@ -24,18 +19,6 @@ const TIER_LABEL = {
   fast: "Fast",
   quality: "Quality",
 } as const;
-
-/** Changes whenever what decides a node's price does, so its Models are
- * priced again. */
-const versionOf = (node: NodeViewData, view: BoardViewData): string => {
-  const parent = view.wires.find((wire) => wire.to === node.id)?.from;
-  const upstream = view.nodes.find((candidate) => candidate.id === parent);
-  return JSON.stringify([
-    node.settings,
-    upstream?.pick?.assetId ?? null,
-    upstream?.settings ?? null,
-  ]);
-};
 
 type ModelOption = NodeOptionsData["models"][number];
 
@@ -52,13 +35,9 @@ const priceOf = (model: ModelOption): string =>
   model.listMicros === null || model.usage ? "" : formatUsd(model.listMicros);
 
 export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
-  const { editSettings, view } = useBoard();
+  const { editSettings } = useBoard();
   const [all, setAll] = useState(false);
-  const options = useQuery({
-    queryFn: async () =>
-      await api(`/api/app/nodes/${node.id}/options`, NodeOptionsSchema),
-    queryKey: ["options", node.id, versionOf(node, view)],
-  });
+  const options = useNodeOptions(node);
   const tier = node.settings.tier ?? "balanced";
   const chosen = node.settings.model ?? options.data?.motifChoice ?? null;
   const models = options.data?.models ?? [];
@@ -104,8 +83,26 @@ export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
                     className="flex min-h-13 w-full items-center gap-3 py-2 text-left disabled:cursor-not-allowed"
                     disabled={model.reason !== null}
                     onClick={() => {
+                      const quality =
+                        "quality" in node.settings
+                          ? node.settings.quality
+                          : undefined;
                       editSettings(node, {
                         model: motif ? undefined : model.model,
+                        // Leaving the choice to Motif drops what only a named
+                        // Model takes; a new Model drops a quality it lacks.
+                        ...(motif &&
+                          (node.kind === "generate" ||
+                            node.kind === "vary") && {
+                            frameCount: undefined,
+                            frameMs: undefined,
+                            quality: undefined,
+                          }),
+                        ...(!motif &&
+                          quality !== undefined &&
+                          !model.qualities.includes(quality) && {
+                            quality: undefined,
+                          }),
                       });
                     }}
                     type="button"
@@ -163,12 +160,8 @@ export function CompareModels({
 }: {
   readonly node: NodeViewOf<"compare">;
 }) {
-  const { editSettings, view } = useBoard();
-  const options = useQuery({
-    queryFn: async () =>
-      await api(`/api/app/nodes/${node.id}/options`, NodeOptionsSchema),
-    queryKey: ["options", node.id, versionOf(node, view)],
-  });
+  const { editSettings } = useBoard();
+  const options = useNodeOptions(node);
   const chosen = modelsOf(node);
   const on = new Set(chosen);
   return (

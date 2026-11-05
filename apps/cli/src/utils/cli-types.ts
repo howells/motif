@@ -23,6 +23,7 @@ export interface CliOptions {
   last?: boolean;
   limit?: string;
   look?: string;
+  markup?: string;
   mask?: string;
   model?: string;
   /** A mood id, or `false` from `--no-mood`. */
@@ -60,6 +61,7 @@ export interface StdinPayload {
   ephemeral?: boolean;
   // History options
   limit?: number;
+  markupImageUrl?: string;
   maskImageUrl?: string;
   model?: string;
   negativePrompt?: string;

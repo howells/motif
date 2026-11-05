@@ -34,7 +34,7 @@ async function exec(
 function detectImageExtension(
   buffer: Buffer,
   contentType: string | null
-): ".gif" | ".jpg" | ".png" | ".webp" | null {
+): ".gif" | ".jpg" | ".png" | ".svg" | ".webp" | null {
   if (buffer[0] === 0xff && buffer[1] === 0xd8) {
     return ".jpg";
   }
@@ -79,6 +79,16 @@ function detectImageExtension(
   }
   if (normalized === "image/gif") {
     return ".gif";
+  }
+  if (normalized === "image/svg+xml") {
+    return ".svg";
+  }
+  const head = buffer.subarray(0, 256).toString("utf-8").trimStart();
+  if (
+    head.startsWith("<svg") ||
+    (head.startsWith("<?xml") && head.includes("<svg"))
+  ) {
+    return ".svg";
   }
 
   return null;

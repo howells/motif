@@ -15,7 +15,7 @@ import { hasText } from "./text";
 
 // -- Constants --
 
-export const OUTPUT_FORMATS = ["jpeg", "png", "webp"] as const;
+export const OUTPUT_FORMATS = ["jpeg", "png", "webp", "gif", "svg"] as const;
 export function resolvePreset(
   options: CliOptions,
   stdinPreset: string | undefined,

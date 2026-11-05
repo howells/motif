@@ -11,6 +11,13 @@ import type { Metadata } from "sharp";
 
 export type ImageType = "image/jpeg" | "image/png" | "image/webp";
 
+/** What a Task can return: an upload type, an animated GIF or an SVG. */
+export type MediaType = ImageType | "image/gif" | "image/svg+xml";
+
+/** GIF and SVG results are kept and shown, never sent on to another Task. */
+export const isFlatImage = (type: MediaType): type is ImageType =>
+  type === "image/jpeg" || type === "image/png" || type === "image/webp";
+
 /** Vercel caps a request body at 4.5 MB; the App's own client shrinks larger
  * photos before sending, and the server refuses anything over this. */
 export const UPLOAD_LIMIT_BYTES = 4_400_000;
@@ -73,13 +80,13 @@ const SHARP_FORMAT: Readonly<Record<ImageType, string>> = {
 };
 
 /**
- * Inspect and normalise an uploaded image. `kind` "mask" accepts PNG only
- * and keeps it exactly as drawn (no re-encode beyond PNG); a Source or
- * Reference may be JPEG, PNG or WebP.
+ * Inspect and normalise an uploaded image. `kind` "mask" or "markup" accepts
+ * PNG only and keeps it exactly as drawn (no re-encode beyond PNG, alpha
+ * kept); a Source or Reference may be JPEG, PNG or WebP.
  */
 export const inspectUpload = async (
   input: Uint8Array,
-  kind: "image" | "mask"
+  kind: "image" | "markup" | "mask"
 ): Promise<Inspection> => {
   if (input.byteLength === 0) {
     return refuse("EMPTY_FILE", "The file is empty.");
@@ -96,6 +103,9 @@ export const inspectUpload = async (
   }
   if (kind === "mask" && sniffed !== "image/png") {
     return refuse("MASK_NOT_PNG", "A mask must be a PNG.");
+  }
+  if (kind === "markup" && sniffed !== "image/png") {
+    return refuse("MARKUP_NOT_PNG", "Markup must be a PNG.");
   }
   let metadata: Metadata;
   try {
@@ -148,16 +158,44 @@ export const inspectUpload = async (
   }
 };
 
-/** Read the type and size of bytes a provider returned. Outputs are stored as
- * returned, but only if they are an image type the App serves. */
+/** The type a result's bytes declare: an upload type, a GIF, or an SVG
+ * document (an `<svg>` root, after any XML declaration and comments). */
+const sniffOutputType = (bytes: Uint8Array): MediaType | null => {
+  const flat = sniffImageType(bytes);
+  if (flat !== null) {
+    return flat;
+  }
+  const head = Buffer.from(bytes.subarray(0, 6)).toString("latin1");
+  if (head === "GIF87a" || head === "GIF89a") {
+    return "image/gif";
+  }
+  const text = Buffer.from(bytes.subarray(0, 1024)).toString("utf-8");
+  return /^\s*(?:<\?xml[^>]*>\s*)?(?:<!--[\s\S]*?-->\s*)*(?:<!DOCTYPE[^>]*>\s*)?<svg[\s>]/u.test(
+    text
+  )
+    ? "image/svg+xml"
+    : null;
+};
+
+const OUTPUT_SHARP_FORMAT: Readonly<Record<MediaType, string>> = {
+  ...SHARP_FORMAT,
+  "image/gif": "gif",
+  "image/svg+xml": "svg",
+};
+
+/**
+ * A Task's result, checked to be the image type its bytes declare and
+ * measured. A GIF's size is one frame's; an SVG's is its declared size.
+ * Returns `null` for anything the App can't keep.
+ */
 export const inspectOutput = async (
   bytes: Uint8Array
 ): Promise<{
-  contentType: ImageType;
+  contentType: MediaType;
   height: number;
   width: number;
 } | null> => {
-  const sniffed = sniffImageType(bytes);
+  const sniffed = sniffOutputType(bytes);
   if (sniffed === null) {
     return null;
   }
@@ -165,18 +203,15 @@ export const inspectOutput = async (
     const metadata = await sharp(bytes, {
       limitInputPixels: 300_000_000,
     }).metadata();
+    const height = metadata.pageHeight ?? metadata.height;
     if (
-      metadata.format !== SHARP_FORMAT[sniffed] ||
+      metadata.format !== OUTPUT_SHARP_FORMAT[sniffed] ||
       metadata.width === undefined ||
-      metadata.height === undefined
+      height === undefined
     ) {
       return null;
     }
-    return {
-      contentType: sniffed,
-      height: metadata.height,
-      width: metadata.width,
-    };
+    return { contentType: sniffed, height, width: metadata.width };
   } catch {
     return null;
   }

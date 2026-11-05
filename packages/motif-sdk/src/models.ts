@@ -20,19 +20,8 @@ export const MODELS: Record<string, ModelConfig> = {
 
   flare: {
     benchmark: {
-      artificialAnalysis: {
-        editing: {
-          elo: 1163,
-          rank: 2,
-        },
-        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
-        sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: {
-          elo: 1191,
-          rank: 2,
-        },
-      },
-      useCase: "Frontier generation and editing, evaluated at max quality",
+      useCase:
+        "Frontier generation and editing at max reasoning effort; not yet benchmarked",
     },
     defaultQuality: "max",
     customImageSize: {
@@ -42,10 +31,10 @@ export const MODELS: Record<string, ModelConfig> = {
       minPixels: 655_360,
       multipleOf: 16,
     },
-    editEndpoint: "openai/gpt-image-2.5/flare/edit",
-    endpoint: "openai/gpt-image-2.5/flare/text-to-image",
+    editEndpoint: "openai/gpt-image-2.6/flare/edit",
+    endpoint: "openai/gpt-image-2.6/flare/text-to-image",
     maxReferenceImages: 16,
-    name: "GPT Image 2.5 Flare",
+    name: "GPT Image 2.6 Flare",
     pricing:
       "Token-based: text $5/M input, $1.25/M cached, $10/M output; image $8/M input, $2/M cached, $30/M output",
     pricePerImageUsd: null,
@@ -55,9 +44,15 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsEdit: true,
     supportsMaskImage: true,
     maskImageField: "mask_url",
+    supportsMarkupImage: true,
+    autoEditSize: true,
     supportsNumImages: true,
     supportsOutputFormat: true,
+    supportedOutputFormats: ["jpeg", "png", "webp", "gif", "svg"],
+    // fal makes SVG from text only.
+    supportedEditOutputFormats: ["jpeg", "png", "webp", "gif"],
     supportsQuality: true,
+    supportsReasoningEffort: true,
     supportedQualities: ["auto", "low", "medium", "high", "xhigh", "max"],
     supportsResolution: false,
     supportsSyncMode: true,
@@ -66,19 +61,8 @@ export const MODELS: Record<string, ModelConfig> = {
   },
   sunburst: {
     benchmark: {
-      artificialAnalysis: {
-        editing: {
-          elo: 1183,
-          rank: 1,
-        },
-        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
-        sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: {
-          elo: 1198,
-          rank: 1,
-        },
-      },
-      useCase: "Frontier generation and editing, evaluated at max quality",
+      useCase:
+        "Frontier generation and editing at max reasoning effort; not yet benchmarked",
     },
     defaultQuality: "max",
     customImageSize: {
@@ -88,10 +72,10 @@ export const MODELS: Record<string, ModelConfig> = {
       minPixels: 655_360,
       multipleOf: 16,
     },
-    editEndpoint: "openai/gpt-image-2.5/sunburst/edit",
-    endpoint: "openai/gpt-image-2.5/sunburst/text-to-image",
+    editEndpoint: "openai/gpt-image-2.6/sunburst/edit",
+    endpoint: "openai/gpt-image-2.6/sunburst/text-to-image",
     maxReferenceImages: 16,
-    name: "GPT Image 2.5 Sunburst",
+    name: "GPT Image 2.6 Sunburst",
     pricing:
       "Token-based: text $5/M input, $1.25/M cached, $10/M output; image $8/M input, $2/M cached, $30/M output",
     pricePerImageUsd: null,
@@ -101,9 +85,15 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsEdit: true,
     supportsMaskImage: true,
     maskImageField: "mask_url",
+    supportsMarkupImage: true,
+    autoEditSize: true,
     supportsNumImages: true,
     supportsOutputFormat: true,
+    supportedOutputFormats: ["jpeg", "png", "webp", "gif", "svg"],
+    // fal makes SVG from text only.
+    supportedEditOutputFormats: ["jpeg", "png", "webp", "gif"],
     supportsQuality: true,
+    supportsReasoningEffort: true,
     supportedQualities: ["auto", "low", "medium", "high", "xhigh", "max"],
     supportsResolution: false,
     supportsSyncMode: true,

@@ -16,6 +16,7 @@ import {
   parseSettings,
   staleAfterEdit,
   staleAfterPick,
+  formatOf,
   wireRefusal,
 } from "./model";
 import type { KindSettings, NodeKind, RunScope, SettingsInput } from "./model";
@@ -360,7 +361,11 @@ export const connect = async (
   if (source === undefined || target === undefined) {
     return refuse(404, "NOT_FOUND", "Both ends must be on this Board.");
   }
-  const refusal = wireRefusal(source, target, graph.wires);
+  const refusal = wireRefusal(
+    { ...source, format: formatOf(source) },
+    target,
+    graph.wires
+  );
   if (refusal !== null) {
     return refuse(400, "INVALID_WIRE", refusal);
   }

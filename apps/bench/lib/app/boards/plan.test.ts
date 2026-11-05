@@ -268,3 +268,77 @@ describe(quoteRun, () => {
     expect(quoted.listMicros).toBe(30_000);
   });
 });
+
+const image = (assetId: string) =>
+  ({
+    assetId,
+    kind: "image",
+    pending: false,
+    size: { height: 512, width: 512 },
+  }) as const;
+
+describe("GPT Image 2.6 options on the Board", () => {
+  const OTHER = `ast_${"b".repeat(32)}`;
+  const MARKUP = `ast_${"c".repeat(32)}`;
+
+  it("sends a GIF's format, frames and quality with the named Model", () => {
+    const built = buildRequests(
+      make("g", "generate", {
+        format: "gif",
+        frameCount: 12,
+        model: "flare",
+        quality: "low",
+      }),
+      { kind: "text", prompt: "a flame" }
+    );
+    expect(built).toMatchObject({
+      ok: true,
+      requests: [
+        {
+          format: "gif",
+          frames: { count: 12, durationMs: 200 },
+          model: "flare",
+          quality: "low",
+        },
+      ],
+    });
+  });
+
+  it("sends markup only with the image it was drawn on", () => {
+    const vary = make("v", "vary", {
+      markupAssetId: MARKUP,
+      markupDrawnOn: ASSET,
+    });
+    expect(buildRequests(vary, image(ASSET))).toMatchObject({
+      ok: true,
+      requests: [{ markupAssetId: MARKUP, sourceAssetId: ASSET }],
+    });
+    const moved = buildRequests(vary, image(OTHER));
+    expect(moved.ok).toBe(false);
+    expect(moved.ok ? "" : moved.reason).toContain("different image");
+    expect(
+      buildRequests(vary, { ...image(PENDING_ASSET_ID), pending: true })
+    ).toMatchObject({ ok: false });
+  });
+
+  it("refuses a GIF or SVG as another Task's input", () => {
+    const graph: Graph = {
+      nodes: [
+        make("g", "generate", { format: "svg" }, ASSET),
+        make("u", "upscale"),
+      ],
+      wires: [{ from: "g", id: "w", to: "u" }],
+    };
+    const [, upscale] = graph.nodes;
+    if (upscale === undefined) {
+      throw new Error("missing node");
+    }
+    const input = inputFor(
+      upscale,
+      graph,
+      new Map([[ASSET, { height: 512, width: 512 }]])
+    );
+    expect(input.kind === "unusable" ? input.reason : "").toContain("SVG");
+    expect(buildRequests(upscale, input)).toMatchObject({ ok: false });
+  });
+});

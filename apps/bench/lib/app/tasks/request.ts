@@ -61,30 +61,88 @@ const common = {
   tier: z.enum(TIERS).optional(),
 };
 
-const generate = z.strictObject({
-  ...common,
-  aspect: z.enum(APP_ASPECTS).optional(),
-  count: z.int().min(1).max(MAX_IMAGES_PER_RUN).default(1),
-  look: z
-    .string()
-    .refine((value) => LOOK_IDS.has(value), "Unknown Look.")
-    .optional(),
-  mood: z
-    .string()
-    .refine((value) => MOOD_IDS.has(value), "Unknown Mood.")
-    .optional(),
-  prompt: z.string().trim().min(1, "Write a prompt.").max(4000),
-  referenceAssetIds: z.array(assetId).max(MAX_REFERENCES).default([]),
-  task: z.literal("generate"),
+/** GIF output: how many frames, and how long each shows. fal's limits. */
+const frames = z.strictObject({
+  count: z.int().min(2).max(64),
+  durationMs: z.int().min(20).max(2000),
 });
 
-const vary = z.strictObject({
-  ...common,
-  count: z.int().min(1).max(MAX_IMAGES_PER_RUN).default(1),
-  prompt: z.string().trim().max(4000).optional(),
-  sourceAssetId: assetId,
-  task: z.literal("vary"),
-});
+/** Quality levels for Models that take one; GPT Image 2.6 sends the top
+ * two as reasoning effort. */
+export const APP_QUALITIES = ["low", "medium", "high", "xhigh", "max"] as const;
+
+/** Output options beyond the default image. Frames and quality are fields
+ * only some Models understand, so they need a named Model; a format narrows
+ * Motif's choice to Models that make it. */
+const output = {
+  frames: frames.optional(),
+  quality: z.enum(APP_QUALITIES).optional(),
+};
+
+const checkOutput = (
+  request: {
+    format?: string;
+    frames?: unknown;
+    model?: string;
+    quality?: string;
+  },
+  context: z.RefinementCtx
+): void => {
+  if (request.frames !== undefined && request.format !== "gif") {
+    context.addIssue({
+      code: "custom",
+      message: "Frames apply to GIF output.",
+      path: ["frames"],
+    });
+  }
+  if (
+    (request.frames !== undefined || request.quality !== undefined) &&
+    request.model === undefined
+  ) {
+    context.addIssue({
+      code: "custom",
+      message: "Choose a Model to set its frames or quality.",
+      path: ["model"],
+    });
+  }
+};
+
+const generate = z
+  .strictObject({
+    ...common,
+    ...output,
+    /** An animated GIF or an SVG instead of a flat image. */
+    format: z.enum(["gif", "svg"]).optional(),
+    aspect: z.enum(APP_ASPECTS).optional(),
+    count: z.int().min(1).max(MAX_IMAGES_PER_RUN).default(1),
+    look: z
+      .string()
+      .refine((value) => LOOK_IDS.has(value), "Unknown Look.")
+      .optional(),
+    mood: z
+      .string()
+      .refine((value) => MOOD_IDS.has(value), "Unknown Mood.")
+      .optional(),
+    prompt: z.string().trim().min(1, "Write a prompt.").max(4000),
+    referenceAssetIds: z.array(assetId).max(MAX_REFERENCES).default([]),
+    task: z.literal("generate"),
+  })
+  .superRefine(checkOutput);
+
+const vary = z
+  .strictObject({
+    ...common,
+    ...output,
+    count: z.int().min(1).max(MAX_IMAGES_PER_RUN).default(1),
+    /** An edit can return an animated GIF; SVG is made from text only. */
+    format: z.enum(["gif"]).optional(),
+    /** Arrows, circles and notes drawn over the Source, guiding the edit. */
+    markupAssetId: assetId.optional(),
+    prompt: z.string().trim().max(4000).optional(),
+    sourceAssetId: assetId,
+    task: z.literal("vary"),
+  })
+  .superRefine(checkOutput);
 
 const box = z.strictObject({
   height: z.int().min(1),
@@ -205,10 +263,24 @@ export const parseTaskRequest = (
 /** The asset ids a request names, by role. */
 export const assetIdsOf = (
   request: AppTaskRequest
-): { source?: string; mask?: string; references: readonly string[] } => {
+): {
+  source?: string;
+  mask?: string;
+  markup?: string;
+  references: readonly string[];
+} => {
   switch (request.task) {
     case "generate": {
       return { references: request.referenceAssetIds };
+    }
+    case "vary": {
+      return {
+        ...(request.markupAssetId !== undefined && {
+          markup: request.markupAssetId,
+        }),
+        references: [],
+        source: request.sourceAssetId,
+      };
     }
     case "erase": {
       return request.mode === "paint"
@@ -221,8 +293,7 @@ export const assetIdsOf = (
     }
     case "cutout":
     case "reframe":
-    case "upscale":
-    case "vary": {
+    case "upscale": {
       return { references: [], source: request.sourceAssetId };
     }
     default: {
@@ -234,6 +305,7 @@ export const assetIdsOf = (
 /** Images resolved for a request: data or placeholder URLs plus sizes. */
 export interface ResolvedImages {
   readonly mask?: string;
+  readonly markup?: string;
   readonly references: readonly string[];
   readonly source?: {
     readonly url: string;
@@ -241,6 +313,24 @@ export interface ResolvedImages {
     readonly height: number;
   };
 }
+
+/** The SDK fields for a request's format, frames and quality. Frames and
+ * quality are Model-only fields, sent as `params`. */
+const outputInput = (
+  request: Extract<AppTaskRequest, { task: "generate" | "vary" }>
+): Pick<TaskInput, "outputFormat" | "params"> => {
+  const params = {
+    ...(request.quality !== undefined && { quality: request.quality }),
+    ...(request.frames !== undefined && {
+      frame_count: request.frames.count,
+      frame_duration_ms: request.frames.durationMs,
+    }),
+  };
+  return {
+    ...(request.format !== undefined && { outputFormat: request.format }),
+    ...(Object.keys(params).length > 0 && { params }),
+  };
+};
 
 /** The SDK input for a request. `model` pins the Model chosen when the run
  * was reserved, so the call that runs is the call that was priced. */
@@ -267,6 +357,7 @@ export const toTaskInput = (
     case "generate": {
       return {
         ...base,
+        ...outputInput(request),
         count: request.count,
         prompt: request.prompt,
         ...(request.aspect !== undefined && { aspect: request.aspect }),
@@ -279,6 +370,8 @@ export const toTaskInput = (
       return {
         ...base,
         ...source,
+        ...outputInput(request),
+        ...(images.markup !== undefined && { markup: images.markup }),
         count: request.count,
         ...(request.prompt !== undefined &&
           request.prompt !== "" && { prompt: request.prompt }),

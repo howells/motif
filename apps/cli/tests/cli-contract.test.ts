@@ -235,6 +235,60 @@ describe("CLI contract", () => {
     expect(asRecord(table.tasks).outpaint).toBe("reframe");
   });
 
+  it("exposes dated, task-specific model scores without changing the model ID arrays", async () => {
+    const result = await runMotif(["--describe", "tasks", "--format", "json"]);
+    expect(result.code).toBe(0);
+    const commands = asRecord(parseJsonLine(result.stdout).commands);
+    const generate = asRecord(commands.generate);
+    const vary = asRecord(commands.vary);
+    expect(generate).toMatchObject({
+      models: [...new Set(TASKS.generate.models.map(({ model }) => model))],
+      rankedAt: "2026-10-29",
+      referenceRankingTask: "vary",
+    });
+    const entry = (ranking: unknown, model: string) =>
+      asArray(ranking)
+        .map(asRecord)
+        .find((item) => item.model === model);
+    expect(entry(generate.ranking, "gpt2")).toMatchObject({
+      benchmark: {
+        elo: 1381,
+        task: "text-to-image",
+        snapshotDate: "2026-10-29",
+      },
+    });
+    expect(entry(vary.ranking, "gpt2")).toMatchObject({
+      benchmark: { elo: 1460, task: "image-edit-single-image" },
+    });
+    // Arena scored GPT Image 2.5; Sunburst now routes to 2.6.
+    expect(entry(generate.ranking, "sunburst")).toMatchObject({
+      benchmark: null,
+      tier: "quality",
+    });
+    expect(entry(vary.ranking, "krea3")?.benchmark).toBeNull();
+  });
+
+  it("makes the same score evidence available on a single command and full inspection", async () => {
+    for (const args of [
+      ["--describe", "generate", "--format", "json"],
+      ["--describe", "--format", "json"],
+    ]) {
+      const result = await runMotif(args);
+      expect(result.code).toBe(0);
+      const schema = parseJsonLine(result.stdout);
+      const generate = args.includes("generate")
+        ? schema
+        : asRecord(asRecord(schema.commands).generate);
+      const gpt = asArray(generate.ranking)
+        .map(asRecord)
+        .find(({ model }) => model === "gpt2");
+      expect(asRecord(gpt?.benchmark)).toMatchObject({
+        evaluatedModel: "GPT-Image-2 (Medium)",
+        source: "https://arena.ai/leaderboard/image/text-to-image",
+      });
+    }
+  });
+
   it("carries task routing on a single described command", async () => {
     const result = await runMotif(["--describe", "erase", "--format", "json"]);
     const erase = parseJsonLine(result.stdout);
@@ -1369,6 +1423,53 @@ describe("CLI contract", () => {
       is_retriable: false,
       status: 400,
       type: "urn:motif:error:unknown-model",
+    });
+  });
+
+  it("plans a vary with --markup on a Model that takes markup", async () => {
+    const home = tempHome();
+    const source = join(home, "source.png");
+    const markup = join(home, "markup.png");
+    writeFileSync(source, PNG_BYTES);
+    writeFileSync(markup, PNG_BYTES);
+    const result = await runMotif(
+      ["vary", source, "--markup", markup, "--dry-run", "--format", "json"],
+      "",
+      home
+    );
+    expect(result.code).toBe(0);
+    const plan = parseJsonLine(result.stdout);
+    expect(["sunburst", "flare"]).toContain(plan.model);
+    expect(asRecord(plan.request).markup_image_url).toMatch(/^<data url/u);
+
+    const refused = await runMotif(
+      ["vary", source, "--markup", markup, "-m", "banana", "--dry-run"],
+      "",
+      home
+    );
+    expect(refused.code).toBe(2);
+    expect(refused.stdout + refused.stderr).toContain("--markup");
+  });
+
+  it("asks for GIF output and names the file for it", async () => {
+    const result = await runMotif([
+      "a looping flame",
+      "--output-format",
+      "gif",
+      "--param",
+      "frame_count=12",
+      "-m",
+      "flare",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(result.code).toBe(0);
+    const plan = parseJsonLine(result.stdout);
+    expect(plan.output).toMatch(/\.gif$/u);
+    expect(plan.request).toMatchObject({
+      frame_count: 12,
+      output_format: "gif",
     });
   });
 });

@@ -22,7 +22,8 @@ export type AspectRatio =
 export type Resolution = "0.5K" | "1K" | "2K" | "4K";
 
 export type ModelType = "generation" | "utility" | "video";
-export type ImageOutputFormat = "jpeg" | "png" | "webp";
+/** `gif` is an animation and `svg` a vector image, on the Models that make them. */
+export type ImageOutputFormat = "jpeg" | "png" | "webp" | "gif" | "svg";
 export type BackgroundMode = "auto" | "transparent" | "opaque";
 export type ImageQuality = "auto" | "low" | "medium" | "high" | "xhigh" | "max";
 export type ThinkingLevel = "minimal" | "high";
@@ -155,14 +156,34 @@ export interface ModelConfig {
   supportsLimitGenerations?: boolean;
   supportsMaskImage?: boolean;
   maskImageField?: "mask_image_url" | "mask_url";
+  /**
+   * Takes `markup_image_url`: a transparent PNG of annotations (circles,
+   * arrows, notes) the size of the first edit image, guiding its edit.
+   */
+  supportsMarkupImage?: boolean;
+  /**
+   * An edit with no aspect asked for sends `image_size: "auto"`, so the
+   * result keeps the edited image's shape. For Models whose fal edit
+   * endpoint takes `auto`.
+   */
+  autoEditSize?: boolean;
   supportsNegativePrompt?: boolean;
   supportsNumImages: boolean;
   supportsOutputFormat?: boolean;
+  /** Formats the Model returns. Absent means jpeg, png and webp. */
   supportedOutputFormats?: readonly ImageOutputFormat[];
+  /** Formats an edit returns, where they differ from `supportedOutputFormats`. */
+  supportedEditOutputFormats?: readonly ImageOutputFormat[];
   supportsQuality?: boolean;
   /** Default matching the quality variant used in this Model's ranking. */
   defaultQuality?: ImageQuality;
   supportedQualities?: readonly ImageQuality[];
+  /**
+   * fal takes `quality` only up to `high` and the `xhigh` and `max` levels as
+   * `reasoning_effort` (GPT Image 2.6), so those levels send `quality: "high"`
+   * with `reasoning_effort` set to the level.
+   */
+  supportsReasoningEffort?: boolean;
   supportsRaw?: boolean;
   supportsRenderingSpeed?: boolean;
   supportsResolution: boolean;
@@ -225,6 +246,8 @@ export interface GenerateOptions {
   limitGenerations?: boolean;
   /** Mask image URL for inpainting/editing where supported */
   maskImageUrl?: string;
+  /** Markup image URL guiding an edit of the first edit image, where supported */
+  markupImageUrl?: string;
   model: string;
   /** What NOT to include in the image (ideogram only) */
   negativePrompt?: string;
