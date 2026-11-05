@@ -22,8 +22,8 @@ catalogs:
       specifier: ^0.3.7
       version: 0.3.7
     '@howells/husky':
-      specifier: ^0.2.5
-      version: 0.2.5
+      specifier: ^0.3.0
+      version: 0.3.0
     '@howells/lint':
       specifier: ^3.5.1
       version: 3.5.1
@@ -196,7 +196,7 @@ importers:
     devDependencies:
       '@howells/husky':
         specifier: 'catalog:'
-        version: 0.2.5
+        version: 0.3.0
       '@howells/lint':
         specifier: 'catalog:'
         version: 3.5.1(@neondatabase/serverless@1.1.0)(drizzle-kit@1.0.0-rc.4)(drizzle-orm@1.0.0-rc.4(@neondatabase/serverless@1.1.0)(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(pg@8.23.0)(valibot@1.5.0(typescript@7.0.2))(zod@4.6.7))(pg@8.23.0)(prettier@3.9.10)
@@ -1764,8 +1764,8 @@ packages:
     peerDependencies:
       zod: ^4.0.0
 
-  '@howells/husky@0.2.5':
-    resolution: {integrity: sha512-DPIb/00erhkhscc2UySTG1/8cxpMZn04VsN2jv5f4K1MAklOmSH0fbz7uucqd07SZZtPyq9p6Iprh/lf11bl1w==}
+  '@howells/husky@0.3.0':
+    resolution: {integrity: sha512-p8TmJQ6oIRSYbm3HS3xNjN2cnD287jkeuUz62vSwyjtgMeqQAsVuTuFziEgb1Usq992FFiiDKe2rPTfKAM75ow==}
     engines: {node: '>=24.15.0'}
     hasBin: true
 
@@ -11036,7 +11036,7 @@ snapshots:
       dotenv: 17.4.2
       zod: 4.6.7
 
-  '@howells/husky@0.2.5':
+  '@howells/husky@0.3.0':
     dependencies:
       husky: 9.1.7
 
