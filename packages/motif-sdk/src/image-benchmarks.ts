@@ -1,4 +1,8 @@
-/** Arena image scores captured for MOT-72 on October 29, 2026. */
+/**
+ * Arena image scores captured for MOT-72 on October 29, 2026. Flare and
+ * Sunburst route to GPT Image 2.6 but keep 2.5's scores until 2.6 is
+ * benchmarked; `evaluatedModel` names what was measured.
+ */
 export type ImageBenchmarkTask = "text-to-image" | "image-edit-single-image";
 
 interface ArenaScore {
@@ -22,6 +26,22 @@ export interface ImageModelBenchmark extends ArenaScore {
 type ArenaScoreTable = Readonly<Partial<Record<string, ArenaScore>>>;
 
 const TEXT_TO_IMAGE = {
+  sunburst: {
+    elo: 1427,
+    rank: 1,
+    uncertainty: 5,
+    evaluatedModel: "GPT-Image-2.5 Sunburst",
+    preliminary: true,
+    votes: 40_323,
+  },
+  flare: {
+    elo: 1401,
+    rank: 2,
+    uncertainty: 5,
+    evaluatedModel: "GPT-Image-2.5 Flare",
+    preliminary: true,
+    votes: 39_218,
+  },
   gpt2: {
     elo: 1381,
     rank: 3,
@@ -111,6 +131,20 @@ const TEXT_TO_IMAGE = {
 } satisfies ArenaScoreTable;
 
 const IMAGE_EDITING = {
+  sunburst: {
+    elo: 1517,
+    rank: 1,
+    uncertainty: 5,
+    evaluatedModel: "GPT-Image-2.5 Sunburst",
+    preliminary: true,
+  },
+  flare: {
+    elo: 1482,
+    rank: 2,
+    uncertainty: 5,
+    evaluatedModel: "GPT-Image-2.5 Flare",
+    preliminary: true,
+  },
   gpt2: {
     elo: 1460,
     rank: 4,

@@ -44,16 +44,18 @@ describe("published image ranking evidence", () => {
     });
   });
 
+  it("scores Flare and Sunburst as GPT Image 2.5 until 2.6 is benchmarked", () => {
+    expect(TASKS.generate.models[0]).toMatchObject({
+      model: "sunburst",
+      benchmark: { elo: 1427, evaluatedModel: "GPT-Image-2.5 Sunburst" },
+    });
+    expect(TASKS.vary.models[0]).toMatchObject({
+      model: "sunburst",
+      benchmark: { elo: 1517, task: "image-edit-single-image" },
+    });
+  });
+
   it("leaves unmeasured routes unscored, including Krea's non-Ultra route", () => {
-    // Arena scored GPT Image 2.5; Flare and Sunburst now route to 2.6.
-    for (const model of ["flare", "sunburst"]) {
-      expect(
-        TASKS.generate.models.find((entry) => entry.model === model)?.benchmark
-      ).toBeNull();
-      expect(
-        TASKS.vary.models.find((entry) => entry.model === model)?.benchmark
-      ).toBeNull();
-    }
     expect(
       TASKS.vary.models.find(({ model }) => model === "krea3")?.benchmark
     ).toBeNull();

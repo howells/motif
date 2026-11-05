@@ -260,10 +260,11 @@ describe("CLI contract", () => {
     expect(entry(vary.ranking, "gpt2")).toMatchObject({
       benchmark: { elo: 1460, task: "image-edit-single-image" },
     });
-    // Arena scored GPT Image 2.5; Sunburst now routes to 2.6.
-    expect(entry(generate.ranking, "sunburst")).toMatchObject({
-      benchmark: null,
+    // Scored as GPT Image 2.5 until 2.6 is benchmarked.
+    expect(asRecord(asArray(generate.ranking)[0])).toMatchObject({
+      model: "sunburst",
       tier: "quality",
+      benchmark: { elo: 1427, evaluatedModel: "GPT-Image-2.5 Sunburst" },
     });
     expect(entry(vary.ranking, "krea3")?.benchmark).toBeNull();
   });

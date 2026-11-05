@@ -29,6 +29,7 @@ export const IMAGE_TEXT_TO_IMAGE_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "GPT Image 2.5 Sunburst (max)",
       rank: 1,
+      routableModelId: "sunburst",
     },
     {
       apiPricing: "$210.7 /1k imgs",
@@ -37,6 +38,7 @@ export const IMAGE_TEXT_TO_IMAGE_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "GPT Image 2.5 Flare (max)",
       rank: 2,
+      routableModelId: "flare",
     },
     {
       apiPricing: "$211.0 /1k imgs",
@@ -206,6 +208,7 @@ export const IMAGE_EDITING_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "GPT Image 2.5 Sunburst (max)",
       rank: 1,
+      routableModelId: "sunburst",
     },
     {
       apiPricing: "$210.7 /1k imgs",
@@ -214,6 +217,7 @@ export const IMAGE_EDITING_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "GPT Image 2.5 Flare (max)",
       rank: 2,
+      routableModelId: "flare",
     },
     {
       apiPricing: "$38.9 /1k imgs",

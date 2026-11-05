@@ -20,8 +20,20 @@ export const MODELS: Record<string, ModelConfig> = {
 
   flare: {
     benchmark: {
+      artificialAnalysis: {
+        editing: {
+          elo: 1163,
+          rank: 2,
+        },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 1191,
+          rank: 2,
+        },
+      },
       useCase:
-        "Frontier generation and editing at max reasoning effort; not yet benchmarked",
+        "Frontier generation and editing at max reasoning effort; scored as GPT Image 2.5 until 2.6 is benchmarked",
     },
     defaultQuality: "max",
     customImageSize: {
@@ -61,8 +73,20 @@ export const MODELS: Record<string, ModelConfig> = {
   },
   sunburst: {
     benchmark: {
+      artificialAnalysis: {
+        editing: {
+          elo: 1183,
+          rank: 1,
+        },
+        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
+        sourceUrls: AA_IMAGE_SOURCES,
+        textToImage: {
+          elo: 1198,
+          rank: 1,
+        },
+      },
       useCase:
-        "Frontier generation and editing at max reasoning effort; not yet benchmarked",
+        "Frontier generation and editing at max reasoning effort; scored as GPT Image 2.5 until 2.6 is benchmarked",
     },
     defaultQuality: "max",
     customImageSize: {
