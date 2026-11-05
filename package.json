@@ -9,9 +9,7 @@
     "lint": "turbo run lint && howells-workspace-check",
     "lint:fix": "turbo run lint:fix",
     "prepare": "howells-husky",
-    "prepush": "pnpm typecheck && pnpm lint",
     "test": "turbo run test",
-    "test:fal-canary": "RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.ts",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {

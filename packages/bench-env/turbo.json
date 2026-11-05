@@ -1,4 +1,0 @@
-{
-  "extends": ["//"],
-  "tags": ["type:package", "scope:bench-env", "visibility:internal"]
-}

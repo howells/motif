@@ -218,9 +218,3 @@ If some candidates fail, the judge sees only the survivors; if all `n` fail, `be
 pnpm --filter @howells/motif-sdk test
 pnpm --filter @howells/motif-sdk typecheck
 ```
-
-Live fal canaries are opt-in:
-
-```bash
-RUN_FAL_CANARY=1 pnpm --filter @howells/motif-sdk test -- tests/fal-canary.test.ts
-```

@@ -83,8 +83,7 @@
    site, in the App and in the Bench. The spacing steps are Tailwind's own
    (`gap-2` is 8px) and the CSS custom properties are the same numbers, so a
    stylesheet writes `var(--spacing-4)` where markup writes `p-4`. Anything
-   between two steps is a decision to take one of them, never a new number:
-   `scripts/check-design-scale.mjs` holds the line.
+   between two steps is a decision to take one of them, never a new number.
 
        1 = 4    2 = 8    3 = 12    4 = 16    6 = 24
        8 = 32   12 = 48  16 = 64   24 = 96   32 = 128
@@ -242,7 +241,6 @@
    all of them; `font-medium` (500) is the single emphasis, and the only
    modifiers beside a role are `font-medium`, `font-mono` (literal command or
    code text, at `type-small` size), `tabular-nums` and `capitalize`.
-   `scripts/check-app-typography.mjs` holds every stylesheet to this block and
    the `howells/no-raw-type-utilities` rule holds every component.
 
        type-display   22/28, -0.02em       Faculty   the homepage's lead line; site only

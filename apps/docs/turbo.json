@@ -1,6 +1,5 @@
 {
   "extends": ["//"],
-  "tags": ["type:app", "scope:docs", "visibility:public"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

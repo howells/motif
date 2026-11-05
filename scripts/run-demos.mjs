@@ -160,7 +160,7 @@ function sourcesOf(demo) {
 function argvFor(demo, { dry }) {
   const raw = sourcePath(demo.source);
   // A derived input already on disk is what the plate was made from, and what
-  // build-page.py and verify-demos.py treat as its before.
+  // build-page.py treats as its before.
   const made = join("docs/tools/examples", `derived-${demo.plate}.jpg`);
   const input = demo.derive
     ? derive(demo.derive, raw, demo.plate, { dry })

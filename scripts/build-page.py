@@ -173,7 +173,7 @@ def input_path(demo):
     What actually went in.
 
     A deliberately degraded input is the point of the plate, so where one exists
-    it is the before, exactly as scripts/verify-demos.py measures it.
+    it is the before.
     """
     return first(f"derived-{demo['plate']}.*") or source_path(demo["source"])
 
@@ -1035,8 +1035,7 @@ def build():
 
   <footer>
     <div>{versions}</div>
-    <div>Every plate produced through the CLI against the source beside it, and checked by
-      scripts/verify-demos.py to have measurably changed the picture. Source photography made
+    <div>Every plate produced through the CLI against the source beside it. Source photography made
       for this page. Prices are the CLI's dry runs; per-run figures are its own history.</div>
     <div>Built {datetime.now().strftime('%-d %B %Y')} from scripts/demo-manifest.json.</div>
   </footer>

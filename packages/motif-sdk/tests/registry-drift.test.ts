@@ -1,5 +1,5 @@
 // This spends no credits: it only fetches fal's public OpenAPI schema documents
-// and never runs a model. Do not gate it behind RUN_FAL_CANARY.
+// and never runs a model.
 //
 // Checks every entry in FAL_TOOLS against fal's live OpenAPI document for that
 // endpoint: the endpoint must still exist, and every key the registry claims

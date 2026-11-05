@@ -1,4 +1,0 @@
-{
-  "extends": ["//"],
-  "tags": ["type:app", "scope:bench-web", "visibility:internal"]
-}

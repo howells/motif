@@ -107,9 +107,7 @@ export default {
       // size) and `capitalize` (cases a data value); `tabular-nums` is not a
       // typographic utility this rule governs. Written down on its own the
       // case drifts, because each file's raw utility looks reasonable in
-      // isolation, so this rule holds every component and
-      // `scripts/check-app-typography.mjs` holds every stylesheet.
-      // `scripts/check-design-scale.mjs` holds spacing and radius.
+      // isolation, so this rule holds every component.
       files: [
         "apps/bench/components/**",
         "apps/bench/app/**",
