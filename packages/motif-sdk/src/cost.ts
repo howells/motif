@@ -62,11 +62,6 @@ export function estimateCost(
   }
 
   switch (model) {
-    case "gpt2": {
-      // Blended estimate: fal bills gpt-image-2 on a $0.005–$0.401 tiered scale
-      // (by size/quality); 0.211 is a representative mid-point per image.
-      return 0.211 * numImages;
-    }
     case "gpt": {
       return 0.133 * numImages;
     }

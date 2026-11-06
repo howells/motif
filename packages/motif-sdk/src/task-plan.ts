@@ -11,10 +11,10 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { aspectToGptSize, ImageSizeBoundsError } from "./aspects";
+import { ImageSizeBoundsError } from "./aspects";
 import { outputFormatsOf, UnsupportedOptionError } from "./capabilities";
 import type { ModelOption } from "./capabilities";
-import { CreativeOptionError, enrichPrompt } from "./creative";
+import { CreativeOptionError } from "./creative";
 import type { CreativeDirection } from "./creative";
 import { MotifError, toMotifError } from "./errors";
 import { buildGenerateBody } from "./generate";
@@ -35,7 +35,6 @@ import {
   mergeParams,
   projected,
   refuseOthers,
-  UNKNOWN_COST,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { toolPlan } from "./task-plan-tools";
@@ -43,19 +42,13 @@ import { videoPlan } from "./task-plan-video";
 import { isTaskId, TASKS } from "./tasks";
 import type { RankedModel, TaskId } from "./tasks";
 import { isFalToolId } from "./tools";
-import type {
-  GenerateOptions,
-  ImageQuality,
-  ModelConfig,
-  ProviderRoute,
-} from "./types";
+import type { GenerateOptions, ImageQuality, ModelConfig } from "./types";
 
 export { INVALID_OPTION } from "./task-plan-shared";
 
 /** Keys and pins the planner resolves against. */
 export interface PlanContext {
   falKey?: string;
-  openAiKey?: string;
   pins?: Readonly<Partial<Record<TaskId, string>>>;
 }
 
@@ -120,9 +113,6 @@ function resolve(
   const keys: string[] = [];
   if (options.dryRun === true || context.falKey !== undefined) {
     keys.push("FAL_KEY");
-  }
-  if (options.dryRun === true || context.openAiKey !== undefined) {
-    keys.push("OPENAI_API_KEY");
   }
   const resolution = resolveTask(task, taskRequest(task, input), {
     keys,
@@ -419,19 +409,6 @@ function generationPlan(
     );
   }
   if (
-    input.transparent === true &&
-    config.supportsBackground !== true &&
-    config.transparencyRoute !== undefined
-  ) {
-    return openAiPlan(
-      task,
-      model,
-      config.transparencyRoute,
-      input,
-      editImageUrls
-    );
-  }
-  if (
     input.outputFormat !== undefined &&
     !outputFormatsOf(config, editImageUrls.length > 0).includes(
       input.outputFormat
@@ -502,75 +479,6 @@ function generationPlan(
       config.useQueue === true ||
       input.onProgress !== undefined ||
       input.onSubmitted !== undefined,
-  });
-}
-
-/**
- * The OpenAI transparency route. Ported from the CLI's generate-openai: the
- * route carries only what gpt-image takes, so everything else is refused.
- */
-function openAiPlan(
-  task: TaskId,
-  model: string,
-  route: ProviderRoute,
-  input: TaskInput,
-  editImageUrls: readonly string[]
-): Result<PlanBody, MotifError> {
-  const allowed = new Set<CarriedField>([
-    "aspect",
-    "count",
-    "look",
-    "mask",
-    "mood",
-    "prompt",
-    "references",
-    "transparent",
-  ]);
-  if (task === "vary") {
-    allowed.add("image");
-  }
-  if (input.outputFormat === "png") {
-    allowed.add("outputFormat");
-  }
-  const refused = refuseOthers(input, allowed, model, task);
-  if (refused !== undefined) {
-    return err(refused);
-  }
-  if (input.params !== undefined) {
-    return err(cannotCarry("params", model, task));
-  }
-  const editing = editImageUrls.length > 0;
-  if (editing && !route.supportsEdit) {
-    return err(cannotCarry("references", model, task));
-  }
-
-  let prompt: string;
-  try {
-    const creative = creativeOf(input);
-    prompt =
-      creative === undefined
-        ? (input.prompt ?? "")
-        : enrichPrompt({ creative, prompt: input.prompt ?? "" }).prompt;
-  } catch (error) {
-    return err(withCode(error, model, task));
-  }
-
-  return ok({
-    body: {
-      n: input.count ?? 1,
-      prompt,
-      size: aspectToGptSize(input.aspect ?? "1:1"),
-      ...(editing && { images: [...editImageUrls] }),
-      ...(input.mask !== undefined && { mask: input.mask }),
-      background: "transparent",
-      outputFormat: "png",
-    },
-    // OpenAI bills gpt-image by tokens and publishes no per-image price.
-    cost: UNKNOWN_COST,
-    endpoint: `${route.provider}:${route.model}`,
-    prompt,
-    provider: "openai",
-    queued: false,
   });
 }
 

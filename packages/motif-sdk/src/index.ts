@@ -51,7 +51,6 @@ export {
 } from "./prompt-warnings";
 export {
   getFalKeyFromEnv,
-  getOpenAiKeyFromEnv,
   type MotifEnv,
   motifEnvSchema,
   parseMotifEnv,

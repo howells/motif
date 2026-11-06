@@ -36,7 +36,6 @@ export const MODEL_OUTPUT: Record<string, ModelOutputShape> = {
   "gemini": { container: "png", lossless: true, bitDepth: 8 },
   "gemini3": { container: "png", lossless: true, bitDepth: 8 },
   "gpt": { container: "png", lossless: true, bitDepth: 8 },
-  "gpt2": { container: "png", lossless: true, bitDepth: 8 },
   "grok-image": { container: "png", lossless: true, bitDepth: 8 },
   "ideogram": { container: "png", lossless: true, bitDepth: 8 },
   "ideogram4": { container: "jpeg", subsampling: "4:4:4", lossless: false, bitDepth: 8 },

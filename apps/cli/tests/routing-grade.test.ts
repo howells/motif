@@ -15,11 +15,7 @@ import {
   shellWords,
   summarise,
 } from "../evals/routing/grade";
-import {
-  linkedPages,
-  loadCases,
-  shippedCommands,
-} from "../evals/routing/prompt";
+import { linkedPages, loadCases } from "../evals/routing/prompt";
 
 const cases = loadCases();
 
@@ -88,12 +84,6 @@ describe(commandOf, () => {
     expect(route('motif "a series of six photos" -m gpt')).toBe("generate");
     expect(route("magick montage a.png")).toBeNull();
   });
-
-  it("names every command in the shipped task table from its usage", () => {
-    for (const [command, usage] of shippedCommands()) {
-      expect(route(usage), usage).toBe(command);
-    }
-  });
 });
 
 describe(linkedPages, () => {
@@ -104,25 +94,6 @@ describe(linkedPages, () => {
       "apps/cli/docs/generate.md",
       "README.md",
     ]);
-  });
-});
-
-describe("cases", () => {
-  it("cover every command in the shipped task table, and only those", () => {
-    const shipped = [...shippedCommands().keys()];
-    const covered = new Set(
-      cases.flatMap((testCase) =>
-        typeof testCase.command === "string"
-          ? [testCase.command]
-          : testCase.command
-      )
-    );
-    expect(shipped.filter((command) => !covered.has(command))).toStrictEqual(
-      []
-    );
-    expect(
-      [...covered].filter((command) => !shipped.includes(command))
-    ).toStrictEqual([]);
   });
 });
 

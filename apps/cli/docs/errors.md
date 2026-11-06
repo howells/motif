@@ -37,7 +37,7 @@ In JSON mode, errors are written to stderr as one object:
 ```json
 {
   "code": "NO_MODEL_AVAILABLE",
-  "message": "gpt2 (model) cannot do seed.",
+  "message": "flare (model) cannot do seed.",
   "details": {
     "blockedBy": "seed",
     "task": "generate",
@@ -52,4 +52,4 @@ In JSON mode, errors are written to stderr as one object:
 
 `REMOVED_COMMAND` exits `2`: a flag or command from before Tasks. `details.removed` is what you typed and `details.use` the replacement. The full list is in [tasks](verbs.md#removed-commands).
 
-`MISSING_API_KEY` from explicit `-m gpt2 --transparent` and `TRANSPARENCY_MISSING` are explained with the transparency routes in [generate and vary](generate.md#transparency).
+`TRANSPARENCY_MISSING` is explained with transparency in [generate and vary](generate.md#transparency).

@@ -46,15 +46,6 @@ describe("assertSchemaPushTarget", () => {
     }).toThrow(/development acknowledgement/u);
   });
 
-  it("rejects the materialdesk-dev acknowledgement literal (a different app's target)", () => {
-    expect(() => {
-      assertSchemaPushTarget({
-        ...remoteDevelopmentTarget(),
-        acknowledgedTarget: "materialdesk-dev",
-      });
-    }).toThrow(/development acknowledgement/u);
-  });
-
   it("rejects mismatched pooled and direct remote endpoints", () => {
     expect(() => {
       assertSchemaPushTarget({

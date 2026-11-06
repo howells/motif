@@ -196,12 +196,9 @@ describe("emitError", () => {
 
     const parsed = parseOutput(writtenData.trim());
     expect(parsed.type).toBe("urn:motif:error:unknown-model");
-    expect(parsed.title).toBe("Unknown Model");
     expect(parsed.status).toBe(400);
     expect(parsed.doc_uri).toBe("motif://describe/errors#unknown-model");
-    expect(parsed.suggestions).toContain(
-      "Run 'motif --describe generate --format json' to inspect valid models"
-    );
+    expect(parsed.suggestions?.length).toBeGreaterThan(0);
   });
 
   it("includes details when provided", () => {

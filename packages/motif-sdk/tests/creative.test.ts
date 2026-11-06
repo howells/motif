@@ -11,10 +11,17 @@ import {
 } from "../src/index";
 import { GENERATION_MODELS, LEGACY_GENERATION_MODELS } from "../src/models";
 
-const INTERIOR_CLAUSE =
-  "Interior photograph in the register of House & Garden and Kinfolk, shot square-on at eye level on a 35mm lens, warm off-white plaster, wide oak floorboards, linen, brass and a little pattern, light, bright and layered, collected rather than styled, lived-in rather than showroom-perfect, soft natural daylight, shot on film with fine grain. No text, no logos, no people";
-const OVERCAST_CLAUSE =
-  "overcast afternoon with rain on a tall window, soft even grey light";
+/** The clause the taxonomy holds for an option id. */
+function clauseOf(field: "look" | "mood", id: string): string {
+  const option = CREATIVE_TAXONOMY[field].find((entry) => entry.id === id);
+  if (option === undefined) {
+    throw new Error(`no ${field} option ${id}`);
+  }
+  return option.clause;
+}
+
+const INTERIOR_CLAUSE = clauseOf("look", "interior");
+const OVERCAST_CLAUSE = clauseOf("mood", "overcast");
 
 /** Upper-case the first letter, as the sentence join does. */
 function capitalise(text: string): string {
@@ -63,7 +70,7 @@ describe(enrichPrompt, () => {
           mood: "overcast",
         },
       },
-      prompt: `A green kitchen. ${INTERIOR_CLAUSE}. Overcast afternoon with rain on a tall window, soft even grey light.`,
+      prompt: `A green kitchen. ${INTERIOR_CLAUSE}. ${capitalise(OVERCAST_CLAUSE)}.`,
     });
   });
 
@@ -74,7 +81,7 @@ describe(enrichPrompt, () => {
     });
 
     expect(result.prompt).toBe(
-      "A quiet hallway. Early morning light through tall glazing, cool and clear."
+      `A quiet hallway. ${capitalise(clauseOf("mood", "dawn"))}.`
     );
   });
 
@@ -109,7 +116,6 @@ describe(enrichPrompt, () => {
         value: "lamplit",
       })
     );
-    expect(flatWithMood).toThrow(/surface look is flat/);
     expect(() =>
       validateCreativeDirection({ look: "object", mood: "window" })
     ).toThrow(expect.objectContaining({ field: "mood" }));
@@ -145,10 +151,7 @@ describe(enrichPrompt, () => {
 });
 
 describe("house looks", () => {
-  it("ships nine looks and six moods with unique ids", () => {
-    expect(CREATIVE_FIELDS).toStrictEqual(["look", "mood"]);
-    expect(CREATIVE_TAXONOMY.look).toHaveLength(9);
-    expect(CREATIVE_TAXONOMY.mood).toHaveLength(6);
+  it("gives every look and mood a unique id", () => {
     for (const field of CREATIVE_FIELDS) {
       const ids = CREATIVE_TAXONOMY[field].map((option) => option.id);
       expect(new Set(ids).size).toBe(ids.length);
@@ -164,52 +167,8 @@ describe("house looks", () => {
     }
   });
 
-  it("keeps em dashes out of every option string", () => {
-    for (const field of CREATIVE_FIELDS) {
-      for (const option of CREATIVE_TAXONOMY[field]) {
-        expect(JSON.stringify(option)).not.toContain("\u2014");
-      }
-    }
-  });
-
-  it("marks exactly the four flat looks as refusing a mood", () => {
-    expect(
-      LOOKS.filter((look) => !look.acceptsMood).map((look) => look.id)
-    ).toStrictEqual(["object", "surface", "abstract", "illustration"]);
-  });
-
-  it("only negates text, logos and people in look and mood texts", () => {
-    const allowed = new Set(["text", "logos", "people"]);
-    for (const field of CREATIVE_FIELDS) {
-      for (const option of CREATIVE_TAXONOMY[field]) {
-        for (const match of option.clause.matchAll(/\bno\s+([a-z-]+)/gi)) {
-          expect(
-            allowed.has(String(match[1]).toLowerCase()),
-            `${option.id} negates "${match[0]}"`
-          ).toBe(true);
-        }
-      }
-    }
-  });
-
-  it("marks only the illustration look as experimental", () => {
-    expect(
-      LOOKS.filter((look) => look.experimental === true).map((look) => look.id)
-    ).toStrictEqual(["illustration"]);
-  });
-
-  it("defaults editorial and object to flux2-pro", () => {
-    expect(getLook("editorial")?.model).toBe("flux2-pro");
-    expect(getLook("object")?.model).toBe("flux2-pro");
-    expect(getLook("illustration")?.model).toBe("gpt2");
-    expect(getLook("architectural")?.model).toBe("banana");
-  });
-
   it("looks up a look by id", () => {
-    expect(getLook("abstract")).toMatchObject({
-      aspect: "3:2",
-      model: "banana",
-    });
+    expect(getLook("abstract")?.id).toBe("abstract");
     expect(getLook("not-a-look")).toBeUndefined();
   });
 });

@@ -242,28 +242,23 @@ describe("run API response lifetime", () => {
     ).toBe(true);
   });
 
-  it.each([
-    { models: ["banana2"], samplesPerModel: 4 },
-    { models: ["gpt2"], samplesPerModel: 1 },
-  ])(
-    "rejects a hosted sweep beyond its execution budget before creating or dispatching it: %j",
-    async (sweep) => {
-      platform.hosted = true;
-      const beforeResponse = await api.list();
-      const before: unknown = await beforeResponse.json();
-      const { lifetime, response } = await start({
-        ...SPEC,
-        ...sweep,
-      });
-      expect(response.status).toBe(422);
-      await expect(response.json()).resolves.toMatchObject({
-        code: "HOSTED_RUN_TOO_LONG",
-      });
-      const afterResponse = await api.list();
-      await expect(afterResponse.json()).resolves.toStrictEqual(before);
-      expect(lifetime.pending).toHaveLength(0);
-    }
-  );
+  it("rejects a hosted sweep beyond its execution budget before creating or dispatching it", async () => {
+    platform.hosted = true;
+    const beforeResponse = await api.list();
+    const before: unknown = await beforeResponse.json();
+    const { lifetime, response } = await start({
+      ...SPEC,
+      models: ["banana2"],
+      samplesPerModel: 4,
+    });
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      code: "HOSTED_RUN_TOO_LONG",
+    });
+    const afterResponse = await api.list();
+    await expect(afterResponse.json()).resolves.toStrictEqual(before);
+    expect(lifetime.pending).toHaveLength(0);
+  });
 
   it("admits hosted samples that fit concurrently and completes them after the response", async () => {
     platform.hosted = true;

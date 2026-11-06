@@ -121,7 +121,7 @@ const snapshotSql: AppSql = async (query) => {
   return [];
 };
 
-describe("MOT-74 closeout regressions", () => {
+describe("Board closeout", () => {
   it("keeps simultaneous Makes attached to their own prompt even at identical coordinates", async () => {
     const db = inbox();
     const results = await Promise.all(

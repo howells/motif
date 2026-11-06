@@ -70,11 +70,11 @@ describe("aggregateByModel", () => {
     const result = aggregateByModel([
       sample({ modelAlias: "recraft" }),
       sample({ modelAlias: "banana" }),
-      sample({ modelAlias: "gpt2" }),
+      sample({ modelAlias: "gpt" }),
     ]);
     expect(result.map((r) => r.modelAlias)).toEqual([
       "banana",
-      "gpt2",
+      "gpt",
       "recraft",
     ]);
   });

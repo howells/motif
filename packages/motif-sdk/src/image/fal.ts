@@ -63,7 +63,6 @@ const FAL_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
   "fal-ai/flux-2/turbo": MODELS["flux2-turbo"]?.pricePerImageUsd ?? 0.008, // MODELS["flux2-turbo"]
   // gpt-image (fal adds overhead vs OpenAI-direct — see design doc §10).
   [FAL_GPT_IMAGE_MODEL]: MODELS.gpt?.pricePerImageUsd ?? 0.133, // MODELS.gpt
-  "openai/gpt-image-2": MODELS.gpt2?.pricePerImageUsd ?? 0.211, // MODELS.gpt2
   // Nano Banana (Gemini image) family.
   "fal-ai/nano-banana-2": MODELS.banana2?.pricePerImageUsd ?? 0.08, // MODELS.banana2
   "fal-ai/nano-banana-pro": MODELS.banana?.pricePerImageUsd ?? 0.15, // MODELS.banana

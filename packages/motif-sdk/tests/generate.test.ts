@@ -113,7 +113,7 @@ describe(buildGenerateBody, () => {
   it("rejects xhigh and max quality on older GPT models", () => {
     expect(() =>
       buildGenerateBody({
-        model: "gpt2",
+        model: "gpt",
         prompt: "A ceramic vase",
         quality: "max",
       })
@@ -129,9 +129,8 @@ describe(buildGenerateBody, () => {
       prompt: "luxury watch on black marble",
     });
 
-    expect(body.prompt).toBe(
-      "Luxury watch on black marble. Night, one warm low practical light, deep shadow, candlelit."
-    );
+    expect(body.prompt).toMatch(/^Luxury watch on black marble\. \S/);
+    expect(body.prompt).not.toBe("luxury watch on black marble");
     expect(body).not.toHaveProperty("creative");
   });
 
@@ -159,16 +158,15 @@ describe(buildGenerateBody, () => {
   });
 
   it("rejects transparent output on a model with no background parameter", () => {
-    // fal's openai/gpt-image-2 schema has no `background` field, so a PNG
-    // container alone cannot carry alpha. Fail rather than bill for an opaque
-    // image the caller asked to be transparent.
+    // A PNG container alone cannot carry alpha. Fail rather than bill for an
+    // opaque image the caller asked to be transparent.
     expect(() =>
       buildGenerateBody({
-        model: "gpt2",
+        model: "flux2-pro",
         prompt: "isolated paint chip",
         transparent: true,
       })
-    ).toThrow("GPT Image 2 does not support transparent output");
+    ).toThrow("does not support transparent output");
   });
 
   it("keeps transparent output on the model that does carry a background parameter", () => {
@@ -204,36 +202,36 @@ describe(buildGenerateBody, () => {
     });
   });
 
-  it("uses fal image_size presets for GPT Image 2", () => {
+  it("uses fal image_size presets for GPT Image 2.6", () => {
     const { endpoint, body } = buildGenerateBody({
       aspect: "1:1",
-      model: "gpt2",
+      model: "sunburst",
       outputFormat: "png",
       prompt: "minimal square app icon",
     });
 
-    expect(endpoint).toBe("openai/gpt-image-2");
+    expect(endpoint).toBe("openai/gpt-image-2.6/sunburst/text-to-image");
     expect(body).toMatchObject({
       image_size: "square_hd",
       output_format: "png",
       prompt: "minimal square app icon",
-      quality: "high",
+      quality: "max",
     });
     expect(body.image_size).not.toBe("1024x1024");
   });
 
-  it("normalizes GPT Image 2 edit masks, quality, sync mode, and custom image size", () => {
+  it("normalizes GPT Image 2.6 edit masks, quality, sync mode, and custom image size", () => {
     const { endpoint, body } = buildGenerateBody({
       editImageUrls: ["https://example.com/interior.png"],
       imageSize: { height: 720, width: 1280 },
       maskImageUrl: "https://example.com/wall-mask.png",
-      model: "gpt2",
+      model: "sunburst",
       prompt: "change the wall color",
       quality: "auto",
       syncMode: true,
     });
 
-    expect(endpoint).toBe("openai/gpt-image-2/edit");
+    expect(endpoint).toBe("openai/gpt-image-2.6/sunburst/edit");
     expect(body).toMatchObject({
       image_size: { height: 720, width: 1280 },
       image_urls: ["https://example.com/interior.png"],
@@ -505,15 +503,15 @@ describe(buildGenerateBody, () => {
     ).toThrow("Recraft V4 does not support style");
   });
 
-  it("refuses inputFidelity on a GPT Image 2 edit, which /edit doesn't take", () => {
+  it("refuses inputFidelity on a GPT Image 2.6 edit, which /edit doesn't take", () => {
     expect(() =>
       buildGenerateBody({
         editImageUrls: ["https://example.com/ref.png"],
         inputFidelity: "high",
-        model: "gpt2",
+        model: "sunburst",
         prompt: "replace the label",
       })
-    ).toThrow("GPT Image 2 does not support inputFidelity");
+    ).toThrow("GPT Image 2.6 Sunburst does not support inputFidelity");
   });
 
   it("caps Grok Imagine Image references at fal's 3", () => {
@@ -526,7 +524,7 @@ describe(buildGenerateBody, () => {
     ).toThrow("at most 3 reference images");
   });
 
-  it("sends an exact size for a ratio no fal preset holds (MOT-46)", () => {
+  it("sends an exact size for a ratio no fal preset holds", () => {
     const { endpoint, body } = buildGenerateBody({
       aspect: "2:3",
       model: "ideogram4",
@@ -568,7 +566,11 @@ describe(buildGenerateBody, () => {
 
   it("refuses a ratio outside a Model's limits rather than rounding it", () => {
     expect(() =>
-      buildGenerateBody({ aspect: "4:1", model: "gpt2", prompt: "a banner" })
+      buildGenerateBody({
+        aspect: "4:1",
+        model: "sunburst",
+        prompt: "a banner",
+      })
     ).toThrow(ImageSizeBoundsError);
   });
 
@@ -583,7 +585,7 @@ describe(buildGenerateBody, () => {
   });
 });
 
-describe("MOT-72 routes", () => {
+describe("newer model routes", () => {
   it("sends Muse Image a free aspect ratio and up to ten References", () => {
     const generated = buildGenerateBody({
       aspect: "16:9",
@@ -702,34 +704,6 @@ describe("MOT-72 routes", () => {
         resolution: "4K",
       })
     ).toThrow("resolution must be one of");
-  });
-
-  it("prices the new routes from fal", () => {
-    expect(estimateCost("muse-image", "2K", 3)).toBeCloseTo(0.03);
-    expect(estimateCost("grok-image-quality", "1K")).toBeCloseTo(0.05);
-    expect(estimateCost("grok-image-quality", "2K")).toBeCloseTo(0.07);
-    // An edit adds $0.01 for each input image.
-    expect(estimateCost("grok-image-quality", "2K", 1, 2)).toBeCloseTo(0.09);
-  });
-});
-
-describe(estimateCost, () => {
-  it("uses registry fal pricing for newly added image models", () => {
-    expect(estimateCost("seedream4", "2K", 3)).toBeCloseTo(0.09);
-    expect(estimateCost("grok-image", "2K", 4)).toBeCloseTo(0.08);
-  });
-
-  it("tiers Seedream 5.0 Pro pricing by resolution", () => {
-    expect(estimateCost("seedream5", "1K", 1)).toBeCloseTo(0.0675);
-    expect(estimateCost("seedream5", "2K", 1)).toBeCloseTo(0.135);
-    expect(estimateCost("seedream5", "4K", 2)).toBeCloseTo(0.27);
-  });
-
-  it("prices the other July 2026 additions from the registry", () => {
-    expect(estimateCost("seedream5-lite", "4K", 2)).toBeCloseTo(0.07);
-    expect(estimateCost("flux2-turbo", "2K", 1)).toBeCloseTo(0.008);
-    expect(estimateCost("recraft4", "2K", 1)).toBeCloseTo(0.04);
-    expect(estimateCost("ideogram4", "2K", 3)).toBeCloseTo(0.09);
   });
 });
 

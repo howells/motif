@@ -14,7 +14,7 @@ import {
 import { LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS } from "./live-engine";
 
 describe("computeRunDeadlineMs", () => {
-  it("uses the named floor, not a real p95, for a model that publishes none — the common case per BRIEF.md (12 of 23 models)", () => {
+  it("uses the named floor, not a real p95, for a model that publishes none", () => {
     const floorMs = Math.round(
       LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS * 1.5 * 1000
     );

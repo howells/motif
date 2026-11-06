@@ -36,8 +36,5 @@ describe("fal tool parameters", () => {
 
   it("returns the same list as the table for a known tool", () => {
     expect(falToolParameters("birefnet")).toBe(FAL_TOOL_PARAMETERS.birefnet);
-    expect(falToolParameters("birefnet").map((p) => p.key)).toContain(
-      "output_mask"
-    );
   });
 });

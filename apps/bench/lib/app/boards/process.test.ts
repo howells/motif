@@ -13,7 +13,6 @@ import {
   processForNode,
   processOf,
   recent,
-  shortText,
   summaryOf,
   wellBeats,
 } from "./process";
@@ -111,28 +110,6 @@ describe("offsetLabel", () => {
         Date.parse("2026-11-01T10:00:00.000Z")
       )
     ).toBe("4.2 s");
-  });
-});
-
-describe("shortText", () => {
-  it("keeps what a beat said in fewer words, never an ellipsis", () => {
-    expect(
-      shortText(
-        beat(1, "send", "Sending to fal: Grok Imagine Image 2.0", {
-          data: { model: "Grok Imagine Image 2.0" },
-        })
-      )
-    ).toBe("Sent to fal");
-    expect(shortText(beat(2, "read", "Reading the Prompt"))).toBe(
-      "Read the Prompt"
-    );
-    expect(shortText(beat(3, "send", "fal has it"))).toBe("fal has it");
-    expect(shortText(beat(4, "price", "Price checked again: $0.080"))).toBe(
-      "Price checked"
-    );
-    expect(shortText(beat(5, "error", "Generate didn't finish"))).toBe(
-      "Generate didn't finish"
-    );
   });
 });
 
@@ -266,16 +243,6 @@ describe("a node and its panel", () => {
       beat(i + 1, "read", `Line ${i + 1}`)
     ),
     runId,
-  });
-
-  it("read the same beats of the same run, so they cannot disagree", () => {
-    // Asked twice, as the node and the panel ask it, of the same feeds.
-    const feeds = [feed("brun_new", 8), feed("brun_old", 3)];
-    const node = processForNode(runs, feeds, NODE);
-    const panel = processForNode(runs, feeds, NODE);
-    expect(panel).toStrictEqual(node);
-    expect(node.beats).toHaveLength(8);
-    expect(node.live).toBe(true);
   });
 
   it("follow the newest run even while an older one is also held", () => {

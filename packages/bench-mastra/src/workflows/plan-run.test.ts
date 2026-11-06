@@ -3,7 +3,6 @@ import { createWorkflow } from "@mastra/core/workflows";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { TIMEOUT_FLOOR_MS } from "./constants";
 import { planRunStep } from "./plan-run";
 import { BenchRunSpecSchema, ModelWorkItemSchema } from "./schemas";
 import type { BenchRunSpec } from "./schemas";
@@ -78,7 +77,7 @@ describe("planRunStep", () => {
     }
   });
 
-  it("shares one deadlineAt across every item, sized from the slowest selected model", async () => {
+  it("shares one deadlineAt across every item", async () => {
     const run = await planOnlyWorkflow.createRun();
     const result = await run.start({ inputData: baseSpec });
 
@@ -89,13 +88,6 @@ describe("planRunStep", () => {
 
     const deadlines = new Set(result.result.map((item) => item.deadlineAt));
     expect(deadlines.size).toBe(1);
-
-    // FLUX.2 Turbo has no measured p95 latency, so the timeout floor
-    // drives the shared run deadline here.
-    const [deadlineAt] = deadlines;
-    expect(deadlineAt).toBeGreaterThanOrEqual(
-      Date.now() + TIMEOUT_FLOOR_MS - 1000
-    );
   });
 
   it("throws before any work item is built when the worst case exceeds the cost cap", async () => {

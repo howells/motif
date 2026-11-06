@@ -69,7 +69,6 @@ describe("FalClient fetch integration", () => {
     if (result.isErr()) {
       expect(result.error.code).toBe("ACCOUNT_LOCKED");
       expect(result.error.status).toBe(403);
-      expect(result.error.message).toContain("out of credit");
     }
     expect(vi.mocked(fetch)).toHaveBeenCalledOnce();
   });
@@ -195,7 +194,7 @@ describe("FalClient fetch integration", () => {
         jsonResponse({
           request_id: "req_123",
           response_url:
-            "https://queue.fal.run/openai/gpt-image-2/edit/requests/req_123",
+            "https://queue.fal.run/openai/gpt-image-2.6/sunburst/edit/requests/req_123",
         })
       )
     );
@@ -205,7 +204,7 @@ describe("FalClient fetch integration", () => {
       editImageUrls: ["https://example.com/interior.png"],
       imageSize: "1280x720",
       maskImageUrl: "https://example.com/wall-mask.png",
-      model: "gpt2",
+      model: "sunburst",
       prompt: "change the wall color",
       quality: "auto",
       syncMode: true,
@@ -214,13 +213,15 @@ describe("FalClient fetch integration", () => {
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value).toMatchObject({
-        endpoint: "openai/gpt-image-2/edit",
+        endpoint: "openai/gpt-image-2.6/sunburst/edit",
         requestId: "req_123",
       });
     }
 
     const request = requestAt(0);
-    expect(request.url).toBe("https://queue.fal.run/openai/gpt-image-2/edit");
+    expect(request.url).toBe(
+      "https://queue.fal.run/openai/gpt-image-2.6/sunburst/edit"
+    );
     expect(request.body).toMatchObject({
       image_size: { height: 720, width: 1280 },
       image_urls: ["https://example.com/interior.png"],

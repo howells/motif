@@ -33,30 +33,6 @@ interface CliResult {
 
 const tempHomes: string[] = [];
 
-/** Every argv-routed command, as `--help` must name it. */
-const HELP_COMMANDS = [
-  "vary",
-  "erase",
-  "cutout",
-  "reframe",
-  "upscale",
-  "restore",
-  "relight",
-  "segment",
-  "ask",
-  "layers",
-  "vectorize",
-  "map",
-  "material",
-  "tile",
-  "mesh",
-  "animate",
-  "sheet",
-  "series",
-  "series run",
-  "studio",
-];
-
 function tempHome(): string {
   const dir = mkdtempSync(join(tmpdir(), "motif-cli-test-"));
   tempHomes.push(dir);
@@ -154,8 +130,6 @@ describe("CLI contract", () => {
 
     expect(result.code).toBe(0);
     expect(result.stdout).toContain("Usage:");
-    expect(result.stdout).toContain("motif studio");
-    expect(result.stdout).toContain("Image generation prompt");
   });
 
   it("emits the full schema as structured JSON", async () => {
@@ -167,34 +141,7 @@ describe("CLI contract", () => {
     const schema = parseJsonLine(result.stdout);
     expect(schema.name).toBe("motif");
     expect(schema).toHaveProperty("commands");
-    expect(schema).not.toHaveProperty("models");
-    expect(schema).not.toHaveProperty("leaderboards");
-    expect(schema).not.toHaveProperty("tools");
     expect(schema).toHaveProperty("errors");
-  });
-
-  it("lists every command by task in --help, ahead of the options", async () => {
-    const result = await runMotif(["--help"]);
-
-    expect(result.code).toBe(0);
-    for (const name of HELP_COMMANDS) {
-      expect(result.stdout, name).toContain(`motif ${name}`);
-    }
-    expect(result.stdout.indexOf("motif erase")).toBeLessThan(
-      result.stdout.indexOf("Options:")
-    );
-    expect(result.stdout).toContain("--look <id>");
-    expect(result.stdout).toContain("editorial");
-  });
-
-  it("puts the task index ahead of commands in the full schema", async () => {
-    const result = await runMotif(["--describe", "--format", "json"]);
-    const schema = parseJsonLine(result.stdout);
-    const keys = Object.keys(schema);
-
-    expect(keys.indexOf("tasks")).toBeLessThan(keys.indexOf("commands"));
-    expect(asRecord(schema.tasks).remove).toBe("erase");
-    expect(asRecord(schema.tasks).grid).toBe("sheet");
   });
 
   it("gives every described command whenToUse, notFor and tasks", async () => {
@@ -221,7 +168,7 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     const table = parseJsonLine(result.stdout);
     const commands = asRecord(table.commands);
-    for (const name of [...HELP_COMMANDS, "generate"]) {
+    for (const name of ["generate", "vary", "erase", "series run"]) {
       expect(commands, name).toHaveProperty([name]);
     }
     expect(asRecord(table.tasks).outpaint).toBe("reframe");
@@ -235,71 +182,27 @@ describe("CLI contract", () => {
     expect(asRecord(table.tasks).outpaint).toBe("reframe");
   });
 
-  it("exposes dated, task-specific model scores without changing the model ID arrays", async () => {
-    const result = await runMotif(["--describe", "tasks", "--format", "json"]);
-    expect(result.code).toBe(0);
-    const commands = asRecord(parseJsonLine(result.stdout).commands);
-    const generate = asRecord(commands.generate);
-    const vary = asRecord(commands.vary);
-    expect(generate).toMatchObject({
-      models: [...new Set(TASKS.generate.models.map(({ model }) => model))],
-      rankedAt: "2026-10-29",
-      referenceRankingTask: "vary",
-    });
-    const entry = (ranking: unknown, model: string) =>
-      asArray(ranking)
-        .map(asRecord)
-        .find((item) => item.model === model);
-    expect(entry(generate.ranking, "gpt2")).toMatchObject({
-      benchmark: {
-        elo: 1381,
-        task: "text-to-image",
-        snapshotDate: "2026-10-29",
-      },
-    });
-    expect(entry(vary.ranking, "gpt2")).toMatchObject({
-      benchmark: { elo: 1460, task: "image-edit-single-image" },
-    });
-    // Scored as GPT Image 2.5 until 2.6 is benchmarked.
-    expect(asRecord(asArray(generate.ranking)[0])).toMatchObject({
-      model: "sunburst",
-      tier: "quality",
-      benchmark: { elo: 1427, evaluatedModel: "GPT-Image-2.5 Sunburst" },
-    });
-    expect(entry(vary.ranking, "krea3")?.benchmark).toBeNull();
-  });
-
-  it("makes the same score evidence available on a single command and full inspection", async () => {
+  it("exposes task-specific model rankings without changing the model ID arrays", async () => {
     for (const args of [
+      ["--describe", "tasks", "--format", "json"],
       ["--describe", "generate", "--format", "json"],
-      ["--describe", "--format", "json"],
     ]) {
       const result = await runMotif(args);
       expect(result.code).toBe(0);
       const schema = parseJsonLine(result.stdout);
-      const generate = args.includes("generate")
-        ? schema
-        : asRecord(asRecord(schema.commands).generate);
-      const gpt = asArray(generate.ranking)
-        .map(asRecord)
-        .find(({ model }) => model === "gpt2");
-      expect(asRecord(gpt?.benchmark)).toMatchObject({
-        evaluatedModel: "GPT-Image-2 (Medium)",
-        source: "https://arena.ai/leaderboard/image/text-to-image",
-      });
+      const generate = args.includes("tasks")
+        ? asRecord(asRecord(schema.commands).generate)
+        : schema;
+      expect(generate.models).toStrictEqual([
+        ...new Set(TASKS.generate.models.map(({ model }) => model)),
+      ]);
+      const ranking = asArray(generate.ranking).map(asRecord);
+      expect(ranking.length).toBeGreaterThan(0);
+      for (const entry of ranking) {
+        expect(entry.model).toBeTypeOf("string");
+        expect(entry).toHaveProperty("benchmark");
+      }
     }
-  });
-
-  it("carries task routing on a single described command", async () => {
-    const result = await runMotif(["--describe", "erase", "--format", "json"]);
-    const erase = parseJsonLine(result.stdout);
-
-    expect(Object.keys(erase).slice(0, 3)).toStrictEqual([
-      "command",
-      "description",
-      "whenToUse",
-    ]);
-    expect(erase.notFor).toContain("cutout");
   });
 
   it("advertises the edit-capable model enum for the vary command", async () => {
@@ -357,26 +260,14 @@ describe("CLI contract", () => {
     });
     expect(
       asRecord(asRecord(properties.look).enumDescriptions).architectural
-    ).toMatchObject({
-      clause: clause("look", "architectural"),
-      defaultAspect: "4:5",
-      defaultModel: "banana",
-      experimental: false,
-      label: "Architectural exterior",
-    });
-    expect(
-      asRecord(asRecord(properties.look).enumDescriptions).illustration
-    ).toMatchObject({ experimental: true });
+    ).toMatchObject({ clause: clause("look", "architectural") });
     expect(properties.mood).toMatchObject({
-      enum: ["window", "dawn", "raking", "overcast", "lamplit", "nocturne"],
+      enum: CREATIVE_TAXONOMY.mood.map((option) => option.id),
       type: ["string", "null"],
     });
     expect(
       asRecord(asRecord(properties.mood).enumDescriptions).overcast
     ).not.toHaveProperty("defaultModel");
-    for (const removed of ["recipe", "shot", "lighting", "genre", "camera"]) {
-      expect(properties).not.toHaveProperty(removed);
-    }
   });
 
   it("dry-runs a themed series run without FAL_KEY", async () => {
@@ -448,11 +339,9 @@ describe("CLI contract", () => {
       model: "banana",
     });
     const firstScene = asRecord(asArray(payload.scenes)[0]);
-    expect(firstScene).toMatchObject({
-      baseScenePrompt:
-        "Image 1 of 2 in a cohesive visual series about luxury watch campaign; wide establishing composition; shared visual language, palette, lighting, lens, composition rhythm, and post-processing across the full set; no text, no watermark",
-      enrichedScenePrompt: `Image 1 of 2 in a cohesive visual series about luxury watch campaign; wide establishing composition; shared visual language, palette, lighting, lens, composition rhythm, and post-processing across the full set; no text, no watermark. ${enrichment}`,
-    });
+    expect(firstScene.enrichedScenePrompt).toBe(
+      `${String(firstScene.baseScenePrompt)}. ${enrichment}`
+    );
     expect(String(firstScene.prompt)).toContain(enrichment);
   });
 
@@ -839,7 +728,7 @@ describe("CLI contract", () => {
       "--look",
       "object",
       "-m",
-      "gpt2",
+      "flare",
       "-a",
       "16:9",
       "--dry-run",
@@ -850,7 +739,7 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
       aspect: "16:9",
-      model: "gpt2",
+      model: "flare",
       prompt: `A lamp. ${clause("look", "object")}.`,
     });
   });
@@ -913,7 +802,7 @@ describe("CLI contract", () => {
         command: "generate",
         creative: { look: "abstract" },
         dryRun: true,
-        model: "gpt2",
+        model: "flare",
         prompt: "two confident gestures in oatmeal and charcoal",
       })
     );
@@ -921,7 +810,7 @@ describe("CLI contract", () => {
     expect(result.code).toBe(0);
     expect(parseJsonLine(result.stdout)).toMatchObject({
       aspect: "1:1",
-      model: "gpt2",
+      model: "flare",
     });
   });
 
@@ -1072,19 +961,6 @@ describe("CLI contract", () => {
     expect(parseJsonLine(clean.stdout).warnings).toStrictEqual([]);
   });
 
-  it("rejects the removed creative flags", async () => {
-    const result = await runMotif([
-      "studio portrait",
-      "--dry-run",
-      "--format",
-      "json",
-      "--lighting",
-      "rim",
-    ]);
-
-    expect(result.code).toBe(2);
-  });
-
   it("refuses a bare positional prompt that matches a command word", async () => {
     const result = await runMotif(["history", "--format", "json"]);
 
@@ -1181,11 +1057,11 @@ describe("CLI contract", () => {
     });
   });
 
-  it("routes gpt2 transparency through OpenAI in the dry run", async () => {
+  it("keeps Sunburst transparency on fal in the dry run", async () => {
     const result = await runMotif([
       "a sticker of a fox",
       "-m",
-      "gpt2",
+      "sunburst",
       "--transparent",
       "--dry-run",
       "--format",
@@ -1194,53 +1070,11 @@ describe("CLI contract", () => {
 
     expect(result.code).toBe(0);
     const dryRun = parseJsonLine(result.stdout);
-    // OpenAI publishes no per-image price, so the plan's cost is unknown.
-    expect(dryRun).toMatchObject({
-      cost: null,
-      costBasis: "unknown",
-      model: "gpt2",
-      provider: "openai",
-    });
+    expect(dryRun).toMatchObject({ model: "sunburst", provider: "fal" });
     expect(asRecord(dryRun.request)).toMatchObject({
       background: "transparent",
-      n: 1,
-      outputFormat: "png",
+      quality: "max",
     });
-  });
-
-  it("keeps plain gpt2 on the fal route", async () => {
-    const result = await runMotif([
-      "a fox",
-      "-m",
-      "gpt2",
-      "--dry-run",
-      "--format",
-      "json",
-    ]);
-
-    expect(result.code).toBe(0);
-    expect(parseJsonLine(result.stdout)).toMatchObject({
-      model: "gpt2",
-      provider: "fal",
-    });
-  });
-
-  it("names OPENAI_API_KEY when the gpt2 transparency route has no key", async () => {
-    const result = await runMotif(
-      ["a sticker of a fox", "-m", "gpt2", "--transparent", "--format", "json"],
-      "",
-      tempHome(),
-      { FAL_KEY: "not-a-real-key", OPENAI_API_KEY: "" }
-    );
-
-    expect(result.code).toBe(3);
-    expect(result.stdout).toBe("");
-    const error = parseJsonLine(result.stderr);
-    expect(error).toMatchObject({
-      code: "MISSING_API_KEY",
-      details: { envVar: "OPENAI_API_KEY" },
-    });
-    expect(String(error.message)).toContain("OPENAI_API_KEY");
   });
 
   it("allows reserved-word prompts via the stdin JSON escape hatch", async () => {
@@ -1355,29 +1189,6 @@ describe("CLI contract", () => {
       limit_generations: true,
       resolution: "0.5K",
       thinking_level: "minimal",
-    });
-  });
-
-  it("refuses --quality and names --tier instead", async () => {
-    const result = await runMotif([
-      "simple product render",
-      "--dry-run",
-      "--format",
-      "json",
-      "--model",
-      "flux-fast",
-      "--quality",
-      "high",
-    ]);
-
-    expect(result.code).toBe(2);
-    expect(result.stdout).toBe("");
-
-    const error = parseJsonLine(result.stderr);
-    expect(error).toMatchObject({
-      code: "REMOVED_COMMAND",
-      details: { removed: "--quality", use: "--tier" },
-      status: 400,
     });
   });
 

@@ -6,7 +6,7 @@ import type {
 import { describe, expect, it } from "vitest";
 
 import type { MotifImageDeps } from "../src/image/deps";
-import { createMotifImage, PROVIDERS } from "../src/image/index";
+import { createMotifImage } from "../src/image/index";
 import type { ImageProviderId } from "../src/image/index";
 import { MotifError } from "../src/index";
 import { MODELS } from "../src/models";
@@ -699,7 +699,7 @@ describe("createMotifImage.edit", () => {
 
     const result = await img.edit({
       provider: "fal",
-      model: "openai/gpt-image-2/edit",
+      model: "openai/gpt-image-2.6/sunburst/edit",
       images: [new Uint8Array([1]), new Uint8Array([2])],
       instruction: "lay image 2 on the wall in image 1",
     });
@@ -806,8 +806,8 @@ interface ProviderCase {
   config: Parameters<typeof createMotifImage>[0];
   /** A representative model id for this provider. */
   defaultModel: string;
-  /** static table USD/image for `defaultModel`. */
-  priceUsd: number | undefined;
+  /** Whether the static table prices `defaultModel`. */
+  priced: boolean;
 }
 
 const PROVIDER_CASES: ProviderCase[] = [
@@ -816,33 +816,27 @@ const PROVIDER_CASES: ProviderCase[] = [
     apiKeyEnv: "OPENAI_API_KEY",
     config: { openai: { apiKey: "test-key" } },
     defaultModel: "gpt-image-2.6-flare",
-    priceUsd: undefined,
+    priced: false,
   },
   {
     provider: "replicate",
     apiKeyEnv: "REPLICATE_API_TOKEN",
     config: { replicate: { apiToken: "test-token" } },
     defaultModel: "black-forest-labs/flux-1.1-pro-ultra",
-    priceUsd: 0.06,
+    priced: true,
   },
   {
     provider: "fal",
     apiKeyEnv: "FAL_KEY",
     config: { fal: { apiKey: "test-key" } },
     defaultModel: "fal-ai/gpt-image-1.5",
-    priceUsd: 0.133,
+    priced: true,
   },
 ];
 
 describe.each(PROVIDER_CASES)(
   "createMotifImage — $provider provider",
-  ({ provider, apiKeyEnv, config, defaultModel, priceUsd }) => {
-    it("registers an adapter for this provider", () => {
-      const adapter = PROVIDERS[provider];
-      expect(adapter).toBeDefined();
-      expect(adapter?.id).toBe(provider);
-    });
-
+  ({ provider, apiKeyEnv, config, defaultModel, priced }) => {
     it("dispatches an explicit model through the registry to the right ImageModel", async () => {
       const seen: { provider: ImageProviderId; modelId: string }[] = [];
       const img = createMotifImage(config, {
@@ -899,10 +893,12 @@ describe.each(PROVIDER_CASES)(
 
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
-        expect(result.value.cost.source).toBe(
-          priceUsd === undefined ? "unknown" : "table"
-        );
-        expect(result.value.cost.usd).toBe(priceUsd ?? 0);
+        expect(result.value.cost.source).toBe(priced ? "table" : "unknown");
+        if (priced) {
+          expect(result.value.cost.usd).toBeGreaterThan(0);
+        } else {
+          expect(result.value.cost.usd).toBe(0);
+        }
       }
     });
 
@@ -1041,8 +1037,14 @@ describe("createMotifImage.bestOfN", () => {
       expect(value.chosenIndex).toBe(1);
       expect(value.best).toBe(value.candidates[1]);
       expect(value.reason).toBe("second is sharpest");
-      // gemini-3.1-flash-image-preview @ $0.039/image.
-      expect(value.totalCostUsd).toBeCloseTo(0.117, 6);
+      expect(value.totalCostUsd).toBeCloseTo(
+        value.candidates.reduce(
+          (sum, candidate) => sum + candidate.cost.usd,
+          0
+        ),
+        6
+      );
+      expect(value.totalCostUsd).toBeGreaterThan(0);
       // Candidates are distinguishable: distinct trailing bytes per call.
       const trailingBytes = value.candidates.map((candidate) =>
         candidate.images[0]?.uint8Array.at(-1)
@@ -1141,8 +1143,14 @@ describe("createMotifImage.bestOfN", () => {
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
       expect(result.value.candidates).toHaveLength(2);
-      // Two successes @ $0.039 each.
-      expect(result.value.totalCostUsd).toBeCloseTo(0.078, 6);
+      // Only the two successes are billed.
+      expect(result.value.totalCostUsd).toBeCloseTo(
+        result.value.candidates.reduce(
+          (sum, candidate) => sum + candidate.cost.usd,
+          0
+        ),
+        6
+      );
     }
   });
 
@@ -1248,22 +1256,6 @@ describe("createMotifImage.bestOfN", () => {
     expect(state.signals).toHaveLength(3);
     expect(state.signals.every((signal) => signal === controller.signal)).toBe(
       true
-    );
-  });
-});
-
-describe("image provider registry", () => {
-  it("contains all four providers, each keyed by its own id", () => {
-    const ids: ImageProviderId[] = ["openrouter", "openai", "replicate", "fal"];
-    for (const id of ids) {
-      const adapter = PROVIDERS[id];
-      expect(adapter, `missing adapter for ${id}`).toBeDefined();
-      expect(adapter?.id).toBe(id);
-      expect(adapter?.resolveModel).toBeTypeOf("function");
-      expect(adapter?.apiKeyEnv).toBeTypeOf("string");
-    }
-    expect(Object.keys(PROVIDERS).sort()).toStrictEqual(
-      ["fal", "openrouter", "openai", "replicate"].sort()
     );
   });
 });

@@ -116,12 +116,12 @@ describe(migrateLegacyConfig, () => {
     expect(
       migrateLegacyConfig({
         defaultModel: "flux2-pro",
-        tasks: { generate: { model: "gpt2" } },
+        tasks: { generate: { model: "flare" } },
         upscaler: "crystal",
       }).config
     ).toStrictEqual({
       tasks: {
-        generate: { model: "gpt2" },
+        generate: { model: "flare" },
         upscale: { model: "crystal" },
       },
     });
@@ -164,11 +164,11 @@ describe("config layers", () => {
           upscale: { model: "crystal" },
         },
       },
-      { tasks: { generate: { model: "gpt2" } } }
+      { tasks: { generate: { model: "flare" } } }
     );
     expect(merged.tasks).toStrictEqual({
       cutout: { model: "bria-rmbg" },
-      generate: { model: "gpt2" },
+      generate: { model: "flare" },
       upscale: { model: "crystal" },
     });
   });
@@ -287,41 +287,6 @@ describe("missing key (spawned CLI)", () => {
     expect(parseJson(result.stderr)).toMatchObject({
       code: "MISSING_API_KEY",
     });
-  });
-});
-
-describe("route keys (spawned CLI)", () => {
-  function pinGpt2(home: string): void {
-    writeFileSync(
-      join(motifDir(home), "config.json"),
-      JSON.stringify({ tasks: { generate: { model: "gpt2" } } })
-    );
-  }
-
-  it("prices a pinned transparency route on a dry run with no OpenAI key", async () => {
-    const home = tempHome();
-    pinGpt2(home);
-    const result = await runMotifIn(
-      home,
-      ["a fox sticker", "--transparent", "--dry-run", "--format", "json"],
-      { OPENAI_API_KEY: "" }
-    );
-    expect(result.code).toBe(0);
-    expect(parseJson(result.stdout)).toMatchObject({ model: "gpt2" });
-  });
-
-  it("reports the missing OpenAI key as MISSING_API_KEY without a dry run", async () => {
-    const home = tempHome();
-    pinGpt2(home);
-    const result = await runMotifIn(
-      home,
-      ["a fox sticker", "--transparent", "--format", "json"],
-      { FAL_KEY: "test-key", OPENAI_API_KEY: "" }
-    );
-    expect(result.code).toBe(3);
-    const error = parseJson(result.stderr);
-    expect(error).toMatchObject({ code: "MISSING_API_KEY" });
-    expect(String(error.message)).toContain("OPENAI_API_KEY");
   });
 });
 

@@ -209,7 +209,7 @@ No look renders lettering. For type in the picture, override the Model: `-m ideo
 | `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
 | `surface` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
 | `abstract` | Painted abstraction edge to edge, for wall art and backgrounds | 3:2 | `banana` |
-| `illustration` | Line and gouache illustration of any subject (experimental) | 1:1 | `gpt2` |
+| `illustration` | Line and gouache illustration of any subject (experimental) | 1:1 | `flare` |
 
 ### Moods
 
@@ -304,7 +304,6 @@ All API response data is sanitized before output to defend against prompt inject
 | Variable | Required | Description |
 | --- | --- | --- |
 | `FAL_KEY` | Yes, except for dry runs | fal.ai API key. Also configurable in `~/.motif/config.json` |
-| `OPENAI_API_KEY` | Only for explicit `-m gpt2 --transparent` | The transparency route for `gpt2` runs through OpenAI |
 
 ## Auth
 

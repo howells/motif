@@ -59,7 +59,7 @@ PBR_ORDER = ["basecolor", "normal", "roughness", "metalness", "height"]
 
 def dry_env():
     """No keys and an empty home, so a dry run cannot reach an account."""
-    env = {k: v for k, v in os.environ.items() if k not in ("FAL_KEY", "OPENAI_API_KEY")}
+    env = {k: v for k, v in os.environ.items() if k != "FAL_KEY"}
     env["HOME"] = tempfile.mkdtemp(prefix="motif-dry-")
     return env
 

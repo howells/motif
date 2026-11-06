@@ -1,8 +1,8 @@
 /**
  * The Task client: one function per Task. `createMotif()` returns a client
  * whose `generate`, `erase`, `upscale` and the rest resolve the Model through
- * `resolveTask`, build the request that Model needs, run it on fal (or OpenAI
- * for a transparency route) and return the files and fields it produced.
+ * `resolveTask`, build the request that Model needs, run it on fal and return
+ * the files and fields it produced.
  *
  * @example
  * ```ts
@@ -15,10 +15,9 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { getFalKeyFromEnv, getOpenAiKeyFromEnv } from "./env";
+import { getFalKeyFromEnv } from "./env";
 import { MotifError } from "./errors";
 import { queueAppPath } from "./fal-parse";
-import { createMotifImage } from "./image/index";
 import type { ChosenBy, TaskEnvironment } from "./resolve";
 import { FalClient } from "./server";
 import {
@@ -63,8 +62,6 @@ export type { FalFetch } from "./types";
 export interface MotifClientConfig {
   /** Falls back to FAL_KEY. */
   falKey?: string;
-  /** Falls back to OPENAI_API_KEY. Used only by Models routed through OpenAI. */
-  openAiKey?: string;
   /** Models pinned per Task, as `resolveTask` takes them. */
   pins?: TaskEnvironment["pins"];
   /** The one network seam. Defaults to global fetch. Retries and timeouts still apply. */
@@ -173,8 +170,8 @@ export interface TaskPlan {
   queued: boolean;
   /** Projected: before the call. */
   cost: ResolvedCost;
-  /** The provider carrying the request. "openai" only for a transparency route. */
-  provider: "fal" | "openai";
+  /** The provider carrying the request. */
+  provider: "fal";
 }
 
 export interface TaskOutput extends Omit<TaskPlan, "body" | "cost" | "queued"> {
@@ -253,8 +250,6 @@ export interface MotifClient {
 
 const MISSING_API_KEY = "MISSING_API_KEY";
 
-const PIXEL_SIZE_REGEX = /^\d+x\d+$/;
-
 function presentKey(value: string | undefined): string | undefined {
   return value === undefined || value === "" ? undefined : value;
 }
@@ -282,10 +277,6 @@ function outputKeysFor(
     return ["image"];
   }
   return ["images"];
-}
-
-function isPixelSize(size: string): size is `${number}x${number}` {
-  return PIXEL_SIZE_REGEX.test(size);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -362,127 +353,6 @@ function falOutput(plan: TaskPlan, result: FalRequestResult): TaskOutput {
   };
 }
 
-const DEFAULT_TIMEOUT_MS = 120_000;
-
-/**
- * Remote images as bytes, fetched through the configured seam: the AI SDK
- * would otherwise download them with global fetch. Data URLs pass through.
- */
-async function localImages(
-  sources: readonly string[],
-  fetch: FalFetch
-): Promise<Result<(string | Uint8Array)[], MotifError>> {
-  const images: (string | Uint8Array)[] = [];
-  for (const source of sources) {
-    if (!source.startsWith("https://") && !source.startsWith("http://")) {
-      images.push(source);
-      continue;
-    }
-    try {
-      const response = await fetch(source, { method: "GET" });
-      if (!response.ok) {
-        return err(
-          new MotifError(
-            `Could not download ${source}: ${response.status}`,
-            response.status,
-            "DOWNLOAD_FAILED"
-          )
-        );
-      }
-      images.push(new Uint8Array(await response.arrayBuffer()));
-    } catch (error) {
-      return err(
-        new MotifError(
-          `Could not download ${source}: ${error instanceof Error ? error.message : String(error)}`,
-          0,
-          "DOWNLOAD_FAILED"
-        )
-      );
-    }
-  }
-  return ok(images);
-}
-
-async function openAiOutput(
-  plan: TaskPlan,
-  openAiKey: string,
-  config: MotifClientConfig
-): Promise<Result<TaskOutput, MotifError>> {
-  const fetch: FalFetch =
-    config.fetch ?? (async (url, init) => await globalThis.fetch(url, init));
-  const client = createMotifImage({
-    defaultProvider: "openai",
-    fetch,
-    openai: { apiKey: openAiKey },
-    ...(config.retries !== undefined && { maxRetries: config.retries }),
-  });
-  const signal = AbortSignal.timeout(config.timeout ?? DEFAULT_TIMEOUT_MS);
-  const { body } = plan;
-  const [provider, model = ""] = plan.endpoint.split(":");
-  const n = typeof body.n === "number" ? body.n : 1;
-  const prompt = typeof body.prompt === "string" ? body.prompt : "";
-  const providerOptions = {
-    openai: { background: "transparent", outputFormat: "png" },
-  };
-  const sources = Array.isArray(body.images)
-    ? body.images.filter((item): item is string => typeof item === "string")
-    : [];
-  const mask = typeof body.mask === "string" ? [body.mask] : [];
-  const downloaded = await localImages([...sources, ...mask], fetch);
-  if (downloaded.isErr()) {
-    return err(downloaded.error);
-  }
-  const images = downloaded.value.slice(0, sources.length);
-  const maskImage = downloaded.value[sources.length];
-  const size = typeof body.size === "string" ? body.size : "auto";
-  const common = { model, n, provider, providerOptions, signal };
-  const result =
-    images.length === 0
-      ? await client.generate({
-          ...common,
-          prompt,
-          ...(isPixelSize(size) && { size }),
-        })
-      : await client.edit({
-          ...common,
-          images,
-          instruction: prompt,
-          ...(maskImage !== undefined && { mask: maskImage }),
-        });
-  if (result.isErr()) {
-    return err(result.error);
-  }
-  const value = result.value;
-  let cost: ResolvedCost = { basis: "unknown", usd: null };
-  if (value.cost.source === "provider-metadata") {
-    cost = { basis: "measured", usd: value.cost.usd };
-  } else if (value.cost.source === "table") {
-    cost = { basis: "projected", usd: value.cost.usd };
-  }
-  return ok({
-    chosenBy: plan.chosenBy,
-    cost,
-    data: {},
-    endpoint: plan.endpoint,
-    files: value.images.map((image) => ({
-      key: "images",
-      url: `data:${image.mediaType};base64,${image.base64}`,
-    })),
-    model: plan.model,
-    ...(plan.mode !== undefined && { mode: plan.mode }),
-    ...(plan.prompt !== undefined && { prompt: plan.prompt }),
-    provider: plan.provider,
-    raw: {
-      model: value.model,
-      provider: value.provider,
-      ...(value.warnings !== undefined && { warnings: value.warnings }),
-    },
-    ...(value.requestId !== undefined && { requestId: value.requestId }),
-    task: plan.task,
-    tier: plan.tier,
-  });
-}
-
 function taskStreamer(
   config: MotifClientConfig,
   plan: MotifClient["plan"],
@@ -503,12 +373,11 @@ function taskStreamer(
   };
 }
 
-/** Create the Task client. Keys fall back to FAL_KEY and OPENAI_API_KEY. */
+/** Create the Task client. The key falls back to FAL_KEY. */
 export function createMotif(config: MotifClientConfig = {}): MotifClient {
   function context(): PlanContext {
     return {
       falKey: presentKey(config.falKey ?? getFalKeyFromEnv()),
-      openAiKey: presentKey(config.openAiKey ?? getOpenAiKeyFromEnv()),
       pins: config.pins,
     };
   }
@@ -553,21 +422,6 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
       return err(planned.error);
     }
     const chosen = planned.value;
-    if (chosen.provider === "openai") {
-      const openAiKey = context().openAiKey;
-      if (openAiKey === undefined) {
-        return err(
-          new MotifError(
-            "OPENAI_API_KEY is not set.",
-            0,
-            MISSING_API_KEY,
-            undefined,
-            { envVar: "OPENAI_API_KEY" }
-          )
-        );
-      }
-      return await openAiOutput(chosen, openAiKey, config);
-    }
 
     const headers: Record<string, string> =
       input.ephemeral === true ? { "X-Fal-Store-IO": "0" } : {};
@@ -601,14 +455,6 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
       return err(planned.error);
     }
     const chosen = planned.value;
-    if (chosen.provider !== "fal") {
-      return err(
-        new MotifError(
-          `Only a fal run can be resumed; ${chosen.model} runs on ${chosen.provider}.`,
-          0
-        )
-      );
-    }
     const client = falClient();
     if (client.isErr()) {
       return err(client.error);

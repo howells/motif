@@ -107,13 +107,8 @@ export class UnsupportedOptionError extends Error {
   constructor(config: ModelConfig, option: ModelOption) {
     const models = modelsSupporting(option);
     const supported = supportedOptions(config);
-    const route =
-      config.transparencyRoute !== undefined &&
-      (option === "transparent output" || option === "background")
-        ? ` ${config.name} does produce transparent PNGs through the ${config.transparencyRoute.provider} route (${config.transparencyRoute.apiKeyEnv}).`
-        : "";
     super(
-      `${config.name} does not support ${option}. Models that do: ${models.length > 0 ? models.join(", ") : "none"}. ${config.name} supports: ${supported.length > 0 ? supported.join(", ") : "none of the optional settings"}.${route}`
+      `${config.name} does not support ${option}. Models that do: ${models.length > 0 ? models.join(", ") : "none"}. ${config.name} supports: ${supported.length > 0 ? supported.join(", ") : "none of the optional settings"}.`
     );
     this.name = "UnsupportedOptionError";
     this.model = config.name;

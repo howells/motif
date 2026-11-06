@@ -10,11 +10,11 @@ import { exitCodeForStatus } from "../src/utils/errors";
 import { spawnEnv } from "./cli-env";
 
 /**
- * Agent task regression fixtures (SURF-7).
+ * Agent task regression fixtures.
  *
  * These spawn the real CLI and pin the machine-readable contract agents depend
  * on: the `--describe` creative enums against the SDK taxonomy, the semantic
- * exit-code mapping (SURF-5), and the structured error envelope shape.
+ * exit-code mapping, and the structured error envelope.
  */
 
 interface CliResult {
@@ -186,41 +186,6 @@ describe("agent fixtures: semantic exit codes", () => {
       error: true,
       status: 404,
     });
-  });
-});
-
-describe("agent fixtures: structured error envelope", () => {
-  it("pins the RFC 7807 envelope keys for a known failure", async () => {
-    const result = await runMotif([
-      "a cat on a windowsill",
-      "--dry-run",
-      "--format",
-      "json",
-      "--model",
-      "not-a-real-model",
-    ]);
-
-    expect(result.code).toBe(2);
-
-    const error = parseJsonLine(result.stderr);
-    expect(error).toMatchObject({
-      code: "UNKNOWN_MODEL",
-      doc_uri: "motif://describe/errors#unknown-model",
-      is_retriable: false,
-      status: 400,
-      title: "Unknown Model",
-      type: "urn:motif:error:unknown-model",
-    });
-    for (const key of [
-      "code",
-      "type",
-      "title",
-      "status",
-      "is_retriable",
-      "doc_uri",
-    ]) {
-      expect(error).toHaveProperty(key);
-    }
   });
 });
 

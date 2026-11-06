@@ -11,11 +11,11 @@ Motif picks a Model for the Task you ask for. The installed CLI's schema is the 
 - **Don't resubmit a slow request.** A second submission can charge again.
 - **Pass source images explicitly.** Omitting one can silently use the last generation from another workflow.
 - **Look at the result** (open the image, play the video) before reporting success. Give its path and cost, and keep a plan distinct from a finished generation.
-- **Never print `FAL_KEY` or `OPENAI_API_KEY`** or write them into files.
+- **Never print `FAL_KEY`** or write it into files.
 
 ## Setup
 
-The CLI is `@howells/motif-cli`; this skill doesn't install it. If `motif` is missing and installing is authorised, run `npm install -g @howells/motif-cli`. Live calls need `FAL_KEY`, and some transparency routes need `OPENAI_API_KEY`; dry runs need neither. `motif studio` is interactive; call commands directly instead.
+The CLI is `@howells/motif-cli`; this skill doesn't install it. If `motif` is missing and installing is authorised, run `npm install -g @howells/motif-cli`. Live calls need `FAL_KEY`; dry runs don't. `motif studio` is interactive; call commands directly instead.
 
 Before building a task's command, read its schema:
 

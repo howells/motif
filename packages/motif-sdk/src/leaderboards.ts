@@ -47,7 +47,6 @@ export const IMAGE_TEXT_TO_IMAGE_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "GPT Image 2 (high)",
       rank: 3,
-      routableModelId: "gpt2",
     },
     {
       apiPricing: "$60.0 /1k imgs",
@@ -242,7 +241,6 @@ export const IMAGE_EDITING_TOP_20: LeaderboardSnapshot = {
       isCurrent: true,
       model: "GPT Image 2 (high)",
       rank: 5,
-      routableModelId: "gpt2",
     },
     {
       apiPricing: "$10.0 /1k imgs",

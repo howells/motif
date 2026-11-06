@@ -475,7 +475,7 @@ const leadOf = (
 export const MATRIX = {
   body: `Motif curates ${TASKS.generate.models.length} generation models, with separate rankings for making and editing images. For a new image, balanced starts with ${leadOf("generate", "balanced")}, quality with ${leadOf("generate", "quality")} and fast with ${leadOf("generate", "fast")}; editing ranks its own, starting with ${leadOf("vary", "balanced")} at balanced. The table shows each job's choices, including specialists for text, transparency and control.`,
   footnote:
-    "The rankings are reviewed against current benchmarks; existing Looks and model pins keep their choices across a refresh. Make, edit means the SDK can call Google, OpenAI, Replicate or fal directly with that provider's key. Explicit GPT Image 2 transparent output uses OpenAI; other CLI routes use fal. Token-billed models show an unknown total before the run.",
+    "The rankings are reviewed against current benchmarks; existing Looks and model pins keep their choices across a refresh. Make, edit means the SDK can call Google, OpenAI, Replicate or fal directly with that provider's key. CLI routes use fal. Token-billed models show an unknown total before the run.",
   title: "What runs where",
 } as const;
 

@@ -115,7 +115,7 @@ describe("Task streaming over a real HTTP connection", () => {
       response.end();
     });
     const result = await fixture.motif.stream("generate", {
-      model: "gpt2",
+      model: "gpt",
       prompt: "chair",
     });
     const stream = result._unsafeUnwrap();
@@ -139,12 +139,12 @@ describe("Task streaming over a real HTTP connection", () => {
     expect(fixture.calls).toMatchObject([
       {
         method: "POST",
-        url: "/openai/gpt-image-2/stream",
+        url: "/fal-ai/gpt-image-1.5/stream",
       },
     ]);
   });
 
-  it.each(["gpt2", "gpt", "flux2-dev"])(
+  it.each(["gpt", "flux2-dev"])(
     "normalises references for %s edit streaming",
     async (model) => {
       const fixture = await transport((response) => {
@@ -178,11 +178,11 @@ describe("Task streaming over a real HTTP connection", () => {
       calls++;
       throw new Error("Network forbidden");
     };
-    const motif = createMotif({ falKey: "test", openAiKey: "test", fetch });
+    const motif = createMotif({ falKey: "test", fetch });
     for (const input of [
       { prompt: "chair" },
       { prompt: "chair", model: "banana" },
-      { prompt: "chair", model: "gpt2", transparent: true },
+      { prompt: "chair", model: "sunburst" },
     ]) {
       const result = await motif.stream("generate", input);
       expect(result.isErr()).toBe(true);
@@ -198,7 +198,7 @@ describe("Task streaming over a real HTTP connection", () => {
       );
     });
     const result = await fixture.motif.stream("generate", {
-      model: "gpt2",
+      model: "gpt",
       prompt: "chair",
     });
     const stream = result._unsafeUnwrap();
@@ -221,7 +221,7 @@ describe("Task streaming over a real HTTP connection", () => {
       response.end(`data: ${JSON.stringify({ image: inline })}\n\n`);
     });
     const result = await fixture.motif.stream("generate", {
-      model: "gpt2",
+      model: "gpt",
       prompt: "chair",
     });
     const stream = result._unsafeUnwrap();
@@ -240,7 +240,7 @@ describe("Task streaming over a real HTTP connection", () => {
       response.end('{"detail":"unavailable"}');
     });
     const result = await fixture.motif.stream("generate", {
-      model: "gpt2",
+      model: "gpt",
       prompt: "chair",
     });
     expect(result._unsafeUnwrapErr()).toMatchObject({
@@ -260,7 +260,7 @@ describe("Task streaming over a real HTTP connection", () => {
     controller.abort();
     const result = await createMotif({ falKey: "test", fetch }).stream(
       "generate",
-      { model: "gpt2", prompt: "chair" },
+      { model: "gpt", prompt: "chair" },
       { signal: controller.signal }
     );
     expect(result._unsafeUnwrapErr().code).toBe("ABORTED");
@@ -279,7 +279,7 @@ describe("Task streaming over a real HTTP connection", () => {
         response.end(frame);
       });
       const result = await fixture.motif.stream("generate", {
-        model: "gpt2",
+        model: "gpt",
         prompt: "chair",
       });
       const stream = result._unsafeUnwrap();
@@ -295,7 +295,7 @@ describe("Task streaming over a real HTTP connection", () => {
       response.end('{"images":[]}');
     });
     const result = await fixture.motif.stream("generate", {
-      model: "gpt2",
+      model: "gpt",
       prompt: "chair",
     });
     expect(result._unsafeUnwrapErr().code).toBe("INVALID_STREAM_RESPONSE");
@@ -311,7 +311,7 @@ describe("Task streaming over a real HTTP connection", () => {
       const controller = new AbortController();
       const result = await fixture.motif.stream(
         "generate",
-        { model: "gpt2", prompt: "chair" },
+        { model: "gpt", prompt: "chair" },
         { signal: controller.signal }
       );
       const stream = result._unsafeUnwrap();
@@ -347,7 +347,7 @@ describe("Task streaming over a real HTTP connection", () => {
     });
     const result = await fixture.motif.stream(
       "generate",
-      { model: "gpt2", prompt: "chair" },
+      { model: "gpt", prompt: "chair" },
       { timeout: 60 }
     );
     const stream = result._unsafeUnwrap();

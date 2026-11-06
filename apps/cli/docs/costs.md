@@ -20,7 +20,6 @@ vary offers the Models marked edit.
 | --- | --- | --- | --- |
 | `sunburst` | quality | Metered | Edit. Default quality is `max`, matching the benchmark variant; 16 references, masks, transparency |
 | `flare` | quality | Metered | Edit. Default quality is `max`; 16 references, masks, transparency |
-| `gpt2` | quality | ~$0.211 | Edit. Token-billed representative estimate; explicit transparency uses OpenAI, cost unknown |
 | `seedream5` | quality | $0.0675 / $0.135 | Edit. $0.135 above 1536² |
 | `gpt` | quality | ~$0.133 | Edit. Token input additional; transparency on fal |
 | `mai-image-2.5-pro` | quality | ~$0.17 | Edit. One reference; edits ~$0.18-$0.27 |

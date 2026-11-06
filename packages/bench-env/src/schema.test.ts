@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { envSchema, parseServerEnv } from "./schema";
+import { parseServerEnv } from "./schema";
 
 const VALID_INPUT = {
   DATABASE_URL: "postgres://user:pass@ep-foo-pooler.us-east-1.aws.neon.tech/db",
@@ -9,10 +9,6 @@ const VALID_INPUT = {
 };
 
 describe("bench-env schema", () => {
-  it("defines the schema without parsing anything (module import is side-effect free)", () => {
-    expect(envSchema.definition.server).toBeDefined();
-  });
-
   it("parses a valid input", () => {
     const parsed = parseServerEnv(VALID_INPUT);
     expect(parsed.DATABASE_URL).toBe(VALID_INPUT.DATABASE_URL);

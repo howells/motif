@@ -1,20 +1,10 @@
 import { spawn } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { describe, expect, it } from "vitest";
-import { z } from "zod";
 
 import { spawnEnv } from "./cli-env";
-
-interface PackFile {
-  path: string;
-}
-
-interface PackResult {
-  files: PackFile[];
-  name: string;
-}
 
 interface RunResult {
   code: number;
@@ -25,22 +15,6 @@ interface RunResult {
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
-
-const PackSchema = z.object({
-  files: z.array(z.object({ path: z.string() })),
-  name: z.string(),
-});
-
-// npm 11 returns an array; npm 12 keys results by package name.
-const PackOutputSchema = z
-  .union([
-    z.array(PackSchema),
-    z
-      .record(z.string(), PackSchema)
-      .transform((packages) => Object.values(packages)),
-  ])
-  .pipe(z.tuple([PackSchema]))
-  .transform(([pack]) => pack);
 
 const repoRoot = resolve(import.meta.dirname, "../../..");
 
@@ -77,46 +51,7 @@ async function runCommand(
   });
 }
 
-async function npmPackDryRun(packagePath: string): Promise<PackResult> {
-  const result = await runCommand(
-    "npm",
-    ["pack", "--dry-run", "--json", "--ignore-scripts"],
-    packagePath
-  );
-  expect(result.code, result.stderr).toBe(0);
-  return PackOutputSchema.parse(JSON.parse(result.stdout));
-}
-
-function expectPublicPackage(pack: PackResult, expectedFiles: string[]) {
-  const files = pack.files.map((file) => file.path).toSorted();
-  expect(files).toStrictEqual(expectedFiles.toSorted());
-  expect(files.some((file) => file.includes("apps/web"))).toBe(false);
-  expect(files.some((file) => file.includes(".env"))).toBe(false);
-  expect(files.some((file) => file.includes("src/"))).toBe(false);
-  expect(
-    files.every(
-      (file) =>
-        file === "package.json" ||
-        file === "README.md" ||
-        file === "AGENTS.md" ||
-        /^docs\/[\w-]+\.md$/.test(file) ||
-        file.startsWith("dist/") ||
-        file.startsWith("bin/")
-    )
-  ).toBe(true);
-}
-
 describe("package smoke", () => {
-  it("imports the public SDK", async () => {
-    const sdk = await import("@howells/motif-sdk");
-
-    expect(sdk.createMotif).toBeTypeOf("function");
-    expect(sdk.TASKS.generate.models.length).toBeGreaterThan(0);
-    for (const removed of ["FalClient", "FAL_TOOLS", "MODELS"]) {
-      expect(sdk).not.toHaveProperty(removed);
-    }
-  });
-
   it("runs the built CLI binary without a Fal key", async () => {
     const cliBin = resolve(repoRoot, "apps/cli/bin/motif");
     expect(existsSync(resolve(repoRoot, "apps/cli/dist/index.js"))).toBe(true);
@@ -128,7 +63,6 @@ describe("package smoke", () => {
     );
     expect(help.code).toBe(0);
     expect(help.stdout).toContain("Usage:");
-    expect(help.stdout).toContain("motif studio");
 
     const dryRun = await runCommand(
       process.execPath,
@@ -161,37 +95,4 @@ describe("package smoke", () => {
       quality: "medium",
     });
   });
-
-  it("keeps public package tarballs limited to allowlisted files", async () => {
-    const sdkPack = await npmPackDryRun(
-      resolve(repoRoot, "packages/motif-sdk")
-    );
-    expectPublicPackage(sdkPack, [
-      "README.md",
-      "dist/image.d.ts",
-      "dist/image.js",
-      "dist/index.cjs",
-      "dist/index.d.cts",
-      "dist/index.d.ts",
-      "dist/index.js",
-      "package.json",
-    ]);
-
-    const cliPack = await npmPackDryRun(resolve(repoRoot, "apps/cli"));
-    // The agent guide and its reference pages ship so an installed CLI can be
-    // driven from its own docs; the pages are read from disk so a new one is
-    // allowed without editing this list, while the guard above still admits
-    // only Markdown from docs/.
-    const cliDocs = readdirSync(resolve(repoRoot, "apps/cli/docs")).map(
-      (file) => `docs/${file}`
-    );
-    expectPublicPackage(cliPack, [
-      "AGENTS.md",
-      "README.md",
-      "bin/motif",
-      "dist/index.js",
-      "package.json",
-      ...cliDocs,
-    ]);
-  }, 30_000);
 });

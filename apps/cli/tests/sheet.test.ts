@@ -98,7 +98,7 @@ describe(captionFor, () => {
       generation(path, {
         cost: 0.211,
         look: "editorial",
-        model: "gpt2",
+        model: "sunburst",
         mood: "dawn",
       }),
     ]);

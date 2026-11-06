@@ -15,9 +15,9 @@
  *   not a ceiling; the run settles at the cost the SDK reports, or at the
  *   hold, marked as an estimate (`retained`), when no cost is reported.
  *
- * Still refused: a Task not in the App, a provider other than fal, a tool
- * billed per compute second or by some other unit with no maximum, and a
- * tool whose bill depends on a size the App can't know before the call.
+ * Still refused: a Task not in the App, a tool billed per compute second or
+ * by some other unit with no maximum, and a tool whose bill depends on a size
+ * the App can't know before the call.
  *
  * The recorded cost replaces the hold when the run settles, so headroom
  * costs nothing once a run finishes.
@@ -55,7 +55,6 @@ export interface BoundContext {
 export interface PlannedCall {
   readonly body: Readonly<Record<string, unknown>>;
   readonly model: string;
-  readonly provider: "fal" | "openai";
   readonly task: string;
 }
 
@@ -438,11 +437,6 @@ const generationBound = (call: PlannedCall, context: BoundContext): Bound => {
 export const boundFor = (call: PlannedCall, context: BoundContext): Bound => {
   if (!PHASE_ONE_TASKS.has(call.task)) {
     return unbounded(`${call.task} isn't in the App yet.`);
-  }
-  if (call.provider !== "fal") {
-    return unbounded(
-      `${call.model} runs on ${call.provider}, which bills by token and can't be resumed.`
-    );
   }
   const upscaler = UPSCALER_PER_MEGAPIXEL[call.model];
   if (upscaler !== undefined) {

@@ -38,7 +38,7 @@ interface PoolOptions<T> {
  *
  * Lanes pull from a shared cursor rather than being given fixed slices, so
  * one slow model does not hold back the items that happen to sit behind it
- * in a pre-assigned partition — with `gpt2` at 151s against `flux-fast` at
+ * in a pre-assigned partition — with a slow model at 151s against `flux-fast` at
  * 1.3s, static partitioning would leave lanes idle for minutes. */
 export const runWithConcurrency = async <T>(
   items: readonly T[],

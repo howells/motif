@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  modelsSupporting,
-  supportedOptions,
-  UnsupportedOptionError,
-} from "../src/capabilities";
+import { modelsSupporting, UnsupportedOptionError } from "../src/capabilities";
 import { buildGenerateBody } from "../src/generate";
 import { MODELS } from "../src/models";
 
@@ -33,35 +29,12 @@ describe("unsupported option errors", () => {
     expect(error.code).toBe("INVALID_OPTION");
     expect(error.option).toBe("resolution");
     expect(error.model).toBe(MODELS.seedream45?.name);
-    expect(error.modelsSupporting).toContain("banana");
     expect(error.modelsSupporting).not.toContain("seedream45");
-    expect(error.message).toMatch(
-      /^Seedream 4\.5 does not support resolution\. Models that do: .*banana/
-    );
-    expect(error.message).toContain("Seedream 4.5 supports: ");
   });
 
-  it("derive both lists from the registry", () => {
+  it("derives the supporting models from the registry", () => {
     for (const id of modelsSupporting("resolution")) {
       expect(MODELS[id]?.supportsResolution).toBe(true);
     }
-    const gpt = MODELS.gpt;
-    expect(gpt).toBeDefined();
-    if (gpt !== undefined) {
-      expect(supportedOptions(gpt)).toContain("transparent output");
-    }
-  });
-
-  it("point gpt2 transparency at its OpenAI route", () => {
-    const error = refusal(() =>
-      buildGenerateBody({
-        model: "gpt2",
-        prompt: "a sticker",
-        transparent: true,
-      })
-    );
-    expect(error.option).toBe("transparent output");
-    expect(error.modelsSupporting).toContain("gpt");
-    expect(error.message).toContain("OPENAI_API_KEY");
   });
 });

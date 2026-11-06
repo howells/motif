@@ -100,7 +100,7 @@ export interface AlignmentOk {
   readonly options: GenerateOptions;
   readonly seedSent: number | null;
   readonly sizeMode: SizeMode;
-  /** gpt2 only — its timings carry the queue's 3s polling granularity. */
+  /** Queue-polled timings carry the queue's 3s polling granularity. */
   readonly usesQueue: boolean;
 }
 

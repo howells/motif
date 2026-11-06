@@ -73,14 +73,14 @@ if (plan.isOk()) {
 
 ## Stream a Task
 
-`stream(task, input, options?)` opens a direct inference stream on the resolved route. Streaming is explicitly supported for GPT Image 2, GPT Image 1.5 and FLUX.2 Dev, including their edit routes. Other routes return `STREAMING_UNSUPPORTED` before any provider request; Motif never substitutes another model or retries a stream.
+`stream(task, input, options?)` opens a direct inference stream on the resolved route. Streaming is explicitly supported for GPT Image 1.5 and FLUX.2 Dev, including their edit routes. Other routes return `STREAMING_UNSUPPORTED` before any provider request; Motif never substitutes another model or retries a stream.
 
 ```ts
 const controller = new AbortController();
 const opened = await motif.stream(
   "generate",
   {
-    model: "gpt2",
+    model: "gpt",
     prompt: "editorial product photo",
     references: ["https://example.com/reference.png"],
   },
@@ -110,7 +110,7 @@ For a local checkout, `node packages/motif-sdk/examples/stream.mjs --dry-run` pr
 - `ASPECT_RATIOS`, `RESOLUTIONS`, `FORMAT_PRESETS` - shared sizing metadata.
 - `LOOKS`, `CREATIVE_TAXONOMY`, `enrichPrompt`, `validateCreativeDirection` - house looks and moods.
 - `formatCost`, `sumCosts` - cost formatting and totals.
-- `getFalKeyFromEnv`, `getOpenAiKeyFromEnv` - `@howells/envy` backed key parsing.
+- `getFalKeyFromEnv` - `@howells/envy` backed key parsing.
 - Re-exported `neverthrow` helpers: `ok`, `err`, `Result`, `ResultAsync`.
 
 ## Common Types

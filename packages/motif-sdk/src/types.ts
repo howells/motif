@@ -101,21 +101,6 @@ export interface ModelBenchmark {
   useCase?: string;
 }
 
-/**
- * A provider route outside fal that reaches a capability fal's endpoint does
- * not expose. The capability belongs to the model; fal just doesn't pass it on.
- */
-export interface ProviderRoute {
-  /** Env var holding the provider key, e.g. `"OPENAI_API_KEY"`. */
-  apiKeyEnv: string;
-  /** Provider model id, e.g. `"gpt-image-2"`. */
-  model: string;
-  /** Image-layer provider that serves the route. */
-  provider: "openai";
-  /** Whether the route also accepts reference images for editing. */
-  supportsEdit: boolean;
-}
-
 export interface ModelConfig {
   benchmark?: ModelBenchmark;
   /**
@@ -188,11 +173,6 @@ export interface ModelConfig {
   supportsSyncMode?: boolean;
   supportsThinkingLevel?: boolean;
   supportsWebSearch?: boolean;
-  /**
-   * Transparent PNG output reached through another provider when fal's
-   * endpoint has no `background` parameter (GPT Image 2 through OpenAI).
-   */
-  transparencyRoute?: ProviderRoute;
   /**
    * The endpoint only makes transparent images and takes no `background`
    * parameter (Ideogram V3 Transparent). Every output has an alpha channel.

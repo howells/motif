@@ -128,8 +128,6 @@ describe("boundFor", () => {
     expect(bound.kind).toBe("unbounded");
   });
 
-  // Daniel's decision, 1 November 2026 (MOT-74): image Models fal bills by
-  // usage run, each image held at a fixed $0.50 rather than refused.
   it("holds a usage-billed Model at a fixed amount per image", () => {
     const call = planned("generate", { model: "banana21", prompt: "a jug" });
     expect(boundFor(call, NO_REFERENCES)).toMatchObject({
@@ -153,7 +151,7 @@ describe("boundFor", () => {
   });
 
   it("holds a token-billed Model the same way", () => {
-    const call = planned("generate", { model: "gpt2", prompt: "a jug" });
+    const call = planned("generate", { model: "sunburst", prompt: "a jug" });
     expect(boundFor(call, NO_REFERENCES)).toMatchObject({
       billing: "usage",
       micros: USAGE_HOLD_MICROS_PER_IMAGE,
@@ -225,15 +223,6 @@ describe("boundFor", () => {
     expect(held).toBeGreaterThanOrEqual(
       Math.ceil((plan.cost.usd ?? 0) * 1_000_000)
     );
-  });
-
-  it("refuses any provider other than fal", () => {
-    expect(
-      boundFor(
-        { body: {}, model: "seedream5", provider: "openai", task: "generate" },
-        NO_REFERENCES
-      ).kind
-    ).toBe("unbounded");
   });
 
   it("refuses a Task that isn't in the App yet, whatever it costs", () => {

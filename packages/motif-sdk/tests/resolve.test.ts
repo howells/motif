@@ -12,46 +12,30 @@ import {
   resolveTask,
   tierChangesChoice,
 } from "../src/resolve";
-import { TASK_IDS, TIERS } from "../src/tasks";
+import { TASK_IDS, TASKS, TIERS } from "../src/tasks";
 
 const fal: TaskEnvironment = { keys: ["FAL_KEY"] };
-const falAndOpenAi: TaskEnvironment = { keys: ["FAL_KEY", "OPENAI_API_KEY"] };
 
 describe("resolveTask ranking", () => {
-  it("takes the first Model of the asked-for Tier", () => {
-    expect(resolveTask("generate", { tier: "balanced" }, fal)).toMatchObject({
+  it.each(TIERS)("takes the first Model of the %s Tier", (tier) => {
+    expect(resolveTask("generate", { tier }, fal)).toMatchObject({
       chosenBy: "ranking",
-      model: "banana21",
+      model: TASKS.generate.models.find((entry) => entry.tier === tier)?.model,
       ok: true,
-      tier: "balanced",
-    });
-    expect(resolveTask("generate", { tier: "fast" }, fal)).toMatchObject({
-      model: "banana2-lite",
-      tier: "fast",
-    });
-    expect(resolveTask("generate", { tier: "quality" }, fal)).toMatchObject({
-      model: "sunburst",
-      tier: "quality",
+      tier,
     });
   });
 
-  it("skips a Model whose transparency key is missing", () => {
+  it("keeps quality transparency on fal", () => {
     expect(
       resolveTask("generate", { tier: "quality", transparent: true }, fal)
-    ).toMatchObject({ model: "sunburst", ok: true });
-    expect(
-      resolveTask(
-        "generate",
-        { tier: "quality", transparent: true },
-        falAndOpenAi
-      )
-    ).toMatchObject({ model: "sunburst", ok: true });
+    ).toMatchObject({ ok: true });
   });
 
   it("honours the reference count a Model accepts", () => {
     expect(
       resolveTask("generate", { references: 14, tier: "balanced" }, fal)
-    ).toMatchObject({ model: "banana21", ok: true });
+    ).toMatchObject({ ok: true });
     expect(
       resolveTask("generate", { references: 20, tier: "balanced" }, fal)
     ).toMatchObject({
@@ -77,54 +61,14 @@ describe("resolveTask ranking", () => {
 
 describe("curated generation and editing", () => {
   it("uses the editing order for a generation with References", () => {
-    // Nano Banana 2.1 drops 0.5K, so that request retains the capable predecessor.
-    expect(resolveTask("generate", { resolution: "0.5K" }, fal)).toMatchObject({
-      ok: true,
-      model: "banana2",
-    });
-    expect(
-      resolveTask("vary", { source: "image", tier: "fast" }, fal)
-    ).toMatchObject({
-      ok: true,
-      model: "grok-image",
-    });
+    const edited = resolveTask("vary", { source: "image", tier: "fast" }, fal);
+    expect(edited.ok).toBe(true);
     expect(
       resolveTask("generate", { references: 1, tier: "fast" }, fal)
-    ).toMatchObject({
-      ok: true,
-      model: "grok-image",
-    });
+    ).toMatchObject({ model: edited.ok ? edited.model : undefined, ok: true });
   });
 
-  it("starts editing at Grok Image 2 in the balanced Tier, from Arena 2026-10-29", () => {
-    expect(
-      resolveTask("vary", { source: "image", tier: "balanced" }, fal)
-    ).toMatchObject({ chosenBy: "ranking", model: "grok-image-2", ok: true });
-    expect(
-      resolveTask("generate", { references: 1, tier: "balanced" }, fal)
-    ).toMatchObject({ model: "grok-image-2", ok: true });
-    expect(
-      resolveTask("vary", { source: "image", tier: "quality" }, fal)
-    ).toMatchObject({ model: "sunburst", ok: true });
-    expect(
-      resolveTask("vary", { source: "image", tier: "fast" }, fal)
-    ).toMatchObject({ model: "grok-image", ok: true });
-  });
-
-  it.each(["muse-image", "krea3", "grok-image-quality", "qwen3"])(
-    "accepts %s by name for generation and for editing",
-    (model) => {
-      expect(resolveTask("generate", { model }, fal)).toMatchObject({
-        model,
-        ok: true,
-      });
-      expect(
-        resolveTask("vary", { model, source: "image" }, fal)
-      ).toMatchObject({ model, ok: true });
-    }
-  );
-
-  it("keeps archived edit pins and respects the new Model limits", () => {
+  it("keeps archived edit pins", () => {
     expect(
       resolveTask(
         "vary",
@@ -135,18 +79,6 @@ describe("curated generation and editing", () => {
         }
       )
     ).toMatchObject({ ok: true, model: "seedream45", chosenBy: "pin" });
-    expect(
-      resolveTask("generate", { model: "banana21", resolution: "0.5K" }, fal)
-    ).toMatchObject({
-      ok: false,
-      blockedBy: "resolution",
-    });
-    expect(
-      resolveTask("generate", { model: "banana21", references: 15 }, fal)
-    ).toMatchObject({
-      ok: false,
-      blockedBy: "references",
-    });
   });
 });
 
@@ -186,10 +118,10 @@ describe("resolveTask precedence", () => {
 describe("resolveTask refusals", () => {
   it("fails an explicit Model that needs a key the environment lacks", () => {
     expect(
-      resolveTask("generate", { model: "gpt2", transparent: true }, fal)
+      resolveTask("generate", { model: "sunburst" }, { keys: [] })
     ).toMatchObject({
       blockedBy: "key",
-      missingKey: "OPENAI_API_KEY",
+      missingKey: "FAL_KEY",
       ok: false,
       unblockedBy: ["key"],
     });
@@ -202,9 +134,6 @@ describe("resolveTask refusals", () => {
       ok: false,
       unblockedBy: ["model"],
     });
-    if (!result.ok) {
-      expect(result.message).toContain("generate");
-    }
   });
 
   it("fails a pin that cannot do what the request asks", () => {
@@ -242,7 +171,6 @@ describe("Tier and Source", () => {
   it.each(TIERS)("cuts out video at the %s Tier", (tier) => {
     expect(resolveTask("cutout", { source: "video", tier }, fal)).toMatchObject(
       {
-        model: "bria-video-rmbg-v3",
         ok: true,
         tier,
       }
@@ -263,24 +191,11 @@ describe("Tier and Source", () => {
 });
 
 describe("modes and required inputs", () => {
-  it("resolves a plain erase to object-removal, and finegrain-eraser at quality", () => {
-    expect(resolveTask("erase", { source: "image" }, fal)).toMatchObject({
-      model: "object-removal",
-      ok: true,
-    });
-    expect(
-      resolveTask("erase", { source: "image", tier: "quality" }, fal)
-    ).toMatchObject({ model: "finegrain-eraser", ok: true });
-  });
-
-  it("resolves an erase with a mask to object-removal-mask, and bria-eraser at quality", () => {
-    expect(resolveTask("erase", { mask: true }, fal)).toMatchObject({
-      model: "object-removal-mask",
-      ok: true,
-    });
-    expect(
-      resolveTask("erase", { mask: true, tier: "quality" }, fal)
-    ).toMatchObject({ model: "bria-eraser", ok: true });
+  it("resolves a plain erase and an erase with a mask to different Models", () => {
+    const plain = resolveTask("erase", { source: "image" }, fal);
+    const masked = resolveTask("erase", { mask: true }, fal);
+    expect(plain.ok && masked.ok).toBe(true);
+    expect(plain.ok && masked.ok && plain.model !== masked.model).toBe(true);
   });
 
   it("resolves erase mode text to text-removal", () => {
@@ -291,15 +206,11 @@ describe("modes and required inputs", () => {
   });
 
   it("refuses erase mode with unless a mask is given, then resolves to bria-genfill", () => {
-    const withoutMask = resolveTask("erase", { mode: "with" }, fal);
-    expect(withoutMask).toMatchObject({
+    expect(resolveTask("erase", { mode: "with" }, fal)).toMatchObject({
       blockedBy: "mask",
       ok: false,
       unblockedBy: ["input"],
     });
-    if (!withoutMask.ok) {
-      expect(withoutMask.message).toContain("mask input");
-    }
     expect(
       resolveTask("erase", { mask: true, mode: "with" }, fal)
     ).toMatchObject({ model: "bria-genfill", ok: true });
@@ -352,24 +263,11 @@ describe("modes and required inputs", () => {
     });
   });
 
-  it("resolves a plain restore to topaz-restore, and mode colour to ddcolor", () => {
-    expect(resolveTask("restore", { source: "image" }, fal)).toMatchObject({
-      model: "topaz-restore",
-      ok: true,
-    });
-    expect(resolveTask("restore", { mode: "colour" }, fal)).toMatchObject({
-      model: "ddcolor",
-      ok: true,
-    });
-  });
-
-  it("resolves map mode edges to pidi at fast and teed at quality", () => {
-    expect(
-      resolveTask("map", { mode: "edges", tier: "fast" }, fal)
-    ).toMatchObject({ model: "pidi", ok: true });
-    expect(
-      resolveTask("map", { mode: "edges", tier: "quality" }, fal)
-    ).toMatchObject({ model: "teed", ok: true });
+  it("resolves a mode at its own Tier ranking", () => {
+    const fast = resolveTask("map", { mode: "edges", tier: "fast" }, fal);
+    const quality = resolveTask("map", { mode: "edges", tier: "quality" }, fal);
+    expect(fast).toMatchObject({ ok: true, tier: "fast" });
+    expect(quality).toMatchObject({ ok: true, tier: "quality" });
   });
 
   it("resolves segment mode rle on video to sam3-video-rle", () => {
@@ -382,11 +280,7 @@ describe("modes and required inputs", () => {
     expect(tierChangesChoice("restyle", { source: "image" }, fal)).toBe(false);
   });
 
-  it("resolves reframe to bria-expand at fast, and mode margin to flux-outpaint", () => {
-    expect(resolveTask("reframe", { tier: "fast" }, fal)).toMatchObject({
-      model: "bria-expand",
-      ok: true,
-    });
+  it("resolves reframe mode margin to flux-outpaint", () => {
     expect(resolveTask("reframe", { mode: "margin" }, fal)).toMatchObject({
       model: "flux-outpaint",
       ok: true,

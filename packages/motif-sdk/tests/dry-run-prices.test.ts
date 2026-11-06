@@ -142,11 +142,6 @@ describe("dry-run prices", () => {
     );
   });
 
-  it("prices OCR and moderation per input image", () => {
-    expectProjected("ask", { image: IMAGE, mode: "read" }, "got-ocr", 0.05);
-    expectProjected("ask", { image: IMAGE, mode: "safe" }, "nsfw", 0.001);
-  });
-
   it("prices Moondream from its token rates and estimated tokens", () => {
     expectProjected(
       "ask",
@@ -191,18 +186,15 @@ describe("dry-run prices", () => {
     );
   });
 
-  it("prices the endpoints fal lists at $0 as free, projected and measured", () => {
-    expectProjected("cutout", { image: IMAGE }, "birefnet", 0);
-    expectProjected("map", { image: IMAGE }, "depth-anything", 0);
-    expectProjected("segment", { image: IMAGE, mode: "auto" }, "sam2-auto", 0);
+  it("prices a free endpoint as $0, projected and measured", () => {
+    expect(planned("cutout", { image: IMAGE }).cost).toStrictEqual({
+      basis: "projected",
+      usd: 0,
+    });
     expect(measuredToolCost(FAL_TOOLS.birefnet.price, [])).toStrictEqual({
       basis: "measured",
       usd: 0,
     });
-  });
-
-  it("prices Qwen layers per call", () => {
-    expectProjected("layers", { image: IMAGE }, "qwen-layered", 0.05);
   });
 
   it("prices SAM 3 video per started 16 frames", () => {

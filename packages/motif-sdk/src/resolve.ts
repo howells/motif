@@ -120,8 +120,6 @@ const FAL_KEY = "FAL_KEY";
 
 export interface ModelProfile {
   readonly capabilities: ReadonlySet<Capability>;
-  /** Capabilities reachable only when this key variable is set. */
-  readonly keyedCapabilities: ReadonlyMap<Capability, string>;
   /** Key variables the Model needs for any request. */
   readonly keys: readonly string[];
   readonly maxReferences: number;
@@ -139,11 +137,8 @@ export interface ModelProfile {
 
 function generationProfile(config: ModelConfig): ModelProfile {
   const capabilities = new Set<Capability>(["image"]);
-  const keyed = new Map<Capability, string>();
   if (config.supportsBackground === true || config.transparentOutput === true) {
     capabilities.add("transparency");
-  } else if (config.transparencyRoute !== undefined) {
-    keyed.set("transparency", config.transparencyRoute.apiKeyEnv);
   }
   if (config.supportsEdit) {
     capabilities.add("references");
@@ -175,7 +170,6 @@ function generationProfile(config: ModelConfig): ModelProfile {
   return {
     aspects: config.supportedAspects,
     capabilities,
-    keyedCapabilities: keyed,
     keys: [FAL_KEY],
     maxReferences: config.supportsEdit ? (config.maxReferenceImages ?? 1) : 0,
     outputFormats: {
@@ -223,7 +217,6 @@ function toolProfile(tool: FalToolId): ModelProfile {
   }
   return {
     capabilities,
-    keyedCapabilities: new Map(),
     keys: [FAL_KEY],
     maxReferences: takesReference ? 1 : 0,
   };
@@ -357,18 +350,11 @@ function check(
     }
   }
   for (const capability of needed) {
-    if (profile.capabilities.has(capability)) {
-      if (!withinLimits(profile, capability, request)) {
-        return { blockedBy: capability, ok: false };
-      }
-      continue;
-    }
-    const key = profile.keyedCapabilities.get(capability);
-    if (key === undefined) {
+    if (
+      !profile.capabilities.has(capability) ||
+      !withinLimits(profile, capability, request)
+    ) {
       return { blockedBy: capability, ok: false };
-    }
-    if (!keys.includes(key)) {
-      return { blockedBy: "key", missingKey: key, ok: false };
     }
   }
   return { ok: true };

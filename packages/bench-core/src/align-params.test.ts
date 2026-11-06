@@ -53,13 +53,6 @@ const FORCE_PROBES: Record<string, unknown> = {
   seed: 999,
 };
 
-describe("GENERATION_MODELS coverage", () => {
-  it("includes the GPT Image 2.6 aliases", () => {
-    expect(GENERATION_MODELS).toContain("flare");
-    expect(GENERATION_MODELS).toContain("sunburst");
-  });
-});
-
 describe.each(SPECS)("align-params kernel — spec aspect %s", (_label, spec) => {
   it("1. every alias aligns and builds a body without throwing", () => {
     const failures: string[] = [];
@@ -166,8 +159,7 @@ describe("aspect coercion mappers — no fabricated throws", () => {
   // A previous autofixer fabricated `throw` statements into exactly these two
   // mappers' switch defaults (see BRIEF.md). Every AspectRatio value must map
   // cleanly through both, with no exceptions.
-  it("maps all 15 AspectRatio values through aspectToGptSize and aspectToFalImageSize", () => {
-    expect(ASPECT_RATIOS).toHaveLength(15);
+  it("maps every AspectRatio value through aspectToGptSize and aspectToFalImageSize", () => {
     for (const aspect of ASPECT_RATIOS) {
       let gptSize: string | undefined;
       let falSize: string | undefined;

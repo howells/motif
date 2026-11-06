@@ -40,7 +40,6 @@ const only =
 function dryEnv() {
   const env = { ...process.env, HOME: mkdtempSync(join(tmpdir(), "motif-dry-")) };
   delete env.FAL_KEY;
-  delete env.OPENAI_API_KEY;
   return env;
 }
 

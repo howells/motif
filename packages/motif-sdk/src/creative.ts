@@ -203,7 +203,7 @@ export const CREATIVE_TAXONOMY = {
       experimental: true,
       id: "illustration",
       label: "Editorial illustration",
-      model: "gpt2",
+      model: "flare",
     },
   ],
   mood: [

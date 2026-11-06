@@ -18,14 +18,16 @@ describe(usdToMicros, () => {
   });
 });
 
+const each = (model: GenerationModelName) =>
+  estimateWorstCaseMicros({ models: [model], samplesPerModel: 1 });
+
 describe(estimateWorstCaseMicros, () => {
   it("sums per-model cost × samplesPerModel in integer micros", () => {
-    // flux2-turbo ($0.008) + grok-image ($0.02) — curated inexpensive smoke pair.
     const totalMicros = estimateWorstCaseMicros({
       models: ["flux2-turbo", "grok-image"],
       samplesPerModel: 1,
     });
-    expect(totalMicros).toBe(usdToMicros(0.008) + usdToMicros(0.02));
+    expect(totalMicros).toBe(each("flux2-turbo") + each("grok-image"));
     expect(Number.isInteger(totalMicros)).toBeTruthy();
   });
 
@@ -58,12 +60,14 @@ describe(assertWithinCostCap, () => {
       { models: ["flux2-turbo"], samplesPerModel: 1 },
       1
     );
-    expect(worstCaseMicros).toBe(usdToMicros(0.008));
+    expect(worstCaseMicros).toBe(
+      estimateWorstCaseMicros({ models: ["flux2-turbo"], samplesPerModel: 1 })
+    );
   });
 
   it("throws CostCapExceededError before any provider work when over the cap", () => {
     expect(() =>
-      assertWithinCostCap({ models: ["gpt2"], samplesPerModel: 1 }, 0.01)
+      assertWithinCostCap({ models: ["gpt"], samplesPerModel: 1 }, 0.01)
     ).toThrow(CostCapExceededError);
   });
 });

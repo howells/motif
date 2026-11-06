@@ -109,7 +109,6 @@ const GENERATION_MODELS_RANKED: readonly RankedModel[] = withImageBenchmarks(
   [
     { model: "sunburst", tier: "quality" },
     { model: "flare", tier: "quality" },
-    { model: "gpt2", tier: "quality" },
     { model: "seedream5", tier: "quality" },
     { model: "gpt", tier: "quality" },
     { model: "mai-image-2.5-pro", tier: "quality" },
@@ -144,7 +143,6 @@ const EDITING_MODELS_RANKED: readonly RankedModel[] = withImageBenchmarks(
   [
     { model: "sunburst", tier: "quality" },
     { model: "flare", tier: "quality" },
-    { model: "gpt2", tier: "quality" },
     { model: "seedream5", tier: "quality" },
     { model: "gpt", tier: "quality" },
     { model: "mai-image-2.5-pro", tier: "quality" },

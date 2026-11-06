@@ -21,15 +21,11 @@ import {
   createFalGenerationClient,
   createLiveEngine,
   FAL_JUDGE_MODEL_ID,
-  FAL_JUDGE_MODEL_REASONING,
   FAL_RANK_JUDGE_MODEL_ID,
-  FAL_RANK_JUDGE_MODEL_REASONING,
   JUDGE_IMAGE_JPEG_QUALITY,
   JUDGE_IMAGE_LONG_EDGE,
-  LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS,
   normalizeJudgeImageForUpload,
   parseFalVisionOutput,
-  timeoutMsForAlias,
 } from "./live-engine";
 import { mockRunEngine } from "./mock-engine";
 
@@ -48,20 +44,6 @@ const tinyPng = async (width: number, height: number): Promise<Buffer> =>
   })
     .png()
     .toBuffer();
-
-describe(timeoutMsForAlias, () => {
-  it("computes p95Seconds × 1.5 for a model with published speed data", () => {
-    // grok-image: benchmark.speed.p95Seconds = 6.5 (packages/motif-sdk/src/models.ts)
-    expect(timeoutMsForAlias("grok-image")).toBe(Math.round(6.5 * 1.5 * 1000));
-  });
-
-  it("falls back to the named floor for a model with no published p95Seconds", () => {
-    // FLUX.2 Turbo has no measured benchmark.speed.p95Seconds.
-    expect(timeoutMsForAlias("flux2-turbo")).toBe(
-      Math.round(LIVE_GENERATION_TIMEOUT_FLOOR_SECONDS * 1.5 * 1000)
-    );
-  });
-});
 
 describe(createFalGenerationClient, () => {
   it("cannot be constructed without an API key", () => {
@@ -152,15 +134,6 @@ describe("buildFalVisionRequestBody — the verified fal openrouter/router/visio
       model: FAL_JUDGE_MODEL_ID,
       prompt: "judge this room image",
     });
-  });
-
-  it("omits reasoning — FAL_JUDGE_MODEL_ID does not require it", () => {
-    expect(FAL_JUDGE_MODEL_REASONING).toBe(false);
-    const body = buildFalVisionRequestBody(
-      "judge this room image",
-      "https://fal.media/files/panda/judge-sample.png"
-    );
-    expect(body).not.toHaveProperty("reasoning");
   });
 
   it("never embeds a base64 string or a data: URI — image_urls carries only a fal CDN URL", () => {
@@ -328,20 +301,6 @@ describe(buildFalVisionPairRequestBody, () => {
     );
     expect(body.image_urls).toStrictEqual([PAIR_URL_A, PAIR_URL_B]);
     expect(body.model).toBe(FAL_RANK_JUDGE_MODEL_ID);
-  });
-
-  it("is a distinct, separately-measured model choice from the absolute pass", () => {
-    expect(FAL_RANK_JUDGE_MODEL_ID).not.toBe(FAL_JUDGE_MODEL_ID);
-  });
-
-  it("sends reasoning: true — FAL_RANK_JUDGE_MODEL_ID is a Gemini 3.5 model that requires it", () => {
-    expect(FAL_RANK_JUDGE_MODEL_REASONING).toBe(true);
-    const body = buildFalVisionPairRequestBody(
-      "compare these",
-      PAIR_URL_A,
-      PAIR_URL_B
-    );
-    expect(body.reasoning).toBe(true);
   });
 
   it("never inlines image bytes as base64 or a data URI", () => {

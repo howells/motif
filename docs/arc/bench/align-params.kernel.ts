@@ -61,7 +61,7 @@ export interface AlignmentOk {
   readonly options: GenerateOptions;
   readonly seedSent: number | null;
   readonly sizeMode: SizeMode;
-  /** gpt2 only — its timings carry the queue's 3s polling granularity. */
+  /** Queue-polled timings carry the queue's 3s polling granularity. */
   readonly usesQueue: boolean;
 }
 
@@ -103,7 +103,7 @@ export const ALIGNMENT_SCHEMA_VERSION = 1;
 export function alignParams(
   alias: GenerationModelName,
   spec: BenchSpec,
-  sampleIndex: number,
+  sampleIndex: number
 ): AlignmentResult {
   const config: ModelConfig | undefined = MODELS[alias];
   if (!config) {

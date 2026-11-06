@@ -6,9 +6,9 @@ import { z } from "zod";
 import { createMotif, MotifError } from "../dist/index.js";
 
 const usage = `Build: pnpm --filter @howells/motif-sdk build
-Dry run: node packages/motif-sdk/examples/stream.mjs --model gpt2
-Paid test: node packages/motif-sdk/examples/stream.mjs --model gpt2 --run
-Options: --model gpt2|gpt|flux2-dev, --reference URL (repeatable), --prompt TEXT,
+Dry run: node packages/motif-sdk/examples/stream.mjs --model gpt
+Paid test: node packages/motif-sdk/examples/stream.mjs --model gpt --run
+Options: --model gpt|flux2-dev, --reference URL (repeatable), --prompt TEXT,
          --timeout MILLISECONDS (positive integer; default 300000),
          --run (explicit paid submission; requires FAL_KEY), --help
 References use the model's editing route. No retries or files are downloaded.`;
@@ -46,7 +46,7 @@ function readOptions() {
   try {
     ({ values } = parseArgs({
       options: {
-        model: { type: "string", default: "gpt2" },
+        model: { type: "string", default: "gpt" },
         timeout: { type: "string", default: "300000" },
         reference: { type: "string", multiple: true, default: [] },
         prompt: {
@@ -67,8 +67,8 @@ function readOptions() {
     console.log(usage);
     return null;
   }
-  if (!["gpt2", "gpt", "flux2-dev"].includes(values.model)) {
-    console.error("Choose a streaming model: gpt2, gpt or flux2-dev.");
+  if (!["gpt", "flux2-dev"].includes(values.model)) {
+    console.error("Choose a streaming model: gpt or flux2-dev.");
     process.exitCode = 1;
     return null;
   }

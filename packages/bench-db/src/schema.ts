@@ -122,7 +122,7 @@ export const benchSamples = pgTable(
     modelAlias: text("model_alias").notNull(),
     modelName: text("model_name"),
     providerMs: integer("provider_ms"),
-    // `gpt2` polls the queue every 3000ms; providerMs carries ±3s
+    // Queued models poll every 3000ms; providerMs carries ±3s
     // granularity for queued samples — badge in any UI, exclude from tight
     // comparisons.
     queuePolled: boolean("queue_polled").notNull().default(false),

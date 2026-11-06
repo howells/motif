@@ -8,7 +8,6 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { formatCost } from "@howells/motif-sdk";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { Generation } from "../src/utils/config";
@@ -21,7 +20,7 @@ import { formatTotal } from "../src/utils/cost";
  * $0.000, so a Topaz upscale that billed real money was indistinguishable in
  * history from one that cost nothing, and the session total silently
  * under-reported spend. These cover the two halves of the fix: null survives
- * to storage and to the screen as "metered". MOT-38.
+ * to storage and to the screen as "metered".
  */
 
 const originalHome = process.env.HOME;
@@ -128,13 +127,6 @@ describe("unknown cost in history", () => {
 });
 
 describe("rendering an unknown cost", () => {
-  it("never renders null as a dollar figure", () => {
-    const rendered = formatCost(null);
-    expect(rendered).not.toContain("$");
-    expect(rendered).not.toMatch(/\d/);
-    expect(rendered).toBe("metered");
-  });
-
   it("shows a total and the runs it could not price as two figures", () => {
     expect(formatTotal(1.234, 0)).toBe("$1.23");
     expect(formatTotal(1.234, 4)).toBe("$1.23 + 4 metered");

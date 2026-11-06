@@ -1,10 +1,10 @@
 /**
  * Save generated images to disk and record them in history.
  *
- * Shared by generate and vary. fal returns URLs to download; the OpenAI
- * transparency route returns bytes. Either way the saved paths are
- * the ones actually written, which can differ from the requested path when
- * the extension is corrected.
+ * Shared by generate and vary. fal returns URLs to download, or data URLs
+ * whose bytes are written directly. Either way the saved paths are the ones
+ * actually written, which can differ from the requested path when the
+ * extension is corrected.
  */
 
 import { writeFile } from "node:fs/promises";

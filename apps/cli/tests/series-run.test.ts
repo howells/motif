@@ -78,8 +78,7 @@ describe("buildSeriesRunStylePrompt", () => {
     const { buildSeriesRunStylePrompt } =
       await import("../src/commands/series");
     const prompt = buildSeriesRunStylePrompt("towers");
-    expect(prompt).toContain("Cohesive visual series about towers");
-    expect(prompt).toContain("consistent tone");
+    expect(prompt).toContain("towers");
   });
 });
 
@@ -107,7 +106,7 @@ describe("buildSeriesRunScenes", () => {
     const scenes = buildSeriesRunScenes("towers", 9);
     expect(scenes).toHaveLength(9);
     // Focus list has 8 entries, so scene 9 reuses the first focus.
-    expect(scenes[8]).toContain("wide establishing composition");
+    expect(scenes[8]?.split(";")[1]).toBe(scenes[0]?.split(";")[1]);
   });
 });
 
@@ -246,9 +245,7 @@ describe("runSeries full generate flow (mocked fal)", () => {
     // First image has no anchor yet; the second reuses the first as a reference.
     expect(requests[0]?.image_urls).toBeUndefined();
     expect(requests[1]?.image_urls).toHaveLength(1);
-    expect(String(requests[0]?.prompt)).toContain(
-      "cohesive visual series about brutalist Towers"
-    );
+    expect(String(requests[0]?.prompt)).toContain("brutalist Towers");
 
     const payload: unknown = JSON.parse(writes.join("").trim());
     if (!isRecord(payload)) {

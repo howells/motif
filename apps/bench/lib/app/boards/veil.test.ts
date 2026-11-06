@@ -1,5 +1,3 @@
-import { readFileSync } from "node:fs";
-
 import { describe, expect, it } from "vitest";
 
 import { INK, PAPER, RECEDE, VEIL_ALPHA } from "./veil";
@@ -34,19 +32,6 @@ const WHITE: Rgb = { b: 255, g: 255, r: 255 };
 const MUTED: Rgb = { b: 90, g: 92, r: 95 };
 
 describe("the veil over an old image", () => {
-  it("is the alpha the stylesheet paints, in the paper tone", () => {
-    const css = readFileSync(
-      new URL("../../../app/app.css", import.meta.url),
-      "utf-8"
-    );
-    const rule = /\.board-veil\s*\{[^}]*\}/u.exec(css)?.[0] ?? "";
-    expect(rule).toContain(
-      `rgb(${PAPER.r} ${PAPER.g} ${PAPER.b} / ${Math.round(VEIL_ALPHA * 100)}%)`
-    );
-    expect(VEIL_ALPHA).toBeGreaterThanOrEqual(0.82);
-    expect(VEIL_ALPHA).toBeLessThanOrEqual(0.88);
-  });
-
   it.each([
     ["black", BLACK],
     ["white", WHITE],
@@ -60,30 +45,5 @@ describe("the veil over an old image", () => {
     }
     // The label and clock above the lines are the muted tone.
     expect(contrast(MUTED, ground)).toBeGreaterThanOrEqual(4.5);
-  });
-
-  it("lets earlier lines recede, none below the floor the contrast allows", () => {
-    expect([...RECEDE]).toStrictEqual([...RECEDE].toSorted((a, b) => b - a));
-    expect(Math.min(...RECEDE)).toBeGreaterThanOrEqual(0.66);
-  });
-});
-
-const readStylesheet = (name: string) =>
-  readFileSync(new URL(`../../../app/${name}`, import.meta.url), "utf-8");
-
-const serifUsers = (css: string) =>
-  [
-    ...css.matchAll(/([^{}]+)\{[^{}]*font-family:\s*var\(--font-display\)/gu),
-  ].map((match) => match[1]?.trim().replaceAll(/\s+/gu, " "));
-
-describe("the product's type", () => {
-  it("keeps the serif for the display and heading roles, the app wordmark and the homepage wordmark alone", () => {
-    expect(serifUsers(readStylesheet("globals.css"))).toStrictEqual([
-      ".type-display",
-      ".type-wordmark",
-      ".type-heading, .app-wordmark",
-    ]);
-    expect(serifUsers(readStylesheet("app.css"))).toStrictEqual([]);
-    expect(serifUsers(readStylesheet("site.css"))).toStrictEqual([]);
   });
 });

@@ -7,7 +7,6 @@
 import {
   ACCOUNT_LOCKED,
   getFalKeyFromEnv,
-  getOpenAiKeyFromEnv,
   MotifError,
   NO_MODEL_AVAILABLE,
   resolveTask,
@@ -28,12 +27,9 @@ export function resolveTaskModel(
   opts: { dryRun: boolean }
 ): TaskResolution {
   const keys: string[] = [];
-  // A dry run prices what would run, so it resolves as if every key were set.
+  // A dry run prices what would run, so it resolves as if the key were set.
   if (opts.dryRun || hasText(getFalKeyFromEnv()) || hasText(config.apiKey)) {
     keys.push("FAL_KEY");
-  }
-  if (opts.dryRun || hasText(getOpenAiKeyFromEnv())) {
-    keys.push("OPENAI_API_KEY");
   }
   return resolveTask(task, request, { keys, pins: taskPins(config) });
 }

@@ -198,7 +198,7 @@ function generateSchema() {
         transparent: {
           default: false,
           description:
-            "Transparent background PNG. Some Models route through OpenAI and need OPENAI_API_KEY. The saved PNG is checked for transparent pixels (TRANSPARENCY_MISSING otherwise).",
+            "Transparent background PNG. The saved PNG is checked for transparent pixels (TRANSPARENCY_MISSING otherwise).",
           type: "boolean",
         },
         ...creativeSchemaProperties(),

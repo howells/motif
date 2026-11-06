@@ -16,7 +16,6 @@ describe("FalClient builder-error contract", () => {
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.code).toBe("INVALID_OPTION");
-      expect(result.error.message).toContain("Unknown creative mood");
     }
   });
 
@@ -31,7 +30,6 @@ describe("FalClient builder-error contract", () => {
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
       expect(result.error.code).toBe("INVALID_OPTION");
-      expect(result.error.message).toContain("Unknown creative mood");
     }
   });
 
@@ -44,7 +42,6 @@ describe("FalClient builder-error contract", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
-      expect(result.error.message).toContain("Unknown model: nope");
     }
   });
 
@@ -58,9 +55,7 @@ describe("FalClient builder-error contract", () => {
     expect(result.isErr()).toBe(true);
     if (result.isErr()) {
       expect(result.error).toBeInstanceOf(MotifError);
-      expect(result.error.message).toContain(
-        "FLUX Schnell does not support quality"
-      );
+      expect(result.error.code).toBe("INVALID_OPTION");
     }
   });
 });

@@ -283,7 +283,7 @@ export const buildSyntheticAttempt = (
   const aspect = alignment.options.aspect ?? "1:1";
   const dims = DIMENSIONS_BY_ASPECT[aspect] ?? DIMENSIONS_BY_ASPECT["1:1"];
   let providerMs = Math.round(400 + hashUnit(`${identity}:provider`) * 6000);
-  // gpt2's queue polls every 3000ms — `providerMs` carries that granularity
+  // A queued model polls every 3000ms — `providerMs` carries that granularity
   // for real; round to the nearest 3s so the mock reproduces the same
   // "queue ±3s" badge condition the UI has to handle either way.
   if (alignment.usesQueue) {

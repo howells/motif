@@ -122,73 +122,6 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "generation",
     useQueue: true,
   },
-  gpt2: {
-    benchmark: {
-      artificialAnalysis: {
-        editing: {
-          elo: 1125,
-          rank: 5,
-        },
-        snapshotDate: AA_IMAGE_LEADERBOARD_SNAPSHOT,
-        sourceUrls: AA_IMAGE_SOURCES,
-        textToImage: {
-          elo: 1172,
-          rank: 3,
-        },
-      },
-      speed: {
-        medianSeconds: 200.7,
-        p95Seconds: 232.6,
-        source: "artificial-analysis-models",
-      },
-      tiers: { price: "ultra", quality: "frontier", speed: "very_slow" },
-      useCase: "Established frontier generation and transparent PNGs",
-    },
-    customImageSize: {
-      maxEdge: 3840,
-      maxPixels: 8_294_400,
-      maxRatio: 3,
-      minPixels: 655_360,
-      multipleOf: 16,
-    },
-    editEndpoint: "openai/gpt-image-2/edit",
-    endpoint: "openai/gpt-image-2",
-    falPricing: {
-      checkedAt: FAL_PRICING_CHECKED_AT,
-      currency: "USD",
-      endpointId: "openai/gpt-image-2",
-      estimatedCostPerImageUsd: 0.211,
-      source: "fal-pricing-api",
-      unit: "units",
-      unitPrice: 1,
-    },
-    maxReferenceImages: 16,
-    name: "GPT Image 2",
-    pricePerImageUsd: 0.211,
-    pricing: "$0.211",
-    sizeMode: "image_size_enum",
-    supportsAspect: true,
-    streaming: { generation: true, edit: true },
-    supportsEdit: true,
-    supportsMaskImage: true,
-    // fal's /edit schema names the mask `mask_url`.
-    maskImageField: "mask_url",
-    supportsNumImages: true,
-    supportsOutputFormat: true,
-    supportsQuality: true,
-    supportsResolution: false,
-    supportsSyncMode: true,
-    // fal's schema now lists `background` on openai/gpt-image-2, but no request has
-    // confirmed it returns alpha, so transparency stays on the OpenAI route.
-    transparencyRoute: {
-      apiKeyEnv: "OPENAI_API_KEY",
-      model: "gpt-image-2",
-      provider: "openai",
-      supportsEdit: true,
-    },
-    type: "generation",
-    useQueue: true,
-  },
   gpt: {
     benchmark: {
       artificialAnalysis: {
@@ -1717,7 +1650,6 @@ export const MODELS: Record<string, ModelConfig> = {
 export const GENERATION_MODELS = [
   "sunburst",
   "flare",
-  "gpt2",
   "gpt",
   "banana21",
   "banana2",

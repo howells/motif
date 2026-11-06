@@ -1,5 +1,16 @@
 # @howells/motif-sdk
 
+## 6.0.0
+
+Released alongside `@howells/motif-cli` 4.0.0.
+
+### Major Changes
+
+- Remove `gpt2` (GPT Image 2). Sunburst and Flare rank above it on every board at the same token price. Pins, Looks and calls that name `gpt2` now fail with `UNKNOWN_MODEL`; use `sunburst` or `flare`.
+- The Task client runs on fal only. The OpenAI transparency route is gone, with `ModelConfig.transparencyRoute`, `ProviderRoute`, `MotifClientConfig.openAiKey` and `getOpenAiKeyFromEnv`. `TaskPlan.provider` is always `"fal"`. Transparent output at `quality` runs on Sunburst through fal.
+- The `illustration` Look runs on Flare.
+- The image layer (`@howells/motif-sdk/image`) keeps its OpenRouter, OpenAI, Replicate and fal providers.
+
 ## 5.4.0
 
 Released alongside `@howells/motif-cli` 3.3.0.

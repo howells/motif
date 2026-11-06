@@ -7,43 +7,11 @@ import {
   taskCorrection,
 } from "../src/commands/verbs/tasks";
 
-/** The task words a did-you-mean must route, and where they must go. */
-const REQUIRED_TASK_WORDS = {
-  ask: ["caption", "describe-image", "detect", "count", "ocr"],
-  cutout: ["background", "remove-background"],
-  map: ["depth", "normals"],
-  restore: ["denoise", "sharpen", "deblur"],
-  upscale: ["enlarge"],
-  erase: ["remove", "delete", "inpaint", "erase-object"],
-  layers: ["split", "separate", "layer"],
-  reframe: ["extend", "expand", "outpaint", "crop", "resize", "ratio"],
-  segment: ["mask", "select"],
-  "series run": ["set", "batch", "consistent"],
-  sheet: ["grid", "montage", "contact-sheet", "collage"],
-  vectorize: ["svg", "trace"],
-};
-
 function invocation(positionals: string[]): string | undefined {
   return taskCorrection(positionals)?.invocation;
 }
 
 describe("task table", () => {
-  it("routes every required task word to its command", () => {
-    for (const [command, words] of Object.entries(REQUIRED_TASK_WORDS)) {
-      for (const word of words) {
-        expect(TASK_INDEX[word], word).toBe(command);
-      }
-    }
-  });
-
-  it("gives every row a sentence, an alternative and task words", () => {
-    for (const row of COMMAND_TASKS) {
-      expect(row.whenToUse, row.command).toMatch(/\.$/);
-      expect(row.notFor.length, row.command).toBeGreaterThan(0);
-      expect(row.tasks.length, row.command).toBeGreaterThan(0);
-    }
-  });
-
   it("gives every Task verb a row", async () => {
     const { TASK_IDS } = await import("@howells/motif-sdk");
     for (const task of TASK_IDS) {

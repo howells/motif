@@ -11,11 +11,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 
-import {
-  createMotif,
-  getFalKeyFromEnv,
-  getOpenAiKeyFromEnv,
-} from "@howells/motif-sdk";
+import { createMotif, getFalKeyFromEnv } from "@howells/motif-sdk";
 import type {
   MotifClient,
   MotifError,
@@ -40,13 +36,11 @@ const VIDEO_TYPES: Readonly<Record<string, string>> = {
   ".webm": "video/webm",
 };
 
-/** Build the SDK client from this process's keys and the config's pins. */
+/** Build the SDK client from this process's fal key and the config's pins. */
 export function motifClient(config: MotifConfig): MotifClient {
   const falKey = getFalKeyFromEnv() ?? config.apiKey;
-  const openAiKey = getOpenAiKeyFromEnv();
   return createMotif({
     ...(hasText(falKey) ? { falKey } : {}),
-    ...(hasText(openAiKey) ? { openAiKey } : {}),
     pins: taskPins(config),
   });
 }

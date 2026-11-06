@@ -43,7 +43,7 @@ A look carries its own Model, so `--tier` has no effect when `--look` is set. Th
 
 | Tier | Models |
 | --- | --- |
-| quality | `sunburst` (max), `flare` (max), `gpt2`, `seedream5`, `gpt`, `mai-image-2.5-pro` |
+| quality | `sunburst` (max), `flare` (max), `seedream5`, `gpt`, `mai-image-2.5-pro` |
 | balanced | `banana21` (the default), `grok-image-2`, `muse-image`, `banana2`, `qwen3`, `mai-image-2.5`, `banana`, `ideogram4`, `flux2-flex`, `recraft41`, `flux2-pro`, `krea3`, `grok-image-quality`, `ideogram3-transparent` (only for `--transparent`) |
 | fast | `banana2-lite`, `grok-image`, `seedream5-lite`, `flux2-turbo` |
 
@@ -129,7 +129,7 @@ Flag values override stdin values for the same field. The schema:
 
 ## Transparency
 
-`--transparent` narrows the choice to Models that return alpha. At `balanced` and `fast`, `ideogram3-transparent` runs on fal and needs no extra key. At `quality`, Sunburst runs on fal at `max` quality with token-billed cost (`null` before the call). Explicit `-m gpt2 --transparent` still uses OpenAI because fal's GPT Image 2 alpha output has not been confirmed; that route needs `OPENAI_API_KEY` and shows `provider: "openai"` in the dry run. `-m gpt --transparent` stays on fal.
+`--transparent` narrows the choice to Models that return alpha. At `balanced` and `fast`, `ideogram3-transparent` runs on fal and needs no extra key. At `quality`, Sunburst runs on fal at `max` quality with token-billed cost (`null` before the call). Every transparency route runs on fal and needs only `FAL_KEY`.
 
 Every `--transparent` run reads the saved PNG back. With no alpha channel or no fully transparent pixel it fails with `TRANSPARENCY_MISSING` (status `502`, exit `5`, retriable): nothing is reported as a success or recorded in history, and the file stays on disk (`details.paths`).
 

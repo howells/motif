@@ -42,13 +42,6 @@ const TEXT_TO_IMAGE = {
     preliminary: true,
     votes: 39_218,
   },
-  gpt2: {
-    elo: 1381,
-    rank: 3,
-    uncertainty: 4,
-    evaluatedModel: "GPT-Image-2 (Medium)",
-    votes: 103_385,
-  },
   banana21: {
     elo: 1325,
     rank: 5,
@@ -144,12 +137,6 @@ const IMAGE_EDITING = {
     uncertainty: 5,
     evaluatedModel: "GPT-Image-2.5 Flare",
     preliminary: true,
-  },
-  gpt2: {
-    elo: 1460,
-    rank: 4,
-    uncertainty: 3,
-    evaluatedModel: "GPT-Image-2 (Medium)",
   },
   "grok-image-2": {
     elo: 1439,

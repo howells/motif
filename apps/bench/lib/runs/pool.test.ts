@@ -86,7 +86,7 @@ describe("runWithConcurrency", () => {
 
   it("hands work out from a shared cursor, so a slow item does not hold back the ones behind it", async () => {
     const finished: number[] = [];
-    // Item 0 is the `gpt2` case: far slower than everything else. With
+    // Item 0 is the slow case: far slower than everything else. With
     // static partitioning it would block its whole slice.
     await runWithConcurrency([0, 1, 2, 3], {
       limit: 2,

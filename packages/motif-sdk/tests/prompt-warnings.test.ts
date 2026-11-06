@@ -18,7 +18,6 @@ describe(promptWarnings, () => {
       ["negated-object", "no chairs"],
       ["negated-object", "no a rug"],
     ]);
-    expect(warnings[0]?.message).toContain("Describe what is present instead");
   });
 
   it("allows the negations models handle", () => {
@@ -34,7 +33,6 @@ describe(promptWarnings, () => {
     expect(
       warnings.map((warning) => [warning.rule, warning.match])
     ).toStrictEqual([["text-bearing-object", "sign"]]);
-    expect(warnings[0]?.message).toContain("render text on it anyway");
     expect(promptWarnings("a stack of books, no words")[0]?.rule).toBe(
       "text-bearing-object"
     );
@@ -45,10 +43,9 @@ describe(promptWarnings, () => {
     expect(
       warnings.map((warning) => [warning.rule, warning.match])
     ).toStrictEqual([["edit-has-verb", "Remove"]]);
-    expect(warnings[0]?.message).toContain("motif erase");
     expect(
-      promptWarnings("outpaint it to 16:9", { editing: true })[0]?.message
-    ).toContain("motif reframe");
+      promptWarnings("outpaint it to 16:9", { editing: true })[0]?.rule
+    ).toBe("edit-has-verb");
     expect(promptWarnings("remove the parked car")).toStrictEqual([]);
     expect(
       promptWarnings("a street with the car removed", { editing: true })

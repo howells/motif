@@ -343,7 +343,7 @@ function validateGenerateOptions(
  * Models use different sizing APIs:
  * - `gpt_size`: GPT's fixed dimensions (1024x1024, 1536x1024, etc.)
  * - `aspect_ratio`: string like "16:9" (Gemini, Grok, FLUX Pro Ultra)
- * - `image_size_enum`: named presets like "landscape_4_3" (FLUX.2, Seedream, Recraft, Ideogram, GPT Image 2)
+ * - `image_size_enum`: named presets like "landscape_4_3" (FLUX.2, Seedream, Recraft, Ideogram, GPT Image)
  * - `none`: no size control (video models)
  */
 export function buildGenerateBody(options: GenerateOptions): {
