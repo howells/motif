@@ -27,8 +27,8 @@ import {
   FAL_PRESET_SIZES,
   FAL_TOOLS,
   isFalToolId,
-} from "@motif/bench-core/sdk-internal";
-import type { FalToolPrice } from "@motif/bench-core/sdk-internal";
+} from "@howells/motif-sdk/registry";
+import type { FalToolPrice } from "@howells/motif-sdk/registry";
 
 import { USAGE_HOLD_MICROS_PER_IMAGE } from "./policy";
 

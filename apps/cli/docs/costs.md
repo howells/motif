@@ -42,7 +42,7 @@ vary offers the Models marked edit.
 | `seedream5-lite` | fast | $0.035 | Edit. Budget alternative |
 | `flux2-turbo` | fast | $0.008/MP | Inexpensive draft generation |
 
-The curated Models are ordered by Arena (read 29 October 2026), with separate generation and editing boards. Retained predecessors still work through explicit overrides, pins and Looks; they are not chosen automatically. `null` for a metered Model means the total bill is unknown, even when a representative example price is published.
+The curated Models are ordered by Arena (read 29 October 2026), with separate generation and editing boards. `null` for a metered Model means the total bill is unknown, even when a representative example price is published.
 
 ## animate
 

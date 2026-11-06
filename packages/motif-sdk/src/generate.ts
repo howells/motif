@@ -198,15 +198,6 @@ function validateGenerateOptions(
   ) {
     unsupported(config, "imageSize");
   }
-  if (
-    options.imagePromptStrength !== undefined &&
-    config.supportsImagePromptStrength !== true
-  ) {
-    unsupported(config, "imagePromptStrength");
-  }
-  if (options.imagePromptStrength !== undefined && !hasEditImages) {
-    throw new Error("imagePromptStrength requires editImageUrls");
-  }
   if (options.maskImageUrl !== undefined && config.supportsMaskImage !== true) {
     unsupported(config, "maskImageUrl");
   }
@@ -259,9 +250,6 @@ function validateGenerateOptions(
   ) {
     unsupported(config, "negativePrompt");
   }
-  if (options.style !== undefined && config.supportsStyle !== true) {
-    unsupported(config, "style");
-  }
   if (options.syncMode !== undefined && config.supportsSyncMode !== true) {
     unsupported(config, "syncMode");
   }
@@ -282,15 +270,6 @@ function validateGenerateOptions(
     config.supportsInferenceSteps !== true
   ) {
     unsupported(config, "numInferenceSteps");
-  }
-  if (options.raw !== undefined && config.supportsRaw !== true) {
-    unsupported(config, "raw");
-  }
-  if (
-    options.enhancePrompt !== undefined &&
-    config.supportsEnhancePrompt !== true
-  ) {
-    unsupported(config, "enhancePrompt");
   }
   if (
     options.safetyTolerance !== undefined &&
@@ -364,7 +343,6 @@ export function buildGenerateBody(options: GenerateOptions): {
     transparent,
     inputFidelity,
     imageSize,
-    imagePromptStrength,
     limitGenerations,
     maskImageUrl,
     markupImageUrl,
@@ -372,14 +350,11 @@ export function buildGenerateBody(options: GenerateOptions): {
     outputFormat,
     quality,
     negativePrompt,
-    style,
     syncMode,
     thinkingLevel,
     renderingSpeed,
     guidanceScale,
     numInferenceSteps,
-    raw,
-    enhancePrompt,
     safetyTolerance,
     enableWebSearch,
     expandPrompt,
@@ -480,24 +455,6 @@ export function buildGenerateBody(options: GenerateOptions): {
     body.output_format = outputFormat;
   }
 
-  if (config.supportsRaw === true && raw !== undefined) {
-    body.raw = raw;
-  }
-  if (config.supportsEnhancePrompt === true && enhancePrompt !== undefined) {
-    body.enhance_prompt = enhancePrompt;
-  }
-  if (
-    config.supportsImagePromptStrength === true &&
-    imagePromptStrength !== undefined
-  ) {
-    body.image_prompt_strength = imagePromptStrength;
-  }
-  if (model === "flux") {
-    if (safetyTolerance !== undefined && safetyTolerance !== "") {
-      body.safety_tolerance = safetyTolerance;
-    }
-  }
-
   if (config.supportsGuidanceScale === true && guidanceScale !== undefined) {
     body.guidance_scale = guidanceScale;
   }
@@ -540,20 +497,10 @@ export function buildGenerateBody(options: GenerateOptions): {
     }
   }
 
-  // ── Recraft: style ────────────────────────────────────────────────
-  if (config.supportsStyle === true && style !== undefined && style !== "") {
-    body.style = style;
-  }
-
-  // ── Ideogram: negative_prompt, style, rendering_speed, expand_prompt
+  // ── Ideogram: negative_prompt, rendering_speed, expand_prompt
   if (config.supportsNegativePrompt === true) {
     if (negativePrompt !== undefined && negativePrompt !== "") {
       body.negative_prompt = negativePrompt;
-    }
-  }
-  if (model === "ideogram") {
-    if (style !== undefined && style !== "") {
-      body.style = style;
     }
   }
   if (config.supportsRenderingSpeed === true) {
@@ -567,17 +514,11 @@ export function buildGenerateBody(options: GenerateOptions): {
     }
   }
 
-  // FLUX Pro Ultra reference image
-  if (model === "flux" && hasEditImages) {
-    body.image_url = editImages[0];
-    body.image_prompt_strength = imagePromptStrength ?? 0.5;
-  }
-
   if (config.supportsNumImages) {
     body.num_images = numImages;
   }
 
-  if (hasEditImages && sizeMode !== "gpt_size" && model !== "flux") {
+  if (hasEditImages && sizeMode !== "gpt_size") {
     if (!config.supportsEdit) {
       throw new Error(`Model ${model} does not support image editing`);
     }

@@ -318,18 +318,3 @@ motif sheet --last 6 --cols 3 --no-open --format json
 ```
 
 `sheet` lays images out on one captioned PNG, JPEG or WebP, captioned from history (model, look, mood, cost). Series are in [series](series.md).
-
-## Removed commands
-
-These exit `2` with `REMOVED_COMMAND`, and `details.use` names the replacement.
-
-| Removed | Use |
-| --- | --- |
-| `--rmbg` | `motif cutout` |
-| `--up` | `motif upscale` |
-| `--vary` | `motif vary` |
-| `--video` and `--video-*` | `motif animate` |
-| `motif enhance` | `motif upscale` or `motif restore` |
-| `motif tool` | the Task verb that does the job |
-| `--quality`, `--rendering-speed`, `--thinking` | `--tier`, or `--param` with `-m` for a finer value |
-| `--style` and other Model-only flags | `--param key=value` with `-m` |

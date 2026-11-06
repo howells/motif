@@ -36,6 +36,10 @@
     "./image": {
       "types": "./dist/image.d.ts",
       "import": "./dist/image.js"
+    },
+    "./registry": {
+      "types": "./dist/registry.d.ts",
+      "import": "./dist/registry.js"
     }
   },
   "publishConfig": {

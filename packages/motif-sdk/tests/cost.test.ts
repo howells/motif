@@ -20,13 +20,11 @@ describe("estimateCost", () => {
     expect(estimateCost("banana2", "4K")).toBeCloseTo(base * 2);
   });
 
-  it("doubles banana and gemini3 at 4K only", () => {
-    for (const model of ["banana", "gemini3"]) {
-      const base = price(model);
-      expect(estimateCost(model, "1K")).toBeCloseTo(base);
-      expect(estimateCost(model, "2K")).toBeCloseTo(base);
-      expect(estimateCost(model, "4K")).toBeCloseTo(base * 2);
-    }
+  it("doubles banana at 4K only", () => {
+    const base = price("banana");
+    expect(estimateCost("banana", "1K")).toBeCloseTo(base);
+    expect(estimateCost("banana", "2K")).toBeCloseTo(base);
+    expect(estimateCost("banana", "4K")).toBeCloseTo(base * 2);
   });
 
   it("multiplies by image count", () => {
@@ -36,6 +34,6 @@ describe("estimateCost", () => {
   });
 
   it("ignores resolution for models without tiered pricing", () => {
-    expect(estimateCost("seedream4", "4K")).toBeCloseTo(price("seedream4"));
+    expect(estimateCost("flux2-pro", "4K")).toBeCloseTo(price("flux2-pro"));
   });
 });

@@ -789,7 +789,7 @@ describe("CLI contract", () => {
           mood: "dawn",
         },
       },
-      model: "seedream45",
+      model: "seedream5",
       prompt: `An abstract study. ${clause("look", "portrait")}. ${cap(clause("mood", "dawn"))}.`,
     });
   });
@@ -1040,7 +1040,7 @@ describe("CLI contract", () => {
     const result = await runMotif([
       "a lighthouse",
       "-m",
-      "seedream45",
+      "seedream5",
       "-r",
       "4K",
       "--dry-run",

@@ -96,7 +96,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 
 Read these when a task reaches them:
 
-- [Tasks](docs/verbs.md) - every verb's usage, modes and flags, what to use instead, and the removed commands with their replacements.
+- [Tasks](docs/verbs.md) - every verb's usage, modes and flags, what to use instead.
 - [Generate and vary](docs/generate.md) - before building stdin JSON for `generate`, choosing a Tier, overriding the Model, passing several `-e` references, using `--transparent`, or acting on a prompt `warnings` entry.
 - [Series](docs/series.md) - before `motif series create`, `gen` or `run`: references, pinned looks and moods, and every Series command.
 - [Cost reference](docs/costs.md) - per-Model prices by Task, when overriding with `-m` or budgeting a plan of several calls. Video (`animate`) and 3D (`mesh`) cost far more than an image.
@@ -149,7 +149,7 @@ Structured errors include an `instance` field (an `urn:fal:request:<id>` URN) wh
 
 `RESERVED_PROMPT` (status `400`, exit `2`) fires when the positional prompt is exactly a motif command word (e.g. `motif history` instead of `motif --history`). This protects agents from spending credits on a mistyped command. The error's `details.didYouMean` field carries the corrected invocation. To genuinely generate from such a one-word prompt, pass it via stdin JSON: `echo '{"prompt":"history"}' | motif`.
 
-A request no Model can honour fails with `NO_MODEL_AVAILABLE` (exit `2`): `-m seedream45 -r 4K` reads "seedream45 (model) cannot do resolution.", with `details.blockedBy` naming what stopped it and `details.unblockedBy` what would fix it.
+A request no Model can honour fails with `NO_MODEL_AVAILABLE` (exit `2`): `-m seedream5 -r 4K` reads "seedream5 (model) cannot do resolution.", with `details.blockedBy` naming what stopped it and `details.unblockedBy` what would fix it.
 
 What a code means, whether a retry can help and how to recover: `motif --describe errors --format json`.
 
@@ -161,14 +161,14 @@ Structured failures exit with a semantic process code derived from the error's R
 | --- | --- | --- | --- |
 | `0` | Success | - | - |
 | `1` | Unknown / unmapped | - | Unstructured crashes; any status outside the ranges below |
-| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `REMOVED_COMMAND`, `NO_MODEL_AVAILABLE` |
+| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_MODEL_AVAILABLE` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
 | `5` | Upstream (fal) failure | `5xx` | `TASK_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `TRANSPARENCY_MISSING` |
 
 `NO_MODEL_AVAILABLE` (exit `2`) means no Model can do what the request asks. Its `details` carry `blockedBy` (the capability, `key` or input that stopped it), `unblockedBy` and, when a key would help, `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input. A missing `FAL_KEY` is still reported as `MISSING_API_KEY`.
 
-`REMOVED_COMMAND` (exit `2`) means the flag or command was removed; `details.removed` names it and `details.use` names what replaced it. `TASK_FAILED` (exit `5`) is an upstream failure in a Task verb, with `details.task` and `details.model`.
+`TASK_FAILED` (exit `5`) is an upstream failure in a Task verb, with `details.task` and `details.model`.
 
 Every structured error still carries the machine-readable `status` field, so the exit code and the JSON envelope always agree. Unstructured crashes (unexpected exceptions the CLI did not classify) still exit `1`.
 
@@ -205,7 +205,7 @@ No look renders lettering. For type in the picture, override the Model: `-m ideo
 | `still-life` | Objects and products on a plaster ground | 1:1 | `flux2-pro` |
 | `interior` | Bright, collected rooms that feel lived in | 3:2 | `flux2-pro` |
 | `architectural` | Buildings and their settings from outside | 4:5 | `banana` |
-| `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream45` |
+| `portrait` | Natural, unposed documentary portraits; pair with a mood for the light | 1:1 | `seedream5` |
 | `object` | One object in one colour on a clean ground | 1:1 | `flux2-pro` |
 | `surface` | Flat, edge-to-edge surface photographs for textures and swatches | 1:1 | `flux2-pro` |
 | `abstract` | Painted abstraction edge to edge, for wall art and backgrounds | 3:2 | `banana` |
@@ -239,7 +239,7 @@ Each flag overrides the matching key in the stdin `creative` object. Only the fi
 
 An unknown id fails before any fal request with a structured `INVALID_OPTION` error (exit `2`) whose details include the field and the available ids for that field. `--describe generate` lists every id with its label, sentence, and for looks the `defaultAspect` and `defaultModel`.
 
-`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. vary reuses the Model that made its image while that Model can still edit, including retained predecessors; otherwise it chooses from the separate editing ranking. Generation with `-e` also uses the editing ranking. A Series can pin a look and mood when it's created (see [Series](docs/series.md)). A Series' free-text `--style <prompt>` is separate from looks. A Model's own style setting is an override like any other: `-m ideogram4 --param rendering_speed=QUALITY`.
+`generate`, `vary`, `series create`, `series gen` and `series run` all accept `--look` and `--mood`. `generate` applies a look's model and aspect per call. vary reuses the Model that made its image while that Model can still edit; otherwise it chooses from the separate editing ranking. Generation with `-e` also uses the editing ranking. A Series can pin a look and mood when it's created (see [Series](docs/series.md)). A Series' free-text `--style <prompt>` is separate from looks. A Model's own style setting is an override like any other: `-m ideogram4 --param rendering_speed=QUALITY`.
 
 ## Task Verbs
 
@@ -260,8 +260,6 @@ motif vectorize logo.png -o logo.svg --dry-run               # raster to SVG
 motif map room.png --pose --dry-run                          # depth by default
 motif animate "the camera pushes in" still.png --dry-run     # video costs 5-10x an image
 ```
-
-`--rmbg`, `--up`, `--vary`, `--video`, `enhance` and `tool` were removed and exit `2` with `REMOVED_COMMAND`, naming the verb in `details.use`. Read each verb's flags and outputs from `motif --describe <verb> --format json`, and see [tasks](docs/verbs.md) for all of them.
 
 ## Contact Sheets
 
@@ -310,4 +308,4 @@ All API response data is sanitized before output to defend against prompt inject
 - **Headless**: Set `FAL_KEY` environment variable. No browser redirect needed.
 - **Config file**: Add `"apiKey": "..."` to `~/.motif/config.json`.
 - **Local override**: Create `.motifrc` in CWD with project-specific config.
-- **Pinning a Model**: `"tasks": { "upscale": { "model": "topaz-precision" } }` in config holds a Task's Model steady across releases. Older `defaultModel`, `upscaler` and `backgroundRemover` keys migrate to `tasks.generate`, `tasks.upscale` and `tasks.cutout`.
+- **Pinning a Model**: `"tasks": { "upscale": { "model": "topaz-precision" } }` in config holds a Task's Model steady across releases.

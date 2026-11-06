@@ -27,15 +27,10 @@ import { join } from "node:path";
 
 import { DEFAULT_TIER, TASKS, TIERS } from "@howells/motif-sdk";
 import type { RankedModel, TaskDefinition, TaskId } from "@howells/motif-sdk";
+import { FAL_TOOLS, MODELS } from "@howells/motif-sdk/registry";
+import type { FalToolConfig, ModelConfig } from "@howells/motif-sdk/registry";
 import { z } from "zod";
 
-// The registries behind a Model's display name and price are not part of the
-// SDK's public index, so they are read from source, as `@motif/bench-core`
-// does for the same reason.
-import { MODELS } from "../../../packages/motif-sdk/src/models";
-import type { FalToolConfig } from "../../../packages/motif-sdk/src/tool-types";
-import { FAL_TOOLS } from "../../../packages/motif-sdk/src/tools";
-import type { ModelConfig } from "../../../packages/motif-sdk/src/types";
 import { here, motif } from "./cli";
 import { GROUPS } from "./commands";
 import type { CommandSpec, GroupSpec, Picture } from "./commands";

@@ -194,12 +194,6 @@ export async function loadSeries(slug: string): Promise<SeriesConfig> {
   if (!isSeriesConfig(parsed)) {
     throw new Error(`Invalid series config file: ${configPath}`);
   }
-  // Series written before Tasks carry a preferred model; the generate Task
-  // chooses now, so it is dropped on load and gone from the next save.
-  if ("model" in parsed) {
-    const { model: _model, ...series } = parsed;
-    return series;
-  }
   return parsed;
 }
 

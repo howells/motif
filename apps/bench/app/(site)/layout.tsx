@@ -4,8 +4,8 @@ import { Shell } from "@/components/app/shell";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { QueryProvider } from "@/lib/query-provider";
 
-/** Every page, the Bench included, sits in the one shell. Who is looking is
- * decided here, on the server, for each request. */
+/** Every page sits in the one shell. Who is looking is decided here, on the
+ * server, for each request. */
 async function SiteLayout({ children }: { readonly children: ReactNode }) {
   const viewer = await getViewer();
   return (

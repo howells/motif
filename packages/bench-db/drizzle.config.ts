@@ -19,7 +19,7 @@ assertSchemaPushTarget({
 export default defineConfig({
   dbCredentials: { url: directDatabaseUrl },
   dialect: "postgresql",
-  schema: ["./src/schema.ts", "./src/app-schema.ts"],
+  schema: "./src/app-schema.ts",
   strict: true,
   verbose: true,
 });

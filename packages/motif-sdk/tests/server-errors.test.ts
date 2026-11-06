@@ -47,7 +47,7 @@ describe("FalClient builder-error contract", () => {
 
   it("generate resolves with an err() for an option the model does not support", async () => {
     const result = await motif.generate({
-      model: "flux-fast",
+      model: "flux2-flex",
       prompt: "simple product render",
       quality: "high",
     });

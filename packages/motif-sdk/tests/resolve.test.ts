@@ -67,19 +67,6 @@ describe("curated generation and editing", () => {
       resolveTask("generate", { references: 1, tier: "fast" }, fal)
     ).toMatchObject({ model: edited.ok ? edited.model : undefined, ok: true });
   });
-
-  it("keeps archived edit pins", () => {
-    expect(
-      resolveTask(
-        "vary",
-        { source: "image" },
-        {
-          keys: ["FAL_KEY"],
-          pins: { vary: "seedream45" },
-        }
-      )
-    ).toMatchObject({ ok: true, model: "seedream45", chosenBy: "pin" });
-  });
 });
 
 describe("resolveTask precedence", () => {
@@ -98,10 +85,10 @@ describe("resolveTask precedence", () => {
     expect(
       resolveTask(
         "generate",
-        { look: "editorial", model: "flux-fast" },
-        { keys: ["FAL_KEY"], pins: { generate: "recraft" } }
+        { look: "editorial", model: "seedream5-lite" },
+        { keys: ["FAL_KEY"], pins: { generate: "ideogram4" } }
       )
-    ).toMatchObject({ chosenBy: "model", model: "flux-fast", ok: true });
+    ).toMatchObject({ chosenBy: "model", model: "seedream5-lite", ok: true });
   });
 
   it("takes a pin when nothing more explicit is given", () => {
@@ -109,9 +96,9 @@ describe("resolveTask precedence", () => {
       resolveTask(
         "generate",
         {},
-        { keys: ["FAL_KEY"], pins: { generate: "flux-fast" } }
+        { keys: ["FAL_KEY"], pins: { generate: "seedream5-lite" } }
       )
-    ).toMatchObject({ chosenBy: "pin", model: "flux-fast", ok: true });
+    ).toMatchObject({ chosenBy: "pin", model: "seedream5-lite", ok: true });
   });
 });
 
@@ -141,7 +128,7 @@ describe("resolveTask refusals", () => {
       resolveTask(
         "generate",
         { mask: true },
-        { keys: ["FAL_KEY"], pins: { generate: "recraft" } }
+        { keys: ["FAL_KEY"], pins: { generate: "recraft41" } }
       )
     ).toMatchObject({
       blockedBy: "mask",

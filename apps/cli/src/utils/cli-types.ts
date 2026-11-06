@@ -52,7 +52,7 @@ export interface CliOptions {
 /** JSON payload accepted via stdin */
 export interface StdinPayload {
   aspect?: string;
-  /** generate, last, history or describe; a removed command names its replacement (see `commands/removed.ts`). */
+  /** generate, last, history or describe. */
   command?: string;
   dryRun?: boolean;
   /** Look and mood ids; `mood: null` drops any mood. */

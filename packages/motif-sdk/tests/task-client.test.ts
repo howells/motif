@@ -232,14 +232,14 @@ describe("createMotif plan", () => {
   it("projects a megapixel-priced Model's cost from the exact pixels", () => {
     const plan = planned("generate", {
       aspect: "3:2",
-      model: "flux2-max",
+      model: "flux2-flex",
       prompt: "a harbour",
     });
 
     expect(plan.body.image_size).toStrictEqual({ height: 672, width: 1008 });
     expect(plan.cost.basis).toBe("projected");
     expect(plan.cost.usd).toBeCloseTo(
-      (price("flux2-max") * 1008 * 672) / 1_000_000
+      (price("flux2-flex") * 1008 * 672) / 1_000_000
     );
   });
 

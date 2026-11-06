@@ -1,6 +1,6 @@
 /** Model choices for the existing Board inspector. */
 import { TASKS } from "@howells/motif-sdk";
-import { MODELS } from "@motif/bench-core/sdk-internal";
+import { MODELS } from "@howells/motif-sdk/registry";
 import type { AppSql } from "@motif/bench-db/app-sql";
 
 import { BOUNDED_GENERATION_MODELS } from "../budget/bounds";

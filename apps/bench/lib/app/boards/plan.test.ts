@@ -96,14 +96,14 @@ describe(buildRequests, () => {
 
   it("asks one request per Model for Compare", () => {
     const compare = make("c", "compare", {
-      models: ["seedream4", "grok-image"],
+      models: ["seedream5", "grok-image"],
     });
     const built = buildRequests(compare, { kind: "text", prompt: "a vase" });
     expect(
       built.ok && built.requests.map((request) => request.model)
-    ).toStrictEqual(["seedream4", "grok-image"]);
+    ).toStrictEqual(["seedream5", "grok-image"]);
     expect(
-      buildRequests(make("c2", "compare", { models: ["seedream4"] }), {
+      buildRequests(make("c2", "compare", { models: ["seedream5"] }), {
         kind: "text",
         prompt: "a vase",
       })

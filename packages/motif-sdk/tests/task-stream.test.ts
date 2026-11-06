@@ -144,33 +144,30 @@ describe("Task streaming over a real HTTP connection", () => {
     ]);
   });
 
-  it.each(["gpt", "flux2-dev"])(
-    "normalises references for %s edit streaming",
-    async (model) => {
-      const fixture = await transport((response) => {
-        sse(response);
-        response.end('data: {"ok":true}\n\n');
-      });
-      const input = {
-        model,
-        prompt: "chair",
-        references: [
-          "https://example.com/layout.png",
-          "https://example.com/oak.png",
-        ],
-      };
-      const plan = fixture.motif.plan("generate", input)._unsafeUnwrap();
-      const result = await fixture.motif.stream("generate", input);
-      const stream = result._unsafeUnwrap();
-      await collect(stream);
-      expect(fixture.calls).toHaveLength(1);
-      expect(fixture.calls[0]?.url).toBe(`/${plan.endpoint}/stream`);
-      expect(fixture.calls[0]?.body).toStrictEqual(plan.body);
-      expect(fixture.calls[0]?.body).toMatchObject({
-        image_urls: input.references,
-      });
-    }
-  );
+  it("normalises references for gpt edit streaming", async () => {
+    const fixture = await transport((response) => {
+      sse(response);
+      response.end('data: {"ok":true}\n\n');
+    });
+    const input = {
+      model: "gpt",
+      prompt: "chair",
+      references: [
+        "https://example.com/layout.png",
+        "https://example.com/oak.png",
+      ],
+    };
+    const plan = fixture.motif.plan("generate", input)._unsafeUnwrap();
+    const result = await fixture.motif.stream("generate", input);
+    const stream = result._unsafeUnwrap();
+    await collect(stream);
+    expect(fixture.calls).toHaveLength(1);
+    expect(fixture.calls[0]?.url).toBe(`/${plan.endpoint}/stream`);
+    expect(fixture.calls[0]?.body).toStrictEqual(plan.body);
+    expect(fixture.calls[0]?.body).toMatchObject({
+      image_urls: input.references,
+    });
+  });
 
   it("refuses unsupported routes and the default model before any I/O", async () => {
     let calls = 0;

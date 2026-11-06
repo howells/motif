@@ -77,7 +77,7 @@ function seedHistory(home: string): void {
           aspect: "1:1",
           cost: 0.04,
           id: "gen-one",
-          model: "flux-fast",
+          model: "flux2-pro",
           output: join(home, "in.png"),
           prompt: "a cat",
           resolution: "1K",
@@ -85,7 +85,12 @@ function seedHistory(home: string): void {
         },
       ],
       lastSessionDate: "2026-07-01",
-      totalCost: { allTime: 0.04, session: 0, today: 0 },
+      totalCost: {
+        allTime: 0.04,
+        session: 0,
+        today: 0,
+        unknown: { allTime: 0, session: 0, today: 0 },
+      },
     })
   );
 }
@@ -761,75 +766,6 @@ describe("TASK_FAILED messages", () => {
     const message =
       "Could not write out-1/a.png from packages/motif-sdk/src at body/image_urls/0";
     expect(withoutEndpoints(message, "task")).toBe(message);
-  });
-});
-
-describe("removed surface", () => {
-  it.each([
-    [["a cat", "--rmbg"], "--rmbg", "motif cutout"],
-    [["a cat", "--up"], "--up", "motif upscale"],
-    [["--vary"], "--vary", "motif vary"],
-    [["a cat", "--video"], "--video", "motif animate"],
-    [["a cat", "--video-duration", "5"], "--video-duration", "motif animate"],
-    [["--up", "--scale", "4"], "--up", "motif upscale"],
-    [["enhance", "in.png"], "motif enhance", undefined],
-    [["tool", "list"], "motif tool", undefined],
-    [["a cat", "--style", "vivid"], "--style", "--param style=<value> with -m"],
-    [["a cat", "--thinking", "high"], "--thinking", "--tier"],
-  ])("refuses %j", async (args, removed, use) => {
-    const home = tempHome();
-    const result = await runMotifIn(home, [...args, "--format", "json"]);
-
-    expect(result.code).toBe(2);
-    expect(result.stdout).toBe("");
-    const error = parseJson(result.stderr);
-    expect(error.code).toBe("REMOVED_COMMAND");
-    expect(error.details).toMatchObject({ removed });
-    if (use !== undefined) {
-      expect(error.details).toMatchObject({ use });
-    }
-  });
-
-  it.each([
-    "rmbg",
-    "vary",
-    "upscale",
-    "video",
-    "tool",
-    "tool-run",
-    "tool-list",
-    "tool-describe",
-  ])("refuses the stdin command %s", async (command) => {
-    const home = tempHome();
-    const child = await import("node:child_process");
-    const { spawnEnv } = await import("./cli-env");
-    const result = await new Promise<{ code: number; stderr: string }>(
-      (resolve, reject) => {
-        const proc = child.spawn(
-          process.execPath,
-          ["--import", "tsx", "src/index.ts", "--format", "json"],
-          {
-            cwd: process.cwd(),
-            env: spawnEnv({ CI: "1", FAL_KEY: "", HOME: home }),
-          }
-        );
-        let stderr = "";
-        proc.stderr.setEncoding("utf-8");
-        proc.stderr.on("data", (chunk: string) => {
-          stderr += chunk;
-        });
-        proc.on("error", reject);
-        proc.on("close", (code) => {
-          resolve({ code: code ?? 0, stderr });
-        });
-        proc.stdin.end(JSON.stringify({ command, dryRun: true }));
-      }
-    );
-
-    expect(result.code).toBe(2);
-    expect(parseJson(result.stderr)).toMatchObject({
-      code: "REMOVED_COMMAND",
-    });
   });
 });
 

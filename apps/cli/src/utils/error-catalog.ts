@@ -92,12 +92,6 @@ export const ERROR_CATALOG = {
       'Or generate an image first: motif "a prompt"',
     ],
   }),
-  REMOVED_COMMAND: metadata("REMOVED_COMMAND", 400, {
-    suggestions: [
-      "details.use names the replacement; run that instead",
-      "Run 'motif --describe tasks --format json' to see the command for each job",
-    ],
-  }),
   RESERVED_PROMPT: metadata("RESERVED_PROMPT", 400, {
     suggestions: [
       "Use the flag form of the command (e.g. 'motif --history')",

@@ -132,11 +132,9 @@ export interface ModelConfig {
   supportedResolutions?: readonly Resolution[];
   supportsBackground?: boolean;
   supportsEdit: boolean;
-  supportsEnhancePrompt?: boolean;
   supportsExpandPrompt?: boolean;
   supportsGuidanceScale?: boolean;
   supportsGoogleSearch?: boolean;
-  supportsImagePromptStrength?: boolean;
   supportsInferenceSteps?: boolean;
   supportsLimitGenerations?: boolean;
   supportsMaskImage?: boolean;
@@ -163,13 +161,11 @@ export interface ModelConfig {
   /** Default matching the quality variant used in this Model's ranking. */
   defaultQuality?: ImageQuality;
   supportedQualities?: readonly ImageQuality[];
-  supportsRaw?: boolean;
   supportsRenderingSpeed?: boolean;
   supportsResolution: boolean;
   supportsSafetyTolerance?: boolean;
   supportsSafetyChecker?: boolean;
   supportsSeed?: boolean;
-  supportsStyle?: boolean;
   supportsSyncMode?: boolean;
   supportsThinkingLevel?: boolean;
   supportsWebSearch?: boolean;
@@ -205,16 +201,12 @@ export interface GenerateOptions {
   enableSafetyChecker?: boolean;
   /** Enable web search for generative context where supported */
   enableWebSearch?: boolean;
-  /** Auto-enhance the prompt before generation (flux only) */
-  enhancePrompt?: boolean;
   /** Enable MagicPrompt expansion (ideogram only) */
   expandPrompt?: boolean;
-  /** CFG guidance scale — flux-fast: 1–20 */
+  /** CFG guidance scale where supported */
   guidanceScale?: number;
   /** Direct fal image_size override, including custom {width,height} where supported */
   imageSize?: ImageSize;
-  /** FLUX image prompt/reference strength where supported */
-  imagePromptStrength?: number;
   inputFidelity?: "low" | "high";
   /** Nano Banana 2 generation limiting toggle */
   limitGenerations?: boolean;
@@ -226,15 +218,13 @@ export interface GenerateOptions {
   /** What NOT to include in the image (ideogram only) */
   negativePrompt?: string;
   numImages?: number;
-  /** Number of diffusion inference steps — flux-fast: 1–12 */
+  /** Number of diffusion inference steps where supported */
   numInferenceSteps?: number;
   /** Output image format (default: model-dependent) */
   outputFormat?: ImageOutputFormat;
   prompt: string;
   /** GPT/OpenAI quality where supported */
   quality?: ImageQuality;
-  /** Generate less processed, more natural images (flux only) */
-  raw?: boolean;
   /** Speed vs. quality trade-off (ideogram only) */
   renderingSpeed?: "TURBO" | "BALANCED" | "QUALITY";
   resolution?: Resolution;
@@ -242,69 +232,11 @@ export interface GenerateOptions {
   safetyTolerance?: string;
   /** Reproducible generation seed */
   seed?: number;
-  /** Style preset — recraft: 70+ hierarchical styles; ideogram: "AUTO"|"GENERAL"|"REALISTIC"|"DESIGN" */
-  style?: string;
   /** Return media as data URI where supported */
   syncMode?: boolean;
   /** Nano Banana 2 thinking mode */
   thinkingLevel?: ThinkingLevel;
   transparent?: boolean;
-}
-
-export interface UpscaleOptions {
-  creativity?: number;
-  /** CFG guidance scale for upscaling (clarity only, 0–20, default 4) */
-  guidanceScale?: number;
-  imageUrl: string;
-  model?: "clarity" | "crystal";
-  /** What NOT to include in the upscaled result (clarity only) */
-  negativePrompt?: string;
-  /** Number of diffusion steps (clarity only, 4–50, default 18) */
-  numInferenceSteps?: number;
-  /** Prompt to guide the upscaling process (clarity only) */
-  prompt?: string;
-  /** How closely to preserve the original image (clarity only, 0–1, default 0.6) */
-  resemblance?: number;
-  scaleFactor?: number;
-}
-
-export interface RemoveBackgroundOptions {
-  imageUrl: string;
-  model?: "rmbg" | "bria";
-  /** BiRefNet operating resolution (rmbg model only, default "1024x1024") */
-  operatingResolution?: "1024x1024" | "2048x2048";
-  /** Output image format (rmbg model only) */
-  outputFormat?: "png" | "webp" | "gif";
-  /** Return the alpha mask alongside the result (rmbg model only) */
-  outputMask?: boolean;
-  /** Apply foreground edge refinement (rmbg model only, default true) */
-  refineForeground?: boolean;
-  /** BiRefNet model variant (rmbg model only) */
-  variant?: "General Use (Light)" | "General Use (Heavy)" | "Portrait";
-}
-
-export interface VideoOptions {
-  /** CFG guidance scale for video generation (0–1, default 0.5) */
-  cfgScale?: number;
-  /** Duration in seconds (3-15) */
-  duration?: number;
-  /** Optional end frame image URL */
-  endImageUrl?: string;
-  /** Generate audio track (default true, costs more) */
-  generateAudio?: boolean;
-  /** Source image URL */
-  imageUrl: string;
-  /** What NOT to include in the video */
-  negativePrompt?: string;
-  /** Text description of the motion/scene */
-  prompt: string;
-}
-
-export interface VideoResponse {
-  contentType: string;
-  fileName: string;
-  fileSize: number;
-  url: string;
 }
 
 export interface ToolRunOptions {

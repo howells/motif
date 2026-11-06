@@ -158,7 +158,7 @@ export const CREATIVE_TAXONOMY = {
         "Natural, unposed documentary portraits of people. Pair with a mood for the light.",
       id: "portrait",
       label: "Documentary portrait",
-      model: "seedream45",
+      model: "seedream5",
     },
     {
       acceptsMood: false,

@@ -1,7 +1,7 @@
 /* The public page at `/`, drawn from the Paper file "Motif".
    https://app.paper.design/file/01M2NF0PQEPFE3X84ZYDG4K4KT/p-2-0
 
-   The bench app at /bench owns the tokens in globals.css: a near-achromatic
+   The App owns the tokens in globals.css: a near-achromatic
    dark built for judging image colour. This page is a different job — an
    editorial page whose subject is the photography — so it carries its own
    light palette, scoped to `.site` rather than declared in `@theme`. Two
@@ -27,7 +27,7 @@
   /* Both faces arrive as next/font variables on the same element. Overriding
      `--font-mono` here rather than in `@theme` keeps it to this page: the
      `font-mono` utility reads this variable, so every command on `/` is set
-     in DM Mono while /bench keeps the system stack it was built on. */
+     in DM Mono while the App keeps the system stack it was built on. */
   --font-display: var(--font-faculty), ui-serif, Georgia, serif;
   --font-mono:
     var(--font-dm-mono), "SFMono-Regular", "SF Mono", Menlo, monospace;

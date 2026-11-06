@@ -38,11 +38,9 @@ export const OPTION_CAPABILITIES = {
   enableGoogleSearch: (config) => config.supportsGoogleSearch === true,
   enableSafetyChecker: (config) => config.supportsSafetyChecker === true,
   enableWebSearch: (config) => config.supportsWebSearch === true,
-  enhancePrompt: (config) => config.supportsEnhancePrompt === true,
   expandPrompt: (config) => config.supportsExpandPrompt === true,
   guidanceScale: (config) => config.supportsGuidanceScale === true,
   "image editing": (config) => config.supportsEdit,
-  imagePromptStrength: (config) => config.supportsImagePromptStrength === true,
   imageSize: (config) =>
     config.sizeMode === "gpt_size" || config.sizeMode === "image_size_enum",
   inputFidelity: (config) => config.sizeMode === "gpt_size",
@@ -54,12 +52,10 @@ export const OPTION_CAPABILITIES = {
   numInferenceSteps: (config) => config.supportsInferenceSteps === true,
   outputFormat: (config) => config.supportsOutputFormat === true,
   quality: (config) => config.supportsQuality === true,
-  raw: (config) => config.supportsRaw === true,
   renderingSpeed: (config) => config.supportsRenderingSpeed === true,
   resolution: (config) => config.supportsResolution,
   safetyTolerance: (config) => config.supportsSafetyTolerance === true,
   seed: (config) => config.supportsSeed === true,
-  style: (config) => config.supportsStyle === true,
   syncMode: (config) => config.supportsSyncMode === true,
   thinkingLevel: (config) => config.supportsThinkingLevel === true,
   "transparent output": (config) =>
@@ -96,7 +92,7 @@ export function modelsSupporting(option: ModelOption): string[] {
  */
 export class UnsupportedOptionError extends Error {
   readonly code = "INVALID_OPTION";
-  /** Display name of the model that refused, e.g. `"Seedream 4.5"`. */
+  /** Display name of the model that refused, e.g. `"Seedream 5 Pro"`. */
   readonly model: string;
   /** Generation model ids that accept `option`. */
   readonly modelsSupporting: string[];

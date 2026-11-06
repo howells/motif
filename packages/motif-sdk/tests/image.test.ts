@@ -780,15 +780,15 @@ describe("createMotifImage — fal explicit-model pricing", () => {
     const result = await img.generate({
       prompt: "x",
       provider: "fal",
-      model: "fal-ai/flux/schnell",
+      model: "fal-ai/flux-2-pro",
     });
 
     expect(result.isOk()).toBe(true);
     if (result.isOk()) {
-      expect(result.value.model).toBe("fal-ai/flux/schnell");
+      expect(result.value.model).toBe("fal-ai/flux-2-pro");
       expect(result.value.cost.source).toBe("table");
-      // FLUX Schnell price comes from MODELS["flux-fast"], not 0/"unknown".
-      expect(result.value.cost.usd).toBe(MODELS["flux-fast"]?.pricePerImageUsd);
+      // FLUX.2 Pro price comes from MODELS["flux2-pro"], not 0/"unknown".
+      expect(result.value.cost.usd).toBe(MODELS["flux2-pro"]?.pricePerImageUsd);
       expect(result.value.cost.usd).toBeGreaterThan(0);
     }
   });

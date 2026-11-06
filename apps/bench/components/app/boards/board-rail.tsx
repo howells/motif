@@ -18,15 +18,13 @@ export interface RailBoard {
 const row =
   "flex min-h-control items-center gap-2 rounded-panel px-3 type-body text-muted hover:text-ink aria-[current=page]:bg-surface aria-[current=page]:font-medium aria-[current=page]:text-ink";
 
-/** The member's places: Boards with the Inbox first, then Library, the
- * Bench (the owner's alone), Settings and a plain link to the Docs. A new Board is named "Untitled
- * Board" and renamed in place. */
+/** The member's places: Boards with the Inbox first, then Library, Settings
+ * and a plain link to the Docs. A new Board is named "Untitled Board" and
+ * renamed in place. */
 export function BoardRail({
   boards,
-  owner,
 }: {
   readonly boards: readonly RailBoard[];
-  readonly owner: boolean;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -112,17 +110,6 @@ export function BoardRail({
             Library
           </Link>
         </li>
-        {owner ? (
-          <li>
-            <Link
-              aria-current={current("/bench")}
-              className={row}
-              href="/bench"
-            >
-              Bench
-            </Link>
-          </li>
-        ) : null}
         <li>
           <Link
             aria-current={current("/settings")}

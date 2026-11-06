@@ -267,7 +267,7 @@ export const TASKS = {
   },
   generate: {
     basis:
-      "Order follows Arena text-to-image (https://arena.ai/leaderboard/image/text-to-image), read 2026-10-29 (MOT-72). Sunburst and Flare lead quality at the benchmarked max setting. Balanced starts with Nano Banana 2.1 on preliminary Arena evidence, then Grok Image 2 and Muse Image. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Fast keeps Nano Banana 2 Lite, budget Grok and Seedream 5 Lite, and FLUX.2 Turbo. Design, transparency and tuned Look routes are capability exceptions. Generation with References uses the separate editing ranking. Older routes are explicit/pin/Look-only.",
+      "Order follows Arena text-to-image (https://arena.ai/leaderboard/image/text-to-image), read 2026-10-29. Sunburst and Flare lead quality at the benchmarked max setting. Balanced starts with Nano Banana 2.1 on preliminary Arena evidence, then Grok Image 2 and Muse Image. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Fast keeps Nano Banana 2 Lite, budget Grok and Seedream 5 Lite, and FLUX.2 Turbo. Design, transparency and tuned Look routes are capability exceptions. Generation with References uses the separate editing ranking. Older routes are explicit/pin/Look-only.",
     models: GENERATION_MODELS_RANKED,
     notFor:
       "Variations of an image you already have (vary), or a consistent set of images (series run).",
@@ -548,7 +548,7 @@ export const TASKS = {
   },
   vary: {
     basis:
-      "Order follows Arena image edit, single image (https://arena.ai/leaderboard/image/image-edit/single-image), read 2026-10-29 (MOT-72). Editing order differs from generation: Grok Image 2 leads balanced, ahead of Nano Banana 2.1, and Seedream 5 Pro outranks GPT Image 1.5. Arena scores Krea 3 only at its Ultra setting, which costs $0.27 to $0.35 an edit and ignores the requested size, so krea3, which runs fal's default setting, is ranked as unscored. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Sunburst and Flare use max quality. vary reuses a previously chosen Model when explicitly supplied, including retained legacy routes.",
+      "Order follows Arena image edit, single image (https://arena.ai/leaderboard/image/image-edit/single-image), read 2026-10-29. Editing order differs from generation: Grok Image 2 leads balanced, ahead of Nano Banana 2.1, and Seedream 5 Pro outranks GPT Image 1.5. Arena scores Krea 3 only at its Ultra setting, which costs $0.27 to $0.35 an edit and ignores the requested size, so krea3, which runs fal's default setting, is ranked as unscored. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Sunburst and Flare use max quality. vary reuses a previously chosen Model when explicitly supplied, including retained legacy routes.",
     models: EDITING_MODELS_RANKED,
     notFor:
       "A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).",

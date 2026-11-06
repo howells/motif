@@ -1,10 +1,4 @@
-import {
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -27,8 +21,6 @@ const originalHome = process.env.HOME;
 const originalUserProfile = process.env.USERPROFILE;
 
 let home: string;
-
-const today = (): string => new Date().toISOString().split("T")[0] ?? "";
 
 const historyPath = (): string => join(home, ".motif", "history.json");
 
@@ -95,34 +87,6 @@ describe("unknown cost in history", () => {
       session: 1,
       today: 1,
     });
-  });
-
-  it("loads a history file written before the unknown counts existed", async () => {
-    mkdirSync(join(home, ".motif"), { recursive: true });
-    writeFileSync(
-      historyPath(),
-      JSON.stringify({
-        generations: [generation(0.03, "old-entry")],
-        lastSessionDate: today(),
-        totalCost: { allTime: 1.5, session: 0.3, today: 0.3 },
-      })
-    );
-
-    const { addGeneration, loadHistory } = await import("../src/utils/config");
-
-    const loaded = await loadHistory();
-    expect(loaded.totalCost.unknown).toStrictEqual({
-      allTime: 0,
-      session: 0,
-      today: 0,
-    });
-    expect(loaded.totalCost.allTime).toBe(1.5);
-
-    // The counts start from zero and are accurate from the next run on.
-    await addGeneration(generation(null, "first-metered"));
-    const after = await loadHistory();
-    expect(after.totalCost.unknown.allTime).toBe(1);
-    expect(after.totalCost.allTime).toBe(1.5);
   });
 });
 

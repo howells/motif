@@ -8,23 +8,24 @@ In JSON mode, errors are written to stderr as one object:
 
 ```json
 {
-  "type": "urn:motif:error:removed-command",
-  "title": "Removed Command",
+  "type": "urn:motif:error:invalid-option",
+  "title": "Invalid Option",
   "status": 400,
-  "doc_uri": "motif://describe/errors#removed-command",
+  "doc_uri": "motif://describe/errors#invalid-option",
   "error": true,
-  "code": "REMOVED_COMMAND",
-  "message": "--rmbg was removed. Use motif cutout instead.",
-  "details": { "removed": "--rmbg", "use": "motif cutout" },
+  "code": "INVALID_OPTION",
+  "message": "unknown option '--bogus'",
   "is_retriable": false,
-  "suggestions": ["details.use names the replacement; run that instead"]
+  "suggestions": [
+    "Run 'motif --describe --format json' to inspect valid commands"
+  ]
 }
 ```
 
 ## Codes
 
 - General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`.
-- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`, `REMOVED_COMMAND`.
+- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
 ## Task errors
@@ -49,7 +50,5 @@ In JSON mode, errors are written to stderr as one object:
 `UNKNOWN_MODEL` exits `2`: `-m` names something that isn't a Model for this Task. `details.blockedBy` is `unknown-model`, `unblockedBy` is `["model"]`, and the message lists the Models the Task accepts.
 
 `TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran.
-
-`REMOVED_COMMAND` exits `2`: a flag or command from before Tasks. `details.removed` is what you typed and `details.use` the replacement. The full list is in [tasks](verbs.md#removed-commands).
 
 `TRANSPARENCY_MISSING` is explained with transparency in [generate and vary](generate.md#transparency).

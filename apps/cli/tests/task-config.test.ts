@@ -1,20 +1,10 @@
-import {
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 
-import {
-  mergeConfigLayers,
-  migrateGlobalConfig,
-  migrateLegacyConfig,
-} from "../src/utils/config";
+import { mergeConfigLayers } from "../src/utils/config";
 import { studioGenerateModel } from "../src/utils/task-model";
 import { runMotifIn } from "./cli-env";
 
@@ -63,7 +53,12 @@ function seedLastGeneration(home: string, model: string): void {
         },
       ],
       lastSessionDate: new Date().toISOString().split("T")[0],
-      totalCost: { allTime: 0, session: 0, today: 0 },
+      totalCost: {
+        allTime: 0,
+        session: 0,
+        today: 0,
+        unknown: { allTime: 0, session: 0, today: 0 },
+      },
     })
   );
 }
@@ -77,82 +72,7 @@ afterEach(() => {
   }
 });
 
-describe(migrateLegacyConfig, () => {
-  it("moves defaultModel to the generate pin", () => {
-    expect(migrateLegacyConfig({ defaultModel: "flux2-pro" })).toStrictEqual({
-      changed: true,
-      config: { tasks: { generate: { model: "flux2-pro" } } },
-    });
-  });
-
-  it("moves upscaler to the upscale pin unchanged", () => {
-    expect(migrateLegacyConfig({ upscaler: "crystal" }).config).toStrictEqual({
-      tasks: { upscale: { model: "crystal" } },
-    });
-  });
-
-  it("maps backgroundRemover ids onto cutout Models", () => {
-    expect(
-      migrateLegacyConfig({ backgroundRemover: "bria" }).config
-    ).toStrictEqual({ tasks: { cutout: { model: "bria-rmbg" } } });
-    // rmbg was the shipped default, so it is dropped rather than mapped.
-    expect(
-      migrateLegacyConfig({ backgroundRemover: "rmbg" }).config
-    ).toStrictEqual({});
-  });
-
-  it("drops a legacy value equal to the old shipped default", () => {
-    const { changed, config } = migrateLegacyConfig({
-      backgroundRemover: "rmbg",
-      defaultAspect: "1:1",
-      defaultModel: "banana",
-      upscaler: "clarity",
-    });
-    expect(changed).toBe(true);
-    expect(config).toStrictEqual({ defaultAspect: "1:1" });
-  });
-
-  it("keeps an existing tasks entry over a legacy key", () => {
-    expect(
-      migrateLegacyConfig({
-        defaultModel: "flux2-pro",
-        tasks: { generate: { model: "flare" } },
-        upscaler: "crystal",
-      }).config
-    ).toStrictEqual({
-      tasks: {
-        generate: { model: "flare" },
-        upscale: { model: "crystal" },
-      },
-    });
-  });
-
-  it("reports no change for a config with no legacy keys", () => {
-    const raw = { defaultAspect: "3:2", tasks: { generate: { model: "gpt" } } };
-    expect(migrateLegacyConfig(raw)).toStrictEqual({
-      changed: false,
-      config: raw,
-    });
-  });
-});
-
 describe("config layers", () => {
-  it("keeps apiKey when the migrated file cannot be written back", async () => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
-    const config = await migrateGlobalConfig(
-      { apiKey: "secret", defaultModel: "flux2-pro" },
-      async () => {
-        throw new Error("EROFS: read-only file system");
-      },
-      "/read-only/config.json"
-    );
-    expect(config).toStrictEqual({
-      apiKey: "secret",
-      tasks: { generate: { model: "flux2-pro" } },
-    });
-    vi.restoreAllMocks();
-  });
-
   it("merges .motifrc task pins over global ones per Task", () => {
     const merged = mergeConfigLayers(
       {
@@ -185,76 +105,7 @@ describe("config layers", () => {
   });
 });
 
-describe("legacy config on disk (spawned CLI)", () => {
-  it("rewrites the global config once and runs with the migrated pin", async () => {
-    const home = tempHome();
-    const configPath = join(motifDir(home), "config.json");
-    writeFileSync(
-      configPath,
-      JSON.stringify({
-        backgroundRemover: "bria",
-        defaultModel: "flux2-pro",
-        upscaler: "crystal",
-      })
-    );
-
-    const result = await runMotifIn(home, [
-      "--dry-run",
-      "a cat",
-      "--format",
-      "json",
-    ]);
-
-    expect(result.stderr).toBe("");
-    expect(result.code).toBe(0);
-    expect(parseJson(result.stdout)).toMatchObject({ model: "flux2-pro" });
-    expect(parseJson(readFileSync(configPath, "utf-8"))).toStrictEqual({
-      tasks: {
-        cutout: { model: "bria-rmbg" },
-        generate: { model: "flux2-pro" },
-        upscale: { model: "crystal" },
-      },
-    });
-  });
-});
-
-describe("Series without a model (spawned CLI)", () => {
-  it("loads a series.json that still names a model", async () => {
-    const home = tempHome();
-    const dir = join(motifDir(home), "series", "old-series");
-    mkdirSync(join(dir, "refs"), { recursive: true });
-    mkdirSync(join(dir, "outputs"), { recursive: true });
-    writeFileSync(
-      join(dir, "series.json"),
-      JSON.stringify({
-        created: "2026-01-01T00:00:00.000Z",
-        defaultAspect: "1:1",
-        defaultResolution: "2K",
-        id: "00000000-0000-4000-8000-000000000000",
-        model: "banana",
-        name: "Old Series",
-        outputs: [],
-        refs: [],
-        slug: "old-series",
-        stylePrompt: "",
-        updated: "2026-01-01T00:00:00.000Z",
-      })
-    );
-
-    const result = await runMotifIn(home, [
-      "series",
-      "show",
-      "old-series",
-      "--format",
-      "json",
-    ]);
-
-    expect(result.code).toBe(0);
-    const shown = parseJson(result.stdout);
-    expect(shown).toMatchObject({ slug: "old-series" });
-    expect(shown).not.toHaveProperty("model");
-  });
-
+describe("series create (spawned CLI)", () => {
   it("refuses series create -m as an unknown option", async () => {
     const result = await runMotifIn(tempHome(), [
       "series",
@@ -293,7 +144,7 @@ describe("missing key (spawned CLI)", () => {
 describe("vary Model choice (spawned CLI)", () => {
   it("resolves a Model when the last one cannot vary", async () => {
     const home = tempHome();
-    seedLastGeneration(home, "flux-fast");
+    seedLastGeneration(home, "flux2-turbo");
 
     const result = await runMotifIn(home, [
       "vary",
@@ -306,12 +157,12 @@ describe("vary Model choice (spawned CLI)", () => {
     expect(result.code).toBe(0);
     const dryRun = parseJson(result.stdout);
     expect(dryRun).toMatchObject({ varyModel: "resolved" });
-    expect(dryRun.model).not.toBe("flux-fast");
+    expect(dryRun.model).not.toBe("flux2-turbo");
   });
 
   it("uses the look's Model when the last Model cannot vary", async () => {
     const home = tempHome();
-    seedLastGeneration(home, "flux-fast");
+    seedLastGeneration(home, "flux2-turbo");
 
     const result = await runMotifIn(home, [
       "vary",

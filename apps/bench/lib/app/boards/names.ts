@@ -1,8 +1,8 @@
 /**
- * Display names from the SDK's registry: "Seedream 4.0", not `seedream4`.
+ * Display names from the SDK's registry: "Seedream 5.0 Pro", not `seedream5`.
  * Server-only, since the registry is.
  */
-import { FAL_TOOLS, MODELS, isFalToolId } from "@motif/bench-core/sdk-internal";
+import { FAL_TOOLS, isFalToolId, MODELS } from "@howells/motif-sdk/registry";
 
 export const modelName = (id: string): string => {
   const model = MODELS[id];

@@ -1,9 +1,6 @@
 /**
  * Reading files out of a fal response: which URLs sit under a Model's output
  * keys, and what each file is called. Pure: no I/O.
- *
- * Ported from the CLI (`utils/image.ts`, `commands/output-labels.ts`), which
- * keeps its own copy until MOT-53 moves it onto this module.
  */
 
 import type { FalToolConfig } from "./tool-types";

@@ -56,7 +56,7 @@ export const TOOL: CatalogueGroup = {
         {
           cost: "$0.03",
           id: "7f2a19",
-          model: "seedream4",
+          model: "seedream5",
           prompt: "an apothecary shelf, morning light",
         },
         {

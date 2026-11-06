@@ -31,7 +31,7 @@ export function estimateCost(
     return perImage * numImages + 0.01 * editImages;
   }
   if (configuredPrice !== undefined) {
-    if ((model === "banana" || model === "gemini3") && resolution === "4K") {
+    if (model === "banana" && resolution === "4K") {
       return configuredPrice * 2 * numImages;
     }
     if (model === "seedream5" && (resolution === "2K" || resolution === "4K")) {
@@ -65,30 +65,11 @@ export function estimateCost(
     case "gpt": {
       return 0.133 * numImages;
     }
-    case "banana":
-    case "gemini3": {
-      return (resolution === "4K" ? 0.3 : 0.15) * numImages;
-    }
-    case "gemini": {
-      return 0.039 * numImages;
-    }
-    case "flux":
-    case "ideogram": {
-      return 0.06 * numImages;
-    }
-    case "recraft": {
-      return 0.04 * numImages;
-    }
-    case "flux-fast": {
-      return 0.003 * numImages;
-    }
     case "clarity": {
       // fal bills clarity-upscaler at $0.03/MP.
       return 0.03 * numImages;
     }
-    case "crystal":
-    case "rmbg":
-    case "bria": {
+    case "crystal": {
       return 0.02 * numImages;
     }
     default: {

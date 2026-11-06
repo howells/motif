@@ -1,7 +1,7 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { estimateCost, estimateVideoCost } from "./cost";
+import { estimateCost } from "./cost";
 import {
   falHttpError,
   isFalAccountLocked,
@@ -21,7 +21,7 @@ import {
   toMotifImage,
 } from "./fal-parse";
 import { buildGenerateBody } from "./generate";
-import { GENERATION_MODELS, MODELS, UTILITY_MODELS } from "./models";
+import { GENERATION_MODELS, MODELS } from "./models";
 import {
   checkToolStatus as execCheckToolStatus,
   getToolResult as execGetToolResult,
@@ -40,13 +40,9 @@ import type {
   MotifResponse,
   QueuedJob,
   QueuedToolJob,
-  RemoveBackgroundOptions,
   Resolution,
   ToolResponse,
   ToolRunOptions,
-  UpscaleOptions,
-  VideoOptions,
-  VideoResponse,
 } from "./types";
 
 const FAL_BASE_URL = "https://fal.run";
@@ -259,215 +255,6 @@ export class FalClient {
     return this.normalizeResponse(data, requestId);
   }
 
-  /** ─── Processing ──────────────────────────────────────────── */
-
-  /** Upscale an image using clarity or crystal upscaler. */
-  async upscale(
-    options: UpscaleOptions
-  ): Promise<Result<MotifResponse, MotifError>> {
-    const {
-      imageUrl,
-      model = "clarity",
-      scaleFactor,
-      creativity,
-      resemblance,
-      prompt: upscalePrompt,
-      negativePrompt,
-      numInferenceSteps,
-      guidanceScale,
-    } = options;
-
-    const config = MODELS[model];
-    if (!config || config.type !== "utility") {
-      return err(new MotifError(`Invalid upscale model: ${model}`, 0));
-    }
-
-    const body: Record<string, unknown> = { image_url: imageUrl };
-
-    if (model === "crystal") {
-      if (scaleFactor !== undefined) {
-        body.scale_factor = scaleFactor;
-      }
-      if (creativity !== undefined) {
-        body.creativity = creativity;
-      }
-    } else {
-      // clarity (default)
-      if (scaleFactor !== undefined) {
-        body.upscale_factor = scaleFactor;
-      }
-      if (creativity !== undefined) {
-        body.creativity = creativity;
-      }
-      if (resemblance !== undefined) {
-        body.resemblance = resemblance;
-      }
-      if (upscalePrompt !== undefined && upscalePrompt !== "") {
-        body.prompt = upscalePrompt;
-      }
-      if (negativePrompt !== undefined && negativePrompt !== "") {
-        body.negative_prompt = negativePrompt;
-      }
-      if (numInferenceSteps !== undefined) {
-        body.num_inference_steps = numInferenceSteps;
-      }
-      if (guidanceScale !== undefined) {
-        body.guidance_scale = guidanceScale;
-      }
-    }
-
-    const response = await this.request(`${FAL_BASE_URL}/${config.endpoint}`, {
-      body: JSON.stringify(body),
-      method: "POST",
-    });
-    if (response.isErr()) {
-      return err(response.error);
-    }
-
-    const data: unknown = await response.value.json();
-    return this.normalizeResponse(data);
-  }
-
-  /** Remove the background from an image. */
-  async removeBackground(
-    options: RemoveBackgroundOptions
-  ): Promise<Result<MotifResponse, MotifError>> {
-    const {
-      imageUrl,
-      model = "rmbg",
-      variant,
-      operatingResolution,
-      outputFormat,
-      refineForeground,
-      outputMask,
-    } = options;
-
-    const config = MODELS[model];
-    if (!config) {
-      return err(
-        new MotifError(`Invalid background removal model: ${model}`, 0)
-      );
-    }
-
-    const rbBody: Record<string, unknown> = { image_url: imageUrl };
-    if (model === "rmbg") {
-      // birefnet model supports these extra params
-      if (variant) {
-        rbBody.model = variant;
-      }
-      if (operatingResolution) {
-        rbBody.operating_resolution = operatingResolution;
-      }
-      if (outputFormat) {
-        rbBody.output_format = outputFormat;
-      }
-      if (refineForeground !== undefined) {
-        rbBody.refine_foreground = refineForeground;
-      }
-      if (outputMask !== undefined) {
-        rbBody.output_mask = outputMask;
-      }
-    }
-
-    const response = await this.request(`${FAL_BASE_URL}/${config.endpoint}`, {
-      body: JSON.stringify(rbBody),
-      method: "POST",
-    });
-    if (response.isErr()) {
-      return err(response.error);
-    }
-
-    const data: unknown = await response.value.json();
-    return this.normalizeResponse(data);
-  }
-
-  /** ─── Video Generation ───────────────────────────────────── */
-
-  /**
-   * Generate a video from an image using Kling v3 Pro.
-   * This uses the queue API since video generation takes 30-120s.
-   * Returns immediately with a job — poll with getJobStatus/getVideoResult.
-   */
-  async submitVideo(
-    options: VideoOptions
-  ): Promise<Result<QueuedJob, MotifError>> {
-    const {
-      imageUrl,
-      prompt,
-      duration = 5,
-      generateAudio = true,
-      endImageUrl,
-      negativePrompt,
-      cfgScale,
-    } = options;
-
-    const config = MODELS.kling;
-    if (!config) {
-      return err(new MotifError("Kling video model not found", 0));
-    }
-
-    const body: Record<string, unknown> = {
-      duration: String(duration),
-      generate_audio: generateAudio,
-      prompt,
-      start_image_url: imageUrl,
-    };
-
-    if (endImageUrl !== undefined && endImageUrl !== "") {
-      body.end_image_url = endImageUrl;
-    }
-    if (negativePrompt !== undefined && negativePrompt !== "") {
-      body.negative_prompt = negativePrompt;
-    }
-    if (cfgScale !== undefined) {
-      body.cfg_scale = cfgScale;
-    }
-
-    const response = await this.request(`${FAL_QUEUE_URL}/${config.endpoint}`, {
-      body: JSON.stringify(body),
-      method: "POST",
-    });
-    if (response.isErr()) {
-      return err(response.error);
-    }
-
-    const data: unknown = await response.value.json();
-    const submission = parseQueueSubmission(data);
-
-    return ok({
-      endpoint: endpointFromQueueUrl(submission.responseUrl, config.endpoint),
-      estimatedCost: estimateVideoCost(duration, generateAudio),
-      requestId: submission.requestId,
-    });
-  }
-
-  /** Fetch the completed video result from the queue. */
-  async getVideoResult(
-    endpoint: string,
-    requestId: string
-  ): Promise<Result<VideoResponse, MotifError>> {
-    const url = `${FAL_QUEUE_URL}/${endpoint}/requests/${requestId}`;
-    const response = await this.request(url);
-    if (response.isErr()) {
-      return err(response.error);
-    }
-
-    const data: unknown = await response.value.json();
-    const video =
-      isRecord(data) && isRecord(data.video) ? data.video : undefined;
-
-    if (video === undefined) {
-      return err(new MotifError("No video in response", 0));
-    }
-
-    return ok({
-      contentType: asString(video.content_type) ?? "",
-      fileName: asString(video.file_name) ?? "",
-      fileSize: asNumber(video.file_size) ?? 0,
-      url: asString(video.url) ?? "",
-    });
-  }
-
   /** ─── File Upload ─────────────────────────────────────────── */
 
   /**
@@ -637,11 +424,6 @@ export class FalClient {
   /** Generation model keys. */
   get generationModels() {
     return GENERATION_MODELS;
-  }
-
-  /** Utility model keys. */
-  get utilityModels() {
-    return UTILITY_MODELS;
   }
 
   /** Registered fal utility/tool endpoints. */

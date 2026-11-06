@@ -9,7 +9,7 @@ import {
   LOOKS,
   validateCreativeDirection,
 } from "../src/index";
-import { GENERATION_MODELS, LEGACY_GENERATION_MODELS } from "../src/models";
+import { GENERATION_MODELS } from "../src/models";
 
 /** The clause the taxonomy holds for an option id. */
 function clauseOf(field: "look" | "mood", id: string): string {
@@ -160,9 +160,7 @@ describe("house looks", () => {
 
   it("defaults every look to a real generation model and aspect ratio", () => {
     for (const look of LOOKS) {
-      expect([...GENERATION_MODELS, ...LEGACY_GENERATION_MODELS]).toContain(
-        look.model
-      );
+      expect(GENERATION_MODELS).toContain(look.model);
       expect(ASPECT_RATIOS).toContain(look.aspect);
     }
   });

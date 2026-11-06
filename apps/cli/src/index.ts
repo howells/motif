@@ -2,14 +2,12 @@ import { render } from "ink";
 import React from "react";
 
 import { runCli } from "./cli";
-import { refuseRemovedArgs } from "./commands/removed";
 import { runSeries } from "./commands/series";
 import { runSheet } from "./commands/sheet";
 import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
 import { loadConfig, loadHistory, saveConfig } from "./utils/config";
 import type { MotifConfig } from "./utils/config";
-import { formatForParseErrors } from "./utils/errors";
 
 async function main() {
   const config = await loadConfig();
@@ -39,9 +37,6 @@ async function main() {
     await launchStudio();
     return;
   }
-
-  // Removed commands and flags name their replacement instead of parsing.
-  refuseRemovedArgs(args, formatForParseErrors(args));
 
   // `motif generate "prompt"` is `motif "prompt"`.
   const cliArgs = args[0] === "generate" ? args.slice(1) : args;

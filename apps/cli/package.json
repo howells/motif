@@ -56,8 +56,7 @@
     "ink-text-input": "catalog:",
     "ora": "catalog:",
     "react": "catalog:",
-    "sharp": "catalog:",
-    "zod": "catalog:"
+    "sharp": "catalog:"
   },
   "devDependencies": {
     "@howells/lint": "catalog:",

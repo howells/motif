@@ -34,7 +34,7 @@ Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` a
 
 ## Curated Models and Tiers
 
-The Task client curates 24 generation Models, with separate rankings for generation and editing. Both follow Arena, read 29 October 2026. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. A generation with `references` uses the editing ranking.
+The Task client curates 23 generation Models, with separate rankings for generation and editing. Both follow Arena, read 29 October 2026. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. A generation with `references` uses the editing ranking.
 
 | Tier                 | Generation default | Editing default   |
 | -------------------- | ------------------ | ----------------- |
@@ -42,11 +42,11 @@ The Task client curates 24 generation Models, with separate rankings for generat
 | `balanced` (default) | Nano Banana 2.1    | Grok Image 2      |
 | `fast`               | Nano Banana 2 Lite | Grok              |
 
-These are the first choices when the request's capabilities and available keys permit them. Explicit Models, Looks and pins take precedence. Selected specialists remain for typography, transparency, control and inexpensive drafts. Archived predecessors remain available through explicit Models, pins and existing Looks, including `flux2-dev` for streaming.
+These are the first choices when the request's capabilities and available keys permit them. Explicit Models, Looks and pins take precedence. Selected specialists remain for typography, transparency, control and inexpensive drafts.
 
 Nano Banana 2.1 (`banana21`) supports up to 14 References and 1K/2K/4K output, with no 0.5K output. Its balanced placement uses preliminary Arena evidence. Sunburst and Flare run GPT Image 2.6 on fal and default to `quality: "max"`; `params: { quality: "high" }` with an explicit `model` overrides it. Both also return an animated GIF (`outputFormat: "gif"`, with `params.frame_count` and `params.frame_duration_ms`) or, from text, an SVG (`outputFormat: "svg"`), and take `markup`: a transparent PNG of arrows, circles and notes the size of the image being edited, which guides a vary or an edit with References. Asking for a format or markup limits the choice to Models that support it. The direct provider image layer described below has its own adapter capabilities and chooses no Model.
 
-Token-billed Task plans, including Sunburst, Flare, Nano Banana 2.1, Banana Lite and MAI 2.5, report `cost: { usd: null, basis: "unknown" }`; a published representative price is not an exact total. The [curation audit](https://github.com/howells/motif/blob/main/docs/research/image-model-curation-2026-10-07.md) records the current rankings, specialist roles and provider coverage gaps.
+Token-billed Task plans, including Sunburst, Flare, Nano Banana 2.1, Banana Lite and MAI 2.5, report `cost: { usd: null, basis: "unknown" }`; a published representative price is not an exact total.
 
 Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"processing"`, then `"completed"` (or `"failed"`). Passing it sends the run through fal's queue, since only the queue reports state. Models without streaming report state, not a percentage.
 
@@ -73,7 +73,7 @@ if (plan.isOk()) {
 
 ## Stream a Task
 
-`stream(task, input, options?)` opens a direct inference stream on the resolved route. Streaming is explicitly supported for GPT Image 1.5 and FLUX.2 Dev, including their edit routes. Other routes return `STREAMING_UNSUPPORTED` before any provider request; Motif never substitutes another model or retries a stream.
+`stream(task, input, options?)` opens a direct inference stream on the resolved route. Streaming is explicitly supported for GPT Image 1.5, including its edit route. Other routes return `STREAMING_UNSUPPORTED` before any provider request; Motif never substitutes another model or retries a stream.
 
 ```ts
 const controller = new AbortController();
@@ -100,7 +100,7 @@ Events use `images`, `progress` or `provider` types. Images carry the same `Task
 
 The handle exposes `plan`, optional `requestId` and `abort()`. Consume its events once. Abort, iterator exit and the overall deadline close local consumption; this does not guarantee cancellation of provider work or a refund. There is no queue submission, reconnection or retry. `plan()` remains a normal execution plan, so its `queued` flag describes `run()`, not `stream()`.
 
-For a local checkout, `node packages/motif-sdk/examples/stream.mjs --dry-run` prints the resolved request without a provider call. Running it without `--dry-run` spends provider credits; it requires `FAL_KEY` and a built SDK. The runner is a repository example, not a packaged public API.
+For a local checkout, `node packages/motif-sdk/examples/stream.mjs` prints the resolved request without a provider call. Adding `--run` spends provider credits; it requires `FAL_KEY` and a built SDK. The runner is a repository example, not a packaged public API.
 
 ## Main Exports
 

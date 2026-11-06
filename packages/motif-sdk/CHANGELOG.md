@@ -1,5 +1,28 @@
 # @howells/motif-sdk
 
+## 7.0.0
+
+Released alongside `@howells/motif-cli` 5.0.0.
+
+### Major Changes
+
+- Remove the retained predecessor Models: `gemini`, `gemini3`, `seedream4`, `seedream45`, `flux2-max`, `flux2-dev`, `flux`, `flux-fast`, `recraft`, `recraft4`, `ideogram` and `qwen`, along with the unranked `reve`. Pins, Looks and calls that name them now fail with `UNKNOWN_MODEL`. `LEGACY_GENERATION_MODELS`, `UTILITY_MODELS`, `VIDEO_MODELS`, `RECRAFT_STYLES` and `IDEOGRAM_STYLES` are gone, and `GenerationModelName` is the curated Models only.
+- The `portrait` Look runs on Seedream 5 Pro (`seedream5`).
+- Only `gpt` streams; `flux2-dev` streamed before.
+- Remove the `enhancePrompt`, `imagePromptStrength`, `raw` and `style` generation options and their `ModelConfig.supports*` flags: no remaining Model accepts them.
+- Remove the pre-Task direct methods `upscale`, `removeBackground`, `submitVideo` and `getVideoResult` from the internal `FalClient`, with their option types, and the `rmbg` and `bria` registry entries.
+- The image layer's fal price table no longer prices the removed Models' endpoints (`fal-ai/flux-pro/v1.1-ultra`, `fal-ai/flux/schnell`, `fal-ai/flux-2-max`, `fal-ai/flux-2`, `fal-ai/gemini-25-flash-image`, `fal-ai/gemini-3-pro-image-preview`, Seedream 4 and 4.5, Recraft v3 and v4, Ideogram v3, `fal-ai/qwen-image`); their cost reports as unknown.
+- Ticket ids no longer appear in `TASKS.generate.basis` and `TASKS.vary.basis`.
+
+### Minor Changes
+
+- Add the `@howells/motif-sdk/registry` subpath: `MODELS`, `FAL_TOOLS`, `isFalToolId`, `FAL_PRESET_SIZES`, `estimateCost` and their types, for callers that show or price Models themselves.
+
+### CLI 5.0.0
+
+- Flags and commands from before Tasks (`--rmbg`, `--up`, `--vary`, `--video`, `enhance`, `tool` and the rest) no longer get a `REMOVED_COMMAND` error naming their replacement; they fail like any unknown option, with `INVALID_OPTION` and exit `2`. `REMOVED_COMMAND` is gone from the error catalogue.
+- Config written before Tasks (`defaultModel`, `upscaler`, `backgroundRemover`) is no longer migrated, and history files without unknown-cost counts are no longer filled in.
+
 ## 6.0.0
 
 Released alongside `@howells/motif-cli` 4.0.0.

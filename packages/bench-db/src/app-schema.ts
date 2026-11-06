@@ -14,9 +14,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 /**
- * The signed-in App's tables (MOT-74). Separate from the Bench tables in
- * `./schema.ts`: legacy Bench rows have no owner and are never read, assigned
- * or exposed through the App.
+ * The signed-in App's tables (MOT-74).
  *
  * Money is integer micros in `bigint` columns ($1 = 1,000,000). Every state
  * column has a closed vocabulary enforced by a check constraint, so a status

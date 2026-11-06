@@ -17,8 +17,7 @@ import { disabledReactDoctorRules } from "@howells/lint/oxlint/react-doctor-rule
 // renderer, no DOM, its own reconciler) rules like rerender-functional-setstate,
 // no-giant-component, prefer-useReducer and no-event-handler fire as noise
 // rather than real defects, and the node-only packages have no React at all.
-// Per MIGRATIONS.md they are disabled for those paths as a documented
-// migration exception with a removal path; apps/bench gets them in full.
+// They are therefore disabled for those paths; apps/bench gets them in full.
 // Rules newly introduced since Motif's 1.x preset are reported during this
 // toolchain migration. Promote these after the parsing/test-style cleanup;
 // existing correctness rules and native type-aware checks remain errors.
@@ -121,8 +120,8 @@ export default {
       },
     },
     {
-      // Migration exception: React Doctor rules are DOM-oriented (see header
-      // note), so they stay off everywhere except the Next app.
+      // React Doctor rules are DOM-oriented (see header note), so they stay
+      // off everywhere except the Next app.
       files: ["apps/cli/**", "packages/**"],
       rules: disabledReactDoctorRules,
     },

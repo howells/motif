@@ -48,7 +48,7 @@ describe(validateResourceId, () => {
   it("passes valid model names", () => {
     expect(validateResourceId("gpt", "model")).toBe("gpt");
     expect(validateResourceId("banana", "model")).toBe("banana");
-    expect(validateResourceId("gemini3", "model")).toBe("gemini3");
+    expect(validateResourceId("flare", "model")).toBe("flare");
   });
 
   it("rejects path traversal with ..", () => {

@@ -19,11 +19,6 @@ import { Command } from "commander";
 import { runDescribe } from "./commands/describe";
 import { generateImage } from "./commands/generate";
 import { runHistory } from "./commands/history";
-import {
-  exitRemoved,
-  REMOVED_STDIN_COMMANDS,
-  refuseRemovedStdinFields,
-} from "./commands/removed";
 import { helpTaskList, taskCorrection } from "./commands/verbs/tasks";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getLastGeneration, loadConfig } from "./utils/config";
@@ -275,22 +270,6 @@ export async function runCli(
   if (options.last === true || stdinCommand === "last") {
     await showLastGeneration(emitOpts);
     return;
-  }
-
-  // -- Removed stdin commands --
-  const removedUse =
-    stdinCommand === undefined
-      ? undefined
-      : REMOVED_STDIN_COMMANDS[stdinCommand];
-  if (stdinCommand !== undefined && removedUse !== undefined) {
-    exitRemoved(
-      `stdin command ${JSON.stringify(stdinCommand)}`,
-      removedUse,
-      format
-    );
-  }
-  if (stdinData) {
-    refuseRemovedStdinFields(stdinData, format);
   }
 
   // Refuse a bare positional prompt that is exactly a motif command word

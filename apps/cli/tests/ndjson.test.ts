@@ -92,7 +92,12 @@ function seedHistory(
     JSON.stringify({
       generations,
       lastSessionDate: new Date().toISOString().split("T")[0],
-      totalCost: { allTime: 0, session: 0, today: 0 },
+      totalCost: {
+        allTime: 0,
+        session: 0,
+        today: 0,
+        unknown: { allTime: 0, session: 0, today: 0 },
+      },
     })
   );
 }
@@ -159,7 +164,7 @@ describe("history --format ndjson (spawned CLI)", () => {
         aspect: "1:1",
         cost: 0.06,
         id: "gen-two",
-        model: "flux",
+        model: "flux2-pro",
         output: "/tmp/two.png",
         prompt: "a dog",
         resolution: "2K",
@@ -178,7 +183,7 @@ describe("history --format ndjson (spawned CLI)", () => {
     const records = lines.map((line): unknown => JSON.parse(line));
     // History is newest-first.
     // Records carry the stored model id; the display name is not looked up.
-    expect(records[0]).toMatchObject({ id: "gen-two", model: "flux" });
+    expect(records[0]).toMatchObject({ id: "gen-two", model: "flux2-pro" });
     expect(records[0]).not.toHaveProperty("modelName");
     expect(records[1]).toMatchObject({ id: "gen-one" });
     for (const record of records) {

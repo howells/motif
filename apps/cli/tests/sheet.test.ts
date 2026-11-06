@@ -94,7 +94,7 @@ describe(captionFor, () => {
   it("captions from the newest matching history entry", () => {
     const path = join(fixtures, "match.png");
     const caption = captionFor(path, [
-      generation(path, { model: "flux" }),
+      generation(path, { model: "flux2-pro" }),
       generation(path, {
         cost: 0.211,
         look: "editorial",

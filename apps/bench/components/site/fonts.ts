@@ -14,11 +14,11 @@ export const facultyGlyphic = Faculty_Glyphic({
 
 /** DM Mono sets every command on the page.
  *
- * The bench app's stack starts at SF Mono, which draws a long hyphen: at 13px
+ * The App's stack starts at SF Mono, which draws a long hyphen: at 13px
  * `--look` closes up into what reads as a single dash, and a reader taking a
  * flag off the page would type it wrong. DM Mono keeps the two marks apart,
  * and is light and narrow enough to sit under the photographs without
- * announcing itself. Scoped to `.site` via `--font-mono`, so /bench keeps the
+ * announcing itself. Scoped to `.site` via `--font-mono`, so the App keeps the
  * system stack it was built on. */
 export const dmMono = DM_Mono({
   display: "swap",

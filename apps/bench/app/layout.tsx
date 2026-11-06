@@ -35,9 +35,9 @@ export const viewport: Viewport = {
   width: "device-width",
 };
 
-/** The document and the theme, nothing else. The bench's shell and its
- * providers mount in `app/bench/layout.tsx`, so `/` renders as an ordinary
- * scrolling page. */
+/** The document and the theme, nothing else. The shell and its providers
+ * mount in `app/(site)/layout.tsx`, so `/` renders as an ordinary scrolling
+ * page. */
 const RootLayout = ({ children }: { children: ReactNode }) => (
   <html className={inter.variable} lang="en">
     <body>{children}</body>

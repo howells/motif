@@ -20,7 +20,7 @@
 
 import { outputFormatsOf } from "./capabilities";
 import { getLook } from "./creative";
-import { LEGACY_GENERATION_MODELS, MODELS } from "./models";
+import { MODELS } from "./models";
 import type {
   Capability,
   RankedFrom,
@@ -481,11 +481,9 @@ function resolveFixed(
   const { chosenBy, model } = fixed;
   const tier = request.tier ?? DEFAULT_TIER;
   const entries: readonly RankedModel[] = TASKS[task].models;
-  const entry =
-    entries.find(
-      (candidate) =>
-        candidate.model === model && candidate.mode === request.mode
-    ) ?? legacyEntry(task, model, request.mode, tier);
+  const entry = entries.find(
+    (candidate) => candidate.model === model && candidate.mode === request.mode
+  );
   const profile = modelProfile(model);
   if (entry === undefined || profile === undefined) {
     const servesTask = entries.some((candidate) => candidate.model === model);
@@ -513,24 +511,6 @@ function resolveFixed(
     `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput)}.`,
     result.missingKey
   );
-}
-
-/** Old pins and tuned Looks remain usable without recommending predecessors. */
-function legacyEntry(
-  task: TaskId,
-  model: string,
-  mode: string | undefined,
-  tier: Tier
-): RankedModel | undefined {
-  if (
-    mode !== undefined ||
-    (task !== "generate" && task !== "vary") ||
-    !LEGACY_GENERATION_MODELS.some((id) => id === model) ||
-    (task === "vary" && MODELS[model]?.supportsEdit !== true)
-  ) {
-    return undefined;
-  }
-  return { model, tier };
 }
 
 function unknownForMode(

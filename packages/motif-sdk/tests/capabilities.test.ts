@@ -20,7 +20,7 @@ describe("unsupported option errors", () => {
   it("name the models that support the option and what this model supports", () => {
     const error = refusal(() =>
       buildGenerateBody({
-        model: "seedream45",
+        model: "seedream5",
         prompt: "a lighthouse",
         resolution: "4K",
       })
@@ -28,8 +28,8 @@ describe("unsupported option errors", () => {
 
     expect(error.code).toBe("INVALID_OPTION");
     expect(error.option).toBe("resolution");
-    expect(error.model).toBe(MODELS.seedream45?.name);
-    expect(error.modelsSupporting).not.toContain("seedream45");
+    expect(error.model).toBe(MODELS.seedream5?.name);
+    expect(error.modelsSupporting).not.toContain("seedream5");
   });
 
   it("derives the supporting models from the registry", () => {

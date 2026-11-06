@@ -1,6 +1,6 @@
 import { createMotif } from "@howells/motif-sdk";
 import type { TaskInput } from "@howells/motif-sdk";
-import { estimateCost } from "@motif/bench-core/sdk-internal";
+import { estimateCost } from "@howells/motif-sdk/registry";
 import { describe, expect, it } from "vitest";
 
 import { BOUNDED_GENERATION_MODELS, boundFor } from "./bounds";

@@ -24,7 +24,7 @@ Task options any capable Model can honour: `-a/--aspect` or a preset (`--og`, `-
 
 Instead: a specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).
 
-Flags: `--prompt <text>` (default: the source's prompt), `-n/--num`, `--look`, `--mood`, `--no-mood`, `--tier`, `-m`, `--param`, `--seed`. The image falls back to the last generation. vary reuses the Model that made the image while that Model can still edit, including retained predecessors; otherwise it chooses from the editing ranking.
+Flags: `--prompt <text>` (default: the source's prompt), `-n/--num`, `--look`, `--mood`, `--no-mood`, `--tier`, `-m`, `--param`, `--seed`. The image falls back to the last generation. vary reuses the Model that made the image while that Model can still edit; otherwise it chooses from the editing ranking.
 
 ```bash
 motif vary hero.png -n 4 --dry-run
@@ -49,8 +49,6 @@ A look carries its own Model, so `--tier` has no effect when `--look` is set. Th
 
 Both orders follow Arena, read 29 October 2026. Editing has its own order: balanced starts with `grok-image-2`, then `banana21` and `krea3`, and fast starts with `grok-image`. A generation with `-e` uses that editing order. Sunburst and Flare run GPT Image 2.6 and default to `quality: "max"`; lower settings remain available through `--param quality=high`. GPT Image 2.6 is not yet on Arena, so their places follow the GPT Image 2.5 results.
 
-Older Models are absent from the curated list but remain usable through explicit overrides, pins and existing Looks: `gemini`, `gemini3`, `seedream4`, `seedream45`, `flux2-max`, `flux2-dev`, `flux`, `flux-fast`, `recraft`, `recraft4`, `ideogram`, `qwen`.
-
 Prices are in the [cost reference](costs.md#generate-and-vary). Read the live list from `motif --describe generate --format json`.
 
 ### Model-only options
@@ -69,8 +67,6 @@ motif "an editorial portrait" -m flux2-flex --param num_inference_steps=40 --dry
 ```bash
 motif "a ceramic vase in window light" -m flare --param quality=xhigh --dry-run
 ```
-
-The old flags (`--quality`, `--rendering-speed`, `--thinking`, `--style`, `--background`, `--web-search` and the rest) exit `2` with `REMOVED_COMMAND` naming the replacement.
 
 ### GIF, SVG and markup
 
@@ -112,7 +108,7 @@ Flag values override stdin values for the same field. The schema:
 {
   "prompt": "string (required)",
   "tier": "fast | balanced | quality",
-  "model": "curated Model id from --describe generate, or a retained predecessor id",
+  "model": "curated Model id from --describe generate",
   "aspect": "auto | 1:1 | 4:3 | 3:4 | 16:9 | 9:16 | 3:2 | 2:3 | 4:5 | 5:4 | 21:9 | 4:1 | 1:4 | 8:1 | 1:8",
   "resolution": "0.5K | 1K | 2K | 4K",
   "numImages": 1,

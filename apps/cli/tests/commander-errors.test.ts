@@ -113,15 +113,6 @@ describe("commander argument errors", () => {
     expect(envelope.code).toBe("INVALID_OPTION");
   });
 
-  it("refuses the removed tool command with its replacement", async () => {
-    const result = await runMotif(["tool", "run", "--format", "json"]);
-
-    expect(result.code).toBe(2);
-    const envelope = parseEnvelope(result);
-    expect(envelope.code).toBe("REMOVED_COMMAND");
-    expect(envelope.details).toMatchObject({ removed: "motif tool" });
-  });
-
   it("routes the series program's argument errors too", async () => {
     const result = await runMotif(["series", "show", "--format", "json"]);
 

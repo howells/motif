@@ -255,22 +255,6 @@ export function exitTaskError(
 }
 
 /**
- * The upscaler Studio runs: the upscale pin when it is one of the two it
- * supports, else Clarity.
- */
-export function legacyUpscaler(config: MotifConfig): "clarity" | "crystal" {
-  return taskPins(config).upscale === "crystal" ? "crystal" : "clarity";
-}
-
-/**
- * The background remover Studio runs: Bria when the cutout pin is Bria's,
- * else RMBG.
- */
-export function legacyBackgroundRemover(config: MotifConfig): "bria" | "rmbg" {
-  return taskPins(config).cutout === "bria-rmbg" ? "bria" : "rmbg";
-}
-
-/**
  * The Model Studio starts a generation on: the generate pin, else the ranking.
  * Studio opens without a key so one can be set in Settings; then the ranking
  * is read as if every key were set, which is what runs once they are. A pin

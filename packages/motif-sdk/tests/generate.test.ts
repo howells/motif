@@ -321,22 +321,6 @@ describe(buildGenerateBody, () => {
     expect(body).not.toHaveProperty("num_images");
   });
 
-  it("normalizes FLUX Pro Ultra reference image strength", () => {
-    const { endpoint, body } = buildGenerateBody({
-      editImageUrls: ["https://example.com/watch.png"],
-      imagePromptStrength: 0.8,
-      model: "flux",
-      prompt: "premium watch campaign",
-    });
-
-    expect(endpoint).toBe("fal-ai/flux-pro/v1.1-ultra");
-    expect(body).toMatchObject({
-      image_prompt_strength: 0.8,
-      image_url: "https://example.com/watch.png",
-      prompt: "premium watch campaign",
-    });
-  });
-
   it("rejects unsupported output formats before fal rejects the request", () => {
     expect(() =>
       buildGenerateBody({
@@ -350,11 +334,11 @@ describe(buildGenerateBody, () => {
   it("rejects options that the selected model does not support", () => {
     expect(() =>
       buildGenerateBody({
-        model: "flux-fast",
+        model: "flux2-flex",
         prompt: "simple product render",
         quality: "high",
       })
-    ).toThrow("FLUX Schnell does not support quality");
+    ).toThrow("FLUX.2 Flex does not support quality");
 
     expect(() =>
       buildGenerateBody({
@@ -375,10 +359,10 @@ describe(buildGenerateBody, () => {
     expect(() =>
       buildGenerateBody({
         imageSize: { height: 720, width: 1280 },
-        model: "flux",
+        model: "banana2",
         prompt: "unsupported custom size",
       })
-    ).toThrow("FLUX Pro Ultra does not support imageSize");
+    ).toThrow("Nano Banana 2 does not support imageSize");
   });
 
   it("normalizes Grok resolution casing for fal", () => {
@@ -482,25 +466,18 @@ describe(buildGenerateBody, () => {
     });
   });
 
-  it("maps Recraft V4 aspect to fal fields and refuses a style", () => {
+  it("maps Recraft V4.1 aspect to fal fields", () => {
     const { endpoint, body } = buildGenerateBody({
       aspect: "16:9",
-      model: "recraft4",
+      model: "recraft41",
       prompt: "flat brand illustration",
     });
 
-    expect(endpoint).toBe("fal-ai/recraft/v4/text-to-image");
+    expect(endpoint).toBe("fal-ai/recraft/v4.1/text-to-image");
     expect(body).toStrictEqual({
       image_size: "landscape_16_9",
       prompt: "flat brand illustration",
     });
-    expect(() =>
-      buildGenerateBody({
-        model: "recraft4",
-        prompt: "flat brand illustration",
-        style: "vector_illustration",
-      })
-    ).toThrow("Recraft V4 does not support style");
   });
 
   it("refuses inputFidelity on a GPT Image 2.6 edit, which /edit doesn't take", () => {
@@ -557,7 +534,7 @@ describe(buildGenerateBody, () => {
   it("scales an exact size up to a Model's minimum pixel count", () => {
     const { body } = buildGenerateBody({
       aspect: "3:2",
-      model: "seedream45",
+      model: "seedream5-lite",
       prompt: "a harbour at dawn",
     });
 
