@@ -7,7 +7,7 @@
 - [README](./README.md) - install, the task table, Tiers, overriding the Model, looks and moods, series, the SDK and config.
 - [Agent instructions](./AGENTS.md) - repo commands, package map, architecture rules and permission boundaries.
 - [CLI agent guide](./apps/cli/AGENTS.md) - driving the `motif` command from an agent.
-- [Domain language](./CONTEXT.md) - Task, Model, Tier, Source, Reference, Series, Look, Mood.
+- [Domain language](./GLOSSARY.md) - Task, Model, Tier, Source, Reference, Series, Look, Mood.
 - [Security notes](./docs/security.md) - key handling, local history exposure and ephemeral runs.
 
 ## What do you want to do?

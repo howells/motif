@@ -1,6 +1,6 @@
 # motif
 
-Image generation and editing on fal.ai: a CLI organised by Task (`apps/cli`, `@howells/motif-cli`), the SDK (`packages/motif-sdk`), the docs site (`apps/docs`) and the bench app (`apps/bench` plus `packages/bench-*`). Specs and outstanding work live in Linear (howells, MOT): [project documentation](https://linear.app/howells/document/motif-project-documentation-8f35c5aa5226).
+Image generation and editing on fal.ai: a CLI organised by Task (`apps/cli`, `@howells/motif-cli`), the SDK (`packages/motif-sdk`), the docs site (`apps/docs`) and the bench app (`apps/bench` plus `packages/bench-*`).
 
 ```sh
 pnpm build && pnpm typecheck && pnpm lint && pnpm test
@@ -12,3 +12,17 @@ pnpm dev                                # CLI; bench runs on 4400, docs on 4500
 - `apps/cli/AGENTS.md` is the CLI's guide for agents that use it; keep it accurate when behavior changes.
 - Releases publish from `.github/workflows/release.yml`.
 - Don't overwrite other people's uncommitted work.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in Linear (howells, MOT). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default triage labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context. See `docs/agents/domain.md`.
