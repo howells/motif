@@ -48,7 +48,7 @@ export const MODELS: Record<string, ModelConfig> = {
     maxReferenceImages: 16,
     name: "GPT Image 2.6 Flare",
     pricing:
-      "Token-based: text $5/M input, $1.25/M cached, $10/M output; image $8/M input, $2/M cached, $30/M output",
+      "Token-based: image $8/M input, $2/M cached, $30/M output; text $5/M input, $1.25/M cached",
     pricePerImageUsd: null,
     sizeMode: "image_size_enum",
     supportsAspect: true,
@@ -64,7 +64,6 @@ export const MODELS: Record<string, ModelConfig> = {
     // fal makes SVG from text only.
     supportedEditOutputFormats: ["jpeg", "png", "webp", "gif"],
     supportsQuality: true,
-    supportsReasoningEffort: true,
     supportedQualities: ["auto", "low", "medium", "high", "xhigh", "max"],
     supportsResolution: false,
     supportsSyncMode: true,
@@ -101,7 +100,7 @@ export const MODELS: Record<string, ModelConfig> = {
     maxReferenceImages: 16,
     name: "GPT Image 2.6 Sunburst",
     pricing:
-      "Token-based: text $5/M input, $1.25/M cached, $10/M output; image $8/M input, $2/M cached, $30/M output",
+      "Token-based: image $8/M input, $2/M cached, $30/M output; text $5/M input, $1.25/M cached",
     pricePerImageUsd: null,
     sizeMode: "image_size_enum",
     supportsAspect: true,
@@ -117,7 +116,6 @@ export const MODELS: Record<string, ModelConfig> = {
     // fal makes SVG from text only.
     supportedEditOutputFormats: ["jpeg", "png", "webp", "gif"],
     supportsQuality: true,
-    supportsReasoningEffort: true,
     supportedQualities: ["auto", "low", "medium", "high", "xhigh", "max"],
     supportsResolution: false,
     supportsSyncMode: true,

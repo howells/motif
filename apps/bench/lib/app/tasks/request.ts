@@ -67,8 +67,7 @@ const frames = z.strictObject({
   durationMs: z.int().min(20).max(2000),
 });
 
-/** Quality levels for Models that take one; GPT Image 2.6 sends the top
- * two as reasoning effort. */
+/** Quality levels for Models that take one. */
 export const APP_QUALITIES = ["low", "medium", "high", "xhigh", "max"] as const;
 
 /** Output options beyond the default image. Frames and quality are fields

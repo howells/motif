@@ -441,16 +441,14 @@ describe("createMotif plan", () => {
     ).toContain("can't be combined with a mask");
   });
 
-  it("sends params.quality xhigh to GPT Image 2.6 as reasoning effort", () => {
+  it("sends params.quality xhigh to GPT Image 2.6 as quality", () => {
     const plan = planned("generate", {
       model: "flare",
       params: { quality: "xhigh" },
       prompt: "x",
     });
-    expect(plan.body).toMatchObject({
-      quality: "high",
-      reasoning_effort: "xhigh",
-    });
+    expect(plan.body.quality).toBe("xhigh");
+    expect(plan.body).not.toHaveProperty("reasoning_effort");
     const low = planned("generate", {
       model: "sunburst",
       params: { quality: "low" },

@@ -441,8 +441,7 @@ function generationPlan(
   }
 
   // `params.quality` goes through `buildGenerateBody`, which checks it against
-  // the Model's levels and maps xhigh and max to `reasoning_effort` where fal
-  // takes them there.
+  // the Model's levels.
   const { quality, ...params } = input.params ?? {};
   const liftQuality = config.supportsQuality === true && quality !== undefined;
   if (liftQuality && !isImageQuality(quality)) {

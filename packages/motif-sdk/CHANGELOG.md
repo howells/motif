@@ -1,5 +1,15 @@
 # @howells/motif-sdk
 
+## 5.4.0
+
+Released alongside `@howells/motif-cli` 3.3.0.
+
+### Minor Changes
+
+- Sunburst and Flare run GPT Image 2.6 on fal (`openai/gpt-image-2.6/{sunburst,flare}/text-to-image` and `/edit`), with animated GIF and SVG output and `markup`. GPT Image 2.5 is no longer routed.
+- `xhigh` and `max` are sent as fal's `quality`, matching its 2.6 schema; Motif no longer sends `reasoning_effort`. `ModelConfig.supportsReasoningEffort` is removed.
+- The direct OpenAI image layer documents `gpt-image-2.6-flare` and `gpt-image-2.6-sunburst`.
+
 ## 5.2.0
 
 Released alongside `@howells/motif-cli` 3.1.0, the first CLI release on the 5.x SDK.

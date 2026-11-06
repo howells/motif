@@ -442,16 +442,7 @@ export function buildGenerateBody(options: GenerateOptions): {
   }
 
   if (config.supportsQuality === true) {
-    const level = quality ?? config.defaultQuality ?? "high";
-    if (
-      config.supportsReasoningEffort === true &&
-      (level === "xhigh" || level === "max")
-    ) {
-      body.quality = "high";
-      body.reasoning_effort = level;
-    } else {
-      body.quality = level;
-    }
+    body.quality = quality ?? config.defaultQuality ?? "high";
   }
 
   if (config.supportsBackground === true && background) {

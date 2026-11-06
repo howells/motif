@@ -253,7 +253,7 @@ export function alignParams(
 
   // ── Params the SDK sets for us ────────────────────────────────────────────
   // We never pass `quality`; buildGenerateBody uses the registry's default.
-  // Record it so max-quality GPT 2.5 results cannot be mixed with old high runs.
+  // Record it so max-quality GPT Image results cannot be mixed with old high runs.
   if (config.supportsQuality === true) {
     autoSet.push({
       param: "quality",

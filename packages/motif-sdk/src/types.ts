@@ -178,12 +178,6 @@ export interface ModelConfig {
   /** Default matching the quality variant used in this Model's ranking. */
   defaultQuality?: ImageQuality;
   supportedQualities?: readonly ImageQuality[];
-  /**
-   * fal takes `quality` only up to `high` and the `xhigh` and `max` levels as
-   * `reasoning_effort` (GPT Image 2.6), so those levels send `quality: "high"`
-   * with `reasoning_effort` set to the level.
-   */
-  supportsReasoningEffort?: boolean;
   supportsRaw?: boolean;
   supportsRenderingSpeed?: boolean;
   supportsResolution: boolean;

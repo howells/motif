@@ -19,11 +19,11 @@ describe(buildGenerateBody, () => {
         `openai/gpt-image-2.6/${model}/text-to-image`
       );
       expect(generated.body).toMatchObject({
-        quality: "high",
-        reasoning_effort: "xhigh",
+        quality: "xhigh",
         background: "transparent",
         output_format: "png",
       });
+      expect(generated.body).not.toHaveProperty("reasoning_effort");
       const edited = buildGenerateBody({
         model,
         prompt: "Change the glaze",
@@ -33,8 +33,7 @@ describe(buildGenerateBody, () => {
       });
       expect(edited.endpoint).toBe(`openai/gpt-image-2.6/${model}/edit`);
       expect(edited.body).toMatchObject({
-        quality: "high",
-        reasoning_effort: "max",
+        quality: "max",
         mask_url: "https://example.com/mask.png",
         image_urls: ["https://example.com/vase.png"],
       });
@@ -64,11 +63,11 @@ describe(buildGenerateBody, () => {
   );
 
   it.each(["flare", "sunburst"])(
-    "defaults %s to max reasoning effort, with an explicit override",
+    "defaults %s to max quality, with an explicit override",
     (model) => {
       expect(
         buildGenerateBody({ model, prompt: "A poster" }).body
-      ).toMatchObject({ quality: "high", reasoning_effort: "max" });
+      ).toMatchObject({ quality: "max" });
       const low = buildGenerateBody({
         model,
         prompt: "A poster",

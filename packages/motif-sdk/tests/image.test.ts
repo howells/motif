@@ -815,7 +815,7 @@ const PROVIDER_CASES: ProviderCase[] = [
     provider: "openai",
     apiKeyEnv: "OPENAI_API_KEY",
     config: { openai: { apiKey: "test-key" } },
-    defaultModel: "gpt-image-2.5-flare",
+    defaultModel: "gpt-image-2.6-flare",
     priceUsd: undefined,
   },
   {
