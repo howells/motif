@@ -50,7 +50,7 @@ motif series run "brutalist architecture" --count 6 --dry-run --no-open --format
 
 - Use `--no-open --format json` and pick fields with `--fields`; don't parse human output.
 - Save outputs inside the repository's Git root (or the current directory outside one), at a new path so the source survives. An output ending in `/` saves every returned file; any other path saves the primary file.
-- Generation and variation return `images[].path`. Other tasks return `path` for the primary file and `files[].path` for all of them. A dry run describes planned files, not ones that exist.
+- Generation and variation return `images[].path`. Other tasks return `path` for the primary file and `files[].path` for every file written; `ask` returns data and no file. A dry run reports `output`, where the file would go, not a file that exists.
 
 Errors are JSON on stderr. Exit codes: `2` bad input, `3` authentication, `4` not found, `5` provider failure.
 
