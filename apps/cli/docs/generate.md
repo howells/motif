@@ -49,7 +49,7 @@ A look carries its own Model, so `--tier` has no effect when `--look` is set. Th
 
 Both orders follow Arena, read 29 October 2026. Editing has its own order: balanced starts with `grok-image-2`, then `banana21` and `krea3`, and fast starts with `grok-image`. A generation with `-e` uses that editing order. Sunburst and Flare run GPT Image 2.6 and default to `quality: "max"`; lower settings remain available through `--param quality=high`. GPT Image 2.6 is not yet on Arena, so their places follow the GPT Image 2.5 results.
 
-Prices are in the [cost reference](costs.md#generate-and-vary). Read the live list from `motif --describe generate --format json`.
+Prices are in the [cost reference](costs.md#generate-and-vary). Read the live list from `motif --describe generate --format json`. Each `ranking` entry gives the Model's `name`, such as `GPT Image 2.6 Sunburst`; `benchmark.evaluatedModel` is what Arena measured, and `benchmark.note` says when that was an earlier version.
 
 ### Model-only options
 

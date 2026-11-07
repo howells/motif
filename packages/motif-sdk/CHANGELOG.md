@@ -1,5 +1,14 @@
 # @howells/motif-sdk
 
+## 7.1.0
+
+Released alongside `@howells/motif-cli` 5.1.0.
+
+### Minor Changes
+
+- `ModelProfile` carries the Model's display `name`, e.g. `GPT Image 2.6 Sunburst`.
+- Arena benchmarks for Sunburst and Flare carry a `note`: the scores were measured on GPT Image 2.5, and Motif runs GPT Image 2.6, which Arena has not scored yet.
+
 ## 7.0.0
 
 Released alongside `@howells/motif-cli` 5.0.0.

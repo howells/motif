@@ -34,7 +34,7 @@ Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` a
 
 ## Curated Models and Tiers
 
-The Task client curates 23 generation Models, with separate rankings for generation and editing. Both follow Arena, read 29 October 2026. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. A generation with `references` uses the editing ranking.
+The Task client curates 23 generation Models, with separate rankings for generation and editing. Both follow Arena, read 29 October 2026. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. Sunburst and Flare run GPT Image 2.6; Arena has not scored 2.6 yet, so their benchmarks are the GPT Image 2.5 scores, and each carries a `note` saying so. A generation with `references` uses the editing ranking.
 
 | Tier                 | Generation default | Editing default   |
 | -------------------- | ------------------ | ----------------- |

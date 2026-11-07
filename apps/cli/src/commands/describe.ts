@@ -13,6 +13,7 @@ import {
   CREATIVE_TAXONOMY,
   isTaskId,
   LOOKS,
+  modelProfile,
   RESOLUTIONS,
   TASKS,
   TIERS,
@@ -749,12 +750,22 @@ function taskDetails(command: string): Record<string, unknown> {
     basis: definition.basis,
     ranking: definition.models.map((entry) => ({
       model: entry.model,
+      name: rankedName(entry.model),
       tier: entry.tier,
       ...(entry.mode === undefined ? {} : { mode: entry.mode }),
       benchmark: entry.benchmark ?? null,
     })),
     ...(command === "generate" ? { referenceRankingTask: "vary" } : {}),
   };
+}
+
+/** The display name of a ranked Model; every ranked Model is in a registry. */
+function rankedName(model: string): string {
+  const profile = modelProfile(model);
+  if (profile === undefined) {
+    throw new Error(`Ranked Model ${model} is in no registry.`);
+  }
+  return profile.name;
 }
 
 /** The task table alone: `motif --describe tasks`. */

@@ -119,6 +119,8 @@ export type TaskResolution = TaskResolved | TaskUnresolved;
 const FAL_KEY = "FAL_KEY";
 
 export interface ModelProfile {
+  /** The Model's display name, e.g. "GPT Image 2.6 Sunburst". */
+  readonly name: string;
   readonly capabilities: ReadonlySet<Capability>;
   /** Key variables the Model needs for any request. */
   readonly keys: readonly string[];
@@ -168,6 +170,7 @@ function generationProfile(config: ModelConfig): ModelProfile {
     capabilities.add("outputFormat");
   }
   return {
+    name: config.name,
     aspects: config.supportedAspects,
     capabilities,
     keys: [FAL_KEY],
@@ -216,6 +219,7 @@ function toolProfile(tool: FalToolId): ModelProfile {
     capabilities.add("references");
   }
   return {
+    name: config.name,
     capabilities,
     keys: [FAL_KEY],
     maxReferences: takesReference ? 1 : 0,

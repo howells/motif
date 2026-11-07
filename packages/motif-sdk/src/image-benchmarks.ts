@@ -12,6 +12,8 @@ interface ArenaScore {
   readonly uncertainty: number;
   /** Exact leaderboard label, including a setting where one was reported. */
   readonly evaluatedModel: string;
+  /** Set when the score was measured on a different version than Motif runs. */
+  readonly note?: string;
   readonly preliminary?: true;
   readonly votes?: number;
 }
@@ -25,12 +27,16 @@ export interface ImageModelBenchmark extends ArenaScore {
 
 type ArenaScoreTable = Readonly<Partial<Record<string, ArenaScore>>>;
 
+const MEASURED_ON_2_5 =
+  "Measured on GPT Image 2.5. Motif runs GPT Image 2.6, which Arena has not scored yet.";
+
 const TEXT_TO_IMAGE = {
   sunburst: {
     elo: 1427,
     rank: 1,
     uncertainty: 5,
     evaluatedModel: "GPT-Image-2.5 Sunburst",
+    note: MEASURED_ON_2_5,
     preliminary: true,
     votes: 40_323,
   },
@@ -39,6 +45,7 @@ const TEXT_TO_IMAGE = {
     rank: 2,
     uncertainty: 5,
     evaluatedModel: "GPT-Image-2.5 Flare",
+    note: MEASURED_ON_2_5,
     preliminary: true,
     votes: 39_218,
   },
@@ -129,6 +136,7 @@ const IMAGE_EDITING = {
     rank: 1,
     uncertainty: 5,
     evaluatedModel: "GPT-Image-2.5 Sunburst",
+    note: MEASURED_ON_2_5,
     preliminary: true,
   },
   flare: {
@@ -136,6 +144,7 @@ const IMAGE_EDITING = {
     rank: 2,
     uncertainty: 5,
     evaluatedModel: "GPT-Image-2.5 Flare",
+    note: MEASURED_ON_2_5,
     preliminary: true,
   },
   "grok-image-2": {
