@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { Close } from "@/components/home/close";
 import { Hero } from "@/components/home/hero";
+import { Make } from "@/components/home/make";
 import { Masthead } from "@/components/home/masthead";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
@@ -37,6 +38,7 @@ async function HomePage() {
       <Masthead member={viewer.state === "member"} />
       <main>
         <Hero />
+        <Make />
       </main>
       <Close />
     </>

@@ -26,8 +26,11 @@ export function Responsive({
 
 /** A picture on the grid with its caption hanging below it. Inside a
  * `<Grid row>` the picture sits on the row's image line and the caption on
- * the line beneath, so captions never move where the pictures end. */
+ * the line beneath, so captions never move where the pictures end.
+ * `className` styles the figure's own box: its order, or the space after it
+ * where a phone row wraps. */
 export function Figure({
+  className,
   crop,
   desk,
   eager,
@@ -35,6 +38,7 @@ export function Figure({
   phone,
   sizes,
 }: {
+  readonly className?: string;
   readonly crop: Crop;
   readonly desk?: Span;
   readonly eager?: boolean;
@@ -43,7 +47,10 @@ export function Figure({
   readonly sizes: string;
 }) {
   return (
-    <figure className="home-figure" style={spanStyle(desk, phone)}>
+    <figure
+      className={`home-figure ${className ?? ""}`}
+      style={spanStyle(desk, phone)}
+    >
       <Plate
         crop={crop}
         eager={eager}
