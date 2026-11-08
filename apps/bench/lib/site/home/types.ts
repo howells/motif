@@ -38,12 +38,27 @@ export interface Figure {
   };
 }
 
+/** One line of a conversation with Motif, and who said it. */
+export interface Turn {
+  readonly speaker: string;
+  readonly text: string;
+}
+
+/** A question put to Motif about a picture and the answer it gave, word for
+ * word from a real run. */
+export interface Exchange {
+  readonly answer: Turn;
+  readonly question: Turn;
+}
+
 /** One Task on the page: a plain headline, a line or two, the command and the
  * pictures that show it. A row of plates (Looks, Moods) can stand without the
  * headline or the line, as the board draws it. */
 export interface Entry {
   readonly body?: string;
   readonly command: Command;
+  /** Present where the entry shows a question and Motif's answer. */
+  readonly exchange?: Exchange;
   readonly figures: readonly Figure[];
   readonly headline?: string;
   /** The fragment the entry answers to, unique on the page. */

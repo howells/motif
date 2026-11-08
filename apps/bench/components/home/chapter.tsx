@@ -4,8 +4,10 @@ import { Cell, Grid } from "@/components/home/grid";
 import type { Chapter } from "@/lib/site/home/types";
 
 /** A chapter: the rule, its title and one-line intro, then its entries spaced
- * by the entry gap. The chapter's own layout component passes each entry in
- * as a child, built from `Grid`, `Cell`, `Figure` and `CommandLink`. */
+ * by the entry gap. A chapter on the mount keeps the chapter gap below its
+ * last entry too, so the darker ground closes as it opens. The chapter's own
+ * layout component passes each entry in as a child, built from `Grid`,
+ * `Cell`, `Figure` and `CommandLink`. */
 export function ChapterSection({
   chapter,
   children,
@@ -16,7 +18,7 @@ export function ChapterSection({
   return (
     <section
       aria-labelledby={`${chapter.id}-title`}
-      className={`home-chapter ${chapter.tone === "mount" ? "home-mount" : ""}`}
+      className={`home-chapter ${chapter.tone === "mount" ? "home-mount pb-(--home-chapter-gap)" : ""}`}
       id={chapter.id}
     >
       <Grid className="home-chapter-head">

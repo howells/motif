@@ -5,6 +5,7 @@ import { Hero } from "@/components/home/hero";
 import { LooksAndMoods } from "@/components/home/looks-and-moods";
 import { Masthead } from "@/components/home/masthead";
 import { Price } from "@/components/home/price";
+import { ReadAndConvert } from "@/components/home/read-and-convert";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
 
@@ -39,6 +40,7 @@ async function HomePage() {
       <Masthead member={viewer.state === "member"} />
       <main>
         <Hero />
+        <ReadAndConvert />
         <LooksAndMoods />
         <Price />
       </main>
