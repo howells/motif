@@ -9,13 +9,18 @@
    baseline (desktop) and a 4-column grid (phone), not on the App's 4px
    steps. Components read them through the classes below, never as numbers.
 
-   Below 64rem the page uses the phone composition, scaled; from 64rem up it
-   uses the desktop one, whose margins and gutters grow to the artboard's 60
-   and 24 at 1440 and hold there, so wider screens get wider columns. */
+   Below 64rem the page uses the phone composition. Its four columns grow
+   with the screen up to 36rem and then stop, the margins taking the rest, so
+   a tablet reads it as a column with the lines and pictures at a phone's
+   proportions, not a phone stretched; edge-to-edge pictures still run edge
+   to edge. The desktop grid would leave three-column words about 170px wide
+   at 768. From 64rem up the page uses the desktop composition, whose
+   margins and gutters grow to the artboard's 60 and 24 at 1440 and hold
+   there, so wider screens get wider columns. */
 
 .home {
   --home-columns: 4;
-  --home-margin: 20px;
+  --home-margin: max(20px, (100% - 36rem) / 2);
   --home-gutter: 14px;
 
   /* Rhythm. Chapter to chapter, entry to entry, image to the text beneath it,
@@ -120,10 +125,17 @@
   align-self: start;
 }
 
+/* A cell of words that ends on the caption line instead: its last line, the
+   command, sits level with the captions beside it. */
+.home-row > .home-cell > .home-foot {
+  grid-row: 1 / span 2;
+}
+
 /* ── Pictures ─────────────────────────────────────────────────────────
    Every picture sits in a box of a fixed ratio and fills it, so nothing
    moves as it loads. The ratio is the design's crop, not the file's: the
-   desktop ratio is `--ratio`, and `--ratio-phone` overrides it below 64rem.
+   desktop ratio is `--ratio`, and `--ratio-phone` overrides it below 64rem,
+   as `--position-phone` moves the crop off centre there.
    The picture is taken out of flow so the box's ratio alone sets its
    height. The holding colour behind it is the mount. */
 .home-plate {
@@ -144,8 +156,14 @@
   inline-size: 100%;
   inset: 0;
   object-fit: cover;
-  object-position: var(--position, 50% 50%);
+  object-position: var(--position-phone, 50% 50%);
   position: absolute;
+}
+
+@media (width >= 64rem) {
+  .home-plate img {
+    object-position: 50% 50%;
+  }
 }
 
 /* A cut-out on a paper mat: the whole picture, contained and inset from the
@@ -197,8 +215,12 @@
   row-gap: var(--home-entry-gap);
 }
 
+/* The darker ground. A band of it keeps a chapter gap of the page's own
+   ground above it, as the boards do, so the step from one ground to the
+   other never comes straight after an entry. */
 .home-mount {
   background: var(--surface);
+  margin-block-start: var(--home-chapter-gap);
 }
 
 /* ── Type ─────────────────────────────────────────────────────────────
@@ -348,6 +370,14 @@
   justify-content: space-between;
   padding-block: 15px 16px;
   text-decoration: none;
+}
+
+/* On a phone the last link's rule below it takes a pixel back, so the list
+   is whole 56px rows, as the phone board draws it. */
+@media (width < 64rem) {
+  .home-links > :last-child a {
+    padding-block-end: 15px;
+  }
 }
 
 .home-links a:hover > span {

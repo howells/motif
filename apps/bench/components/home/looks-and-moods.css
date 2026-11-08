@@ -29,3 +29,9 @@
     --plate-columns: 3;
   }
 }
+
+/* The strip runs to the screen edges, so its focus ring is drawn inside it,
+   where the page cannot clip it. */
+.home-look-strip:focus-visible {
+  outline-offset: -2px;
+}

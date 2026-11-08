@@ -1,8 +1,11 @@
 /* ── The homepage's Edit chapter ──────────────────────────────────────
-   What the shared grid in home.css cannot say for this chapter alone: the
-   Erase stagger, the backdrop behind the cut-out vase, the dashed outline
-   over Extend the frame, and the rows where words sit at the top of a row of
-   pictures. Numbers are the Paper artboards' (desktop 1440, phone 390). */
+   What the shared grid in app/home.css cannot say for this chapter alone:
+   the Erase stagger, the backdrop behind the cut-out vase, the dashed
+   outline over Extend the frame, and the rows where words sit at the top of
+   a row of pictures. Like every chapter's own styles it sits beside the
+   chapter, loads after app/home.css in no promised order, and so never wins
+   on order alone. Numbers are the Paper artboards' (desktop 1440, phone
+   390). */
 
 /* Remove an object: the small Before sits at the top on the left with the
    words under it; the large After starts 160px lower on the right and runs
@@ -76,12 +79,8 @@
    top left, Try-on's at the top right above the person and the jacket. Every
    block takes the row's two lines, so they share it instead of stacking. */
 @media (width >= 64rem) {
-  .home-row.home-edit-shared > * {
+  .home-row.home-edit-shared > :is(.home-cell, .home-figure) {
     grid-row: 1 / span 2;
-  }
-
-  .home-row > .home-cell > .home-edit-top {
-    align-self: start;
   }
 }
 

@@ -4,15 +4,16 @@ import type { CustomProperties } from "@/components/home/span";
 import type { ImageRef } from "@/lib/site/home/types";
 
 /** The box a picture is cropped into: the design's ratio on desktop and,
- * where the phone board crops it differently, on the phone, plus where the
- * crop is centred. */
+ * where the phone board crops it differently, on the phone. Desktop crops
+ * are centred; the phone board moves a few off centre. */
 export interface Crop {
-  /** `object-position`, e.g. `"50% 62%"`. Centred when omitted. */
-  readonly position?: string;
-  /** Width / height on desktop, e.g. `"1320 / 744"`. */
-  readonly ratio: string;
+  /** `object-position` on the phone, e.g. `"62% 50%"`. Centred when
+   * omitted. */
+  readonly phonePosition?: string;
   /** Width / height on the phone, when it differs. */
   readonly phoneRatio?: string;
+  /** Width / height on desktop, e.g. `"1320 / 744"`. */
+  readonly ratio: string;
 }
 
 function cropStyle(crop: Crop): CustomProperties {
@@ -21,7 +22,9 @@ function cropStyle(crop: Crop): CustomProperties {
     ...(crop.phoneRatio === undefined
       ? {}
       : { "--ratio-phone": crop.phoneRatio }),
-    ...(crop.position === undefined ? {} : { "--position": crop.position }),
+    ...(crop.phonePosition === undefined
+      ? {}
+      : { "--position-phone": crop.phonePosition }),
   };
 }
 

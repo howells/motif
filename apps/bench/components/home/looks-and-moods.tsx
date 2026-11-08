@@ -5,6 +5,7 @@ import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
 import {
   LOOK_ROW,
+  LOOK_STRIP_LABEL,
   LOOKS_AND_MOODS,
   MOOD_ROW,
 } from "@/lib/site/home/looks-and-moods";
@@ -20,7 +21,12 @@ export function LooksAndMoods() {
         <div className="grid gap-y-(--home-text-gap)" id={LOOK_ROW.id}>
           <Grid>
             <Cell desk="bleed" phone="bleed">
-              <div className="home-look-strip">
+              <section
+                aria-label={LOOK_STRIP_LABEL}
+                className="home-look-strip"
+                // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- a scrolling region must take focus for a keyboard to scroll it; Chrome and Firefox focus a scroller with nothing focusable inside, Safari does not
+                tabIndex={0}
+              >
                 {LOOK_ROW.figures.map((figure) => (
                   <Figure
                     crop={{ phoneRatio: "168 / 208", ratio: "312 / 392" }}
@@ -29,7 +35,7 @@ export function LooksAndMoods() {
                     sizes="(width >= 64rem) 22vw, 44vw"
                   />
                 ))}
-              </div>
+              </section>
             </Cell>
           </Grid>
           <Grid>
