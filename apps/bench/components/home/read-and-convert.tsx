@@ -1,6 +1,7 @@
 import { ChapterSection, WideWords, Words } from "@/components/home/chapter";
 import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
+import { imageSizes } from "@/components/home/image-sizes";
 import {
   ASK,
   LAYERS,
@@ -25,7 +26,7 @@ function Ask() {
           crop={{ phoneRatio: "350 / 200", ratio: "760 / 424" }}
           desk={{ span: 7, start: 1 }}
           figure={photo}
-          sizes="(width >= 64rem) 53vw, 100vw"
+          sizes={imageSizes(53, 100)}
         />
         <Cell
           className="flex flex-col gap-6 lg:gap-8"
@@ -58,7 +59,7 @@ function Segment() {
             ratio: "1320 / 736",
           }}
           figure={picture}
-          sizes="(width >= 64rem) 92vw, 100vw"
+          sizes={imageSizes(92, 100)}
         />
       </Grid>
       <WideWords entry={SEGMENT} />
@@ -78,7 +79,7 @@ function Layers() {
           desk={{ span: 6, start: 2 }}
           figure={layers}
           phone={{ span: 3, start: 2 }}
-          sizes="(width >= 64rem) 45vw, 75vw"
+          sizes={imageSizes(45, 75)}
         />
         <Cell
           className="lg:pt-24"
@@ -103,21 +104,21 @@ function Maps() {
           desk={{ span: 5, start: 1 }}
           figure={depth}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 38vw, 45vw"
+          sizes={imageSizes(38, 45)}
         />
         <Figure
           crop={{ phoneRatio: "77 / 80", ratio: "1 / 1" }}
           desk={{ span: 3, start: 6 }}
           figure={pose}
           phone={{ span: 1, start: 3 }}
-          sizes="(width >= 64rem) 22vw, 20vw"
+          sizes={imageSizes(22, 20)}
         />
         <Figure
           crop={{ phoneRatio: "77 / 80", ratio: "1 / 1" }}
           desk={{ span: 2, start: 9 }}
           figure={edges}
           phone={{ span: 1, start: 4 }}
-          sizes="(width >= 64rem) 14vw, 20vw"
+          sizes={imageSizes(14, 20)}
         />
       </Grid>
       <WideWords entry={MAPS} />
@@ -140,21 +141,21 @@ function Materials() {
           desk={{ span: 3, start: 4 }}
           figure={colour}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 22vw, 45vw"
+          sizes={imageSizes(22, 45)}
         />
         <Figure
           crop={{ phoneRatio: "77 / 160", ratio: "312 / 432" }}
           desk={{ span: 3, start: 7 }}
           figure={bumps}
           phone={{ span: 1, start: 3 }}
-          sizes="(width >= 64rem) 22vw, 20vw"
+          sizes={imageSizes(22, 20)}
         />
         <Figure
           crop={{ phoneRatio: "77 / 96", ratio: "1 / 1" }}
           desk={{ span: 3, start: 10 }}
           figure={shine}
           phone={{ span: 1, start: 4 }}
-          sizes="(width >= 64rem) 22vw, 20vw"
+          sizes={imageSizes(22, 20)}
         />
       </Grid>
     </article>
@@ -174,7 +175,7 @@ function Vectorize() {
           desk={{ span: 4, start: 5 }}
           figure={original}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 30vw, 45vw"
+          sizes={imageSizes(30, 45)}
         />
         <Figure
           className="pb-16 lg:pb-32"
@@ -182,7 +183,7 @@ function Vectorize() {
           desk={{ span: 4, start: 9 }}
           figure={svg}
           phone={{ span: 2, start: 3 }}
-          sizes="(width >= 64rem) 30vw, 45vw"
+          sizes={imageSizes(30, 45)}
         />
       </Grid>
     </article>
@@ -206,7 +207,7 @@ function Mesh() {
           desk={{ span: 3, start: 1 }}
           figure={photo}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 22vw, 45vw"
+          sizes={imageSizes(22, 45)}
         />
         <Figure
           className="home-matte"
@@ -214,7 +215,7 @@ function Mesh() {
           desk={{ span: 5, start: 4 }}
           figure={model}
           phone={{ span: 2, start: 3 }}
-          sizes="(width >= 64rem) 32vw, 40vw"
+          sizes={imageSizes(32, 40)}
         />
         <Cell className="home-foot max-lg:mt-4" desk={{ span: 3, start: 10 }}>
           <Words entry={MESH} />
@@ -235,7 +236,7 @@ function Sheet() {
           crop={{ phoneRatio: "350 / 384", ratio: "648 / 704" }}
           desk={{ span: 6, start: 6 }}
           figure={sheet}
-          sizes="(width >= 64rem) 45vw, 100vw"
+          sizes={imageSizes(45, 100)}
         />
         <Cell desk={{ span: 3, start: 1 }}>
           <Words entry={SHEET} />

@@ -3,6 +3,7 @@ import { ChapterSection, Headline } from "@/components/home/chapter";
 import { CommandLink } from "@/components/home/command";
 import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
+import { imageSizes } from "@/components/home/image-sizes";
 import {
   LOOK_ROW,
   LOOK_STRIP_LABEL,
@@ -32,7 +33,7 @@ export function LooksAndMoods() {
                     crop={{ phoneRatio: "168 / 208", ratio: "312 / 392" }}
                     figure={figure}
                     key={figure.image.src}
-                    sizes="(width >= 64rem) 22vw, 44vw"
+                    sizes={imageSizes(22, 44)}
                   />
                 ))}
               </section>
@@ -56,7 +57,7 @@ export function LooksAndMoods() {
                 figure={figure}
                 key={figure.image.src}
                 phone={{ span: 2, start: (index % 2) * 2 + 1 }}
-                sizes="(width >= 64rem) 30vw, 44vw"
+                sizes={imageSizes(30, 44)}
               />
             ))}
           </Grid>

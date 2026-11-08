@@ -43,8 +43,7 @@ export function Plate({
   readonly eager?: boolean;
   readonly image: ImageRef;
   readonly phone?: ImageRef;
-  /** The `sizes` attribute for both files, e.g.
-   * `"(width >= 64rem) 92vw, 100vw"`. */
+  /** The `sizes` attribute for both files; build it with `imageSizes`. */
   readonly sizes: string;
 }) {
   const loading = eager === true ? "eager" : "lazy";

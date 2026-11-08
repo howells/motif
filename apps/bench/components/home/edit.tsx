@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ChapterSection, WideWords, Words } from "@/components/home/chapter";
 import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
+import { imageSizes } from "@/components/home/image-sizes";
 import type { Crop } from "@/components/home/plate";
 import { Plate } from "@/components/home/plate";
 import { EDIT } from "@/lib/site/home/edit";
@@ -52,7 +53,7 @@ function Erase() {
           desk={{ span: 4, start: 1 }}
           figure={before}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 30vw, 43vw"
+          sizes={imageSizes(30, 43)}
         />
         <Cell
           className="home-edit-after mt-6 lg:mt-0"
@@ -61,7 +62,7 @@ function Erase() {
           <Figure
             crop={{ phoneRatio: "350 / 200", ratio: "872 / 488" }}
             figure={after}
-            sizes="(width >= 64rem) 61vw, 90vw"
+            sizes={imageSizes(61, 90)}
           />
         </Cell>
         <Cell className="mt-4 lg:mt-16" desk={{ span: 3, start: 1 }}>
@@ -83,7 +84,7 @@ function Cutout() {
           desk={{ span: 2, start: 4 }}
           figure={photo}
           phone={{ span: 1, start: 1 }}
-          sizes="(width >= 64rem) 14vw, 20vw"
+          sizes={imageSizes(14, 20)}
         />
         <Cell
           className="home-edit-backdrop"
@@ -94,7 +95,7 @@ function Cutout() {
             alt={cut.image.alt}
             height={cut.image.height}
             loading="lazy"
-            sizes="(width >= 64rem) 21vw, 49vw"
+            sizes={imageSizes(21, 49)}
             src={cut.image.src}
             width={cut.image.width}
           />
@@ -122,7 +123,7 @@ function Reframe() {
           <Plate
             crop={{ phoneRatio: "350 / 352", ratio: "1 / 1" }}
             image={square.image}
-            sizes="(width >= 64rem) 53vw, 90vw"
+            sizes={imageSizes(53, 90)}
           />
           <div className="home-edit-original">
             <p className="home-text">{reframe.original}</p>
@@ -148,14 +149,14 @@ function Upscale() {
           desk={{ span: 1, start: 7 }}
           figure={small}
           phone={{ span: 1, start: 1 }}
-          sizes="(width >= 64rem) 7vw, 20vw"
+          sizes={imageSizes(7, 20)}
         />
         <Figure
           crop={{ phoneRatio: "259 / 344", ratio: "536 / 712" }}
           desk={{ span: 5, start: 8 }}
           figure={large}
           phone={{ span: 3, start: 2 }}
-          sizes="(width >= 64rem) 38vw, 67vw"
+          sizes={imageSizes(38, 67)}
         />
         <Cell
           className="home-hang mt-4 lg:mt-0"
@@ -178,7 +179,7 @@ function Relight() {
           crop={{ phoneRatio: "350 / 352", ratio: "1320 / 744" }}
           figure={split}
           sides={relight.sides}
-          sizes="(width >= 64rem) 92vw, 90vw"
+          sizes={imageSizes(92, 90)}
         />
       </Grid>
       <WideWords entry={relight} />
@@ -201,7 +202,7 @@ function Restyle() {
           <Plate
             crop={{ phoneRatio: "350 / 200", ratio: "872 / 472" }}
             image={result.image}
-            sizes="(width >= 64rem) 61vw, 90vw"
+            sizes={imageSizes(61, 90)}
           />
         </Cell>
         <Figure
@@ -209,14 +210,14 @@ function Restyle() {
           desk={{ span: 4, start: 9 }}
           figure={photo}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 30vw, 43vw"
+          sizes={imageSizes(30, 43)}
         />
         <Figure
           crop={RESTYLE_SOURCE}
           desk={{ span: 4, start: 9 }}
           figure={reference}
           phone={{ span: 2, start: 3 }}
-          sizes="(width >= 64rem) 30vw, 43vw"
+          sizes={imageSizes(30, 43)}
         />
       </Grid>
       <WideWords entry={restyle} />
@@ -238,21 +239,21 @@ function TryOn() {
           crop={{ phoneRatio: "350 / 440", ratio: "648 / 808" }}
           desk={{ span: 6, start: 1 }}
           figure={dressed}
-          sizes="(width >= 64rem) 45vw, 90vw"
+          sizes={imageSizes(45, 90)}
         />
         <Figure
           crop={TRY_ON_SOURCE}
           desk={{ span: 3, start: 7 }}
           figure={person}
           phone={{ span: 2, start: 1 }}
-          sizes="(width >= 64rem) 22vw, 43vw"
+          sizes={imageSizes(22, 43)}
         />
         <Figure
           crop={TRY_ON_SOURCE}
           desk={{ span: 3, start: 10 }}
           figure={garment}
           phone={{ span: 2, start: 3 }}
-          sizes="(width >= 64rem) 22vw, 43vw"
+          sizes={imageSizes(22, 43)}
         />
         <Cell className="home-hang mt-4 lg:mt-0" desk={{ span: 4, start: 7 }}>
           <Words entry={tryOn} />
@@ -272,7 +273,7 @@ function Restore() {
             crop={{ phoneRatio: "350 / 232", ratio: "1096 / 728" }}
             figure={split}
             sides={restore.sides}
-            sizes="(width >= 64rem) 76vw, 90vw"
+            sizes={imageSizes(76, 90)}
           />
         </Cell>
       </Grid>

@@ -11,6 +11,7 @@ import {
 import { Figure } from "@/components/home/figure";
 import { Film } from "@/components/home/film";
 import { Cell, Grid } from "@/components/home/grid";
+import { imageSizes } from "@/components/home/image-sizes";
 import { Plate } from "@/components/home/plate";
 import { MAKE } from "@/lib/site/home/make";
 import type { Entry, Figure as FigureContent } from "@/lib/site/home/types";
@@ -34,12 +35,6 @@ function figure(item: Entry, index: number): FigureContent {
   return found;
 }
 
-/** The `sizes` attribute for a picture `desk` and `phone` viewport widths
- * wide, in percent. */
-function sizes(desk: number, phone: number): string {
-  return `(width >= 64rem) ${String(desk)}vw, ${String(phone)}vw`;
-}
-
 /** Three pictures of different heights on one bottom line; the phone gives
  * the first the full width and pairs the other two. */
 function FromASentence() {
@@ -51,21 +46,21 @@ function FromASentence() {
           crop={{ phoneRatio: "350 / 352", ratio: "536 / 536" }}
           desk={{ span: 5, start: 1 }}
           figure={figure(item, 0)}
-          sizes={sizes(38, 90)}
+          sizes={imageSizes(38, 90)}
         />
         <Figure
           crop={{ phoneRatio: "168 / 208", ratio: "312 / 416" }}
           desk={{ span: 3, start: 6 }}
           figure={figure(item, 1)}
           phone={{ span: 2, start: 1 }}
-          sizes={sizes(22, 43)}
+          sizes={imageSizes(22, 43)}
         />
         <Figure
           crop={{ phoneRatio: "168 / 208", ratio: "424 / 528" }}
           desk={{ span: 4, start: 9 }}
           figure={figure(item, 2)}
           phone={{ span: 2, start: 3 }}
-          sizes={sizes(30, 43)}
+          sizes={imageSizes(30, 43)}
         />
       </Grid>
       <WideWords entry={item} />
@@ -86,7 +81,7 @@ function FromYourPhotos() {
           <Plate
             crop={{ phoneRatio: "350 / 440", ratio: "648 / 816" }}
             image={figure(item, 0).image}
-            sizes={sizes(45, 90)}
+            sizes={imageSizes(45, 90)}
           />
         </Cell>
         <Cell
@@ -105,7 +100,7 @@ function FromYourPhotos() {
                 crop={{ phoneRatio: "77 / 80", ratio: "312 / 224" }}
                 image={reference.image}
                 key={reference.image.src}
-                sizes={sizes(22, 20)}
+                sizes={imageSizes(22, 20)}
               />
             ))}
           </div>
@@ -135,7 +130,7 @@ function Variations() {
           desk={{ span: 2, start: 5 }}
           figure={figure(item, 0)}
           phone={{ span: 2, start: 1 }}
-          sizes={sizes(14, 43)}
+          sizes={imageSizes(14, 43)}
         />
         <Figure
           className="max-lg:order-first max-lg:mb-6"
@@ -143,7 +138,7 @@ function Variations() {
           desk={{ span: 3, start: 7 }}
           figure={figure(item, 1)}
           phone={{ span: 2, start: 3 }}
-          sizes={sizes(22, 43)}
+          sizes={imageSizes(22, 43)}
         />
         <Figure
           className="max-lg:order-first max-lg:mb-4"
@@ -151,7 +146,7 @@ function Variations() {
           desk={{ span: 3, start: 10 }}
           figure={figure(item, 2)}
           phone={{ span: 2, start: 3 }}
-          sizes={sizes(22, 43)}
+          sizes={imageSizes(22, 43)}
         />
       </Grid>
     </article>
@@ -175,7 +170,7 @@ function MatchingSet() {
             figure={frame}
             key={frame.image.src}
             phone={{ span: 2, start: onPhone.indexOf(index) % 2 === 0 ? 1 : 3 }}
-            sizes={sizes(14, 43)}
+            sizes={imageSizes(14, 43)}
           />
         ))}
       </Grid>
@@ -200,7 +195,7 @@ function NoBackground() {
             alt={image.alt}
             className="size-full object-contain"
             height={image.height}
-            sizes={sizes(53, 90)}
+            sizes={imageSizes(53, 90)}
             src={image.src}
             width={image.width}
           />
@@ -226,7 +221,7 @@ function Lettering() {
           desk={{ span: 5, start: 3 }}
           figure={figure(item, 0)}
           phone={{ span: 3, start: 2 }}
-          sizes={sizes(38, 66)}
+          sizes={imageSizes(38, 66)}
         />
         <Cell desk={{ span: 3, start: 8 }} phone={{ span: 3, start: 2 }}>
           <Words entry={item} />
@@ -255,7 +250,7 @@ function SeamlessTextures() {
               crop={{ phoneRatio: "195 / 196", ratio: "1 / 1" }}
               image={copy === 0 ? image : { ...image, alt: "" }}
               key={copy}
-              sizes={sizes(25, 50)}
+              sizes={imageSizes(25, 50)}
             />
           ))}
         </Cell>
@@ -281,7 +276,7 @@ function FilmFromAStill() {
           <Film
             crop={{ phoneRatio: "350 / 440", ratio: "872 / 616" }}
             figure={{ ...poster, film }}
-            sizes={sizes(61, 90)}
+            sizes={imageSizes(61, 90)}
           />
         </Cell>
         <Cell desk={{ span: 3, start: 1 }}>
