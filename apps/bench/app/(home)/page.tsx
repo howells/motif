@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { Close } from "@/components/home/close";
+import { Edit } from "@/components/home/edit";
 import { Hero } from "@/components/home/hero";
 import { LooksAndMoods } from "@/components/home/looks-and-moods";
 import { Make } from "@/components/home/make";
@@ -42,6 +43,7 @@ async function HomePage() {
       <main>
         <Hero />
         <Make />
+        <Edit />
         <ReadAndConvert />
         <LooksAndMoods />
         <Price />
