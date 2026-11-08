@@ -10,6 +10,7 @@
 @import "./site.css";
 /* The homepage's grid, rhythm and type, scoped to `.home`. */
 @import "./home.css";
+@import "./home-edit.css";
 @import "./app.css";
 
 @theme {
