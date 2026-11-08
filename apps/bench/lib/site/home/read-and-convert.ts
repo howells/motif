@@ -98,7 +98,7 @@ export const MAPS = {
       image: {
         alt: "The outlines of a ribbed pot on a plinth, traced in white lines on black.",
         height: 1400,
-        src: "/demo/lineart/vessel.jpg",
+        src: "/demo/edges/vessel.jpg",
         width: 1400,
       },
     },

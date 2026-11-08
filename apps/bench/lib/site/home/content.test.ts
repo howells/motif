@@ -98,11 +98,14 @@ function docsPages(): Set<string> {
   ]);
 }
 
-/** Keys whose values are addresses, not words a reader sees. File names can
- * carry a Model's name (`finegrain-eraser.jpg`) without the page saying it. */
-const ADDRESS_KEYS = new Set(["docs", "href", "src"]);
+/** Keys whose values are addresses, not words a reader sees: docs pages
+ * and links. Image and film addresses are not among them, because Next
+ * serves every file under its own name, so a file name is as public as the
+ * copy. */
+const ADDRESS_KEYS = new Set(["docs", "href"]);
 
-/** Every word the page sets: copy, captions, alt text, commands, labels. */
+/** Every word the page sets (copy, captions, alt text, commands, labels) and
+ * every file address it serves. */
 function words(value: unknown, key = ""): string[] {
   if (typeof value === "string") {
     return ADDRESS_KEYS.has(key) ? [] : [value];
@@ -116,23 +119,26 @@ function words(value: unknown, key = ""): string[] {
   return Object.entries(value).flatMap(([name, item]) => words(item, name));
 }
 
-/** Every Model the SDK ranks for any Task, by id and by display name. */
+/** Every Model the SDK ranks for any Task, by id, by display name and by
+ * the provider that serves it: the first part of its endpoint, or the part
+ * after `fal-ai/` for one fal hosts. fal itself is a provider too. */
 function modelNames(): string[] {
-  const names = new Map<string, string>(
-    [...Object.entries(MODELS), ...Object.entries(FAL_TOOLS)].map(
-      ([id, config]) => [id, config.name]
-    )
-  );
+  const configs = new Map<string, { endpoint: string; name: string }>([
+    ...Object.entries(MODELS),
+    ...Object.entries(FAL_TOOLS),
+  ]);
   const ranked = new Set(
     Object.values(TASKS).flatMap((task) => task.models.map((m) => m.model))
   );
-  return [...ranked].flatMap((id) => {
-    const name = names.get(id);
-    if (name === undefined) {
+  const names = [...ranked].flatMap((id) => {
+    const config = configs.get(id);
+    if (config === undefined) {
       throw new Error(`Ranked Model ${id} is in neither registry`);
     }
-    return [id, name];
+    const [owner = "", hosted = ""] = config.endpoint.split("/");
+    return [id, config.name, owner === "fal-ai" ? hosted : owner];
   });
+  return [...new Set(["fal", "fal-ai", ...names])];
 }
 
 /** A whole-word, case-insensitive match, so `gpt` does not match inside an
@@ -211,7 +217,7 @@ describe("the homepage content", () => {
     expect(wrong).toStrictEqual([]);
   });
 
-  it("never names a Model", () => {
+  it("never names a Model or its provider, in words or file names", () => {
     const copy = words(HOME);
     const names = modelNames();
     const found = copy.flatMap((text) =>

@@ -24,7 +24,7 @@ const erase = {
       image: {
         alt: "The same shelf with the small bottle gone: two tall amber bottles and the white bowl, and the stone and shadows filled in where it stood.",
         height: 781,
-        src: "/demo/erase/finegrain-eraser.jpg",
+        src: "/demo/erase/apothecary.jpg",
         width: 1400,
       },
     },
@@ -66,7 +66,7 @@ const reframe = {
       image: {
         alt: "A sunlit room with a wooden bench draped in a cream throw and a branch in a white vase, made square by painting in more wall above and more floorboards below the wide original.",
         height: 1400,
-        src: "/demo/expand/bria-expand.jpg",
+        src: "/demo/expand/interior-square.jpg",
         width: 1400,
       },
     },
