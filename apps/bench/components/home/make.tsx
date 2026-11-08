@@ -13,52 +13,36 @@ import { Film } from "@/components/home/film";
 import { Cell, Grid } from "@/components/home/grid";
 import { imageSizes } from "@/components/home/image-sizes";
 import { Plate } from "@/components/home/plate";
+import { entryWithId, figureAt } from "@/lib/site/home/lookup";
 import { MAKE } from "@/lib/site/home/make";
-import type { Entry, Figure as FigureContent } from "@/lib/site/home/types";
 
 /** The Make chapter, laid out entry by entry as the desktop (1440) and phone
  * (390) artboards draw it. Spans count the 12 desktop and 4 phone columns. */
 
-function entry(id: string): Entry {
-  const found = MAKE.entries.find((item) => item.id === id);
-  if (found === undefined) {
-    throw new Error(`The Make chapter has no entry "${id}"`);
-  }
-  return found;
-}
-
-function figure(item: Entry, index: number): FigureContent {
-  const found = item.figures[index];
-  if (found === undefined) {
-    throw new Error(`Make entry "${item.id}" has no figure ${String(index)}`);
-  }
-  return found;
-}
-
 /** Three pictures of different heights on one bottom line; the phone gives
  * the first the full width and pairs the other two. */
 function FromASentence() {
-  const item = entry("from-a-sentence");
+  const item = entryWithId(MAKE, "from-a-sentence");
   return (
     <article className="flex flex-col gap-(--home-text-gap)" id={item.id}>
       <Grid className="items-end gap-y-4">
         <Figure
           crop={{ phoneRatio: "350 / 352", ratio: "536 / 536" }}
           desk={{ span: 5, start: 1 }}
-          figure={figure(item, 0)}
+          figure={figureAt(item, 0)}
           sizes={imageSizes(38, 90)}
         />
         <Figure
           crop={{ phoneRatio: "168 / 208", ratio: "312 / 416" }}
           desk={{ span: 3, start: 6 }}
-          figure={figure(item, 1)}
+          figure={figureAt(item, 1)}
           phone={{ span: 2, start: 1 }}
           sizes={imageSizes(22, 43)}
         />
         <Figure
           crop={{ phoneRatio: "168 / 208", ratio: "424 / 528" }}
           desk={{ span: 4, start: 9 }}
-          figure={figure(item, 2)}
+          figure={figureAt(item, 2)}
           phone={{ span: 2, start: 3 }}
           sizes={imageSizes(30, 43)}
         />
@@ -72,15 +56,15 @@ function FromASentence() {
  * four References at its foot, with the command hanging below the image
  * line like a caption. The phone runs picture, References, words. */
 function FromYourPhotos() {
-  const item = entry("from-your-photos");
-  const references = [1, 2, 3, 4].map((index) => figure(item, index));
+  const item = entryWithId(MAKE, "from-your-photos");
+  const references = [1, 2, 3, 4].map((index) => figureAt(item, index));
   return (
     <article id={item.id}>
       <Grid className="gap-y-4">
         <Cell className="lg:pb-8" desk={{ span: 6, start: 1 }}>
           <Plate
             crop={{ phoneRatio: "350 / 440", ratio: "648 / 816" }}
-            image={figure(item, 0).image}
+            image={figureAt(item, 0).image}
             sizes={imageSizes(45, 90)}
           />
         </Cell>
@@ -117,7 +101,7 @@ function FromYourPhotos() {
  * captions. The phone pairs the first two, sets the third under the second,
  * then the words. */
 function Variations() {
-  const item = entry("variations");
+  const item = entryWithId(MAKE, "variations");
   return (
     <article id={item.id}>
       <Grid row>
@@ -128,7 +112,7 @@ function Variations() {
           className="max-lg:order-first max-lg:mb-6"
           crop={{ phoneRatio: "168 / 208", ratio: "200 / 256" }}
           desk={{ span: 2, start: 5 }}
-          figure={figure(item, 0)}
+          figure={figureAt(item, 0)}
           phone={{ span: 2, start: 1 }}
           sizes={imageSizes(14, 43)}
         />
@@ -136,7 +120,7 @@ function Variations() {
           className="max-lg:order-first max-lg:mb-6"
           crop={{ phoneRatio: "168 / 208", ratio: "312 / 416" }}
           desk={{ span: 3, start: 7 }}
-          figure={figure(item, 1)}
+          figure={figureAt(item, 1)}
           phone={{ span: 2, start: 3 }}
           sizes={imageSizes(22, 43)}
         />
@@ -144,7 +128,7 @@ function Variations() {
           className="max-lg:order-first max-lg:mb-4"
           crop={{ phoneRatio: "168 / 208", ratio: "312 / 416" }}
           desk={{ span: 3, start: 10 }}
-          figure={figure(item, 2)}
+          figure={figureAt(item, 2)}
           phone={{ span: 2, start: 3 }}
           sizes={imageSizes(22, 43)}
         />
@@ -156,7 +140,7 @@ function Variations() {
 /** Six frames of a Series Run in a row; the phone shows four of them, two
  * by two. */
 function MatchingSet() {
-  const item = entry("matching-set");
+  const item = entryWithId(MAKE, "matching-set");
   /** The frames the phone keeps, in its two by two order. */
   const onPhone = [0, 2, 3, 5];
   return (
@@ -182,8 +166,8 @@ function MatchingSet() {
 /** A cut-out sprig on the page itself, no plate behind it, with the words
  * level with its middle. */
 function NoBackground() {
-  const item = entry("no-background");
-  const { image } = figure(item, 0);
+  const item = entryWithId(MAKE, "no-background");
+  const { image } = figureAt(item, 0);
   return (
     <article id={item.id}>
       <Grid className="gap-y-4 lg:grid-flow-dense lg:items-center">
@@ -211,7 +195,7 @@ function NoBackground() {
 /** The label set in from the left, the words beside it on its bottom line.
  * The phone indents both by one column. */
 function Lettering() {
-  const item = entry("lettering");
+  const item = entryWithId(MAKE, "lettering");
   return (
     <article id={item.id}>
       <Grid row>
@@ -219,7 +203,7 @@ function Lettering() {
           className="max-lg:mb-4"
           crop={{ phoneRatio: "259 / 328", ratio: "536 / 672" }}
           desk={{ span: 5, start: 3 }}
-          figure={figure(item, 0)}
+          figure={figureAt(item, 0)}
           phone={{ span: 3, start: 2 }}
           sizes={imageSizes(38, 66)}
         />
@@ -235,8 +219,8 @@ function Lettering() {
  * by two on the phone. The first copy carries the description; the others
  * repeat it and are hidden from screen readers. */
 function SeamlessTextures() {
-  const item = entry("seamless-textures");
-  const { image } = figure(item, 0);
+  const item = entryWithId(MAKE, "seamless-textures");
+  const { image } = figureAt(item, 0);
   return (
     <article className="flex flex-col gap-(--home-text-gap)" id={item.id}>
       <Grid>
@@ -263,8 +247,8 @@ function SeamlessTextures() {
 /** The words top left, the film to their right across eight columns; the
  * phone puts the film first. */
 function FilmFromAStill() {
-  const item = entry("film");
-  const poster = figure(item, 0);
+  const item = entryWithId(MAKE, "film");
+  const poster = figureAt(item, 0);
   const { film } = poster;
   if (film === undefined) {
     throw new Error('Make entry "film" has no film');
