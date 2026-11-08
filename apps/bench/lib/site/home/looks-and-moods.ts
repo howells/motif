@@ -195,6 +195,11 @@ export const LOOK_ROW: Entry = {
   figures: LOOK_PLATES.map(({ image, label }) => ({ caption: label, image })),
 };
 
+/** What a screen reader calls the strip of Look plates, which scrolls
+ * sideways and takes focus so a keyboard can scroll it. The board shows it
+ * no heading of its own. */
+export const LOOK_STRIP_LABEL = "Looks";
+
 /** The six Mood plates under their headline, and the `--mood` flag. */
 export const MOOD_ROW: Entry = {
   id: "moods",

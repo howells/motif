@@ -12,7 +12,7 @@ export function Price() {
   return (
     <section
       aria-labelledby={`${PRICE.id}-title`}
-      className="home-chapter pb-(--home-chapter-gap)"
+      className="home-chapter"
       id={PRICE.id}
     >
       <Grid className="items-start">

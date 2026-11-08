@@ -6,11 +6,10 @@
 
 @import "tailwindcss";
 @import "tw-animate-css";
-/* The public page at `/` carries its own scoped palette and type case. */
+/* The light palette scoped to `.site`: the homepage, entry pages and App. */
 @import "./site.css";
 /* The homepage's grid, rhythm and type, scoped to `.home`. */
 @import "./home.css";
-@import "./home-edit.css";
 @import "./app.css";
 
 @theme {

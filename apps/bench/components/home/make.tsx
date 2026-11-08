@@ -1,8 +1,14 @@
 import Image from "next/image";
 
-import { ChapterSection, Headline, Text } from "@/components/home/chapter";
-import { CommandLink } from "@/components/home/command";
-import { Figure, Responsive } from "@/components/home/figure";
+import {
+  ChapterSection,
+  EntryBody,
+  EntryCommand,
+  EntryHeadline,
+  WideWords,
+  Words,
+} from "@/components/home/chapter";
+import { Figure } from "@/components/home/figure";
 import { Film } from "@/components/home/film";
 import { Cell, Grid } from "@/components/home/grid";
 import { Plate } from "@/components/home/plate";
@@ -12,19 +18,12 @@ import type { Entry, Figure as FigureContent } from "@/lib/site/home/types";
 /** The Make chapter, laid out entry by entry as the desktop (1440) and phone
  * (390) artboards draw it. Spans count the 12 desktop and 4 phone columns. */
 
-/** Every Make entry has a headline and a body, unlike a row of plates. */
-type MakeEntry = Entry & { readonly body: string; readonly headline: string };
-
-function entry(id: string): MakeEntry {
+function entry(id: string): Entry {
   const found = MAKE.entries.find((item) => item.id === id);
   if (found === undefined) {
     throw new Error(`The Make chapter has no entry "${id}"`);
   }
-  const { body, headline } = found;
-  if (body === undefined || headline === undefined) {
-    throw new Error(`Make entry "${id}" needs a headline and a body`);
-  }
-  return { ...found, body, headline };
+  return found;
 }
 
 function figure(item: Entry, index: number): FigureContent {
@@ -41,72 +40,12 @@ function sizes(desk: number, phone: number): string {
   return `(width >= 64rem) ${String(desk)}vw, ${String(phone)}vw`;
 }
 
-/** The entry's command, with the phone's shorter line where it has one. */
-function EntryCommand({ item }: { readonly item: MakeEntry }) {
-  const phone = item.phone?.command;
-  if (phone === undefined) {
-    return <CommandLink command={item.command} />;
-  }
-  return (
-    <>
-      <span className="hidden lg:inline">
-        <CommandLink command={item.command} />
-      </span>
-      <span className="lg:hidden">
-        <CommandLink command={phone} />
-      </span>
-    </>
-  );
-}
-
-function Body({ item }: { readonly item: MakeEntry }) {
-  return (
-    <Text>
-      <Responsive desk={item.body} phone={item.phone?.body} />
-    </Text>
-  );
-}
-
-/** Headline, body and command stacked in one column, as beside a picture. */
-function Stack({ item }: { readonly item: MakeEntry }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Headline>{item.headline}</Headline>
-      <Body item={item} />
-      <div className="pt-2">
-        <EntryCommand item={item} />
-      </div>
-    </div>
-  );
-}
-
-/** Headline across six columns and the body and command across the next
- * four, under a row of pictures. The phone stacks them. */
-function Spread({ item }: { readonly item: MakeEntry }) {
-  return (
-    <Grid className="gap-y-2">
-      <Cell desk={{ span: 6, start: 1 }}>
-        <Headline>{item.headline}</Headline>
-      </Cell>
-      <Cell
-        className="flex flex-col gap-4 lg:pt-2"
-        desk={{ span: 4, start: 7 }}
-      >
-        <Body item={item} />
-        <div>
-          <EntryCommand item={item} />
-        </div>
-      </Cell>
-    </Grid>
-  );
-}
-
 /** Three pictures of different heights on one bottom line; the phone gives
  * the first the full width and pairs the other two. */
 function FromASentence() {
   const item = entry("from-a-sentence");
   return (
-    <article className="flex flex-col gap-4 lg:gap-6" id={item.id}>
+    <article className="flex flex-col gap-(--home-text-gap)" id={item.id}>
       <Grid className="items-end gap-y-4">
         <Figure
           crop={{ phoneRatio: "350 / 352", ratio: "536 / 536" }}
@@ -129,7 +68,7 @@ function FromASentence() {
           sizes={sizes(30, 43)}
         />
       </Grid>
-      <Spread item={item} />
+      <WideWords entry={item} />
     </article>
   );
 }
@@ -155,9 +94,9 @@ function FromYourPhotos() {
           desk={{ span: 6, start: 7 }}
         >
           <div className="flex flex-col gap-2 lg:mb-auto">
-            <Headline>{item.headline}</Headline>
+            <EntryHeadline entry={item} />
             <div className="lg:w-[calc((100%+var(--home-gutter))*2/3-var(--home-gutter))]">
-              <Body item={item} />
+              <EntryBody entry={item} />
             </div>
           </div>
           <div className="grid grid-cols-4 gap-(--home-gutter) max-lg:order-first lg:grid-cols-2">
@@ -171,7 +110,7 @@ function FromYourPhotos() {
             ))}
           </div>
           <div>
-            <EntryCommand item={item} />
+            <EntryCommand entry={item} />
           </div>
         </Cell>
       </Grid>
@@ -179,16 +118,16 @@ function FromYourPhotos() {
   );
 }
 
-/** The words beside three captioned pictures, ending on the pictures'
- * bottom line. The phone pairs the first two, sets the third under the
- * second, then the words. */
+/** The words beside three captioned pictures, the command level with the
+ * captions. The phone pairs the first two, sets the third under the second,
+ * then the words. */
 function Variations() {
   const item = entry("variations");
   return (
     <article id={item.id}>
       <Grid row>
-        <Cell desk={{ span: 3, start: 1 }}>
-          <Stack item={item} />
+        <Cell className="home-foot" desk={{ span: 3, start: 1 }}>
+          <Words entry={item} />
         </Cell>
         <Figure
           className="max-lg:order-first max-lg:mb-6"
@@ -226,7 +165,7 @@ function MatchingSet() {
   /** The frames the phone keeps, in its two by two order. */
   const onPhone = [0, 2, 3, 5];
   return (
-    <article className="flex flex-col gap-4 lg:gap-6" id={item.id}>
+    <article className="flex flex-col gap-(--home-text-gap)" id={item.id}>
       <Grid className="gap-y-4">
         {item.figures.map((frame, index) => (
           <Figure
@@ -240,7 +179,7 @@ function MatchingSet() {
           />
         ))}
       </Grid>
-      <Spread item={item} />
+      <WideWords entry={item} />
     </article>
   );
 }
@@ -253,10 +192,13 @@ function NoBackground() {
   return (
     <article id={item.id}>
       <Grid className="gap-y-4 lg:grid-flow-dense lg:items-center">
-        <Cell desk={{ span: 7, start: 6 }}>
+        <Cell
+          className="aspect-350/352 lg:aspect-square"
+          desk={{ span: 7, start: 6 }}
+        >
           <Image
             alt={image.alt}
-            className="h-auto w-full"
+            className="size-full object-contain"
             height={image.height}
             sizes={sizes(53, 90)}
             src={image.src}
@@ -264,7 +206,7 @@ function NoBackground() {
           />
         </Cell>
         <Cell desk={{ span: 3, start: 1 }}>
-          <Stack item={item} />
+          <Words entry={item} />
         </Cell>
       </Grid>
     </article>
@@ -280,18 +222,14 @@ function Lettering() {
       <Grid row>
         <Figure
           className="max-lg:mb-4"
-          crop={{
-            phoneRatio: "259 / 328",
-            position: "50% 62%",
-            ratio: "536 / 672",
-          }}
+          crop={{ phoneRatio: "259 / 328", ratio: "536 / 672" }}
           desk={{ span: 5, start: 3 }}
           figure={figure(item, 0)}
           phone={{ span: 3, start: 2 }}
           sizes={sizes(38, 66)}
         />
         <Cell desk={{ span: 3, start: 8 }} phone={{ span: 3, start: 2 }}>
-          <Stack item={item} />
+          <Words entry={item} />
         </Cell>
       </Grid>
     </article>
@@ -305,7 +243,7 @@ function SeamlessTextures() {
   const item = entry("seamless-textures");
   const { image } = figure(item, 0);
   return (
-    <article className="flex flex-col gap-4 lg:gap-6" id={item.id}>
+    <article className="flex flex-col gap-(--home-text-gap)" id={item.id}>
       <Grid>
         <Cell
           className="grid grid-cols-2 lg:grid-cols-4"
@@ -322,7 +260,7 @@ function SeamlessTextures() {
           ))}
         </Cell>
       </Grid>
-      <Spread item={item} />
+      <WideWords entry={item} />
     </article>
   );
 }
@@ -347,7 +285,7 @@ function FilmFromAStill() {
           />
         </Cell>
         <Cell desk={{ span: 3, start: 1 }}>
-          <Stack item={item} />
+          <Words entry={item} />
         </Cell>
       </Grid>
     </article>

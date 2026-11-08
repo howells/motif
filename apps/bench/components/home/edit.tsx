@@ -1,50 +1,16 @@
+import "./edit.css";
 import Image from "next/image";
 
-import { ChapterSection, Headline, Text } from "@/components/home/chapter";
-import { CommandLink } from "@/components/home/command";
+import { ChapterSection, WideWords, Words } from "@/components/home/chapter";
 import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
 import type { Crop } from "@/components/home/plate";
 import { Plate } from "@/components/home/plate";
 import { EDIT } from "@/lib/site/home/edit";
-import type { Entry, Figure as FigureContent } from "@/lib/site/home/types";
+import type { Figure as FigureContent } from "@/lib/site/home/types";
 
 const [erase, cutout, reframe, upscale, relight, restyle, tryOn, restore] =
   EDIT.entries;
-
-/** Headline, body and command stacked, as most entries set them. */
-function Words({ entry }: { readonly entry: Entry }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Headline>{entry.headline}</Headline>
-      <Text>{entry.body}</Text>
-      <div className="pt-2">
-        <CommandLink command={entry.command} />
-      </div>
-    </div>
-  );
-}
-
-/** Under a wide picture: the headline across six columns on the left, the
- * body and command in four beside it. Stacked on a phone. */
-function WideWords({ entry }: { readonly entry: Entry }) {
-  return (
-    <Grid className="mt-(--home-text-gap) items-start gap-y-2">
-      <Cell desk={{ span: 6, start: 1 }}>
-        <Headline>{entry.headline}</Headline>
-      </Cell>
-      <Cell
-        className="flex flex-col gap-4 lg:pt-2"
-        desk={{ span: 4, start: 7 }}
-      >
-        <Text>{entry.body}</Text>
-        <div>
-          <CommandLink command={entry.command} />
-        </div>
-      </Cell>
-    </Grid>
-  );
-}
 
 /** One picture split down the middle, each half named beneath it. */
 function Split({
@@ -192,7 +158,7 @@ function Upscale() {
           sizes="(width >= 64rem) 38vw, 67vw"
         />
         <Cell
-          className="home-edit-top mt-4 lg:mt-0"
+          className="home-hang mt-4 lg:mt-0"
           desk={{ span: 3, start: 1 }}
           phone={{ span: 3, start: 2 }}
         >
@@ -206,7 +172,7 @@ function Upscale() {
 function Relight() {
   const [split] = relight.figures;
   return (
-    <article id={relight.id}>
+    <article className="flex flex-col gap-(--home-text-gap)" id={relight.id}>
       <Grid>
         <Split
           crop={{ phoneRatio: "350 / 352", ratio: "1320 / 744" }}
@@ -229,7 +195,7 @@ const RESTYLE_SOURCE: Crop = { phoneRatio: "168 / 96", ratio: "424 / 208" };
 function Restyle() {
   const [result, photo, reference] = restyle.figures;
   return (
-    <article id={restyle.id}>
+    <article className="flex flex-col gap-(--home-text-gap)" id={restyle.id}>
       <Grid className="home-edit-restyle gap-y-6">
         <Cell className="home-edit-fill" desk={{ span: 8, start: 1 }}>
           <Plate
@@ -269,17 +235,13 @@ function TryOn() {
     <article id={tryOn.id}>
       <Grid className="home-edit-shared home-edit-tryon" row>
         <Figure
-          crop={{
-            phoneRatio: "350 / 440",
-            position: "50% 40%",
-            ratio: "648 / 808",
-          }}
+          crop={{ phoneRatio: "350 / 440", ratio: "648 / 808" }}
           desk={{ span: 6, start: 1 }}
           figure={dressed}
           sizes="(width >= 64rem) 45vw, 90vw"
         />
         <Figure
-          crop={{ ...TRY_ON_SOURCE, position: "50% 40%" }}
+          crop={TRY_ON_SOURCE}
           desk={{ span: 3, start: 7 }}
           figure={person}
           phone={{ span: 2, start: 1 }}
@@ -292,10 +254,7 @@ function TryOn() {
           phone={{ span: 2, start: 3 }}
           sizes="(width >= 64rem) 22vw, 43vw"
         />
-        <Cell
-          className="home-edit-top mt-4 lg:mt-0"
-          desk={{ span: 4, start: 7 }}
-        >
+        <Cell className="home-hang mt-4 lg:mt-0" desk={{ span: 4, start: 7 }}>
           <Words entry={tryOn} />
         </Cell>
       </Grid>
@@ -306,7 +265,7 @@ function TryOn() {
 function Restore() {
   const [split] = restore.figures;
   return (
-    <article id={restore.id}>
+    <article className="flex flex-col gap-(--home-text-gap)" id={restore.id}>
       <Grid>
         <Cell desk={{ span: 10, start: 1 }}>
           <Split

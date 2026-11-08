@@ -1,5 +1,4 @@
-import { ChapterSection, Headline, Text } from "@/components/home/chapter";
-import { CommandLink } from "@/components/home/command";
+import { ChapterSection, WideWords, Words } from "@/components/home/chapter";
 import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
 import {
@@ -13,42 +12,6 @@ import {
   SHEET,
   VECTORIZE,
 } from "@/lib/site/home/read-and-convert";
-import type { Entry } from "@/lib/site/home/types";
-
-/** The headline, its line and the command, stacked: for text that sits in a
- * column beside or below the pictures. */
-function Stack({ entry }: { readonly entry: Entry }) {
-  return (
-    <div className="flex flex-col gap-2">
-      <Headline>{entry.headline}</Headline>
-      <Text>{entry.body}</Text>
-      <div className="pt-2">
-        <CommandLink command={entry.command} />
-      </div>
-    </div>
-  );
-}
-
-/** The headline across six columns and its line and command beside it, under
- * a picture that runs wider than the text. Stacked on a phone. */
-function Split({ entry }: { readonly entry: Entry }) {
-  return (
-    <Grid className="items-start gap-y-2">
-      <Cell desk={{ span: 6, start: 1 }}>
-        <Headline>{entry.headline}</Headline>
-      </Cell>
-      <Cell
-        className="flex flex-col gap-4 lg:pt-2"
-        desk={{ span: 4, start: 7 }}
-      >
-        <Text>{entry.body}</Text>
-        <div>
-          <CommandLink command={entry.command} />
-        </div>
-      </Cell>
-    </Grid>
-  );
-}
 
 /** The photo, then the question and Motif's answer beside it, ruled off like
  * a reply, then the entry's own words. */
@@ -59,11 +22,7 @@ function Ask() {
     <article id={ASK.id}>
       <Grid className="items-start gap-y-6">
         <Figure
-          crop={{
-            phoneRatio: "350 / 200",
-            position: "50% 62%",
-            ratio: "760 / 424",
-          }}
+          crop={{ phoneRatio: "350 / 200", ratio: "760 / 424" }}
           desk={{ span: 7, start: 1 }}
           figure={photo}
           sizes="(width >= 64rem) 53vw, 100vw"
@@ -80,7 +39,7 @@ function Ask() {
             <p className="home-text text-muted">{answer.speaker}</p>
             <p className="home-text home-answer">{answer.text}</p>
           </div>
-          <Stack entry={ASK} />
+          <Words entry={ASK} />
         </Cell>
       </Grid>
     </article>
@@ -94,15 +53,15 @@ function Segment() {
       <Grid>
         <Figure
           crop={{
+            phonePosition: "62% 50%",
             phoneRatio: "350 / 200",
-            position: "62% 50%",
             ratio: "1320 / 736",
           }}
           figure={picture}
           sizes="(width >= 64rem) 92vw, 100vw"
         />
       </Grid>
-      <Split entry={SEGMENT} />
+      <WideWords entry={SEGMENT} />
     </article>
   );
 }
@@ -126,7 +85,7 @@ function Layers() {
           desk={{ span: 3, start: 9 }}
           phone={{ span: 3, start: 2 }}
         >
-          <Stack entry={LAYERS} />
+          <Words entry={LAYERS} />
         </Cell>
       </Grid>
     </article>
@@ -161,7 +120,7 @@ function Maps() {
           sizes="(width >= 64rem) 14vw, 20vw"
         />
       </Grid>
-      <Split entry={MAPS} />
+      <WideWords entry={MAPS} />
     </article>
   );
 }
@@ -174,7 +133,7 @@ function Materials() {
     <article id={MATERIALS.id}>
       <Grid row>
         <Cell className="home-hang max-lg:mb-6" desk={{ span: 3, start: 1 }}>
-          <Stack entry={MATERIALS} />
+          <Words entry={MATERIALS} />
         </Cell>
         <Figure
           crop={{ phoneRatio: "168 / 224", ratio: "312 / 552" }}
@@ -208,7 +167,7 @@ function Vectorize() {
   const [original, svg] = VECTORIZE.figures;
   return (
     <article className="flex flex-col gap-6 lg:gap-12" id={VECTORIZE.id}>
-      <Split entry={VECTORIZE} />
+      <WideWords entry={VECTORIZE} />
       <Grid className="items-end">
         <Figure
           crop={{ phoneRatio: "168 / 224", ratio: "424 / 568" }}
@@ -231,7 +190,8 @@ function Vectorize() {
 }
 
 /** The photo and the model on a paper mat, with the words at the end of the
- * row on desktop and below the pair on a phone. */
+ * row on desktop, their command level with the captions, and below the pair
+ * on a phone. */
 function Mesh() {
   const [photo, model] = MESH.figures;
   return (
@@ -239,8 +199,8 @@ function Mesh() {
       <Grid row>
         <Figure
           crop={{
+            phonePosition: "45% 50%",
             phoneRatio: "168 / 256",
-            position: "45% 50%",
             ratio: "312 / 480",
           }}
           desk={{ span: 3, start: 1 }}
@@ -256,8 +216,8 @@ function Mesh() {
           phone={{ span: 2, start: 3 }}
           sizes="(width >= 64rem) 32vw, 40vw"
         />
-        <Cell className="max-lg:mt-4" desk={{ span: 3, start: 10 }}>
-          <Stack entry={MESH} />
+        <Cell className="home-foot max-lg:mt-4" desk={{ span: 3, start: 10 }}>
+          <Words entry={MESH} />
         </Cell>
       </Grid>
     </article>
@@ -278,7 +238,7 @@ function Sheet() {
           sizes="(width >= 64rem) 45vw, 100vw"
         />
         <Cell desk={{ span: 3, start: 1 }}>
-          <Stack entry={SHEET} />
+          <Words entry={SHEET} />
         </Cell>
       </Grid>
     </article>

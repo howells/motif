@@ -176,6 +176,20 @@ const FLAG_PAGES = new Map([
 ]);
 
 describe("the homepage content", () => {
+  it("runs the chapters in the order the design sets them", () => {
+    // Read as plain data: the module's own types are out of this file's reach.
+    const home: unknown = HOME;
+    expect(home).toMatchObject({
+      chapters: [
+        { id: "make" },
+        { id: "edit" },
+        { id: "read-and-convert" },
+        { id: "looks-and-moods" },
+        { id: "price" },
+      ],
+    });
+  });
+
   it("shows at least the install line and the hero's command", () => {
     expect(commands.length).toBeGreaterThanOrEqual(2);
   });
