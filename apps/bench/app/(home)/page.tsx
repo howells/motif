@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Close } from "@/components/home/close";
 import { Hero } from "@/components/home/hero";
 import { Masthead } from "@/components/home/masthead";
+import { Price } from "@/components/home/price";
 import { ReadAndConvert } from "@/components/home/read-and-convert";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
@@ -39,6 +40,7 @@ async function HomePage() {
       <main>
         <Hero />
         <ReadAndConvert />
+        <Price />
       </main>
       <Close />
     </>

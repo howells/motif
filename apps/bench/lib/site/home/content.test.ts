@@ -166,6 +166,10 @@ function named(text: string): string {
   return word;
 }
 
+/** Flags shown on their own that work with every command, so have no
+ * command page, and the docs page that documents each. */
+const FLAG_PAGES = new Map([["--dry-run", "/docs/quickstart"]]);
+
 describe("the homepage content", () => {
   it("shows at least the install line and the hero's command", () => {
     expect(commands.length).toBeGreaterThanOrEqual(2);
@@ -182,7 +186,8 @@ describe("the homepage content", () => {
   it("links every command to the docs page of the command it names", () => {
     const wrong = commands.filter((command) => {
       const name = named(command.text);
-      return name !== "install" && command.docs !== `/docs/commands/${name}`;
+      const page = FLAG_PAGES.get(command.text) ?? `/docs/commands/${name}`;
+      return name !== "install" && command.docs !== page;
     });
     expect(wrong).toStrictEqual([]);
   });
