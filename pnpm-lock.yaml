@@ -234,6 +234,9 @@ importers:
       '@howells/lint':
         specifier: 'catalog:'
         version: 3.5.1(@neondatabase/serverless@1.2.0)(drizzle-kit@1.0.0-rc.4)(drizzle-orm@1.0.0-rc.4(@neondatabase/serverless@1.2.0)(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(pg@8.23.0)(valibot@1.5.0(typescript@7.0.2))(zod@4.6.7))(pg@8.23.0)(prettier@3.9.10)
+      '@howells/motif-cli':
+        specifier: workspace:*
+        version: link:../cli
       '@howells/typescript-config':
         specifier: 'catalog:'
         version: 0.1.8

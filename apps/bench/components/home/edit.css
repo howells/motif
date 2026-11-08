@@ -1,0 +1,110 @@
+/* ── The homepage's Edit chapter ──────────────────────────────────────
+   What the shared grid in app/home.css cannot say for this chapter alone:
+   the Erase stagger, the backdrop behind the cut-out vase, the dashed
+   outline over Extend the frame, and the rows where words sit at the top of
+   a row of pictures. Like every chapter's own styles it sits beside the
+   chapter, loads after app/home.css in no promised order, and so never wins
+   on order alone. Numbers are the Paper artboards' (desktop 1440, phone
+   390). */
+
+/* Remove an object: the small Before sits at the top on the left with the
+   words under it; the large After starts 160px lower on the right and runs
+   past them. The second row takes whatever the After needs beyond the
+   first, so the words sit 64px under Before, not under the After. */
+@media (width >= 64rem) {
+  .home-edit-erase {
+    grid-template-rows: auto 1fr;
+  }
+
+  .home-edit-erase > :has(> .home-edit-after) {
+    grid-row: 1 / span 2;
+  }
+
+  .home-edit-after {
+    padding-block-start: 160px;
+  }
+}
+
+/* Remove the background: the cut-out stands on a warm card, near its foot. */
+.home-edit-backdrop {
+  align-items: end;
+  aspect-ratio: 259 / 336;
+  background: #d9cfc2;
+  display: flex;
+  justify-content: center;
+  padding-block-end: 15%;
+}
+
+.home-edit-backdrop > img {
+  block-size: auto;
+  inline-size: 73%;
+}
+
+@media (width >= 64rem) {
+  .home-edit-backdrop {
+    aspect-ratio: 424 / 568;
+  }
+
+  .home-edit-backdrop > img {
+    inline-size: 71%;
+  }
+}
+
+/* Extend the frame: a dashed outline over the square marks where the wide
+   original sat inside it. */
+.home-edit-frame {
+  position: relative;
+}
+
+.home-edit-original {
+  block-size: calc(192 / 352 * 100%);
+  border: 1.5px dashed color-mix(in srgb, var(--ground) 95%, transparent);
+  color: var(--ground);
+  inset-block-start: calc(80 / 352 * 100%);
+  inset-inline: 0;
+  padding: 12px;
+  pointer-events: none;
+  position: absolute;
+}
+
+@media (width >= 64rem) {
+  .home-edit-original {
+    block-size: calc(428 / 760 * 100%);
+    inset-block-start: calc(166 / 760 * 100%);
+    padding: 16px;
+  }
+}
+
+/* Rows of pictures with the words in the same row: Upscale's words at the
+   top left, Try-on's at the top right above the person and the jacket. Every
+   block takes the row's two lines, so they share it instead of stacking. */
+@media (width >= 64rem) {
+  .home-row.home-edit-shared > :is(.home-cell, .home-figure) {
+    grid-row: 1 / span 2;
+  }
+}
+
+/* On a phone Try-on's person and jacket wrap under Wearing it, 24px down. */
+@media (width < 64rem) {
+  .home-edit-tryon > figure:not(:first-child) {
+    margin-block-start: 24px;
+  }
+}
+
+/* Match the style: the large picture fills the height of the two beside it
+   and ends where the second of them does, above its caption line. */
+@media (width >= 64rem) {
+  .home-edit-restyle > :has(> .home-edit-fill) {
+    grid-row: 1 / span 2;
+  }
+
+  .home-edit-fill {
+    block-size: 100%;
+    padding-block-end: calc(var(--home-caption-gap) + 24px);
+  }
+
+  .home-edit-fill > .home-plate {
+    aspect-ratio: auto;
+    block-size: 100%;
+  }
+}

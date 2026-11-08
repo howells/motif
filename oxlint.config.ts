@@ -96,11 +96,13 @@ export default {
   },
   overrides: [
     {
-      // The product's one type case (apps/bench/app/globals.css): five roles,
-      // `type-display`, `type-heading`, `type-title`, `type-body` and
-      // `type-small`, identical on the public site, in the App and in the
-      // Bench, all at weight 400. Every piece of text picks exactly one, and
-      // hierarchy comes from size and colour. The sanctioned modifiers are
+      // The product's type case (apps/bench/app/globals.css): four roles,
+      // `type-heading`, `type-title`, `type-body` and `type-small`, shared by
+      // the public pages, the App and the Bench, all at weight 400. The
+      // homepage is the one exception: it carries its own type styles, scoped
+      // to `.home` in apps/bench/app/home.css, and its components set text
+      // through those classes instead. Everywhere else every piece of text
+      // picks exactly one role, and hierarchy comes from size and colour. The sanctioned modifiers are
       // `font-medium` (the single emphasis weight: names, buttons, the active
       // nav item), `font-mono` (literal command or code text, at `type-small`
       // size) and `capitalize` (cases a data value); `tabular-nums` is not a
