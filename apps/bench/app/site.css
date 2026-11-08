@@ -43,7 +43,7 @@
   min-block-size: 100dvh;
 }
 
-/* The type case (`type-display`, `type-heading`, `type-title`, `type-body`,
+/* The type case (`type-heading`, `type-title`, `type-body`,
    `type-small`) is defined once in globals.css and is the same on the site,
    in the App and in the Bench. The scales for spacing, radius and control
    height are there too; this file writes `var(--spacing-*)` and never a
@@ -67,55 +67,6 @@
 @media (width >= 48rem) {
   .site-bleed {
     padding-inline-end: 0;
-  }
-}
-
-/* Every image on the page sits in a fixed-ratio box and fills it, so a slow
-   connection reflows nothing. */
-.site-plate {
-  background: var(--surface);
-  overflow: clip;
-  position: relative;
-}
-
-/* Taken out of flow so the box's ratio is the only thing setting its height.
-   Left in flow, `block-size: 100%` has no definite height to resolve against,
-   falls back to the file's own height, and a square source stretches the box
-   it was supposed to be cropped into. */
-/* A cut-out with no holding colour behind it. */
-.site-plate-plain {
-  background: none;
-}
-
-.site-plate img,
-.site-plate video {
-  block-size: 100%;
-  inline-size: 100%;
-  inset: 0;
-  object-fit: cover;
-  position: absolute;
-}
-
-/* The answer `motif ask` gave, set over the photograph it was asked about.
-   Position only: the shape is `type-heading`, the page's one serif heading
-   size. Display scale belongs to the wordmark alone, and at 72px an answer
-   would cover the shelf it is counting. Set in ink like everything else: the
-   plates it lies on are daylit and pale, and paper-coloured type disappeared
-   into them. It hangs from the top-left, on bare wall: along the bottom it
-   ran through the bottles and the shelf edge. Measured against the shelf,
-   ink there holds 5.2:1 on average and 4.0:1 at worst. The right of the wall
-   is lighter but bleeds off the window on desktop. */
-.site-answer {
-  color: var(--ink);
-  inset-block-start: var(--spacing-6);
-  inset-inline-start: var(--spacing-6);
-  position: absolute;
-}
-
-@media (width >= 48rem) {
-  .site-answer {
-    inset-block-start: var(--spacing-8);
-    inset-inline-start: var(--spacing-8);
   }
 }
 
@@ -170,12 +121,6 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .site-fade {
-    animation: site-fade 320ms ease-out;
-  }
-}
-
 /* The hero command dock: six commands stacked on one grid area, the active
    cell fading in while the old one fades out. Visibility flips on a delay so
    a leaving cell stops exposing itself only after it has faded. */
@@ -224,16 +169,6 @@
   .site-step-commands-block > div,
   .site-step-commands-block > div.is-active {
     transition: none;
-  }
-}
-
-@keyframes site-fade {
-  from {
-    opacity: 0.4;
-  }
-
-  to {
-    opacity: 1;
   }
 }
 
@@ -903,129 +838,4 @@
   .site-ledger-row > :nth-child(2) {
     flex: 1 1 100%;
   }
-}
-
-/* ── The homepage ─────────────────────────────────────────────────────
-   Drawn from the Paper boards "1 · Homepage · Editorial", desktop and phone.
-   Spacing is the scale; the 160px air above a desktop section is 128 + 32. */
-
-.site {
-  --page: 90rem;
-}
-
-/* 16px on a phone, 48px from 768px up, centred once the page is wider than
-   the board. Pictures that bleed on a phone take a negative margin of one
-   gutter. */
-.home-hero-plate {
-  aspect-ratio: 4 / 5;
-}
-
-@media (width >= 48rem) {
-  .home-hero-plate {
-    aspect-ratio: 4 / 3;
-  }
-}
-
-.home-gutter {
-  margin-inline: auto;
-  max-inline-size: var(--page);
-  padding-inline: var(--spacing-4);
-  width: 100%;
-}
-
-@media (width >= 48rem) {
-  .home-gutter {
-    padding-inline: var(--spacing-12);
-  }
-}
-
-.home-section {
-  padding-block-start: var(--spacing-24);
-}
-
-@media (width >= 48rem) {
-  .home-section {
-    padding-block-start: calc(var(--spacing-32) + var(--spacing-8));
-  }
-}
-
-/* A row that scrolls sideways without drawing a scrollbar under the
-   pictures; it is still a focusable scroll region and takes arrow keys. */
-.home-strip {
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.home-strip::-webkit-scrollbar {
-  display: none;
-}
-
-/* The Looks row starts on the page's gutter and runs off the right edge. */
-.home-looks {
-  display: flex;
-  gap: var(--spacing-3);
-  padding-inline: var(--spacing-4);
-}
-
-@media (width >= 48rem) {
-  .home-looks {
-    gap: var(--spacing-4);
-    padding-inline-end: var(--spacing-12);
-    padding-inline-start: max(
-      var(--spacing-12),
-      calc((100% - var(--page)) / 2 + var(--spacing-12))
-    );
-  }
-}
-
-/* The opening's command, with all six commands stacked on one grid cell so
-   the tallest sets the height and swapping never moves the list above it. */
-.home-dock {
-  display: grid;
-  min-block-size: var(--spacing-control);
-}
-
-.home-dock > code {
-  align-self: center;
-  grid-area: 1 / 1;
-  min-width: 0;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.home-dock > code[data-active] {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* Layers that swap by opacity: the Mood plates, stacked in one box. */
-.home-layer {
-  opacity: 0;
-}
-
-.home-layer[data-active] {
-  opacity: 1;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .home-dock > code {
-    transition:
-      opacity 180ms var(--ease-out),
-      visibility 0s 180ms;
-  }
-
-  .home-dock > code[data-active] {
-    transition:
-      opacity 180ms var(--ease-out),
-      visibility 0s 0s;
-  }
-
-  .home-layer {
-    transition: opacity 320ms ease-out;
-  }
-}
-
-/* The raised surface the secondary button sits on in the Paper boards. */
-.app-button.home-button-raised {
-  background: #fff;
 }

@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
 
-import { HomeFooter } from "@/components/home/footer";
-import { HomeHandoff } from "@/components/home/handoff";
-import { HomeLooks } from "@/components/home/looks";
-import { HomeMasthead } from "@/components/home/masthead";
-import { HomeMoods } from "@/components/home/moods";
-import { HomeOpening } from "@/components/home/opening";
+import { Close } from "@/components/home/close";
+import { Hero } from "@/components/home/hero";
+import { Masthead } from "@/components/home/masthead";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
 
@@ -31,19 +28,17 @@ export const metadata: Metadata = {
 };
 
 /** Home. A member sees the same page as anyone else; only the last link in
- * the masthead changes, from Sign in to Open the App. */
+ * the masthead changes, from Sign in to Open the App. The chapters sit
+ * between the hero and the close, in the order `HOME.chapters` gives. */
 async function HomePage() {
   const viewer = await getViewer();
   return (
     <>
-      <HomeMasthead member={viewer.state === "member"} />
+      <Masthead member={viewer.state === "member"} />
       <main>
-        <HomeOpening />
-        <HomeLooks />
-        <HomeMoods />
-        <HomeHandoff />
+        <Hero />
       </main>
-      <HomeFooter />
+      <Close />
     </>
   );
 }
