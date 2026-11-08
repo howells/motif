@@ -74,7 +74,15 @@ function dryRunPrice(request: readonly string[]): string {
   mkdirSync(home);
   mkdirSync(work);
   try {
-    spawnSync("git", ["init", "--quiet"], { cwd: work });
+    const init = spawnSync("git", ["init", "--quiet"], {
+      cwd: work,
+      encoding: "utf-8",
+    });
+    if (init.error !== undefined || init.status !== 0) {
+      throw new Error(
+        `git init failed (exit ${String(init.status)}): ${init.error?.message ?? init.stderr}`
+      );
+    }
     const args = request.map((arg) => {
       if (!arg.startsWith("/demo/")) {
         return arg;
