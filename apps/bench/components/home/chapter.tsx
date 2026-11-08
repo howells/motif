@@ -44,7 +44,7 @@ export function Headline({ children }: { readonly children: ReactNode }) {
 }
 
 /** Any other words on the page: Inter at 14/24. */
-export function Text({ children }: { readonly children: ReactNode }) {
+function Text({ children }: { readonly children: ReactNode }) {
   return <p className="home-text">{children}</p>;
 }
 
