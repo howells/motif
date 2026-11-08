@@ -166,9 +166,14 @@ function named(text: string): string {
   return word;
 }
 
-/** Flags shown on their own that work with every command, so have no
- * command page, and the docs page that documents each. */
-const FLAG_PAGES = new Map([["--dry-run", "/docs/quickstart"]]);
+/** Flags shown on their own, which have no command page, and the docs page
+ * that documents each. `--look` and `--mood` go to the page that lists every
+ * Look and Mood. */
+const FLAG_PAGES = new Map([
+  ["--dry-run", "/docs/quickstart"],
+  ["--look editorial", "/docs/looks-and-moods"],
+  ["--mood lamplit", "/docs/looks-and-moods"],
+]);
 
 describe("the homepage content", () => {
   it("shows at least the install line and the hero's command", () => {
