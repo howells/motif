@@ -166,6 +166,15 @@ function named(text: string): string {
   return word;
 }
 
+/** Flags shown on their own, which have no command page, and the docs page
+ * that documents each. `--look` and `--mood` go to the page that lists every
+ * Look and Mood. */
+const FLAG_PAGES = new Map([
+  ["--dry-run", "/docs/quickstart"],
+  ["--look editorial", "/docs/looks-and-moods"],
+  ["--mood lamplit", "/docs/looks-and-moods"],
+]);
+
 describe("the homepage content", () => {
   it("shows at least the install line and the hero's command", () => {
     expect(commands.length).toBeGreaterThanOrEqual(2);
@@ -181,13 +190,9 @@ describe("the homepage content", () => {
 
   it("links every command to the docs page of the command it names", () => {
     const wrong = commands.filter((command) => {
-      // `--look` and `--mood` are flags with no command page; the page that
-      // lists every Look and Mood documents them.
-      if (/^--(?:look|mood) /.test(command.text)) {
-        return command.docs !== "/docs/looks-and-moods";
-      }
       const name = named(command.text);
-      return name !== "install" && command.docs !== `/docs/commands/${name}`;
+      const page = FLAG_PAGES.get(command.text) ?? `/docs/commands/${name}`;
+      return name !== "install" && command.docs !== page;
     });
     expect(wrong).toStrictEqual([]);
   });
