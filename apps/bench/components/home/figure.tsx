@@ -28,6 +28,7 @@ export function Responsive({
  * `<Grid row>` the picture sits on the row's image line and the caption on
  * the line beneath, so captions never move where the pictures end. */
 export function Figure({
+  className,
   crop,
   desk,
   eager,
@@ -35,6 +36,8 @@ export function Figure({
   phone,
   sizes,
 }: {
+  /** Added to the `<figure>`, for a deliberate stagger or a mat. */
+  readonly className?: string;
   readonly crop: Crop;
   readonly desk?: Span;
   readonly eager?: boolean;
@@ -43,7 +46,10 @@ export function Figure({
   readonly sizes: string;
 }) {
   return (
-    <figure className="home-figure" style={spanStyle(desk, phone)}>
+    <figure
+      className={`home-figure ${className ?? ""}`}
+      style={spanStyle(desk, phone)}
+    >
       <Plate
         crop={crop}
         eager={eager}

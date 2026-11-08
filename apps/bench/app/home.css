@@ -113,6 +113,13 @@
   padding-block-start: var(--home-caption-gap);
 }
 
+/* A cell of text in a row that hangs from the top of the row instead of
+   ending on the image line: words beside a row of pictures, level with the
+   tallest one's top. */
+.home-row > .home-cell > .home-hang {
+  align-self: start;
+}
+
 /* ── Pictures ─────────────────────────────────────────────────────────
    Every picture sits in a box of a fixed ratio and fills it, so nothing
    moves as it loads. The ratio is the design's crop, not the file's: the
@@ -139,6 +146,23 @@
   object-fit: cover;
   object-position: var(--position, 50% 50%);
   position: absolute;
+}
+
+/* A cut-out on a paper mat: the whole picture, contained and inset from the
+   mat's edge (16px of 168 on the phone board, 40px of 536 on desktop). */
+.home-matte > .home-plate {
+  background: var(--ground);
+}
+
+.home-matte > .home-plate img {
+  object-fit: contain;
+  padding: 9.5%;
+}
+
+@media (width >= 64rem) {
+  .home-matte > .home-plate img {
+    padding: 7.5%;
+  }
 }
 
 /* ── Rhythm ─────────────────────────────────────────────────────────── */
@@ -234,6 +258,11 @@
   font-size: 14px;
   letter-spacing: normal;
   line-height: 24px;
+}
+
+/* Motif's reply to a question, in the display face at the text size. */
+.home-text.home-answer {
+  font-family: var(--font-display);
 }
 
 /* A command is a link to its docs page. The 44px touch target comes from
