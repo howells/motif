@@ -7,7 +7,12 @@ import { HOME } from "./content";
 // this file untyped. Parse the part under test instead of trusting it.
 const Entry = z.object({
   command: z.object({ text: z.string() }),
-  figures: z.array(z.object({ caption: z.string().optional() })),
+  figures: z.array(
+    z.object({
+      caption: z.string().optional(),
+      image: z.object({ alt: z.string() }),
+    })
+  ),
   original: z.string().optional(),
   sides: z.array(z.string()).optional(),
 });
@@ -61,6 +66,16 @@ describe("the Edit chapter", () => {
       ["Your photo", "The reference"],
       ["Wearing it", "The person", "The jacket"],
       ["Before", "After"],
+    ]);
+  });
+
+  it("says in the alt text which is the photo and which the cut-out, as neither has a caption", () => {
+    const cutout = edit().find(
+      (entry) => entry.command.text === "motif cutout"
+    );
+    expect(cutout?.figures.map((figure) => figure.image.alt)).toStrictEqual([
+      expect.stringMatching(/^The original photo: /),
+      expect.stringMatching(/^The cut-out: /),
     ]);
   });
 });

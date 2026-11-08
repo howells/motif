@@ -39,7 +39,7 @@ const cutout = {
   figures: [
     {
       image: {
-        alt: "A speckled cream stoneware vase standing on rumpled linen against a pale wall.",
+        alt: "The original photo: a speckled cream stoneware vase standing on rumpled linen against a pale wall.",
         height: 1000,
         src: "/demo/vase/vase.jpg",
         width: 1000,
@@ -47,7 +47,7 @@ const cutout = {
     },
     {
       image: {
-        alt: "The same vase cut out on its own, with no background.",
+        alt: "The cut-out: the same vase on its own, with no background.",
         height: 505,
         src: "/demo/showcase/nobg-trim.png",
         width: 341,
