@@ -31,6 +31,13 @@ export interface Link {
  * the caption where the phone board shows a different one. */
 export interface Figure {
   readonly caption?: string;
+  /** A film the picture is the poster for, played in its place on request.
+   * `play` names the play button for screen readers. */
+  readonly film?: {
+    readonly play: string;
+    /** Site-relative, e.g. `/demo/video/apothecary.mp4`. */
+    readonly src: string;
+  };
   readonly image: ImageRef;
   readonly phone?: {
     readonly caption?: string;
@@ -63,6 +70,12 @@ export interface Entry {
   readonly headline?: string;
   /** The fragment the entry answers to, unique on the page. */
   readonly id: string;
+  /** Words the phone board sets differently: a shorter command, or a body
+   * that points up and down instead of left and right. */
+  readonly phone?: {
+    readonly body?: string;
+    readonly command?: Command;
+  };
 }
 
 export interface Chapter {
