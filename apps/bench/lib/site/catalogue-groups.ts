@@ -174,7 +174,7 @@ const EDIT: CatalogueGroup = {
     {
       id: "reframe",
       result: plate(
-        "/demo/expand/bria-expand.jpg",
+        "/demo/expand/interior-square.jpg",
         "The same bench and vases with new canvas above and below, now square",
         1400,
         1400,
@@ -407,7 +407,7 @@ const UNDERSTAND: CatalogueGroup = {
           "Depth"
         ),
         plate(
-          "/demo/lineart/vessel.jpg",
+          "/demo/edges/vessel.jpg",
           "A line drawing of a vessel, a different subject from the room",
           1400,
           1400,

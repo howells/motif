@@ -3,10 +3,9 @@ import type { Chapter, Entry } from "./types";
 
 /** The Read and convert chapter, on the mount: what Motif reads out of a
  * picture and what it turns a picture into. The words follow the Paper file
- * "Motif" exactly. Each entry is exported so the chapter's layout can place
- * its figures by name. */
+ * "Motif" exactly. */
 
-export const ASK = {
+const ASK = {
   id: "ask",
   headline: "Ask about a picture.",
   body: "Get captions, alt text, counts or the words on a label. A question costs a fraction of a penny.",
@@ -35,7 +34,7 @@ export const ASK = {
   ],
 } as const satisfies Entry;
 
-export const SEGMENT = {
+const SEGMENT = {
   id: "segment",
   headline: "Select one object.",
   body: "Say “the white bowl” and you get the bowl alone, cut along its real edge. Works on video too.",
@@ -52,7 +51,7 @@ export const SEGMENT = {
   ],
 } as const satisfies Entry;
 
-export const LAYERS = {
+const LAYERS = {
   id: "layers",
   headline: "Split a picture into layers.",
   body: "The wall, the plinth and the pot each become a separate transparent layer you can move or replace.",
@@ -69,7 +68,7 @@ export const LAYERS = {
   ],
 } as const satisfies Entry;
 
-export const MAPS = {
+const MAPS = {
   id: "map",
   headline: "Depth, pose and edge maps.",
   body: "Use them to hold a picture's structure while another tool changes the rest.",
@@ -98,14 +97,14 @@ export const MAPS = {
       image: {
         alt: "The outlines of a ribbed pot on a plinth, traced in white lines on black.",
         height: 1400,
-        src: "/demo/lineart/vessel.jpg",
+        src: "/demo/edges/vessel.jpg",
         width: 1400,
       },
     },
   ],
 } as const satisfies Entry;
 
-export const MATERIALS = {
+const MATERIALS = {
   id: "material",
   headline: "Materials for 3D.",
   body: "A photo of linen becomes the maps a 3D app needs to render it.",
@@ -141,7 +140,7 @@ export const MATERIALS = {
   ],
 } as const satisfies Entry;
 
-export const VECTORIZE = {
+const VECTORIZE = {
   id: "vectorize",
   headline: "Convert to SVG.",
   body: "Logos, icons and illustrations traced as SVG, sharp at any size.",
@@ -168,7 +167,7 @@ export const VECTORIZE = {
   ],
 } as const satisfies Entry;
 
-export const MESH = {
+const MESH = {
   id: "mesh",
   headline: "A 3D model from a photo.",
   body: "It comes textured, with a skeleton if you want to pose it.",
@@ -195,7 +194,7 @@ export const MESH = {
   ],
 } as const satisfies Entry;
 
-export const SHEET = {
+const SHEET = {
   id: "sheet",
   headline: "Make a contact sheet.",
   body: "Point it at a folder. Each picture can carry its name or price.",

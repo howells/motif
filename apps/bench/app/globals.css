@@ -238,20 +238,22 @@
 }
 
 /* ── The type case ─────────────────────────────────────────────────────
-   Four roles, named identically on the site, in the App and in the Bench and
-   defined here once. Every piece of text picks exactly one. Weight is 400 in
-   all of them; `font-medium` (500) is the single emphasis, and the only
-   modifiers beside a role are `font-medium`, `font-mono` (literal command or
-   code text, at `type-small` size), `tabular-nums` and `capitalize`.
-   the `howells/no-raw-type-utilities` rule holds every component.
+   Four roles, shared by the public pages, the App and the Bench and defined
+   here once; the homepage alone sets its own (below). Every piece of text
+   picks exactly one. Weight is 400 in all of them; `font-medium` (500) is the
+   single emphasis, and the only modifiers beside a role are `font-medium`,
+   `font-mono` (literal command or code text, at `type-small` size),
+   `tabular-nums` and `capitalize`. The `howells/no-raw-type-utilities` rule
+   holds every component.
 
        type-heading   28/32, -0.01em       Faculty   editorial heads; site only
        type-title     18/24, -0.01em       Inter     screen, panel and dialog titles
        type-body      14/20                Inter     names, sentences, buttons, inputs
        type-small     13/20                Inter     metadata, labels, captions, figures
 
-   The homepage is set on its own editorial grid and carries its own three
-   styles, scoped to `.home` in home.css.
+   The homepage is the exception. It is set on its own editorial grid and
+   carries its own type styles, scoped to `.home` in home.css, which its
+   components use instead of these roles.
 
    One body leading. The public pages' reading columns used 23px; at 20px a
    paragraph is still comfortable, and a long column is given air between its

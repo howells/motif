@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ComponentType } from "react";
 
 import { Close } from "@/components/home/close";
 import { Edit } from "@/components/home/edit";
@@ -10,6 +11,7 @@ import { Price } from "@/components/home/price";
 import { ReadAndConvert } from "@/components/home/read-and-convert";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
+import { CHAPTERS } from "@/lib/site/home/chapters";
 
 /** The share card itself comes from `opengraph-image.tsx` beside the root
  * layout, which Next adds to both the Open Graph and the X tags. */
@@ -32,9 +34,26 @@ export const metadata: Metadata = {
   },
 };
 
+/** Each chapter's layout, by the chapter's id. */
+const LAYOUTS = new Map<string, ComponentType>([
+  ["edit", Edit],
+  ["looks-and-moods", LooksAndMoods],
+  ["make", Make],
+  ["price", Price],
+  ["read-and-convert", ReadAndConvert],
+]);
+
+function layout(id: string): ComponentType {
+  const found = LAYOUTS.get(id);
+  if (found === undefined) {
+    throw new Error(`The homepage has no layout for the chapter "${id}"`);
+  }
+  return found;
+}
+
 /** Home. A member sees the same page as anyone else; only the last link in
  * the masthead changes, from Sign in to Open the App. The chapters sit
- * between the hero and the close, in the order `HOME.chapters` gives. */
+ * between the hero and the close, in the order `CHAPTERS` gives. */
 async function HomePage() {
   const viewer = await getViewer();
   return (
@@ -42,11 +61,10 @@ async function HomePage() {
       <Masthead member={viewer.state === "member"} />
       <main>
         <Hero />
-        <Make />
-        <Edit />
-        <ReadAndConvert />
-        <LooksAndMoods />
-        <Price />
+        {CHAPTERS.map((chapter) => {
+          const Layout = layout(chapter.id);
+          return <Layout key={chapter.id} />;
+        })}
       </main>
       <Close />
     </>

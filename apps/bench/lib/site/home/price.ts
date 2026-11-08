@@ -2,7 +2,7 @@ import { docs } from "@/lib/site/home/commands";
 import type { Chapter, Command } from "@/lib/site/home/types";
 
 /** One job in the price table and what it costs. */
-export interface PriceRow {
+interface PriceRow {
   /** The job in plain words. */
   readonly job: string;
   /** The phone board's shorter wording, where it differs. */
@@ -18,7 +18,7 @@ export interface PriceRow {
 
 /** The Price chapter has no Task entries: its title and line, the dry-run
  * flag, and a table of real prices with its note. */
-export interface PriceChapter extends Chapter {
+interface PriceChapter extends Chapter {
   readonly command: Command;
   readonly note: string;
   readonly rows: readonly PriceRow[];

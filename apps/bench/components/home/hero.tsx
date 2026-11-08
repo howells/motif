@@ -1,6 +1,7 @@
 import { CommandLink } from "@/components/home/command";
 import { Responsive } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
+import { imageSizes } from "@/components/home/image-sizes";
 import { Plate } from "@/components/home/plate";
 import { HOME } from "@/lib/site/home/content";
 
@@ -35,7 +36,7 @@ export function Hero() {
               eager
               image={figure.image}
               phone={figure.phone?.image}
-              sizes="(width >= 64rem) 92vw, 100vw"
+              sizes={imageSizes(92, 100)}
             />
           </Cell>
         </Grid>

@@ -189,7 +189,7 @@ function moodFlag(mood: MoodId): Command {
 }
 
 /** The nine Look plates in a strip, and the `--look` flag below them. */
-export const LOOK_ROW: Entry = {
+const LOOK_ROW: Entry = {
   id: "looks",
   command: lookFlag("editorial"),
   figures: LOOK_PLATES.map(({ image, label }) => ({ caption: label, image })),
@@ -201,7 +201,7 @@ export const LOOK_ROW: Entry = {
 export const LOOK_STRIP_LABEL = "Looks";
 
 /** The six Mood plates under their headline, and the `--mood` flag. */
-export const MOOD_ROW: Entry = {
+const MOOD_ROW: Entry = {
   id: "moods",
   headline: "One kitchen prompt in six moods.",
   command: moodFlag("lamplit"),
