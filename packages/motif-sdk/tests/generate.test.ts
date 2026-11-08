@@ -202,7 +202,7 @@ describe(buildGenerateBody, () => {
     });
   });
 
-  it("uses fal image_size presets for GPT Image 2.6", () => {
+  it("sizes GPT Image 2.6 exactly at the requested resolution", () => {
     const { endpoint, body } = buildGenerateBody({
       aspect: "1:1",
       model: "sunburst",
@@ -212,12 +212,52 @@ describe(buildGenerateBody, () => {
 
     expect(endpoint).toBe("openai/gpt-image-2.6/sunburst/text-to-image");
     expect(body).toMatchObject({
-      image_size: "square_hd",
+      image_size: { height: 2048, width: 2048 },
       output_format: "png",
       prompt: "minimal square app icon",
       quality: "max",
     });
-    expect(body.image_size).not.toBe("1024x1024");
+  });
+
+  it.each([
+    ["4:3", "1K", { height: 1152, width: 1536 }],
+    ["4:3", "4K", { height: 2448, width: 3264 }],
+    ["16:9", "4K", { height: 2160, width: 3840 }],
+    ["3:1", "4K", { height: 1280, width: 3840 }],
+    ["1:1", "0.5K", { height: 816, width: 816 }],
+  ] as const)(
+    "keeps GPT Image 2.6 %s at %s inside fal's limits",
+    (aspect, resolution, imageSize) => {
+      const { body } = buildGenerateBody({
+        aspect,
+        model: "flare",
+        prompt: "a room",
+        resolution,
+      });
+      expect(body.image_size).toEqual(imageSize);
+    }
+  );
+
+  it("refuses a GPT Image 2.6 edit resolution without an aspect", () => {
+    expect(() =>
+      buildGenerateBody({
+        editImageUrls: ["https://example.com/room.png"],
+        model: "sunburst",
+        prompt: "extend the room",
+        resolution: "4K",
+      })
+    ).toThrow("pass an aspect with resolution");
+  });
+
+  it("sizes a GPT Image 2.6 edit with an aspect at its resolution", () => {
+    const { body } = buildGenerateBody({
+      aspect: "4:3",
+      editImageUrls: ["https://example.com/room.png"],
+      model: "sunburst",
+      prompt: "extend the room",
+      resolution: "4K",
+    });
+    expect(body.image_size).toEqual({ height: 2448, width: 3264 });
   });
 
   it("normalizes GPT Image 2.6 edit masks, quality, sync mode, and custom image size", () => {

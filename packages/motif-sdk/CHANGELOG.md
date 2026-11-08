@@ -1,5 +1,14 @@
 # @howells/motif-sdk
 
+## 7.2.0
+
+Released alongside `@howells/motif-cli` 5.2.0.
+
+### Minor Changes
+
+- Sunburst and Flare (GPT Image 2.6) take `resolution`. `image_size` is now an exact `{ width, height }` for the aspect at that resolution, inside fal's limits, instead of a 1024px preset such as `landscape_4_3`. A resolution above the limits gives the largest size in the ratio: `4:3` at `4K` is 3264×2448. The default is 2K, so default output is larger and costs more.
+- An edit on Sunburst or Flare with `resolution` but no `aspect` throws, because it is sized from its source image.
+
 ## 7.1.0
 
 Released alongside `@howells/motif-cli` 5.1.0.

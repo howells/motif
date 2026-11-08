@@ -73,9 +73,10 @@ function normalizeImageSize(
 }
 
 /**
- * `image_size` for an aspect: fal's named preset where one holds the ratio
- * exactly, else exact dimensions where the endpoint takes them, else the
- * nearest preset. A Model without a resolution setting is sized to the preset
+ * `image_size` for an aspect: exact dimensions at the requested resolution
+ * where the endpoint takes them and has a resolution setting; otherwise fal's
+ * named preset where one holds the ratio exactly, else exact dimensions where
+ * the endpoint takes them, else the nearest preset. A Model without a resolution setting is sized to the preset
  * long edge, so an exact size costs what a preset would. Out of the Model's
  * limits it throws rather than rounding to another ratio.
  */
@@ -85,7 +86,10 @@ function falImageSizeFor(
   resolution: Resolution
 ): CustomImageSize | string {
   const bounds = config.customImageSize;
-  if (bounds === undefined || FAL_PRESET_ASPECTS.includes(aspect)) {
+  if (
+    bounds === undefined ||
+    (!config.supportsResolution && FAL_PRESET_ASPECTS.includes(aspect))
+  ) {
     return aspectToFalImageSize(aspect);
   }
   const longEdge = config.supportsResolution
@@ -135,6 +139,19 @@ function validateGenerateOptions(
     !config.supportsResolution
   ) {
     unsupported(config, "resolution");
+  }
+  // An edit with no aspect is sized from its source ("auto"), which has no
+  // resolution to honour.
+  if (
+    config.autoEditSize === true &&
+    hasEditImages &&
+    options.aspect === undefined &&
+    options.imageSize === undefined &&
+    options.resolution !== undefined
+  ) {
+    throw new Error(
+      `${config.name} sizes an edit from its source image; pass an aspect with resolution`
+    );
   }
   if (
     options.aspect !== undefined &&

@@ -16,6 +16,8 @@ motif "turn this into a watercolour poster" -e photo.png -e palette.png --dry-ru
 
 Task options any capable Model can honour: `-a/--aspect` or a preset (`--og`, `--square`, `--cover`, `--portrait`, `--landscape`, `--story`, `--reel`, `--feed`, `--wallpaper`, `--wide`, `--ultra`), `-r/--resolution`, `-n/--num` (1-4), `--seed`, `--negative`, `--output-format`, `--transparent`, `-e/--edit` (a reference, repeatable) and `--mask` (with `-e`). A request that needs something narrows the Models that qualify: several references, transparency or a mask rule out Models that can't take them.
 
+Sunburst and Flare (GPT Image 2.6) are sized exactly: `-a` and `-r` become a width and height in that ratio, kept inside fal's limits (edges in multiples of 16, long edge up to 3840, 8.3 MP at most). `-r 4K` gives the largest size in the ratio, e.g. 3264×2448 at 4:3. With no `-r` they make 2K. An edit with no `-a` is sized from its source image, so `-r` on an edit needs `-a`.
+
 `-e` takes one path per flag and repeats: `motif -e a.png -e b.png "a cat"`. The prompt can go anywhere.
 
 ## vary

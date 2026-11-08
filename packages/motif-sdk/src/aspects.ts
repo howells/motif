@@ -165,6 +165,10 @@ function roundUpTo(value: number, unit: number): number {
   return unit * Math.ceil(value / unit);
 }
 
+function roundDownTo(value: number, unit: number): number {
+  return unit * Math.floor(value / unit);
+}
+
 /**
  * Exact pixel dimensions for an aspect ratio at a resolution tier, or null for
  * `"auto"`.
@@ -211,8 +215,9 @@ export function withinImageSizeBounds(
 
 /**
  * The exact size for an aspect on an endpoint with limits: the long edge as
- * close to `longEdge` as the ratio allows without passing it, then scaled up
- * only as far as a minimum edge or pixel count demands. Null for `"auto"`.
+ * close to `longEdge` as the ratio allows without passing it or the endpoint's
+ * maximum edge or pixel count, then scaled up only as far as a minimum edge or
+ * pixel count demands. Null for `"auto"`.
  * Undefined when no size in that ratio fits the limits: the caller refuses,
  * because rounding to another ratio is the defect this exists to remove.
  */
@@ -228,6 +233,18 @@ export function boundedImageSize(
   const [width, height] = terms;
   const unit = bounds.multipleOf ?? EDGE_MULTIPLE;
   let scale = scaleWithin(longEdge, Math.max(width, height), unit);
+  if (bounds.maxEdge !== undefined) {
+    scale = Math.min(
+      scale,
+      roundDownTo(bounds.maxEdge / Math.max(width, height), unit)
+    );
+  }
+  if (bounds.maxPixels !== undefined) {
+    scale = Math.min(
+      scale,
+      roundDownTo(Math.sqrt(bounds.maxPixels / (width * height)), unit)
+    );
+  }
   if (bounds.minEdge !== undefined) {
     scale = Math.max(
       scale,
