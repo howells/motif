@@ -186,12 +186,12 @@ function Relight() {
   );
 }
 
-/** The restyled picture large, with your photo and the reference stacked
- * beside it; its foot meets the reference's. On a phone the two sit side by
- * side under it. */
 /** Your photo and the reference beside the restyled picture. */
 const RESTYLE_SOURCE: Crop = { phoneRatio: "168 / 96", ratio: "424 / 208" };
 
+/** The restyled picture large, with your photo and the reference stacked
+ * beside it; its foot meets the reference's. On a phone the two sit side by
+ * side under it. */
 function Restyle() {
   const restyle = entryWithId(EDIT, "match-the-style");
   return (
@@ -224,11 +224,11 @@ function Restyle() {
   );
 }
 
-/** Wearing it large on the left; the words at the top right, the person and
- * the jacket at the foot, all three pictures sharing a bottom edge. */
 /** The person and the jacket under the words. */
 const TRY_ON_SOURCE: Crop = { phoneRatio: "168 / 208", ratio: "312 / 392" };
 
+/** Wearing it large on the left; the words at the top right, the person and
+ * the jacket at the foot, all three pictures sharing a bottom edge. */
 function TryOn() {
   const tryOn = entryWithId(EDIT, "put-on-a-garment");
   return (
