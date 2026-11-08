@@ -181,6 +181,11 @@ describe("the homepage content", () => {
 
   it("links every command to the docs page of the command it names", () => {
     const wrong = commands.filter((command) => {
+      // `--look` and `--mood` are flags with no command page; the page that
+      // lists every Look and Mood documents them.
+      if (/^--(?:look|mood) /.test(command.text)) {
+        return command.docs !== "/docs/looks-and-moods";
+      }
       const name = named(command.text);
       return name !== "install" && command.docs !== `/docs/commands/${name}`;
     });
