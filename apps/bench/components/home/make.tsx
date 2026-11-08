@@ -12,12 +12,19 @@ import type { Entry, Figure as FigureContent } from "@/lib/site/home/types";
 /** The Make chapter, laid out entry by entry as the desktop (1440) and phone
  * (390) artboards draw it. Spans count the 12 desktop and 4 phone columns. */
 
-function entry(id: string): Entry {
+/** Every Make entry has a headline and a body, unlike a row of plates. */
+type MakeEntry = Entry & { readonly body: string; readonly headline: string };
+
+function entry(id: string): MakeEntry {
   const found = MAKE.entries.find((item) => item.id === id);
   if (found === undefined) {
     throw new Error(`The Make chapter has no entry "${id}"`);
   }
-  return found;
+  const { body, headline } = found;
+  if (body === undefined || headline === undefined) {
+    throw new Error(`Make entry "${id}" needs a headline and a body`);
+  }
+  return { ...found, body, headline };
 }
 
 function figure(item: Entry, index: number): FigureContent {
@@ -35,7 +42,7 @@ function sizes(desk: number, phone: number): string {
 }
 
 /** The entry's command, with the phone's shorter line where it has one. */
-function EntryCommand({ item }: { readonly item: Entry }) {
+function EntryCommand({ item }: { readonly item: MakeEntry }) {
   const phone = item.phone?.command;
   if (phone === undefined) {
     return <CommandLink command={item.command} />;
@@ -52,7 +59,7 @@ function EntryCommand({ item }: { readonly item: Entry }) {
   );
 }
 
-function Body({ item }: { readonly item: Entry }) {
+function Body({ item }: { readonly item: MakeEntry }) {
   return (
     <Text>
       <Responsive desk={item.body} phone={item.phone?.body} />
@@ -61,7 +68,7 @@ function Body({ item }: { readonly item: Entry }) {
 }
 
 /** Headline, body and command stacked in one column, as beside a picture. */
-function Stack({ item }: { readonly item: Entry }) {
+function Stack({ item }: { readonly item: MakeEntry }) {
   return (
     <div className="flex flex-col gap-2">
       <Headline>{item.headline}</Headline>
@@ -75,7 +82,7 @@ function Stack({ item }: { readonly item: Entry }) {
 
 /** Headline across six columns and the body and command across the next
  * four, under a row of pictures. The phone stacks them. */
-function Spread({ item }: { readonly item: Entry }) {
+function Spread({ item }: { readonly item: MakeEntry }) {
   return (
     <Grid className="gap-y-2">
       <Cell desk={{ span: 6, start: 1 }}>

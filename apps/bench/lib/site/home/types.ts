@@ -46,12 +46,13 @@ export interface Figure {
 }
 
 /** One Task on the page: a plain headline, a line or two, the command and the
- * pictures that show it. */
+ * pictures that show it. A row of plates (Looks, Moods) can stand without the
+ * headline or the line, as the board draws it. */
 export interface Entry {
-  readonly body: string;
+  readonly body?: string;
   readonly command: Command;
   readonly figures: readonly Figure[];
-  readonly headline: string;
+  readonly headline?: string;
   /** The fragment the entry answers to, unique on the page. */
   readonly id: string;
   /** Words the phone board sets differently: a shorter command, or a body

@@ -1,0 +1,31 @@
+/* ── Looks and moods ──────────────────────────────────────────────────
+   The Looks strip: plates three columns wide (two on a phone) in one row
+   that starts on the first content column and runs off the right edge,
+   scrolling sideways inside itself so the page never does. A page margin of
+   padding either side makes the strip's content box the content width, so
+   the column arithmetic below is the page grid's own. */
+.home-look-strip {
+  --plate-columns: 2;
+  --column: calc(
+    (100% - (var(--home-columns) - 1) * var(--home-gutter)) /
+      var(--home-columns)
+  );
+
+  column-gap: var(--home-gutter);
+  display: grid;
+  grid-auto-columns: calc(
+    var(--plate-columns) * var(--column) + (var(--plate-columns) - 1) *
+      var(--home-gutter)
+  );
+  grid-auto-flow: column;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding-inline: var(--home-margin);
+  scroll-padding-inline: var(--home-margin);
+}
+
+@media (width >= 64rem) {
+  .home-look-strip {
+    --plate-columns: 3;
+  }
+}

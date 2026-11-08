@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 
 import { Close } from "@/components/home/close";
 import { Hero } from "@/components/home/hero";
+import { LooksAndMoods } from "@/components/home/looks-and-moods";
 import { Make } from "@/components/home/make";
 import { Masthead } from "@/components/home/masthead";
+import { Price } from "@/components/home/price";
 import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
 
@@ -39,6 +41,8 @@ async function HomePage() {
       <main>
         <Hero />
         <Make />
+        <LooksAndMoods />
+        <Price />
       </main>
       <Close />
     </>
