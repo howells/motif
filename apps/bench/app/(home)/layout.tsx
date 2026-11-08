@@ -7,7 +7,7 @@ import { dmMono, facultyGlyphic } from "@/components/site/fonts";
 function HomeLayout({ children }: { readonly children: ReactNode }) {
   return (
     <div
-      className={`site app app-entry ${facultyGlyphic.variable} ${dmMono.variable}`}
+      className={`site app app-entry home ${facultyGlyphic.variable} ${dmMono.variable}`}
     >
       {children}
     </div>

@@ -1,0 +1,333 @@
+/* ── The homepage ─────────────────────────────────────────────────────
+   Drawn from the Paper file "Motif", page with the desktop (1440) and phone
+   (390) homepage artboards. Colours are the `.site` palette (paper = ground,
+   mount = surface, ink, muted, rule); this file adds the page's grid, its
+   vertical rhythm and its three type styles, scoped to `.home`.
+
+   The numbers here are the artboards' own and sit outside the product's
+   spacing scale on purpose: the page is set on a 12-column grid with an 8px
+   baseline (desktop) and a 4-column grid (phone), not on the App's 4px
+   steps. Components read them through the classes below, never as numbers.
+
+   Below 64rem the page uses the phone composition, scaled; from 64rem up it
+   uses the desktop one, whose margins and gutters grow to the artboard's 60
+   and 24 at 1440 and hold there, so wider screens get wider columns. */
+
+.home {
+  --home-columns: 4;
+  --home-margin: 20px;
+  --home-gutter: 14px;
+
+  /* Rhythm. Chapter to chapter, entry to entry, image to the text beneath it,
+     chapter head to its first entry, image to its caption, and the rule above
+   a chapter title to the title. */
+  --home-chapter-gap: 128px;
+  --home-head-gap: 64px;
+  --home-entry-gap: 96px;
+  --home-text-gap: 16px;
+  --home-caption-gap: 8px;
+  --home-rule-gap: 23px;
+
+  background: var(--ground);
+  color: var(--ink);
+}
+
+@media (width >= 64rem) {
+  .home {
+    --home-columns: 12;
+    --home-margin: clamp(20px, 4.1667vw, 60px);
+    --home-gutter: clamp(14px, 1.6667vw, 24px);
+    --home-chapter-gap: 192px;
+    --home-head-gap: 96px;
+    --home-entry-gap: 160px;
+    --home-text-gap: 24px;
+    --home-rule-gap: 31px;
+  }
+}
+
+/* ── Grid ─────────────────────────────────────────────────────────────
+   Named lines either side of the columns let a cell run to the screen edge
+   (`bleed`). The margin tracks are one gutter short because the column gap
+   is drawn between them as well. Column n starts on line n + 1. */
+.home-grid {
+  column-gap: var(--home-gutter);
+  display: grid;
+  grid-template-columns:
+    [bleed-start] calc(var(--home-margin) - var(--home-gutter))
+    [content-start] repeat(var(--home-columns), minmax(0, 1fr))
+    [content-end] calc(var(--home-margin) - var(--home-gutter))
+    [bleed-end];
+}
+
+.home-grid > * {
+  grid-column: content;
+  min-inline-size: 0;
+}
+
+/* A cell's or figure's columns come from the component as `--phone` and
+   `--desk`. */
+.home-grid > :is(.home-cell, .home-figure) {
+  grid-column: var(--phone, content);
+}
+
+@media (width >= 64rem) {
+  .home-grid > :is(.home-cell, .home-figure) {
+    grid-column: var(--desk, content);
+  }
+}
+
+/* A row of pictures. Each cell takes two grid lines, an image line and a
+   caption line, through a subgrid: a picture sits on the first and ends at
+   its foot, its caption hangs on the second, and a cell of text sits on the
+   first and ends where the pictures do. So the pictures in a row share one
+   bottom edge, captions never move it, and a cell with no caption ends at the
+   image line. Cells that wrap (the phone's narrower grid) start a new pair of
+   lines, so a wrapped row lines up the same way; space between wrapped rows
+   is the layout's to add. */
+.home-row {
+  align-items: end;
+  grid-auto-flow: row;
+  row-gap: 0;
+}
+
+.home-row > .home-cell,
+.home-row > .home-figure {
+  display: grid;
+  grid-row: span 2;
+  grid-template-rows: subgrid;
+}
+
+.home-row > .home-cell > *,
+.home-row > .home-figure > .home-plate {
+  align-self: end;
+  grid-row: 1;
+  min-inline-size: 0;
+}
+
+.home-row > .home-figure > figcaption {
+  grid-row: 2;
+}
+
+.home-figure > figcaption {
+  align-self: start;
+  padding-block-start: var(--home-caption-gap);
+}
+
+/* ── Pictures ─────────────────────────────────────────────────────────
+   Every picture sits in a box of a fixed ratio and fills it, so nothing
+   moves as it loads. The ratio is the design's crop, not the file's: the
+   desktop ratio is `--ratio`, and `--ratio-phone` overrides it below 64rem.
+   The picture is taken out of flow so the box's ratio alone sets its
+   height. The holding colour behind it is the mount. */
+.home-plate {
+  aspect-ratio: var(--ratio-phone, var(--ratio));
+  background: var(--surface);
+  overflow: clip;
+  position: relative;
+}
+
+@media (width >= 64rem) {
+  .home-plate {
+    aspect-ratio: var(--ratio);
+  }
+}
+
+.home-plate img {
+  block-size: 100%;
+  inline-size: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: var(--position, 50% 50%);
+  position: absolute;
+}
+
+/* ── Rhythm ─────────────────────────────────────────────────────────── */
+.home-chapter {
+  padding-block-start: var(--home-chapter-gap);
+}
+
+/* The chapter head: a hairline across the content columns, drawn as the
+   grid's first row so the title and intro below it keep the page's columns.
+   Title and intro stack 8px apart on a phone and share a row on desktop. */
+.home-chapter-head {
+  align-items: end;
+  row-gap: 8px;
+}
+
+.home-chapter-head::before {
+  border-block-start: 1px solid var(--rule);
+  content: "";
+  grid-column: content;
+  margin-block-end: calc(var(--home-rule-gap) - 8px);
+}
+
+@media (width >= 64rem) {
+  .home-chapter-head > .home-cell {
+    grid-row: 2;
+  }
+}
+
+.home-entries {
+  display: grid;
+  margin-block-start: var(--home-head-gap);
+  row-gap: var(--home-entry-gap);
+}
+
+.home-mount {
+  background: var(--surface);
+}
+
+/* ── Type ─────────────────────────────────────────────────────────────
+   Three styles: Faculty Glyphic at four sizes for display, Inter 14/24 for
+   every other word, and DM Mono 13/24 for commands and nothing else. */
+.home-wordmark,
+.home-close-line,
+.home-chapter-title,
+.home-headline {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
+.home-wordmark {
+  font-size: 80px;
+  letter-spacing: -0.03em;
+  line-height: 80px;
+}
+
+.home-close-line {
+  font-size: 64px;
+  letter-spacing: -0.03em;
+  line-height: 64px;
+}
+
+.home-chapter-title {
+  font-size: 40px;
+  letter-spacing: -0.03em;
+  line-height: 48px;
+}
+
+.home-headline {
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  line-height: 32px;
+}
+
+@media (width >= 64rem) {
+  .home-wordmark,
+  .home-close-line {
+    font-size: 132px;
+    line-height: 128px;
+  }
+
+  .home-chapter-title {
+    font-size: 56px;
+    line-height: 64px;
+  }
+
+  .home-headline {
+    font-size: 28px;
+  }
+}
+
+.home-text {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  letter-spacing: normal;
+  line-height: 24px;
+}
+
+/* A command is a link to its docs page. The 44px touch target comes from
+   padding taken back by a negative margin, so the line keeps its 24px. A long
+   command wraps inside its own line rather than widening the page. */
+.home-command {
+  color: var(--muted);
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: normal;
+  line-height: 24px;
+  margin-block: -10px;
+  overflow-wrap: anywhere;
+  padding-block: 10px;
+  text-decoration: underline 1px var(--rule);
+  text-underline-position: from-font;
+}
+
+/* Preflight gives `code` its own mono stack; the command keeps DM Mono. */
+.home-command > code {
+  font: inherit;
+}
+
+.home-command:hover {
+  color: var(--ink);
+  text-decoration-color: currentcolor;
+}
+
+/* Masthead and other text links: the same 44px target, by padding. */
+.home-link {
+  color: var(--ink);
+  display: inline-block;
+  padding-block: 10px;
+  text-decoration: none;
+}
+
+.home-link:hover {
+  text-decoration: underline 1px;
+  text-underline-position: from-font;
+}
+
+/* The phone's menu: a disclosure whose list drops over the page. */
+/* The button is 44px square around a 20px icon; the negative margin puts the
+   icon, not the button, where the board draws it. */
+.home-menu > summary {
+  cursor: pointer;
+  display: grid;
+  list-style: none;
+  margin-inline: -12px;
+  min-block-size: var(--spacing-control);
+  min-inline-size: var(--spacing-control);
+  place-items: center;
+}
+
+.home-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.home-menu-list {
+  background: var(--ground);
+  border-block: 1px solid var(--rule);
+  inset-block-start: 100%;
+  inset-inline: 0;
+  padding-inline: var(--home-margin);
+  position: absolute;
+  z-index: 10;
+}
+
+/* A list of links, each on a hairline: the close's "Read the docs" list. */
+.home-links > * {
+  border-block-start: 1px solid var(--rule);
+}
+
+.home-links > :last-child {
+  border-block-end: 1px solid var(--rule);
+}
+
+.home-links a {
+  align-items: center;
+  color: var(--ink);
+  display: flex;
+  justify-content: space-between;
+  padding-block: 15px 16px;
+  text-decoration: none;
+}
+
+.home-links a:hover > span {
+  text-decoration: underline 1px;
+  text-underline-position: from-font;
+}
+
+@media (width >= 64rem) {
+  .home-links a {
+    padding-block: 11px 12px;
+  }
+}
