@@ -1,8 +1,7 @@
 /**
  * What the command pages say that the CLI itself does not: how the commands
  * are grouped, the plain headline each page leads with, the one-line wording
- * the Paper boards settled on, which commands also run in the App, and one
- * worked example per command with the images that show it.
+ * the Paper boards settled on, and one worked example per command with the images that show it.
  *
  * Everything else on a command page (synopsis, options, Models, prices, the
  * dry run) is read from the CLI and the SDK by `generate-commands.ts`, so
@@ -44,8 +43,6 @@ export interface CommandSpec {
    * breadcrumb, sidebar and pagination keep the command id. */
   readonly headline: string;
   readonly id: string;
-  /** Runs in the App as well as the terminal. */
-  readonly inApp: boolean;
   /** The line on the All commands page, from the Paper board. */
   readonly summary: string;
   /** The lede, where the board words it differently from the index line. */
@@ -87,7 +84,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "A picture from a sentence",
         id: "generate",
-        inApp: true,
         summary: "Make an image from a prompt",
       },
       {
@@ -102,7 +98,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Variations",
         id: "vary",
-        inApp: true,
         summary: "Variations of an image",
       },
       {
@@ -125,7 +120,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "A matching set",
         id: "series",
-        inApp: false,
         summary: "A consistent set from a theme",
       },
     ],
@@ -155,7 +149,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Remove an object",
         id: "erase",
-        inApp: true,
         lede: "Remove something and fill the gap.",
         summary: "Remove something, fill the gap",
       },
@@ -171,7 +164,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Remove the background",
         id: "cutout",
-        inApp: true,
         summary: "Remove the background",
       },
       {
@@ -189,7 +181,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Extend the frame",
         id: "reframe",
-        inApp: true,
         summary: "Extend to a new aspect ratio",
       },
       {
@@ -210,7 +201,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Upscale up to four times",
         id: "upscale",
-        inApp: true,
         summary: "Make it larger",
       },
       {
@@ -228,7 +218,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Repair a damaged photo",
         id: "restore",
-        inApp: false,
         summary: "Fix noise, blur, damage and colour",
       },
       {
@@ -243,7 +232,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Relight a photo",
         id: "relight",
-        inApp: false,
         summary: "Relight to a described light or a Mood",
       },
       {
@@ -269,7 +257,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Match the style of another picture",
         id: "restyle",
-        inApp: false,
         summary: "Redraw in a reference's style",
       },
       {
@@ -295,7 +282,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Put a garment on a person",
         id: "try-on",
-        inApp: false,
         summary: "Dress a person in a garment",
       },
     ],
@@ -320,7 +306,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Ask about a picture",
         id: "ask",
-        inApp: false,
         summary: "Caption, count, find or ask",
       },
       {
@@ -338,7 +323,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Select one object",
         id: "segment",
-        inApp: false,
         summary: "Mask or cut out a named thing",
       },
       {
@@ -353,7 +337,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Depth, pose and edge maps",
         id: "map",
-        inApp: false,
         summary: "Depth, edge, normal or pose map",
       },
     ],
@@ -374,7 +357,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Materials for 3D",
         id: "material",
-        inApp: false,
         summary: "PBR maps from a surface photo",
       },
       {
@@ -391,7 +373,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Seamless textures",
         id: "tile",
-        inApp: false,
         summary: "A seamlessly tiling texture",
       },
       {
@@ -413,7 +394,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Split a picture into layers",
         id: "layers",
-        inApp: false,
         summary: "Split into transparent layers",
       },
       {
@@ -431,7 +411,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Convert to SVG",
         id: "vectorize",
-        inApp: false,
         summary: "Trace to a clean SVG",
       },
       {
@@ -446,7 +425,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "A 3D model from a photo",
         id: "mesh",
-        inApp: false,
         lede: "A textured 3D mesh, rigged if asked.",
         summary: "A textured 3D mesh, rigged if asked",
       },
@@ -462,7 +440,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Film from a still",
         id: "animate",
-        inApp: false,
         summary: "Turn an image into a video",
       },
       {
@@ -479,7 +456,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Make a contact sheet",
         id: "sheet",
-        inApp: true,
         summary: "A captioned contact sheet",
       },
     ],
@@ -495,7 +471,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Work in the terminal Studio",
         id: "studio",
-        inApp: false,
         summary: "The interactive terminal Studio",
       },
       {
@@ -505,7 +480,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "Read the CLI's schema",
         id: "describe",
-        inApp: false,
         summary: "Print the CLI schema as JSON",
       },
       {
@@ -515,7 +489,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "See the latest Generation",
         id: "last",
-        inApp: true,
         summary: "Show the latest Generation",
       },
       {
@@ -525,7 +498,6 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "See past Generations and spend",
         id: "history",
-        inApp: true,
         summary: "Past Generations and spend",
       },
     ],

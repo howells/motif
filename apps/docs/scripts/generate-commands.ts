@@ -521,11 +521,11 @@ function indexPage(commonFlags: readonly Flag[]): string {
     `## ${group.name}`,
     "",
     '<table class="docs-commands">',
-    '  <thead class="docs-sr"><tr><th>Command</th><th>What it does</th><th>Where</th></tr></thead>',
+    '  <thead class="docs-sr"><tr><th>Command</th><th>What it does</th></tr></thead>',
     "  <tbody>",
     ...group.commands.map(
       (spec) =>
-        `    <tr><td><a href="/commands/${spec.id}"><code>${spec.id}</code></a></td><td>${spec.summary}</td><td>${spec.inApp ? '<span class="docs-in-app">In the App</span>' : ""}</td></tr>`
+        `    <tr><td><a href="/commands/${spec.id}"><code>${spec.id}</code></a></td><td>${spec.summary}</td></tr>`
     ),
     "  </tbody>",
     "</table>",
@@ -534,7 +534,7 @@ function indexPage(commonFlags: readonly Flag[]): string {
   return [
     "---",
     "title: Commands",
-    'description: "Every command runs in your terminal. Those marked In the App run there too."',
+    'description: "Every command, grouped by what it does, and the options they share."',
     "sidebar:",
     "  label: All commands",
     "---",

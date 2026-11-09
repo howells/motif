@@ -1,24 +1,15 @@
 ---
 // The whole trail, as the Paper boards draw it ("Commands / Edit / erase"),
 // where Blume's own shows only the parent group. Labels are the sidebar's, so
-// a command page ends in its id while its title reads as plain words. A
-// command that also runs in the App says so at the right of the same row.
+// a command page ends in its id while its title reads as plain words.
 import { withMountedBase } from "blume/components/islands/base-path.ts";
 import type { Crumb } from "blume/components/layout/nav-utils.ts";
-
-import { GROUPS } from "../scripts/commands";
 
 interface Props {
   crumbs: Crumb[];
 }
 
 const { crumbs } = Astro.props;
-const current = crumbs.at(-1);
-const inApp = GROUPS.some((group) =>
-  group.commands.some(
-    (spec) => spec.inApp && current?.route === `/commands/${spec.id}`
-  )
-);
 ---
 
 {
@@ -41,7 +32,6 @@ const inApp = GROUPS.some((group) =>
           )}
         </ol>
       </nav>
-      {inApp && <p class="docs-in-app">In the App</p>}
     </div>
   )
 }

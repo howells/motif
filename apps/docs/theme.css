@@ -355,8 +355,7 @@
 
 /* ── Command pages ──────────────────────────────────────────────────── */
 
-/* The breadcrumb is the whole trail, muted, with the current page in ink.
-   A command that also runs in the App says so at the right of the row. */
+/* The breadcrumb is the whole trail, muted, with the current page in ink. */
 .docs-crumbs {
   display: flex;
   align-items: baseline;
@@ -399,13 +398,6 @@
   font-weight: 500;
 }
 
-.docs-in-app {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: var(--blume-muted-foreground);
-  white-space: nowrap;
-}
-
 .docs-commands {
   width: 100%;
   border-collapse: collapse;
@@ -424,11 +416,6 @@
 
 .docs-commands td:first-child {
   width: 8.5rem;
-}
-
-.docs-commands td:last-child {
-  text-align: right;
-  white-space: nowrap;
 }
 
 .docs-commands a {
