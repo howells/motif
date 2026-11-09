@@ -1,7 +1,8 @@
 import "./edit.css";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 
 import { ChapterSection, WideWords, Words } from "@/components/home/chapter";
+import { FadeImage } from "@/components/home/fade-image";
 import { Figure } from "@/components/home/figure";
 import { Cell, Grid } from "@/components/home/grid";
 import { imageSizes } from "@/components/home/image-sizes";
@@ -90,13 +91,10 @@ function Cutout() {
           desk={{ span: 4, start: 6 }}
           phone={{ span: 3, start: 2 }}
         >
-          <Image
+          <FadeImage
+            {...getImageProps({ ...cut.image, sizes: imageSizes(21, 49) })
+              .props}
             alt={cut.image.alt}
-            height={cut.image.height}
-            loading="lazy"
-            sizes={imageSizes(21, 49)}
-            src={cut.image.src}
-            width={cut.image.width}
           />
         </Cell>
         <Cell

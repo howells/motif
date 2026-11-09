@@ -12,6 +12,7 @@ import { describe, expect, it } from "vitest";
 // oxlint-disable-next-line howells/no-cross-workspace-app-imports -- test-only read of the docs site's page list, the source of truth for which docs pages exist
 import { GROUPS } from "../../../../docs/scripts/commands";
 import { HOME } from "./content";
+import { placeholderOf } from "./placeholders";
 import type { Command, ImageRef } from "./types";
 
 type Node = Readonly<Record<string, unknown>>;
@@ -242,6 +243,21 @@ describe("the homepage content", () => {
         }
       } else {
         wrong.push(`${image.src} is missing`);
+      }
+    }
+    expect(wrong).toStrictEqual([]);
+  });
+
+  it("has a placeholder for every opaque image, and none for a cut-out", async () => {
+    const wrong: string[] = [];
+    for (const image of images) {
+      const { isOpaque } = await sharp(path.join(PUBLIC, image.src)).stats();
+      const has = placeholderOf(image.src) !== undefined;
+      if (isOpaque && !has) {
+        wrong.push(`${image.src} has no placeholder: run pnpm placeholders`);
+      }
+      if (!isOpaque && has) {
+        wrong.push(`${image.src} is a cut-out with a placeholder`);
       }
     }
     expect(wrong).toStrictEqual([]);

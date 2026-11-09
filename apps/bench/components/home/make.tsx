@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { getImageProps } from "next/image";
 
 import {
   ChapterSection,
@@ -8,6 +8,7 @@ import {
   WideWords,
   Words,
 } from "@/components/home/chapter";
+import { FadeImage } from "@/components/home/fade-image";
 import { Figure } from "@/components/home/figure";
 import { Film } from "@/components/home/film";
 import { Cell, Grid } from "@/components/home/grid";
@@ -175,13 +176,10 @@ function NoBackground() {
           className="aspect-350/352 lg:aspect-square"
           desk={{ span: 7, start: 6 }}
         >
-          <Image
+          <FadeImage
+            {...getImageProps({ ...image, sizes: imageSizes(53, 90) }).props}
             alt={image.alt}
             className="size-full object-contain"
-            height={image.height}
-            sizes={imageSizes(53, 90)}
-            src={image.src}
-            width={image.width}
           />
         </Cell>
         <Cell desk={{ span: 3, start: 1 }}>
@@ -257,11 +255,13 @@ function FilmFromAStill() {
     <article id={item.id}>
       <Grid className="gap-y-4 lg:grid-flow-dense lg:items-start">
         <Cell desk={{ span: 8, start: 5 }}>
-          <Film
-            crop={{ phoneRatio: "350 / 440", ratio: "872 / 616" }}
-            figure={{ ...poster, film }}
-            sizes={imageSizes(61, 90)}
-          />
+          <Film film={film}>
+            <Plate
+              crop={{ phoneRatio: "350 / 440", ratio: "872 / 616" }}
+              image={poster.image}
+              sizes={imageSizes(61, 90)}
+            />
+          </Film>
         </Cell>
         <Cell desk={{ span: 3, start: 1 }}>
           <Words entry={item} />

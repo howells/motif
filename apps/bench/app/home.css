@@ -183,6 +183,59 @@
   }
 }
 
+/* ── Loading ────────────────────────────────────────────────────────────
+   A plate first shows its picture twelve pixels wide and blurred, so the
+   page opens in the pictures' own colours. The scale pushes the blur's soft
+   edge outside the box. A matted picture sits inset on the paper, so a blur
+   filling the box would not match it; it waits on the plain mat. */
+.home-placeholder {
+  background-image: var(--placeholder-phone, var(--placeholder));
+  background-position: var(--position-phone, 50% 50%);
+  background-size: cover;
+  filter: blur(24px);
+  inset: 0;
+  position: absolute;
+  scale: 1.15;
+}
+
+@media (width >= 64rem) {
+  .home-placeholder {
+    background-image: var(--placeholder);
+    background-position: 50% 50%;
+  }
+}
+
+.home-matte .home-placeholder {
+  display: none;
+}
+
+/* Then the picture fades in over its blur and settles from a touch larger.
+   Blur and picture crossfade, so it reads as one picture coming into focus
+   without animating a filter on a full-width image. Slower than interface
+   motion: these are the largest things on the page and each loads once.
+   Hiding is instant; a cached picture is never hidden, so never animates. */
+.home-fade {
+  transition:
+    opacity 700ms cubic-bezier(0.22, 1, 0.36, 1),
+    scale 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home-fade[data-loading] {
+  opacity: 0;
+  scale: 1.04;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-fade {
+    transition: opacity 200ms ease;
+  }
+
+  .home-fade[data-loading] {
+    scale: 1;
+  }
+}
+
 /* ── Rhythm ─────────────────────────────────────────────────────────── */
 .home-chapter {
   padding-block-start: var(--home-chapter-gap);

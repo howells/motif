@@ -1,27 +1,24 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
 
-import type { Crop } from "@/components/home/plate";
-import { Plate } from "@/components/home/plate";
 import type { Figure } from "@/lib/site/home/types";
 
-/** A still with a play button over it. The film loads only when the reader
- * presses play, then runs in the still's place with the browser's own
- * controls. */
+/** A still, passed in as `children`, with a play button over it. The film
+ * loads only when the reader presses play, then runs in the still's place
+ * with the browser's own controls. */
 export function Film({
-  crop,
-  figure,
-  sizes,
+  children,
+  film,
 }: {
-  readonly crop: Crop;
-  readonly figure: Figure & { readonly film: NonNullable<Figure["film"]> };
-  readonly sizes: string;
+  readonly children: ReactNode;
+  readonly film: NonNullable<Figure["film"]>;
 }) {
   const [playing, setPlaying] = useState(false);
   return (
     <div className="relative">
-      <Plate crop={crop} image={figure.image} sizes={sizes} />
+      {children}
       {playing ? (
         // oxlint-disable-next-line jsx-a11y/media-has-caption -- the film has no speech or sound to caption
         <video
@@ -29,11 +26,11 @@ export function Film({
           className="bg-surface absolute inset-0 size-full object-cover"
           controls
           playsInline
-          src={figure.film.src}
+          src={film.src}
         />
       ) : (
         <button
-          aria-label={figure.film.play}
+          aria-label={film.play}
           className="group absolute inset-0 grid cursor-pointer place-items-center"
           onClick={() => {
             setPlaying(true);
