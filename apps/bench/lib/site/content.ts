@@ -1,7 +1,6 @@
 /** The site's name, address and install line, read by the root layout, the
- * share card, the manifest, robots, the sitemap and the homepage, and the
- * links to the packages, read by the App's shell. The homepage's own words
- * live in `lib/site/home/`. */
+ * share card, robots, the sitemap and the homepage, and the links to the
+ * packages. The homepage's own words live in `lib/site/home/`. */
 
 export const SITE = {
   description:

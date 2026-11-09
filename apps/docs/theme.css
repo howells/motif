@@ -189,8 +189,7 @@
   text-transform: none;
 }
 
-/* A page's title is the display face at heading size, the same as the
-   App's `type-heading` (apps/bench/app/globals.css): Faculty Glyphic 28/32. */
+/* A page's title is the display face at heading size: Faculty Glyphic 28/32. */
 .prose h1 {
   font-family: "Faculty Glyphic", var(--blume-font-display);
   font-size: 1.75rem;

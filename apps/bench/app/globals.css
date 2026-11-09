@@ -1,16 +1,12 @@
-/* Motif Bench — the Patternmode house theme (`docs/design/specs/design-bench.md`).
-   Warm paper ground, warm-grey hairlines, one forest accent, borders-only
-   depth. The single deliberate departure is the image plate: a neutral,
-   near-achromatic dark surface, because image quality cannot be judged
-   against warm white. */
+/* Motif's site theme: the tokens and base styles the homepage sits on. The
+   homepage itself is the light `.site` palette (site.css) and its own grid and
+   type (home.css). */
 
 @import "tailwindcss";
-@import "tw-animate-css";
-/* The light palette scoped to `.site`: the homepage, entry pages and App. */
+/* The light palette scoped to `.site`. */
 @import "./site.css";
 /* The homepage's grid, rhythm and type, scoped to `.home`. */
 @import "./home.css";
-@import "./app.css";
 
 @theme {
   /* ── Dark throughout ──────────────────────────────────────────────
@@ -82,7 +78,7 @@
 /* ── The scales ────────────────────────────────────────────────────────
    One 4px-based spacing scale, one radius scale and one control height,
    named once here and read by every stylesheet and every component on the
-   site, in the App and in the Bench. The spacing steps are Tailwind's own
+   site. The spacing steps are Tailwind's own
    (`gap-2` is 8px) and the CSS custom properties are the same numbers, so a
    stylesheet writes `var(--spacing-4)` where markup writes `p-4`. Anything
    between two steps is a decision to take one of them, never a new number.
@@ -109,7 +105,7 @@
   --spacing-32: 8rem;
 
   /* The one control height, and the touch target. Buttons, inputs, selects,
-     tabs and nav rows are this tall on the site, in the App and in the Bench. */
+     tabs and nav rows are this tall on the site. */
   --spacing-control: 44px;
 
   /* The page gutter: 16px on a phone, 64px from 1450px up. */
@@ -166,8 +162,6 @@
   }
 
   html {
-    /* The horizontal-overflow guard lives unlayered at the bottom of this
-       file, not here — see the note there for why. */
     -webkit-text-size-adjust: 100%;
   }
 
@@ -177,7 +171,7 @@
     font-family: var(--font-sans);
     /* Weight 400 everywhere. `font-medium` (500) is the one emphasis weight,
        on names, buttons and the active nav item; nothing sits between. The
-       body's size and leading are `type-body`'s, set in the case below. */
+       body's size and leading are set below. */
     font-feature-settings: "cpsp", "cv01", "cv02", "cv11";
     font-synthesis: none;
     font-weight: 400;
@@ -237,106 +231,12 @@
   }
 }
 
-/* ── The type case ─────────────────────────────────────────────────────
-   Four roles, shared by the public pages, the App and the Bench and defined
-   here once; the homepage alone sets its own (below). Every piece of text
-   picks exactly one. Weight is 400 in all of them; `font-medium` (500) is the
-   single emphasis, and the only modifiers beside a role are `font-medium`,
-   `font-mono` (literal command or code text, at `type-small` size),
-   `tabular-nums` and `capitalize`. The `howells/no-raw-type-utilities` rule
-   holds every component.
-
-       type-heading   28/32, -0.01em       Faculty   editorial heads; site only
-       type-title     18/24, -0.01em       Inter     panel, section and dialog titles
-       type-body      14/20                Inter     names, sentences, buttons, inputs
-       type-small     13/20                Inter     metadata, labels, captions, figures
-
-   A page's own title in the App and the Bench (`.app-head h1`,
-   `.app-screen-title`, `.library-title`) is `type-title` in Faculty Glyphic,
-   as the homepage and the docs set theirs. Section titles and the board's
-   current beat stay Inter.
-
-   The homepage is the exception. It is set on its own editorial grid and
-   carries its own type styles, scoped to `.home` in home.css, which its
-   components use instead of these roles.
-
-   One body leading. The public pages' reading columns used 23px; at 20px a
-   paragraph is still comfortable, and a long column is given air between its
-   paragraphs (`space-y-3`) rather than a second leading, so `type-body` has
-   exactly one shape everywhere.
-
-   The App's own classes join the role they belong to instead of restating a
-   size, so the numbers below are the only ones in the product. */
+/* The body's size and leading. The homepage sets its own type styles, scoped
+   to `.home` in home.css; anything it leaves alone inherits these. */
 @layer components {
-  .type-heading,
-  .app-wordmark {
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 2rem;
-  }
-
-  .type-title,
-  .app-head h1,
-  .app-screen-title,
-  .library-title,
-  .board-beat-current {
-    font-family: var(--font-sans);
-    font-size: 1.125rem;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 1.5rem;
-  }
-
-  .app-head h1,
-  .app-screen-title,
-  .library-title {
-    font-family: var(--font-display);
-  }
-
-  .type-body,
-  body,
-  .app-nav a,
-  .app-button,
-  .app-input,
-  .app-select,
-  .app-textarea,
-  .board-segmented > label,
-  .board-segmented > button,
-  .board-button,
-  .board-field,
-  .library-plate-button {
+  body {
     font-size: 0.875rem;
     letter-spacing: normal;
     line-height: 1.25rem;
   }
-
-  .type-small,
-  .app-label,
-  .app-segmented label,
-  .app-value,
-  .board-figure,
-  .board-chip,
-  .library-label {
-    font-size: 0.8125rem;
-    letter-spacing: normal;
-    line-height: 1.25rem;
-  }
 }
-
-/* The one documented exception: iOS zooms the page on focus into any field
-   below 16px, so a field is 16px on a phone or any touch screen. Written once,
-   unlayered so it outranks the roles. */
-@media (pointer: coarse), (width < 48rem) {
-  :is(input, select, textarea, .app-prompt, .board-field) {
-    font-size: 1rem;
-    line-height: 1.5rem;
-  }
-}
-
-/* A page-level `overflow-x: clip` used to live here to stop the comparison
-   table's overflow reaching the document. It is gone, and so is the
-   `contain: paint` that replaced it: the table now renders inside the run
-   pane's `ScrollFrame`, which owns both axes, so its width never reaches the
-   document in the first place. */

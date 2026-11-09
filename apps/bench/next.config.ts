@@ -7,12 +7,6 @@ const nextConfig: NextConfig = {
   // The compiler memoizes components itself, which is why this app no longer
   // writes useMemo or useCallback by hand.
   reactCompiler: true,
-  // Mastra ships native/ESM-only bits that must not go through Next's
-  // client/server bundling — same convention as materialdesk.
-  serverExternalPackages: ["@mastra/*"],
-  // No-build workspace packages: Next must transpile their `src/*.ts`
-  // sources itself rather than expecting a `dist/`.
-  transpilePackages: ["@motif/bench-db", "@motif/bench-env"],
   // The docs are their own Blume project, served here under /docs.
   async rewrites() {
     return [
@@ -20,11 +14,27 @@ const nextConfig: NextConfig = {
       { destination: `${DOCS_ORIGIN}/docs/:path*`, source: "/docs/:path*" },
     ];
   },
-  // The pages the docs replaced. `/commands/:id` stays a route, because
-  // signed in it is the App's form for that Task.
+  // The pages the docs replaced. Two catalogue ids have no page of their own
+  // in the docs: `series run` lives on `series`, and the error codes on the
+  // agents page.
   async redirects() {
     return [
       { destination: "/docs/commands", permanent: true, source: "/commands" },
+      {
+        destination: "/docs/commands/series",
+        permanent: true,
+        source: "/commands/series-run",
+      },
+      {
+        destination: "/docs/agents",
+        permanent: true,
+        source: "/commands/errors",
+      },
+      {
+        destination: "/docs/commands/:id",
+        permanent: true,
+        source: "/commands/:id",
+      },
       {
         destination: "/docs/looks-and-moods",
         permanent: true,

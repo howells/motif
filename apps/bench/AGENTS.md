@@ -1,6 +1,6 @@
 # motif bench
 
-Next.js app (port 4400). See the root `AGENTS.md`.
+Next.js app (port 4400) that hosts Motif's public homepage: `/`, its share card, icons, `robots.txt` and `sitemap.xml`, plus the rewrite that mounts the docs site (`apps/docs`) under `/docs` and the redirects from the pages the docs replaced. The directory keeps the name it had; it holds nothing else. The homepage's own words are in `lib/site/home/`, its layout in `components/home/` and its grid and type in `app/home.css`. See the root `AGENTS.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

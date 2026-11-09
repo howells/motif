@@ -2,13 +2,11 @@ import type { ReactNode } from "react";
 
 import { dmMono, facultyGlyphic } from "@/components/site/fonts";
 
-/** The homepage stands on its own, with no rail and no bar: the same paper,
- * type and palette as the pages in `(entry)`, and no Shell. */
+/** The homepage stands on its own: the `.site` paper palette and the two
+ * faces, and nothing around it. */
 function HomeLayout({ children }: { readonly children: ReactNode }) {
   return (
-    <div
-      className={`site app app-entry home ${facultyGlyphic.variable} ${dmMono.variable}`}
-    >
+    <div className={`site home ${facultyGlyphic.variable} ${dmMono.variable}`}>
       {children}
     </div>
   );

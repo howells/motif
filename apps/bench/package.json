@@ -16,15 +16,6 @@
   "dependencies": {
     "@blossom-carousel/react": "catalog:",
     "@howells/motif-sdk": "workspace:*",
-    "@mastra/core": "catalog:",
-    "@motif/bench-db": "workspace:*",
-    "@motif/bench-env": "workspace:*",
-    "@tanstack/react-query": "catalog:",
-    "@vercel/blob": "catalog:",
-    "@workos-inc/authkit-nextjs": "catalog:",
-    "@workos-inc/node": "catalog:",
-    "@xyflow/react": "catalog:",
-    "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -41,7 +32,6 @@
     "@types/react-dom": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
     "tailwindcss": "catalog:",
-    "tw-animate-css": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

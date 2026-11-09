@@ -1,6 +1,6 @@
 /* The light palette drawn from the Paper file "Motif", scoped to `.site`:
-   the homepage, the entry pages and the App's shell all sit inside it. The
-   homepage's own grid, rhythm and type are in home.css.
+   the homepage sits inside it. The homepage's own grid, rhythm and type are
+   in home.css.
 
    globals.css owns the dark tokens declared in `@theme`. This palette is
    scoped to the class rather than declared there, so the two never
@@ -26,25 +26,18 @@
   /* Both faces arrive as next/font variables on the same element. Overriding
      `--font-mono` here rather than in `@theme` keeps it to this page: the
      `font-mono` utility reads this variable, so every command on `/` is set
-     in DM Mono while the App keeps the system stack it was built on. */
+     in DM Mono. */
   --font-display: var(--font-faculty), ui-serif, Georgia, serif;
   --font-mono:
     var(--font-dm-mono), "SFMono-Regular", "SF Mono", Menlo, monospace;
 
   background: var(--ground);
   color: var(--ink);
-  /* The boards run their photographs off the right edge. Clipping here means
-     that bleed costs no sideways scroll. */
+  /* The photographs run off the right edge. Clipping here means that bleed
+     costs no sideways scroll. */
   overflow-x: clip;
   /* The page is one light surface whatever the browser's scheme, and it must
-     cover the bench app's dark body underneath it. */
+     cover the dark body underneath it. */
   color-scheme: light;
   min-block-size: 100dvh;
-}
-
-/* A command chip: a surface block with mono text, where the App's task
-   workspace shows something you could type. */
-.site-command {
-  background: var(--surface);
-  padding: var(--spacing-3) var(--spacing-4);
 }

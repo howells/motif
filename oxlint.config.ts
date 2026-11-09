@@ -96,32 +96,6 @@ export default {
   },
   overrides: [
     {
-      // The product's type case (apps/bench/app/globals.css): four roles,
-      // `type-heading`, `type-title`, `type-body` and `type-small`, shared by
-      // the public pages, the App and the Bench, all at weight 400. The
-      // homepage is the one exception: it carries its own type styles, scoped
-      // to `.home` in apps/bench/app/home.css, and its components set text
-      // through those classes instead. Everywhere else every piece of text
-      // picks exactly one role, and hierarchy comes from size and colour. The sanctioned modifiers are
-      // `font-medium` (the single emphasis weight: names, buttons, the active
-      // nav item), `font-mono` (literal command or code text, at `type-small`
-      // size) and `capitalize` (cases a data value); `tabular-nums` is not a
-      // typographic utility this rule governs. Written down on its own the
-      // case drifts, because each file's raw utility looks reasonable in
-      // isolation, so this rule holds every component.
-      files: [
-        "apps/bench/components/**",
-        "apps/bench/app/**",
-        "apps/bench/lib/**",
-      ],
-      rules: {
-        "howells/no-raw-type-utilities": [
-          "error",
-          { allow: ["font-medium", "font-mono", "capitalize"] },
-        ],
-      },
-    },
-    {
       // React Doctor rules are DOM-oriented (see header note), so they stay
       // off everywhere except the Next app.
       files: ["apps/cli/**", "packages/**"],
@@ -212,14 +186,6 @@ export default {
       rules: {
         "max-lines": "off",
       },
-    },
-    {
-      // Next.js App Router Route Handlers export their HTTP methods as
-      // uppercase named exports (`GET`/`POST`/`PUT`/...) — a framework
-      // convention, not a style choice, so the general identifier-casing
-      // rule does not apply to this one narrow file shape.
-      files: ["apps/bench/app/**/route.ts"],
-      rules: {},
     },
     {
       // Test files: the shared preset's test overlay only relaxes

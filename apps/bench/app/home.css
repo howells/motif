@@ -4,10 +4,10 @@
    mount = surface, ink, muted, rule); this file adds the page's grid, its
    vertical rhythm and its three type styles, scoped to `.home`.
 
-   The numbers here are the artboards' own and sit outside the product's
-   spacing scale on purpose: the page is set on a 12-column grid with an 8px
-   baseline (desktop) and a 4-column grid (phone), not on the App's 4px
-   steps. Components read them through the classes below, never as numbers.
+   The numbers here are the artboards' own: the page is set on a 12-column
+   grid with an 8px baseline (desktop) and a 4-column grid (phone), not on the
+   4px spacing scale. Components read them through the classes below, never as
+   numbers.
 
    Below 64rem the page uses the phone composition. Its four columns grow
    with the screen up to 36rem and then stop, the margins taking the rest, so
@@ -32,6 +32,14 @@
   --home-text-gap: 16px;
   --home-caption-gap: 8px;
   --home-rule-gap: 23px;
+
+  /* The Tailwind colour tokens, remapped to the `.site` paper palette, so
+     `text-ink`, `bg-surface` and `text-muted` mean the same here as `--ink`,
+     `--surface` and `--muted` do in site.css. */
+  --color-background: var(--ground);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
 
   background: var(--ground);
   color: var(--ink);

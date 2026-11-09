@@ -2,11 +2,9 @@ import type { MetadataRoute } from "next";
 
 import { SITE } from "@/lib/site/content";
 
-/** The public page is `/`. The App and its API sit behind it and have nothing
- * a search engine should list. */
 function robots(): MetadataRoute.Robots {
   return {
-    rules: { allow: "/", disallow: ["/api"], userAgent: "*" },
+    rules: { allow: "/", userAgent: "*" },
     sitemap: `${SITE.url}/sitemap.xml`,
   };
 }
