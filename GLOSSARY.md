@@ -31,3 +31,4 @@ Motif is a creative automation interface for fal.ai media endpoints, built aroun
 - Every Task ranks its Models; Motif uses the highest-ranked Model that can do what the request asks for at the chosen Tier. The prompt never affects the choice.
 - An explicit Model overrides the ranking, and a Look's Model comes before the Task's ranking, so a Tier has no effect on a Look.
 - A Series has no Model of its own, and can pin one Look and one Mood for every generation in it.
+- Motif knows images, words and settings, never what product is in a picture. Whoever calls Motif keeps product identity, true size and samples.

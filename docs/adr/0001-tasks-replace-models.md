@@ -6,7 +6,7 @@ Users and agents had to know fal's catalogue to use Motif, models churn faster t
 
 Consequences:
 
-- The resolved Model is recorded in JSON output and history so a run can be repeated, costed and varied, but is absent from the CLI's human output and help, and from the homepage. `--model` is the only way to name one. The docs may list the Models behind a Task with their prices, and the App and Bench may show the Model a run used.
+- The resolved Model is recorded in JSON output and history so a run can be repeated, costed and varied, but is absent from the CLI's human output and help, and from the homepage. `--model` is the only way to name one. The docs may list the Models behind a Task with their prices.
 - Rankings are data in the SDK, hand-ranked from price and quality unless a bench comparison sets the order. A ranking change ships as a minor release, so outputs can change on upgrade; `--model` or a pinned Model in config holds them steady.
 - Options any capable Model can honour (ratio, count, seed, transparency, References, mask, negative, output format) are Task options, and quality knobs fold into `--tier`. Model-only options are accepted only with an explicit Model, through `--param key=value`.
 - Providers in the image layer only carry requests; Task resolution is the one place a Model is chosen.
