@@ -1,9 +1,11 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
+
 import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import { messageOf } from "@/lib/app/client/api";
 import type { Built, Draft } from "@/lib/app/client/task-draft";
-import { formatCap, formatUsd } from "@/lib/app/money";
+import { formatCap, formatDollars, toUsd } from "@/lib/app/money";
 
 interface Alternative {
   readonly micros: number;
@@ -66,7 +68,8 @@ function Blocked({
               }}
               type="button"
             >
-              Use {alternative.model}, up to {formatUsd(alternative.micros)}
+              Use {alternative.model}, up to{" "}
+              {formatCost(toUsd(alternative.micros))}
             </button>
           ))}
         </div>
@@ -110,9 +113,7 @@ export function Estimate({
   }
   const over = quote.boundMicros > quote.availableMicros;
   const projected =
-    quote.estimate.usd === null
-      ? null
-      : formatUsd(Math.round(quote.estimate.usd * 1_000_000));
+    quote.estimate.usd === null ? null : formatCost(quote.estimate.usd);
   return (
     <div className="flex flex-col gap-1">
       <p className="flex items-baseline justify-between gap-3">
@@ -124,15 +125,15 @@ export function Estimate({
           {projected === null ? null : (
             <span className="app-value text-ink">{projected} </span>
           )}
-          of {formatUsd(quote.availableMicros)} left
+          of {formatDollars(quote.availableMicros)} left
         </span>
       </p>
       <p className={`type-small ${over ? "text-bad" : "text-faint"}`}>
         {over
-          ? `This holds ${formatUsd(quote.boundMicros)}, more than the ${formatUsd(quote.availableMicros)} left this month.`
+          ? `This holds ${formatCost(toUsd(quote.boundMicros))}, more than the ${formatDollars(quote.availableMicros)} left this month.`
           : quote.usage
-            ? `Billed by usage. Holds ${formatUsd(quote.boundMicros)} while it runs, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image.`
-            : `Holds up to ${formatUsd(quote.boundMicros)} while it runs.`}
+            ? `Billed by usage. Holds ${formatCost(toUsd(quote.boundMicros))} while it runs, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image.`
+            : `Holds up to ${formatCost(toUsd(quote.boundMicros))} while it runs.`}
       </p>
     </div>
   );

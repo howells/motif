@@ -45,4 +45,11 @@ describe("chargeLine", () => {
     expect(chargeLine(generation("held"))).toContain("Holding up to $0.221");
     expect(chargeLine(generation("settled", 150_001))).toBe("Charged $0.150.");
   });
+
+  it("prints a run's cost to three places at any size, as the SDK does", () => {
+    expect(chargeLine(generation("settled", 1_120_000))).toBe(
+      "Charged $1.120."
+    );
+    expect(chargeLine(generation("settled", 0))).toBe("Charged $0.000.");
+  });
 });

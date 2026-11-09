@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,7 +20,7 @@ import { api, messageOf, newKey } from "@/lib/app/client/api";
 import { MakeQuoteSchema, RunReply } from "@/lib/app/client/board-schemas";
 import type { MakeQuoteData } from "@/lib/app/client/board-schemas";
 import type { PickedImage } from "@/lib/app/client/task-draft";
-import { formatCap, formatUsd } from "@/lib/app/money";
+import { formatCap, formatDollars, toUsd } from "@/lib/app/money";
 
 /** Wait until typing stops before asking for a price. */
 const useSettled = <T,>(value: T, ms: number): T => {
@@ -111,7 +112,7 @@ const priceLine = (
     return price.reason;
   }
   if (price.micros > price.availableMicros) {
-    return `More than the ${formatUsd(price.availableMicros)} left this month.`;
+    return `More than the ${formatDollars(price.availableMicros)} left this month.`;
   }
   const by = look === "" ? "Motif’s choice" : "from the Look";
   const billed = price.usage ? " Billed by usage." : "";
@@ -238,7 +239,7 @@ function MakeFooter({
             ? ""
             : price.usage
               ? `Up to ${formatCap(price.listMicros)}`
-              : formatUsd(price.listMicros)}
+              : formatCost(toUsd(price.listMicros))}
         </span>
       </p>
       {error === null ? null : (

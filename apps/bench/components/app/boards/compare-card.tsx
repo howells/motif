@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useState } from "react";
 
 import { useBoard } from "@/components/app/boards/board-context";
@@ -17,7 +18,7 @@ import type {
   NodeViewData,
   ResultViewData,
 } from "@/lib/app/client/board-schemas";
-import { formatSeconds, formatUsd } from "@/lib/app/money";
+import { formatSeconds, toUsd } from "@/lib/app/money";
 
 /** `$0.030 · 15 s`, as much of it as is known. */
 const columnFacts = (result: ResultViewData | undefined): string => {
@@ -25,8 +26,8 @@ const columnFacts = (result: ResultViewData | undefined): string => {
   if (result?.costMicros !== undefined && result.costMicros !== null) {
     facts.push(
       result.costEstimated
-        ? `About ${formatUsd(result.costMicros)}`
-        : formatUsd(result.costMicros)
+        ? `About ${formatCost(toUsd(result.costMicros))}`
+        : formatCost(toUsd(result.costMicros))
     );
   }
   if (result?.elapsedMs !== undefined && result.elapsedMs !== null) {

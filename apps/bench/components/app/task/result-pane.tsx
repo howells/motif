@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { Maximize2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -9,7 +10,7 @@ import { messageOf } from "@/lib/app/client/api";
 import { chargeLine } from "@/lib/app/client/charge";
 import { useAfterSettle } from "@/lib/app/client/settled";
 import { isInFlight, useGeneration } from "@/lib/app/client/use-generation";
-import { formatSeconds, formatUsd } from "@/lib/app/money";
+import { formatSeconds, toUsd } from "@/lib/app/money";
 import type { GenerationView } from "@/lib/app/views";
 import { SOURCE_TASK_IDS, taskTitle } from "@/lib/site/commands";
 
@@ -99,10 +100,10 @@ const metaOf = (generation: GenerationView): string => {
   const parts = [
     generation.model,
     generation.costStatus === "retained"
-      ? `about ${formatUsd(generation.boundMicros)}`
+      ? `about ${formatCost(toUsd(generation.boundMicros))}`
       : generation.costMicros === null
         ? "cost not known yet"
-        : formatUsd(generation.costMicros),
+        : formatCost(toUsd(generation.costMicros)),
   ];
   if (generation.elapsedMs !== null) {
     parts.push(formatSeconds(generation.elapsedMs));

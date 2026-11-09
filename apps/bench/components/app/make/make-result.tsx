@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
@@ -17,7 +18,7 @@ import type {
   RunResultsData,
 } from "@/lib/app/client/board-schemas";
 import { useAfterSettle } from "@/lib/app/client/settled";
-import { formatSeconds, formatUsd } from "@/lib/app/money";
+import { formatSeconds, toUsd } from "@/lib/app/money";
 
 type ResultOutput = ResultViewData["outputs"][number];
 
@@ -251,8 +252,8 @@ export function MakeResult({
             {result === undefined || result.costMicros === null
               ? ""
               : result.costEstimated
-                ? `About ${formatUsd(result.costMicros)}`
-                : formatUsd(result.costMicros)}
+                ? `About ${formatCost(toUsd(result.costMicros))}`
+                : formatCost(toUsd(result.costMicros))}
           </span>
         </p>
         <Facts prompt={again.prompt} result={result} words={words} />

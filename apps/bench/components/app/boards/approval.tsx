@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 
@@ -14,7 +15,7 @@ import type {
   RunViewData,
   StepQuoteData,
 } from "@/lib/app/client/board-schemas";
-import { formatCap, formatUsd } from "@/lib/app/money";
+import { formatCap, formatDollars, toUsd } from "@/lib/app/money";
 
 const quoteOf = async (
   boardId: string,
@@ -65,7 +66,8 @@ function Step({
                     }}
                     type="button"
                   >
-                    Use {alternative.name}, {formatUsd(alternative.listMicros)}
+                    Use {alternative.name},{" "}
+                    {formatCost(toUsd(alternative.listMicros))}
                   </button>
                 ))}
               </span>
@@ -74,7 +76,7 @@ function Step({
         )}
       </span>
       <span className="board-figure w-16 shrink-0 text-right">
-        {step.ok ? formatUsd(step.listMicros) : ""}
+        {step.ok ? formatCost(toUsd(step.listMicros)) : ""}
       </span>
     </li>
   );
@@ -111,7 +113,7 @@ function ScopeChoice({
           <span className="board-figure">
             {choice.quote === undefined
               ? ""
-              : formatUsd(choice.quote.listMicros)}
+              : formatCost(toUsd(choice.quote.listMicros))}
           </span>
         </button>
       ))}
@@ -124,8 +126,8 @@ const isOverCap = (quote: QuoteViewData): boolean =>
 
 const totalLine = (quote: QuoteViewData): string =>
   isOverCap(quote)
-    ? `More than the ${formatUsd(quote.availableMicros)} left this month`
-    : `Up to ${formatUsd(Math.max(0, quote.availableMicros - quote.micros))} left this month after this run`;
+    ? `More than the ${formatDollars(quote.availableMicros)} left this month`
+    : `Up to ${formatDollars(Math.max(0, quote.availableMicros - quote.micros))} left this month after this run`;
 
 function QuoteSteps({
   label,
@@ -170,19 +172,19 @@ function QuoteSteps({
             </span>
           </span>
           <span className="board-figure w-16 shrink-0 text-right font-medium">
-            {formatUsd(quote.listMicros)}
+            {formatCost(toUsd(quote.listMicros))}
           </span>
         </li>
       </ol>
       {quote.ready && quote.steps.some((step) => step.ok && step.usage) ? (
         <p className="type-small text-muted px-4">
-          Holds {formatUsd(quote.micros)} while it runs. You pay what fal
-          charges; if fal doesn’t say, the hold counts as an estimate.
+          Holds {formatCost(toUsd(quote.micros))} while it runs. You pay what
+          fal charges; if fal doesn’t say, the hold counts as an estimate.
         </p>
       ) : quote.ready && quote.micros > quote.listMicros ? (
         <p className="type-small text-muted px-4">
-          Holds up to {formatUsd(quote.micros)} while it runs. You pay what fal
-          charges.
+          Holds up to {formatCost(toUsd(quote.micros))} while it runs. You pay
+          what fal charges.
         </p>
       ) : null}
     </>
@@ -245,7 +247,7 @@ function Actions({
         <PlayIcon />
         {pending
           ? "Starting…"
-          : `Approve ${quote === undefined ? "" : formatUsd(quote.listMicros)}`}
+          : `Approve ${quote === undefined ? "" : formatCost(toUsd(quote.listMicros))}`}
       </button>
     </div>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useState } from "react";
 
 import { useBoard } from "@/components/app/boards/board-context";
@@ -12,7 +13,7 @@ import { BOARD_TIERS, MAX_COMPARE_MODELS } from "@/lib/app/boards/model";
 import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import { messageOf } from "@/lib/app/client/api";
 import type { NodeOptionsData } from "@/lib/app/client/board-schemas";
-import { formatCap, formatUsd } from "@/lib/app/money";
+import { formatCap, toUsd } from "@/lib/app/money";
 
 const TIER_LABEL = {
   balanced: "Balanced",
@@ -32,7 +33,9 @@ const modelNote = (motif: boolean, usage: boolean): string => {
 };
 
 const priceOf = (model: ModelOption): string =>
-  model.listMicros === null || model.usage ? "" : formatUsd(model.listMicros);
+  model.listMicros === null || model.usage
+    ? ""
+    : formatCost(toUsd(model.listMicros));
 
 export function ModelChoice({ node }: { readonly node: TaskNodeView }) {
   const { editSettings } = useBoard();

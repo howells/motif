@@ -247,9 +247,14 @@
    holds every component.
 
        type-heading   28/32, -0.01em       Faculty   editorial heads; site only
-       type-title     18/24, -0.01em       Inter     screen, panel and dialog titles
+       type-title     18/24, -0.01em       Inter     panel, section and dialog titles
        type-body      14/20                Inter     names, sentences, buttons, inputs
        type-small     13/20                Inter     metadata, labels, captions, figures
+
+   A page's own title in the App and the Bench (`.app-head h1`,
+   `.app-screen-title`, `.library-title`) is `type-title` in Faculty Glyphic,
+   as the homepage and the docs set theirs. Section titles and the board's
+   current beat stay Inter.
 
    The homepage is the exception. It is set on its own editorial grid and
    carries its own type styles, scoped to `.home` in home.css, which its
@@ -282,6 +287,12 @@
     font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 1.5rem;
+  }
+
+  .app-head h1,
+  .app-screen-title,
+  .library-title {
+    font-family: var(--font-display);
   }
 
   .type-body,

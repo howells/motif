@@ -3,6 +3,7 @@ import { defineConfig } from "blume";
 import { GROUPS } from "./scripts/commands";
 
 const SITE = "https://motif.danielhowells.com";
+const GITHUB = "https://github.com/howells/motif";
 
 /** The Motif documentation, served from motif.danielhowells.com/docs.
  *
@@ -31,7 +32,7 @@ export default defineConfig({
   footer: {
     copyright: "Motif documentation",
     links: [
-      { href: "https://github.com/howells/motif", label: "GitHub" },
+      { href: GITHUB, label: "GitHub" },
       {
         href: "https://www.npmjs.com/package/@howells/motif-cli",
         label: "npm",
@@ -42,7 +43,13 @@ export default defineConfig({
   logo: { href: SITE, text: "Motif" },
   markdown: { code: { icons: false } },
   navigation: {
-    cta: { href: `${SITE}/make`, label: "Open the App" },
+    // Plain text links, as the homepage masthead has them. Blume hides header
+    // links below `sm`, so the phone header keeps only search and the menu.
+    actions: [
+      { href: SITE, label: "Home" },
+      { href: GITHUB, label: "GitHub" },
+      { href: `${SITE}/make`, label: "Open the App" },
+    ],
     repo: false,
     // Written out so the order matches the Paper boards: two groups, then
     // three plain pages. The command groups are the same ones the generated

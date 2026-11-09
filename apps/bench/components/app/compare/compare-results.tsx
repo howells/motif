@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
@@ -12,7 +13,7 @@ import { chargeLine } from "@/lib/app/client/charge";
 import { ComparisonReply, Ignored } from "@/lib/app/client/schemas";
 import { useAfterSettle } from "@/lib/app/client/settled";
 import { isInFlight } from "@/lib/app/client/use-generation";
-import { formatSeconds, formatUsd } from "@/lib/app/money";
+import { formatSeconds, toUsd } from "@/lib/app/money";
 import type { GenerationView } from "@/lib/app/views";
 
 type Tab = "images" | "quality" | "table";
@@ -114,7 +115,7 @@ function Tile({
             : [
                 costOf(generation) === null
                   ? null
-                  : formatUsd(costOf(generation) ?? 0),
+                  : formatCost(toUsd(costOf(generation) ?? 0)),
                 generation.elapsedMs === null
                   ? null
                   : formatSeconds(generation.elapsedMs),
@@ -172,7 +173,7 @@ function Ranking({
                     ? "not ranked"
                     : `ranked ${rankOf(generation.model)}`}
                   {" · "}
-                  {cost === null ? "cost unknown" : formatUsd(cost)}
+                  {cost === null ? "cost unknown" : formatCost(toUsd(cost))}
                 </span>
               </li>
             );
@@ -301,7 +302,7 @@ export function CompareResults({
           <dd className="type-body">
             {cheapest === undefined
               ? "—"
-              : `${nameOf(cheapest.model)}, ${formatUsd(cheapest.costMicros ?? 0)}`}
+              : `${nameOf(cheapest.model)}, ${formatCost(toUsd(cheapest.costMicros ?? 0))}`}
           </dd>
         </div>
         <div>
@@ -312,7 +313,7 @@ export function CompareResults({
         </div>
         <div>
           <dt className="type-small text-muted">Spent</dt>
-          <dd className="app-value">{formatUsd(spent)}</dd>
+          <dd className="app-value">{formatCost(toUsd(spent))}</dd>
         </div>
       </dl>
       <div
@@ -423,10 +424,10 @@ export function CompareResults({
                   <td className="app-value py-3 text-right">
                     {costOf(generation) === null
                       ? "unknown"
-                      : formatUsd(costOf(generation) ?? 0)}
+                      : formatCost(toUsd(costOf(generation) ?? 0))}
                   </td>
                   <td className="app-value text-muted py-3 text-right">
-                    {formatUsd(generation.boundMicros)}
+                    {formatCost(toUsd(generation.boundMicros))}
                   </td>
                 </tr>
               ))}

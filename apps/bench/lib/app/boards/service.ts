@@ -3,13 +3,13 @@
  * member's own Boards. Routes parse and authorise; these load, check, write
  * and return the Board as the browser should now see it.
  */
-import { CREATIVE_TAXONOMY, LOOKS } from "@howells/motif-sdk";
+import { CREATIVE_TAXONOMY, formatCost, LOOKS } from "@howells/motif-sdk";
 import type { AppSql } from "@motif/bench-db/app-sql";
 
 import type { Member } from "../auth/members";
 import { monthSummary } from "../budget/ledger";
 import { getOwnedAsset } from "../media/assets";
-import { formatUsd } from "../money";
+import { formatDollars, toUsd } from "../money";
 import { getOwnedGenerations } from "../tasks/store";
 import {
   isRunnable,
@@ -522,7 +522,7 @@ export const startBoardRun = async (
     return refuse(
       402,
       "CAP_REACHED",
-      `This holds ${formatUsd(value.micros)}, more than the ${formatUsd(value.availableMicros)} left this month, so it hasn't started.`,
+      `This holds ${formatCost(toUsd(value.micros))}, more than the ${formatDollars(value.availableMicros)} left this month, so it hasn't started.`,
       {
         availableMicros: value.availableMicros,
         requestedMicros: value.micros,

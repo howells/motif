@@ -28,7 +28,7 @@
   padding-inline: 1.5rem;
 }
 
-/* The wordmark is the only Faculty Glyphic on the site. */
+/* Faculty Glyphic sets two things: this wordmark and each page's title. */
 .docs-wordmark {
   font-family: "Faculty Glyphic", var(--blume-font-display);
   font-size: 1.75rem;
@@ -71,33 +71,33 @@
   background: var(--blume-muted);
 }
 
-/* Search first, then "Open the App", as the board has them. */
+/* Search first, then Home, GitHub and Open the App as plain text links, the
+   way the homepage masthead sets them: 32px apart, Inter 14/24 in ink, and
+   10px of padding above and below so each is a 44px target. Blume's own
+   header links already hide below `sm`, which leaves a phone with search and
+   the menu. */
+[data-blume-header] > div:has(> .docs-search-field) {
+  gap: 2rem;
+}
+
 .docs-search-field {
   order: 1;
 }
 
-/* "Open the App" is a bordered button, not Blume's filled pill. */
-[data-blume-header] a[href$="/make"] {
+[data-blume-header] > div:has(> .docs-search-field) > a {
   order: 2;
-  margin-inline-start: 0.5rem;
-  height: var(--docs-control);
-  padding: 0 1rem;
-  border: 1px solid var(--blume-border);
-  border-radius: var(--blume-radius);
-  background: var(--blume-background);
+  padding: 0.625rem 0;
+  border-radius: 0;
   color: var(--blume-foreground);
   font-size: 0.875rem;
   font-weight: 400;
-  opacity: 1;
+  line-height: 1.5rem;
 }
 
-[data-blume-header] a[href$="/make"]:hover {
-  background: var(--blume-muted);
-  opacity: 1;
-}
-
-[data-blume-header] a[href$="/make"] svg {
-  display: none;
+[data-blume-header] > div:has(> .docs-search-field) > a:hover {
+  color: var(--blume-foreground);
+  text-decoration: underline 1px;
+  text-underline-position: from-font;
 }
 
 /* ── Layout ─────────────────────────────────────────────────────────── */
@@ -189,10 +189,13 @@
   text-transform: none;
 }
 
+/* A page's title is the display face at heading size, the same as the
+   App's `type-heading` (apps/bench/app/globals.css): Faculty Glyphic 28/32. */
 .prose h1 {
-  font-size: 1.125rem;
+  font-family: "Faculty Glyphic", var(--blume-font-display);
+  font-size: 1.75rem;
   font-weight: 400;
-  line-height: 1.5rem;
+  line-height: 2rem;
   margin-bottom: 0.5rem;
   letter-spacing: -0.01em;
 }
@@ -352,21 +355,55 @@
 
 /* ── Command pages ──────────────────────────────────────────────────── */
 
-/* The "In the App" marker sits at the right of the breadcrumb row. */
+/* The breadcrumb is the whole trail, muted, with the current page in ink.
+   A command that also runs in the App says so at the right of the row. */
+.docs-crumbs {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--blume-content-width);
+  margin: 0 auto 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+  color: var(--blume-muted-foreground);
+}
+
+.docs-crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.docs-crumbs li + li::before {
+  content: "/";
+  margin-inline-end: 0.5rem;
+  color: var(--blume-muted-foreground);
+  font-weight: 400;
+}
+
+.docs-crumbs a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.docs-crumbs a:hover {
+  color: var(--blume-foreground);
+}
+
+.docs-crumbs [aria-current="page"] {
+  color: var(--blume-foreground);
+  font-weight: 500;
+}
+
 .docs-in-app {
   margin: 0;
   font-size: 0.8125rem;
   color: var(--blume-muted-foreground);
-}
-
-.prose > p.docs-in-app {
-  position: absolute;
-  top: 0.125rem;
-  right: 0;
-}
-
-.prose {
-  position: relative;
+  white-space: nowrap;
 }
 
 .docs-commands {
@@ -526,8 +563,8 @@
   font-size: 0.8125rem;
 }
 
-/* The public site sets its text at 14 and 13, with 18 kept for a page's own
-   title, so the docs do too. Tables keep the body leading, and the pieces
+/* The public site sets its text at 14 and 13, with a page's own title in
+   Faculty Glyphic at 28, so the docs do too. Tables keep the body leading, and the pieces
    Blume sizes itself (the previous and next links, the contents heading)
    join the same roles. */
 .prose table td,

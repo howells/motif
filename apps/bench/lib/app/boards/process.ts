@@ -4,7 +4,9 @@
  * and the one-line summary a finished run folds into. Plain functions, safe
  * in the browser and tested without one.
  */
-import { formatSeconds, formatUsd } from "@/lib/app/money";
+import { formatCost } from "@howells/motif-sdk";
+
+import { formatSeconds, toUsd } from "@/lib/app/money";
 
 import type { Beat, RunEventKind } from "./run-events";
 
@@ -160,8 +162,8 @@ const moneyTail = (beats: readonly Beat[]): string | null => {
   }
   const total = known.reduce((sum, cost) => sum + cost.micros, 0);
   return known.some((cost) => cost.estimated)
-    ? `Counted at ${formatUsd(total)}, estimate`
-    : `Settled at ${formatUsd(total)}`;
+    ? `Counted at ${formatCost(toUsd(total))}, estimate`
+    : `Settled at ${formatCost(toUsd(total))}`;
 };
 
 /** "7 steps · 31 s · Settled at $0.50, estimate": a finished node on one

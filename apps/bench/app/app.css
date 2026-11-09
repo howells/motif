@@ -165,8 +165,8 @@
 /* The type case is globals.css's, the same as on the public pages and in the
    Bench (only the homepage sets its own). The App's own classes join a role
    there (`.app-button` is `type-body`, `.app-label` is `type-small`,
-   `.app-head h1` is `type-title`) rather than restating a size, and the one
-   emphasis is `font-medium` (500). */
+   `.app-head h1` is `type-title` in Faculty Glyphic, like every page title)
+   rather than restating a size, and the one emphasis is `font-medium` (500). */
 
 /* ── Controls ──────────────────────────────────────────────────────── */
 

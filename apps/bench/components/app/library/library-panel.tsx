@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { Fragment, useState } from "react";
@@ -15,7 +16,7 @@ import { api, messageOf } from "@/lib/app/client/api";
 import { madeAt } from "@/lib/app/client/dates";
 import { GenerationsReply, LibraryItemReply } from "@/lib/app/client/schemas";
 import type { LibraryItemData } from "@/lib/app/client/schemas";
-import { formatUsd } from "@/lib/app/money";
+import { toUsd } from "@/lib/app/money";
 import { taskTitle } from "@/lib/site/commands";
 
 /** What the prompt was for: what was removed, changed, or asked for. */
@@ -43,7 +44,13 @@ const factsOf = (item: LibraryItemData): readonly Fact[] => [
     : [{ label: "Size", mono: true, value: `${item.width} × ${item.height}` }]),
   ...(item.costMicros === null
     ? []
-    : [{ label: "Cost", mono: true, value: formatUsd(item.costMicros) }]),
+    : [
+        {
+          label: "Cost",
+          mono: true,
+          value: formatCost(toUsd(item.costMicros)),
+        },
+      ]),
   ...(item.completedAt === null
     ? []
     : [{ label: "Made", value: madeAt(item.completedAt) }]),

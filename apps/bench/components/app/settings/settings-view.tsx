@@ -10,13 +10,7 @@ import { api, messageOf } from "@/lib/app/client/api";
 import { Ignored, PeopleSchema } from "@/lib/app/client/schemas";
 import { SPEND_KEY, fetchSpend } from "@/lib/app/client/settled";
 import { spendLines } from "@/lib/app/client/spend";
-import {
-  formatCap,
-  formatDollars,
-  formatUsd,
-  monthName,
-  resetDay,
-} from "@/lib/app/money";
+import { formatCap, formatDollars, monthName, resetDay } from "@/lib/app/money";
 
 interface Person {
   readonly createdAt: string;
@@ -202,14 +196,14 @@ function Spending({
                 , {line.runs} {line.runs === 1 ? "run" : "runs"}
               </span>
               <span className="app-value">
-                {formatUsd(line.spentMicros + line.heldMicros)}
+                {formatDollars(line.spentMicros + line.heldMicros)}
               </span>
             </li>
           ))}
           {pot.heldMicros > 0 ? (
             <li className="border-border text-muted min-h-control flex items-center justify-between border-b">
               <span className="type-small">Held for runs still going</span>
-              <span className="app-value">{formatUsd(pot.heldMicros)}</span>
+              <span className="app-value">{formatDollars(pot.heldMicros)}</span>
             </li>
           ) : null}
         </ul>

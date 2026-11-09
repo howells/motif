@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReactFlow, useViewport } from "@xyflow/react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,7 @@ import type {
   BoardViewData,
   NodeViewData,
 } from "@/lib/app/client/board-schemas";
-import { formatUsd } from "@/lib/app/money";
+import { toUsd } from "@/lib/app/money";
 
 /** The floating toolbar under the canvas: zoom, Fit and Add node. */
 export function Toolbar({ onAdd }: { readonly onAdd: () => void }) {
@@ -106,7 +107,7 @@ export function StaleBanner({
       >
         Run from {NODE_LABELS[root.kind]}
         {total > 0 ? (
-          <span className="board-figure">{formatUsd(total)}</span>
+          <span className="board-figure">{formatCost(toUsd(total))}</span>
         ) : null}
       </button>
     </div>
@@ -162,11 +163,11 @@ export function BoardName({
   const [problem, setProblem] = useState<string | null>(null);
   const field = useRef<HTMLInputElement>(null);
   if (board.kind === "inbox") {
-    return <h1 className="type-title truncate">{board.name}</h1>;
+    return <h1 className="app-screen-title truncate">{board.name}</h1>;
   }
   if (!editing) {
     return (
-      <h1 className="type-title min-w-0">
+      <h1 className="app-screen-title min-w-0">
         <button
           className="hover:bg-surface rounded-panel -mx-2 max-w-full truncate px-2 py-1"
           onClick={() => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { useQuery } from "@tanstack/react-query";
 import { Layers } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ import { api, messageOf } from "@/lib/app/client/api";
 import { BoardsReply } from "@/lib/app/client/board-schemas";
 import { dayName } from "@/lib/app/client/dates";
 import { StacksReply } from "@/lib/app/client/schemas";
-import { formatUsd } from "@/lib/app/money";
+import { toUsd } from "@/lib/app/money";
 import type { StackView } from "@/lib/app/views";
 import { APP_TASK_IDS, taskTitle } from "@/lib/site/commands";
 
@@ -199,7 +200,7 @@ function Days({
       <h2 className="flex h-10 items-center justify-between px-4 md:h-8 md:px-0">
         <span className="type-body font-medium">{day.name}</span>
         <span className="board-figure text-muted">
-          {formatUsd(day.costMicros)}
+          {formatCost(toUsd(day.costMicros))}
         </span>
       </h2>
       <ul className="grid grid-cols-3 gap-1 md:grid-cols-[repeat(auto-fill,minmax(10rem,202px))] md:gap-x-4 md:gap-y-4">

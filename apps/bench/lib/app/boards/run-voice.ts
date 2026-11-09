@@ -3,7 +3,9 @@
  * the App's usual form, no jargon about queues or steps beyond what fal
  * itself calls them. Pure, so each line is tested as text.
  */
-import { formatSeconds, formatUsd } from "../money";
+import { formatCost } from "@howells/motif-sdk";
+
+import { formatSeconds, toUsd } from "../money";
 import type { WorkerEvent } from "../tasks/execute";
 import type { Generation } from "../tasks/store";
 import { NODE_LABELS, kindAndSettings, upstreamOf } from "./model";
@@ -76,8 +78,8 @@ export const priceLine = (
   kind: "price",
   text:
     holdMicros === approvedMicros
-      ? `Price checked again: ${formatUsd(listMicros)}`
-      : `Price checked again: ${formatUsd(listMicros)} (you approved holding up to ${formatUsd(approvedMicros)})`,
+      ? `Price checked again: ${formatCost(toUsd(listMicros))}`
+      : `Price checked again: ${formatCost(toUsd(listMicros))} (you approved holding up to ${formatCost(toUsd(approvedMicros))})`,
 });
 
 /** What is held, which can be more than the price: headroom for a Model that
@@ -85,7 +87,7 @@ export const priceLine = (
 export const holdLine = (boundMicros: number): Line => ({
   data: { micros: boundMicros },
   kind: "hold",
-  text: `Holding up to ${formatUsd(boundMicros)} until fal settles`,
+  text: `Holding up to ${formatCost(toUsd(boundMicros))} until fal settles`,
 });
 
 /** fal's queue, in the words a person would use. */
@@ -167,26 +169,26 @@ export const settledLine = (generation: Generation): Line | null => {
       return {
         data: { estimated: false, micros: generation.costMicros },
         kind: "settle",
-        text: `Settled at ${formatUsd(generation.costMicros)}`,
+        text: `Settled at ${formatCost(toUsd(generation.costMicros))}`,
       };
     }
     return {
       data: { estimated: true, micros: generation.boundMicros },
       kind: "settle",
-      text: `fal didn't say, the ${formatUsd(generation.boundMicros)} hold counts as an estimate`,
+      text: `fal didn't say, the ${formatCost(toUsd(generation.boundMicros))} hold counts as an estimate`,
     };
   }
   if (generation.costStatus === "released") {
     return {
       data: { releasedMicros: generation.boundMicros },
       kind: "settle",
-      text: `Nothing charged, ${formatUsd(generation.boundMicros)} released`,
+      text: `Nothing charged, ${formatCost(toUsd(generation.boundMicros))} released`,
     };
   }
   return {
     data: { estimated: true, micros: generation.boundMicros },
     kind: "settle",
-    text: `The ${formatUsd(generation.boundMicros)} hold stays counted`,
+    text: `The ${formatCost(toUsd(generation.boundMicros))} hold stays counted`,
   };
 };
 
@@ -212,7 +214,7 @@ export const compareHoldLine = (
   return {
     data: { micros: total, models: holds.length },
     kind: "hold",
-    text: `Holding up to ${formatUsd(total)} together: ${list(holds.map((hold) => `${hold.name} ${formatUsd(hold.micros)}`))}`,
+    text: `Holding up to ${formatCost(toUsd(total))} together: ${list(holds.map((hold) => `${hold.name} ${formatCost(toUsd(hold.micros))}`))}`,
   };
 };
 

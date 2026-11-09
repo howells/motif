@@ -6,7 +6,7 @@
 
 import { writeFile } from "node:fs/promises";
 
-import { tierChangesChoice } from "@howells/motif-sdk";
+import { formatCost, tierChangesChoice } from "@howells/motif-sdk";
 import type {
   MotifClient,
   TaskId,
@@ -61,7 +61,7 @@ export function acceptsResolution(
 
 /** A USD figure for a person, or "cost unknown" when nobody knows it. */
 export function costLabel(usd: number | null): string {
-  return usd === null ? "cost unknown" : `$${usd.toFixed(3)}`;
+  return usd === null ? "cost unknown" : formatCost(usd);
 }
 
 /** The projected cost of a request, or the reason it cannot run. */

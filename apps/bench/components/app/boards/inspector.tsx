@@ -1,5 +1,7 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
+
 import { useBoard } from "@/components/app/boards/board-context";
 import { CloseIcon, PlayIcon, PlusIcon } from "@/components/app/boards/icons";
 import {
@@ -24,7 +26,7 @@ import type { NodeViewOf } from "@/lib/app/boards/canvas";
 import { NODE_LABELS, isRunnable } from "@/lib/app/boards/model";
 import { USAGE_HOLD_MICROS_PER_IMAGE } from "@/lib/app/budget/policy";
 import type { NodeViewData } from "@/lib/app/client/board-schemas";
-import { formatCap, formatUsd } from "@/lib/app/money";
+import { formatCap, toUsd } from "@/lib/app/money";
 
 function SourceFields({ node }: { readonly node: NodeViewData }) {
   const { chooseSource } = useBoard();
@@ -307,7 +309,7 @@ const priceLine = (node: NodeViewData): string => {
     return `Billed by usage, up to ${formatCap(USAGE_HOLD_MICROS_PER_IMAGE)} an image`;
   }
   return count > 1
-    ? `${count} × ${formatUsd(Math.round(node.price.listMicros / count))}`
+    ? `${count} × ${formatCost(toUsd(Math.round(node.price.listMicros / count)))}`
     : "";
 };
 
@@ -362,7 +364,7 @@ export function Inspector({
                   {node.price?.ok === true
                     ? node.price.usage
                       ? `Up to ${formatCap(node.price.listMicros)}`
-                      : formatUsd(node.price.listMicros)
+                      : formatCost(toUsd(node.price.listMicros))
                     : ""}
                 </span>
               </>

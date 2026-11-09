@@ -3,12 +3,13 @@
  * reserved for a request that can't be bounded, and nothing reaches the
  * provider until its reservation is written.
  */
+import { formatCost } from "@howells/motif-sdk";
 import type { AppSql } from "@motif/bench-db/app-sql";
 
 import type { Member } from "../auth/members";
 import { MAX_COMPARISON_MODELS } from "../budget/policy";
 import { newId } from "../ids";
-import { formatUsd } from "../money";
+import { formatDollars, toUsd } from "../money";
 import { quote, resolveOwnedInputs } from "./plan";
 import type { Alternative } from "./plan";
 import { TaskRequestSchema, promptOf } from "./request";
@@ -122,7 +123,7 @@ const capRefusal = (
   code: "CAP_REACHED",
   details: { availableMicros, requestedMicros },
   kind: "refused",
-  message: `This holds ${formatUsd(requestedMicros)}, more than the ${formatUsd(availableMicros)} left this month, so it hasn't started.`,
+  message: `This holds ${formatCost(toUsd(requestedMicros))}, more than the ${formatDollars(availableMicros)} left this month, so it hasn't started.`,
   status: 402,
 });
 

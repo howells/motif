@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 /**
  * Running a Board: one approved run as one Mastra workflow.
  *
@@ -23,14 +25,13 @@
  * - Stop takes effect between steps. A call already sent to fal finishes
  *   and is counted, exactly as it would be on its own.
  */
-import { createHash } from "node:crypto";
-
+import { formatCost } from "@howells/motif-sdk";
 import { createStep, createWorkflow } from "@mastra/core/workflows";
 import type { AppSql } from "@motif/bench-db/app-sql";
 import { z } from "zod";
 
 import type { Member } from "../auth/members";
-import { formatUsd } from "../money";
+import { toUsd } from "../money";
 import { advanceGeneration } from "../tasks/execute";
 import type { WorkerDeps, WorkerEvent } from "../tasks/execute";
 import { startComparison, startRun } from "../tasks/start";
@@ -302,7 +303,7 @@ const prepare = async (ctx: RunContext, nodeId: string, say: Say) => {
   await tell(say, priceLine(priced.listMicros, priced.micros, approved));
   if (priced.micros > approved) {
     throw new StepFailedError(
-      `${label} would hold ${formatUsd(priced.micros)} on its real image, more than the ${formatUsd(approved)} you approved, so it hasn't started.`
+      `${label} would hold ${formatCost(toUsd(priced.micros))} on its real image, more than the ${formatCost(toUsd(approved))} you approved, so it hasn't started.`
     );
   }
   return { graph, node, requests: built.requests };

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatCost } from "@howells/motif-sdk";
 import { Handle, Position } from "@xyflow/react";
 
 import { useBoard } from "@/components/app/boards/board-context";
@@ -8,7 +9,7 @@ import { nodeDetail } from "@/lib/app/boards/canvas";
 import type { RunState } from "@/lib/app/boards/canvas";
 import { NODE_LABELS, inputOf } from "@/lib/app/boards/model";
 import type { NodeViewData } from "@/lib/app/client/board-schemas";
-import { formatCap, formatUsd } from "@/lib/app/money";
+import { formatCap, toUsd } from "@/lib/app/money";
 
 /** The node's ports, at the middle of the frame they sit on. */
 export function Ports({ node }: { readonly node: NodeViewData }) {
@@ -57,7 +58,7 @@ function Price({ node }: { readonly node: NodeViewData }) {
     >
       {price.usage
         ? `Up to ${formatCap(price.listMicros)}`
-        : formatUsd(price.listMicros)}
+        : formatCost(toUsd(price.listMicros))}
     </span>
   );
 }

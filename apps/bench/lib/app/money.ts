@@ -1,18 +1,17 @@
 /**
  * Money as the App shows it. Amounts are integer micros (millionths of a
- * dollar) everywhere; only these helpers turn them into text.
+ * dollar) everywhere.
+ *
+ * A cost (what a run, a Model or a Task costs, held or settled) is printed by
+ * the SDK's `formatCost` from `toUsd(micros)`, so it reads the same as in the
+ * terminal and the docs: `$0.030`, `$1.120`. The month's money (spent, held,
+ * left, the cap) is dollars and cents, from the helpers below.
  */
 
 const MICROS = 1_000_000;
 
-/** `$12.43`, or `$0.030` below a dollar so a run's cost doesn't read as zero. */
-export const formatUsd = (micros: number): string => {
-  const usd = micros / MICROS;
-  if (usd !== 0 && Math.abs(usd) < 1) {
-    return `$${usd.toFixed(3)}`;
-  }
-  return `$${usd.toFixed(2)}`;
-};
+/** Micros as dollars, for the SDK's `formatCost`. */
+export const toUsd = (micros: number): number => micros / MICROS;
 
 /** `$0.08`, `$12.43`: dollars and cents, for a month's running total. */
 export const formatDollars = (micros: number): string =>
