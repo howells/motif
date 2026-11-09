@@ -28,9 +28,6 @@ export const HOME: Home = {
     github: GITHUB,
     label: "Motif",
     menu: "Menu",
-    openApp: { href: "/make", label: "Open the App" },
-    signIn: "Sign in",
-    signInAction: "/auth/sign-in",
   },
 
   hero: {

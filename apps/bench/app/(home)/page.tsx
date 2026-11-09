@@ -9,7 +9,6 @@ import { Make } from "@/components/home/make";
 import { Masthead } from "@/components/home/masthead";
 import { Price } from "@/components/home/price";
 import { ReadAndConvert } from "@/components/home/read-and-convert";
-import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
 import { CHAPTERS } from "@/lib/site/home/chapters";
 
@@ -38,14 +37,13 @@ function layout(id: string): ComponentType {
   return found;
 }
 
-/** Home. A member sees the same page as anyone else; only the last link in
- * the masthead changes, from Sign in to Open the App. The chapters sit
- * between the hero and the close, in the order `CHAPTERS` gives. */
-async function HomePage() {
-  const viewer = await getViewer();
+/** Home. The same page for everyone, so it is built once, at build time.
+ * The chapters sit between the hero and the close, in the order `CHAPTERS`
+ * gives. */
+function HomePage() {
   return (
     <>
-      <Masthead member={viewer.state === "member"} />
+      <Masthead />
       <main>
         <Hero />
         {CHAPTERS.map((chapter) => {

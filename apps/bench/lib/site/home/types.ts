@@ -115,10 +115,6 @@ export interface Home {
     readonly label: string;
     /** The phone's menu button, read by screen readers. */
     readonly menu: string;
-    readonly openApp: Link;
-    readonly signIn: string;
-    /** Where the sign-in form posts. */
-    readonly signInAction: string;
   };
   /** The one word set in the masthead, the hero and the close. */
   readonly wordmark: string;

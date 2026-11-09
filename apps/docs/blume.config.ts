@@ -48,7 +48,6 @@ export default defineConfig({
     actions: [
       { href: SITE, label: "Home" },
       { href: GITHUB, label: "GitHub" },
-      { href: `${SITE}/make`, label: "Open the App" },
     ],
     repo: false,
     // Written out so the order matches the Paper boards: two groups, then

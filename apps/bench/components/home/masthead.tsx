@@ -13,25 +13,6 @@ const CHAPTER_LINKS: readonly LinkContent[] = chapters.flatMap((chapter) =>
     : [{ href: `#${chapter.id}`, label: chapter.nav }]
 );
 
-/** The masthead's last link: Open the App for a member, Sign in for anyone
- * else. */
-function Account({ member }: { readonly member: boolean }) {
-  if (member) {
-    return (
-      <Link className="home-link home-text" href={masthead.openApp.href}>
-        {masthead.openApp.label}
-      </Link>
-    );
-  }
-  return (
-    <form action={masthead.signInAction} method="get">
-      <button className="home-link home-text cursor-pointer" type="submit">
-        {masthead.signIn}
-      </button>
-    </form>
-  );
-}
-
 function Links({ links }: { readonly links: readonly LinkContent[] }) {
   return links.map((link) => (
     <a className="home-link home-text" href={link.href} key={link.href}>
@@ -43,7 +24,7 @@ function Links({ links }: { readonly links: readonly LinkContent[] }) {
 /** The name on the left and the way around on the right. On desktop every
  * link is in the row; on a phone the row keeps Docs and the rest open from a
  * menu. */
-export function Masthead({ member }: { readonly member: boolean }) {
+export function Masthead() {
   return (
     <header className="relative">
       <Grid>
@@ -56,7 +37,6 @@ export function Masthead({ member }: { readonly member: boolean }) {
             className="hidden items-center gap-8 lg:flex"
           >
             <Links links={[...CHAPTER_LINKS, masthead.docs, masthead.github]} />
-            <Account member={member} />
           </nav>
           <div className="flex items-center gap-4 lg:hidden">
             <a className="home-link home-text" href={masthead.docs.href}>
@@ -88,9 +68,6 @@ export function Masthead({ member }: { readonly member: boolean }) {
                       </a>
                     </li>
                   ))}
-                  <li>
-                    <Account member={member} />
-                  </li>
                 </ul>
               </nav>
             </details>

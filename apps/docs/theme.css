@@ -71,7 +71,7 @@
   background: var(--blume-muted);
 }
 
-/* Search first, then Home, GitHub and Open the App as plain text links, the
+/* Search first, then Home and GitHub as plain text links, the
    way the homepage masthead sets them: 32px apart, Inter 14/24 in ink, and
    10px of padding above and below so each is a 44px target. Blume's own
    header links already hide below `sm`, which leaves a phone with search and
