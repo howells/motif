@@ -22,6 +22,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
+import { formatCost } from "../packages/motif-sdk/dist/index.js";
+
 const ROOT = join(import.meta.dirname, "..");
 const CLI = join(ROOT, "apps/cli/dist/index.js");
 const OUT = join(ROOT, "docs/tools/examples");
@@ -179,8 +181,9 @@ function argvFor(demo, { dry }) {
   return [...argv, "--format", "json", "--no-open"];
 }
 
+/** A run's cost as the CLI prints it, or "metered" when fal bills it after the run. */
 function money(cost) {
-  return typeof cost === "number" ? `$${Number(cost.toFixed(6))}` : "metered";
+  return formatCost(typeof cost === "number" ? cost : null);
 }
 
 function missingSources(demos) {
@@ -220,7 +223,7 @@ function price(demos) {
     console.log(`  ${demo.plate.padEnd(16)} ${`motif ${demo.argv[0]}`.padEnd(16)} ${result.model.padEnd(22)} ${money(result.cost)}`);
     typeof result.cost === "number" ? (total += result.cost) : (metered += 1);
   }
-  console.log(`\nProjected: $${total.toFixed(4)}${metered ? ` plus ${metered} metered` : ""}.`);
+  console.log(`\nProjected: ${formatCost(total)}${metered ? ` plus ${metered} metered` : ""}.`);
 }
 
 function generateSources(demos) {
