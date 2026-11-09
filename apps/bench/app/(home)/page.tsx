@@ -13,25 +13,12 @@ import { getViewer } from "@/lib/app/auth/viewer";
 import { SITE } from "@/lib/site/content";
 import { CHAPTERS } from "@/lib/site/home/chapters";
 
-/** The share card itself comes from `opengraph-image.tsx` beside the root
- * layout, which Next adds to both the Open Graph and the X tags. */
+/** The Open Graph and X tags are set in the root layout, beside the share
+ * card. Setting `openGraph` here would replace them whole and drop the card. */
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
   description: SITE.description,
-  openGraph: {
-    description: SITE.description,
-    locale: "en_GB",
-    siteName: SITE.name,
-    title: SITE.title,
-    type: "website",
-    url: "/",
-  },
   title: { absolute: SITE.title },
-  twitter: {
-    card: "summary_large_image",
-    description: SITE.description,
-    title: SITE.title,
-  },
 };
 
 /** Each chapter's layout, by the chapter's id. */

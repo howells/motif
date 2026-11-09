@@ -24,7 +24,19 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, statusBarStyle: "default", title: SITE.name },
   applicationName: SITE.name,
   metadataBase: new URL(SITE.url),
+  openGraph: {
+    description: SITE.description,
+    locale: "en_GB",
+    siteName: SITE.name,
+    title: SITE.title,
+    type: "website",
+  },
   title: SITE.name,
+  twitter: {
+    card: "summary_large_image",
+    description: SITE.description,
+    title: SITE.title,
+  },
 };
 
 /** `cover` lets the shell reach the screen's edges on a notched phone; the
