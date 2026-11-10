@@ -181,6 +181,7 @@ export async function cmdRun(
           ...identityFields(plan),
           aspect,
           resolution,
+          size: plan.size,
           series: existingSeries?.slug ?? null,
           stylePrompt,
           theme: sanitizedTheme,

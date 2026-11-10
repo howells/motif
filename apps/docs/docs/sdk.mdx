@@ -53,6 +53,8 @@ if (plan.isOk()) {
 }
 ```
 
+`plan.size` is the exact `{ width, height }` the request asks for, or `null` when the Model decides. `modelProfile(id).sizing` says what each resolution tier means for a Model.
+
 With no `outputFormat`, every Model that takes a format returns PNG; pass `outputFormat` for another, or convert afterwards.
 
 Token-billed Models report `cost: { usd: null, basis: "unknown" }`. A published representative price is not an exact total.

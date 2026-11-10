@@ -201,8 +201,65 @@ describe("CLI contract", () => {
       for (const entry of ranking) {
         expect(entry.model).toBeTypeOf("string");
         expect(entry).toHaveProperty("benchmark");
+        expect(asRecord(entry.sizing).kind).toBeTypeOf("string");
       }
     }
+  });
+
+  it("says what a resolution tier means for each Model, and what a dry run asks for", async () => {
+    const described = await runMotif([
+      "--describe",
+      "generate",
+      "--format",
+      "json",
+    ]);
+    const sizing = new Map<unknown, Record<string, unknown>>(
+      asArray(parseJsonLine(described.stdout).ranking)
+        .map(asRecord)
+        .map((entry) => [entry.model, asRecord(entry.sizing)])
+    );
+    expect(sizing.get("sunburst")).toMatchObject({
+      defaultResolution: "2K",
+      kind: "exact",
+      tierSizes: {
+        "1K": { height: 1536, width: 1536 },
+        "4K": { height: 2880, width: 2880 },
+      },
+    });
+    expect(sizing.get("seedream5")).toMatchObject({
+      kind: "preset",
+      size: { height: 1024, width: 1024 },
+    });
+    expect(sizing.get("banana21")).toMatchObject({ kind: "model" });
+    expect(sizing.get("banana21")).not.toHaveProperty("tierSizes");
+
+    const exact = await runMotif([
+      "a cat",
+      "-m",
+      "sunburst",
+      "-a",
+      "3:2",
+      "-r",
+      "4K",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(parseJsonLine(exact.stdout).size).toStrictEqual({
+      height: 2336,
+      width: 3504,
+    });
+    const own = await runMotif([
+      "a cat",
+      "-m",
+      "banana2",
+      "-r",
+      "1K",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(parseJsonLine(own.stdout).size).toBeNull();
   });
 
   it("advertises the edit-capable model enum for the vary command", async () => {

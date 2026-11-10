@@ -366,6 +366,7 @@ export async function runTask(
         dryRun: true,
         ...taskFields(plan),
         output,
+        size: plan.size,
         source: source?.path ?? null,
         ...spec.detail,
         request: redactDataUrls(plan.body),

@@ -1735,3 +1735,23 @@ describe("createMotif run", () => {
     expect(output.chosenBy).toBe("model");
   });
 });
+
+describe("plan size", () => {
+  it("carries the exact size asked for, and null where the Model decides", () => {
+    expect(
+      planned("generate", {
+        aspect: "3:2",
+        model: "sunburst",
+        prompt: "x",
+        resolution: "4K",
+      }).size
+    ).toStrictEqual({ height: 2336, width: 3504 });
+    expect(
+      planned("generate", { model: "seedream5", prompt: "x" }).size
+    ).toStrictEqual({ height: 1024, width: 1024 });
+    expect(
+      planned("generate", { model: "banana2", prompt: "x", resolution: "1K" })
+        .size
+    ).toBeNull();
+  });
+});

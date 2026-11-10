@@ -19,7 +19,7 @@ import {
   TASKS,
   TIERS,
 } from "@howells/motif-sdk";
-import type { TaskDefinition, TaskId } from "@howells/motif-sdk";
+import type { ModelSizing, TaskDefinition, TaskId } from "@howells/motif-sdk";
 
 import { ERROR_CATALOG } from "../utils/error-catalog";
 import { emitDocument } from "../utils/output";
@@ -193,7 +193,8 @@ function generateSchema() {
         },
         resolution: {
           default: "2K",
-          description: "Output resolution (not all models support this)",
+          description:
+            "Resolution tier, not exact pixels: what it means depends on the Model. Each Model's `sizing` in `--describe tasks` says; `--dry-run` reports the `size` that will be requested.",
           enum: RESOLUTIONS,
           type: "string",
         },
@@ -722,12 +723,22 @@ function taskDetails(command: string): Record<string, unknown> {
     ranking: definition.models.map((entry) => ({
       model: entry.model,
       name: rankedName(entry.model),
+      sizing: rankedSizing(entry.model),
       tier: entry.tier,
       ...(entry.mode === undefined ? {} : { mode: entry.mode }),
       benchmark: entry.benchmark ?? null,
     })),
     ...(command === "generate" ? { referenceRankingTask: "vary" } : {}),
   };
+}
+
+/** What a resolution tier means for a ranked Model, from the SDK's tables. */
+function rankedSizing(model: string): ModelSizing {
+  const profile = modelProfile(model);
+  if (profile === undefined) {
+    throw new Error(`Ranked Model ${model} is in no registry.`);
+  }
+  return profile.sizing;
 }
 
 /** The display name of a ranked Model; every ranked Model is in a registry. */

@@ -21,6 +21,8 @@
 import { outputFormatsOf } from "./capabilities";
 import { getLook } from "./creative";
 import type { MotifError } from "./errors";
+import { generationSizing, toolSizing } from "./model-sizing";
+import type { ModelSizing } from "./model-sizing";
 import { MODELS } from "./models";
 import type {
   Capability,
@@ -137,6 +139,8 @@ export interface ModelProfile {
   readonly aspects?: readonly string[];
   /** Resolutions the Model accepts. Absent means any. */
   readonly resolutions?: readonly string[];
+  /** What a resolution tier means for the Model, in pixels where known. */
+  readonly sizing: ModelSizing;
   /** Output formats the Model returns, for a text request and an edit.
    * Absent means any. */
   readonly outputFormats?: {
@@ -145,7 +149,7 @@ export interface ModelProfile {
   };
 }
 
-function generationProfile(config: ModelConfig): ModelProfile {
+function generationProfile(id: string, config: ModelConfig): ModelProfile {
   const capabilities = new Set<Capability>(["image"]);
   if (config.supportsBackground === true || config.transparentOutput === true) {
     capabilities.add("transparency");
@@ -191,6 +195,7 @@ function generationProfile(config: ModelConfig): ModelProfile {
       text: outputFormatsOf(config, false),
     },
     resolutions: config.supportedResolutions,
+    sizing: generationSizing(id, config),
   };
 }
 
@@ -234,6 +239,7 @@ function toolProfile(tool: FalToolId): ModelProfile {
     capabilities,
     keys: [FAL_KEY],
     maxReferences: takesReference ? 1 : 0,
+    sizing: toolSizing(tool),
   };
 }
 
@@ -251,7 +257,7 @@ function withEntry(profile: ModelProfile, entry: RankedModel): ModelProfile {
 export function modelProfile(model: string): ModelProfile | undefined {
   const config = MODELS[model];
   if (config !== undefined) {
-    return generationProfile(config);
+    return generationProfile(model, config);
   }
   if (isFalToolId(model)) {
     return toolProfile(model);

@@ -113,3 +113,4 @@ export type {
   ImageSizeBounds,
   Resolution,
 } from "./types";
+export type { ModelSizing, SizingKind } from "./model-sizing";

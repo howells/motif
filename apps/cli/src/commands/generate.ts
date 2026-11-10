@@ -185,6 +185,7 @@ export async function runGeneration(
         ...creativeFields(run),
         aspect: run.aspect,
         resolution: run.resolution,
+        size: plan.size,
         numImages: run.numImages,
         output: run.outputPath,
         editImages: run.editPaths,

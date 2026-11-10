@@ -293,6 +293,10 @@ The schema includes:
 - All enum values (aspect ratios, resolutions, presets, looks, moods)
 - Global flag documentation and the error catalogue
 
+## Sizes
+
+A resolution name (`0.5K`, `1K`, `2K`, `4K`) is a tier, not a pixel count, and the pixels depend on the Model. Sunburst, Flare and every Task Model with an exact size turn the ratio and tier into a width and height (`1K` is a 1536 px long edge, `4K` caps at 2880 px on Sunburst and Flare); Nano Banana and Grok take the tier and decide the pixels themselves; Seedream, Qwen, Ideogram 4, FLUX.2, Krea and Recraft ignore it and make about 1024 px; GPT has three fixed sizes. `--dry-run` reports `size: {width, height}` when Motif asks for an exact size, and `size: null` when the size is the Model's (or the source's) to decide. `motif --describe <task>` lists each Model's `sizing`: its kind, accepted tiers, default tier, and the pixels each tier asks for where known. For an exact need, run `--dry-run` first and check `size`.
+
 ## Response Sanitization
 
 All API response data is sanitized before output to defend against prompt injection embedded in image metadata or API responses. Patterns matching known injection formats (SYSTEM, INSTRUCTION, etc.) are replaced with `[FILTERED]`.

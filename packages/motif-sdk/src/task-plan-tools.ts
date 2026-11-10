@@ -7,7 +7,7 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { exactImageSize } from "./aspects";
+import { DEFAULT_TOOL_RESOLUTION, exactImageSize } from "./aspects";
 import { DEFAULT_OUTPUT_FORMAT, OPAQUE_OUTPUT_FORMATS } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
@@ -127,7 +127,7 @@ function aspectOptions(
   aspect: AspectRatio
 ): Result<Record<string, unknown>, MotifError> {
   const options: Record<string, unknown> = {};
-  const resolution = input.resolution ?? "1K";
+  const resolution = input.resolution ?? DEFAULT_TOOL_RESOLUTION;
   const ratioParameter = parameters.get("aspect_ratio");
   if (ratioParameter !== undefined) {
     const accepted = enumValues(ratioParameter);

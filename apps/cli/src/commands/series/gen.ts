@@ -139,6 +139,7 @@ export async function cmdGenerate(
         ...identityFields(plan),
         aspect,
         resolution,
+        size: plan.size,
         numImages,
         refs: refPaths,
         refTags: refTags ?? config.refs.map((r) => r.tag),

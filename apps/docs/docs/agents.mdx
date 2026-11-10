@@ -21,6 +21,10 @@ motif "amber bottles and a brass dish on a walnut shelf" --format json
 motif erase "the parked car" street.jpg --dry-run --fields cost,costBasis,output
 ```
 
+## Sizes
+
+Resolution names (`1K`, `2K`, `4K`) are tiers, not exact pixels, and what they mean depends on the Model. `--dry-run` reports `size` (`{ width, height }`) when Motif asks for an exact size and `null` when the Model decides; `motif --describe generate` lists each Model's `sizing`.
+
 ## Image format
 
 Images come back as PNG unless you ask for another format with `--output-format jpeg|webp` or an `-o` ending `.jpg` or `.webp`. Convert afterwards for anything else.

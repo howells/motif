@@ -111,6 +111,12 @@ export const FAL_PRESET_ASPECTS: readonly AspectRatio[] = [
   "9:16",
 ];
 
+/** The tier a generation Model is asked for when none is given. */
+export const DEFAULT_GENERATION_RESOLUTION: Resolution = "2K";
+
+/** The tier a tool Model is asked for when it is given an aspect but no tier. */
+export const DEFAULT_TOOL_RESOLUTION: Resolution = "1K";
+
 /** Long edge, in pixels, targeted for each resolution tier. */
 export const RESOLUTION_LONG_EDGE: Record<Resolution, number> = {
   "0.5K": 768,
@@ -134,6 +140,43 @@ export const FAL_PRESET_SIZES: Readonly<Record<string, CustomImageSize>> = {
   square: { height: 512, width: 512 },
   square_hd: { height: 1024, width: 1024 },
 };
+
+const WIDTH_BY_HEIGHT_REGEX = /^(\d+)x(\d+)$/;
+
+/**
+ * The exact pixel size a request body asks for, read from its `image_size`
+ * (`{ width, height }`, a fal preset, or GPT's `1536x1024`) or Bria's
+ * `canvas_size`. Null when the body leaves the size to the endpoint: a ratio
+ * with a resolution tier (the Model decides the pixels), `auto` (the source's
+ * size), or no size at all.
+ */
+export function requestedSize(
+  body: Readonly<Record<string, unknown>>
+): CustomImageSize | null {
+  const { canvas_size: canvas, image_size: size } = body;
+  if (typeof size === "string") {
+    const fixed = WIDTH_BY_HEIGHT_REGEX.exec(size);
+    if (fixed?.[1] !== undefined && fixed[2] !== undefined) {
+      return { height: Number(fixed[2]), width: Number(fixed[1]) };
+    }
+    return Object.hasOwn(FAL_PRESET_SIZES, size)
+      ? (FAL_PRESET_SIZES[size] ?? null)
+      : null;
+  }
+  if (typeof size === "object" && size !== null) {
+    const { height, width } = { height: undefined, width: undefined, ...size };
+    return typeof height === "number" && typeof width === "number"
+      ? { height, width }
+      : null;
+  }
+  if (Array.isArray(canvas) && canvas.length === 2) {
+    const [width, height] = canvas.map((edge: unknown) => edge);
+    return typeof width === "number" && typeof height === "number"
+      ? { height, width }
+      : null;
+  }
+  return null;
+}
 
 const ASPECT_TERMS_REGEX = /^(\d+):(\d+)$/;
 

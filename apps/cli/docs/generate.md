@@ -70,6 +70,10 @@ motif "an editorial portrait" -m flux2-flex --param num_inference_steps=40 --dry
 motif "a ceramic vase in window light" -m flare --param quality=xhigh --dry-run
 ```
 
+### Sizes
+
+A resolution name (`0.5K`, `1K`, `2K`, `4K`) is a tier, not a pixel count, and the pixels depend on the Model. Sunburst, Flare and every Task Model with an exact size turn the ratio and tier into a width and height (`1K` is a 1536 px long edge, `4K` caps at 2880 px on Sunburst and Flare); Nano Banana and Grok take the tier and decide the pixels themselves; Seedream, Qwen, Ideogram 4, FLUX.2, Krea and Recraft ignore it and make about 1024 px; GPT has three fixed sizes. `--dry-run` reports `size: {width, height}` when Motif asks for an exact size, and `size: null` when the size is the Model's (or the source's) to decide. `motif --describe <task>` lists each Model's `sizing`: its kind, accepted tiers, default tier, and the pixels each tier asks for where known. For an exact need, run `--dry-run` first and check `size`.
+
 ### Output format
 
 Images come back as PNG unless you ask for another format with `--output-format jpeg|webp`, or by ending `-o` in `.jpg`, `.jpeg` or `.webp`. Convert afterwards if you need something else. A Model with no format setting of its own returns what its endpoint returns.

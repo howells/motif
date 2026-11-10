@@ -11,7 +11,11 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { ImageSizeBoundsError } from "./aspects";
+import {
+  DEFAULT_GENERATION_RESOLUTION,
+  ImageSizeBoundsError,
+  requestedSize,
+} from "./aspects";
 import {
   OPAQUE_OUTPUT_FORMATS,
   outputFormatsOf,
@@ -206,6 +210,7 @@ export function planTask(
     chosenBy,
     model,
     ...(input.mode !== undefined && { mode: input.mode }),
+    size: requestedSize(built.value.body),
     task,
     tier,
   });
@@ -485,7 +490,11 @@ function generationPlan(
       input.aspect ??
       (editImageUrls.length === 0 || source === undefined
         ? undefined
-        : aspectFromSource(config, source, input.resolution ?? "2K")),
+        : aspectFromSource(
+            config,
+            source,
+            input.resolution ?? DEFAULT_GENERATION_RESOLUTION
+          )),
     background: input.transparent === true ? "transparent" : undefined,
     creative: creativeOf(input),
     editImageUrls: editImageUrls.length > 0 ? editImageUrls : undefined,

@@ -8,6 +8,7 @@ description: Generate and edit images, cut out backgrounds, upscale, animate sti
 Motif picks a Model for the Task you ask for. The installed CLI's schema is the source of truth for commands, flags, models and prices.
 
 - **Dry-run before spending.** Run the exact command with `--dry-run` first and check the Model and price. Get approval for the paid run unless the user has already authorised its scope and spend. `cost: null` means unknown, not free; video and 3D cost far more than stills.
+- **Resolution names are tiers, not pixels.** What `-r 2K` means depends on the Model; `--dry-run` shows `size` when Motif asks for an exact one (null when the Model decides), and `--describe <task>` lists each Model's `sizing`. Check before an exact need.
 - **Images are PNG unless you ask otherwise** (`--output-format jpeg|webp`, or `-o` ending `.jpg`/`.webp`). Convert afterwards for anything else.
 - **Don't resubmit a slow request.** A second submission can charge again.
 - **Pass source images explicitly.** Omitting one can silently use the last generation from another workflow.

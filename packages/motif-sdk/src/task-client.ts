@@ -165,6 +165,12 @@ export interface TaskPlan {
   /** Prompt after Look and Mood enrichment, when the Task takes one. */
   prompt?: string;
   /**
+   * The exact pixel size the request asks for. Null when the size is the
+   * Model's own to decide (a ratio with a resolution tier), the source's
+   * (`auto`), or not set by the request.
+   */
+  size: CustomImageSize | null;
+  /**
    * The Model always runs through fal's queue. `run` also queues a run whose
    * caller passes `onSubmitted`, or `onProgress` on a generation Model.
    */
@@ -175,7 +181,10 @@ export interface TaskPlan {
   provider: "fal";
 }
 
-export interface TaskOutput extends Omit<TaskPlan, "body" | "cost" | "queued"> {
+export interface TaskOutput extends Omit<
+  TaskPlan,
+  "body" | "cost" | "queued" | "size"
+> {
   files: TaskFile[];
   /** Non-file result fields: answer, reasoning, boxes, scores, points, rle, text... */
   data: Record<string, unknown>;
