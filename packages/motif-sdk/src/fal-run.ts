@@ -192,6 +192,7 @@ export async function awaitQueuedRequest(
       return err(
         new MotifError(message, 0, undefined, job.requestId, {
           endpoint: job.endpoint,
+          jobFailed: true,
           requestId: job.requestId,
         })
       );

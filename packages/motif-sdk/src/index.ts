@@ -48,6 +48,7 @@ export {
   INVALID_RESPONSE,
   isFalAccountLocked,
   refusedOption,
+  REQUEST_NOT_FOUND,
   SUBMISSION_UNCERTAIN,
 } from "./errors";
 export { INVALID_OPTION } from "./task-plan-shared";
@@ -101,6 +102,7 @@ export {
   type MotifClient,
   type MotifClientConfig,
   type PlanOptions,
+  runsQueued,
   type TaskFile,
   type TaskFunction,
   type TaskInput,

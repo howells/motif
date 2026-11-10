@@ -52,7 +52,9 @@ Token-billed Task plans, including Sunburst, Flare, Nano Banana 2.1, Banana Lite
 
 Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"processing"`, then `"completed"` (or `"failed"`). Passing it sends a generation through fal's queue, since only the queue reports state; a tool that runs synchronously reports nothing. Models without streaming report state, not a percentage.
 
-Pass `onSubmitted(requestId)` to hear the request id the moment fal's queue accepts the run, before any wait. Keep it: after a restart, `motif.resume(task, input, requestId)` waits for that same job and returns its output, submitting nothing and so paying nothing twice. Passing `onSubmitted` also queues the run.
+Pass `onSubmitted(requestId)` to hear the request id the moment fal's queue accepts the run, before any wait. Keep it: after a restart, `motif.resume(task, input, requestId)` waits for that same job and returns its output, submitting nothing and so paying nothing twice. Passing `onSubmitted` also queues the run; `runsQueued(plan, input)` says whether a run will queue, and only a queued run has an id to resume.
+
+A caller that cannot keep the input, which may hold whole images, keeps the plan instead: `plan` is plain JSON, and `motif.resumePlan(plan, requestId)` reads the same job from it. A body that holds a placeholder for an image still reads the output, and prices it from the plan's projection. A request fal has no record of, because the id is wrong, belongs to another endpoint or has expired, is `REQUEST_NOT_FOUND` (status 404). A job fal reports failed returns fal's own error with `details.jobFailed: true`.
 
 ## Plan Without Calling fal
 

@@ -35,6 +35,12 @@ export const ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
  */
 export const SUBMISSION_UNCERTAIN = "SUBMISSION_UNCERTAIN";
 
+/**
+ * Error code for a resumed request fal has no record of: the id is wrong, it
+ * belongs to another endpoint, or fal no longer keeps its result.
+ */
+export const REQUEST_NOT_FOUND = "REQUEST_NOT_FOUND";
+
 /** Error code for a fal response whose body was not the JSON it should be. */
 export const INVALID_RESPONSE = "INVALID_RESPONSE";
 

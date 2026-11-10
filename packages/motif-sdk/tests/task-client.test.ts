@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import { queueAppPath } from "../src/fal-parse";
-import { createMotif, NO_MODEL_AVAILABLE, TASK_IDS } from "../src/index";
+import {
+  createMotif,
+  NO_MODEL_AVAILABLE,
+  REQUEST_NOT_FOUND,
+  runsQueued,
+  TASK_IDS,
+} from "../src/index";
 import type { FalFetch, MotifClient, TaskId, TaskInput } from "../src/index";
 import { MODELS } from "../src/models";
 import { measuredToolCost } from "../src/tool-cost";
@@ -60,6 +66,10 @@ function fakeFetch(respond: (call: RecordedCall) => Reply) {
     );
   };
   return { calls, fetch };
+}
+
+function noop(): void {
+  // A callback that hears nothing.
 }
 
 const noNetwork = fakeFetch(() => {
@@ -1557,6 +1567,80 @@ describe("createMotif run", () => {
     expect(output.files).toStrictEqual([{ key: "image", url: restored }]);
     expect(output.requestId).toBe("req-held");
   }, 10_000);
+
+  it("resumes from a stored plan, naming the files as the original run would", async () => {
+    const motif = client(
+      fakeFetch((call) =>
+        call.url.includes("/status")
+          ? { data: { status: "COMPLETED" } }
+          : { data: { image: { height: 10, url: "https://fal.media/r.png" } } }
+      ).fetch
+    );
+    const original = motif
+      .plan("restore", { image: IMAGE }, { dryRun: true })
+      ._unsafeUnwrap();
+    // A plan is JSON: stored when the run was accepted, read back after a restart.
+    const stored = structuredClone(original);
+    const resumed = await motif.resumePlan(stored, "req-stored");
+    const output = resumed._unsafeUnwrap();
+
+    expect(output.files).toStrictEqual([
+      { key: "image", url: "https://fal.media/r.png" },
+    ]);
+    expect(output).toMatchObject({
+      model: original.model,
+      requestId: "req-stored",
+      task: "restore",
+    });
+  }, 10_000);
+
+  it("says fal has no record of a resumed request that answers 404", async () => {
+    const motif = client(
+      async () =>
+        new Response('{"detail":"Request not found"}', {
+          headers: { "content-type": "application/json" },
+          status: 404,
+        })
+    );
+    const original = motif
+      .plan("restore", { image: IMAGE }, { dryRun: true })
+      ._unsafeUnwrap();
+    const resumed = await motif.resumePlan(original, "req-gone");
+    const error = resumed._unsafeUnwrapErr();
+
+    expect(error.code).toBe(REQUEST_NOT_FOUND);
+    expect(error.status).toBe(404);
+    expect(error.details).toMatchObject({ requestId: "req-gone" });
+  });
+
+  it("says a job fal reports failed is failed, not still running", async () => {
+    const motif = client(
+      fakeFetch(() => ({ data: { error: "out of memory", status: "FAILED" } }))
+        .fetch
+    );
+    const original = motif
+      .plan("restore", { image: IMAGE }, { dryRun: true })
+      ._unsafeUnwrap();
+    const resumed = await motif.resumePlan(original, "req-bad");
+    const error = resumed._unsafeUnwrapErr();
+
+    expect(error.message).toBe("out of memory");
+    expect(error.details).toMatchObject({ jobFailed: true });
+  });
+
+  it("knows which runs go through the queue", () => {
+    const motif = client(fakeFetch(() => ({ data: {} })).fetch);
+    const sync = motif
+      .plan("erase", { image: IMAGE, prompt: "the car" }, { dryRun: true })
+      ._unsafeUnwrap();
+    const queued = motif
+      .plan("restore", { image: IMAGE }, { dryRun: true })
+      ._unsafeUnwrap();
+
+    expect(runsQueued(sync, { onProgress: noop })).toBe(false);
+    expect(runsQueued(sync, { onSubmitted: noop })).toBe(true);
+    expect(runsQueued(queued, {})).toBe(true);
+  });
 
   it("resumes an edit run at its app's queue path, not the edit route", async () => {
     // fal reads `fal-ai/nano-banana-pro/edit` back at `fal-ai/nano-banana-pro`;

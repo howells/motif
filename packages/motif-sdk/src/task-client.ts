@@ -16,7 +16,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { getFalKeyFromEnv } from "./env";
-import { MotifError } from "./errors";
+import { MotifError, REQUEST_NOT_FOUND } from "./errors";
 import { deletePayloads, falConnection, uploadToFalCdn } from "./fal-http";
 import type { FalConnection } from "./fal-http";
 import { isRecord, queueAppPath } from "./fal-parse";
@@ -256,13 +256,46 @@ export interface MotifClient {
     input: TaskInput,
     requestId: string
   ) => Promise<Result<TaskOutput, MotifError>>;
+  /**
+   * {@link MotifClient.resume} from the plan the run was made with, for a
+   * caller that kept the plan rather than the input. A plan is plain JSON, so
+   * it can be stored when `onSubmitted` fires and read back after a restart; a
+   * body that holds only a placeholder for an image still reads the output,
+   * but prices it from the plan's projection. A request fal has no record of
+   * is `REQUEST_NOT_FOUND`.
+   */
+  resumePlan: (
+    plan: TaskPlan,
+    requestId: string,
+    onProgress?: TaskInput["onProgress"]
+  ) => Promise<Result<TaskOutput, MotifError>>;
 }
 
 const MISSING_API_KEY = "MISSING_API_KEY";
 
+/**
+ * Whether `run` sends this plan through fal's queue: the Model always does, or
+ * the caller asked for `onSubmitted`, or for `onProgress` on a generation Model.
+ * Only a queued run has a request id to resume.
+ */
+export function runsQueued(
+  plan: Pick<TaskPlan, "model" | "queued">,
+  input: Pick<TaskInput, "onProgress" | "onSubmitted">
+): boolean {
+  return (
+    plan.queued ||
+    input.onSubmitted !== undefined ||
+    (input.onProgress !== undefined &&
+      MODELS[plan.model]?.type === "generation")
+  );
+}
+
 function presentKey(value: string | undefined): string | undefined {
   return value === undefined || value === "" ? undefined : value;
 }
+
+/** fal's answers for a request it does not know or no longer keeps. */
+const NOT_FOUND_STATUSES: ReadonlySet<number> = new Set([404, 410]);
 
 const RIGGED_MESH_KEY = "rigged_character_glb";
 
@@ -427,12 +460,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     // finishes. `onSubmitted` queues any Model; `onProgress` queues a generation
     // Model, and a tool Model without a queue runs synchronously and reports
     // nothing.
-    const queued =
-      chosen.queued ||
-      input.onSubmitted !== undefined ||
-      (input.onProgress !== undefined &&
-        MODELS[chosen.model]?.type === "generation");
-    const result = queued
+    const result = runsQueued(chosen, input)
       ? await runRequestQueued(
           fal.value,
           prepared,
@@ -441,6 +469,35 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
         )
       : await runRequest(fal.value, prepared);
     return result.map((value) => falOutput(chosen, value));
+  }
+
+  async function resumePlan(
+    stored: TaskPlan,
+    requestId: string,
+    onProgress?: TaskInput["onProgress"]
+  ): Promise<Result<TaskOutput, MotifError>> {
+    const fal = connection();
+    if (fal.isErr()) {
+      return err(fal.error);
+    }
+    const endpoint = queueAppPath(stored.endpoint);
+    const result = await awaitQueuedRequest(
+      fal.value,
+      { endpoint, requestId },
+      onProgress
+    );
+    if (result.isErr() && NOT_FOUND_STATUSES.has(result.error.status)) {
+      return err(
+        new MotifError(
+          `fal has no request ${requestId} on ${endpoint}: the id is wrong, it belongs to another endpoint, or fal no longer keeps its result`,
+          result.error.status,
+          REQUEST_NOT_FOUND,
+          requestId,
+          { endpoint, requestId }
+        )
+      );
+    }
+    return result.map((value) => falOutput(stored, value));
   }
 
   async function resume(
@@ -452,17 +509,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     if (planned.isErr()) {
       return err(planned.error);
     }
-    const chosen = planned.value;
-    const fal = connection();
-    if (fal.isErr()) {
-      return err(fal.error);
-    }
-    const result = await awaitQueuedRequest(
-      fal.value,
-      { endpoint: queueAppPath(chosen.endpoint), requestId },
-      input.onProgress
-    );
-    return result.map((value) => falOutput(chosen, value));
+    return await resumePlan(planned.value, requestId, input.onProgress);
   }
 
   const tasks = {
@@ -497,6 +544,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     },
     plan,
     resume,
+    resumePlan,
     run,
     stream: taskStreamer(config, plan, context),
     async upload(bytes, contentType, fileName) {
