@@ -54,8 +54,8 @@ motif series list
 motif series show <slug>
 motif series ref-add <slug> <image> [-t tag] [-d description]
 motif series ref-remove <slug> <filename>
-motif series gen <slug> "prompt" [--refs tags] [--look id] [--mood id] [--no-mood] [-m model] [-a aspect] [-r res] [-n count] [-o output] [--dry-run]
-motif series run "theme" [--count n] [--series slug] [--style prompt] [--refs tags] [--look id] [--mood id] [--no-mood] [--tier tier] [-m model] [-a aspect] [-r res] [--dry-run]
+motif series gen <slug> "prompt" [--refs tags] [--look id] [--mood id] [--no-mood] [-m model] [-a aspect] [-r res] [-n count] [-o output] [--open] [--dry-run]
+motif series run "theme" [--count n] [--series slug] [--style prompt] [--refs tags] [--look id] [--mood id] [--no-mood] [--tier tier] [-m model] [-a aspect] [-r res] [--open] [--dry-run]
 motif series history <slug> [--limit n] [--offset n]
 motif series delete <slug>
 ```

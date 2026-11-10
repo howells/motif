@@ -14,7 +14,7 @@ motif "a ceramic desk lamp on oak" --tier quality --landscape -n 2 --dry-run
 motif "turn this into a watercolour poster" -e photo.png -e palette.png --dry-run
 ```
 
-Task options any capable Model can honour: `-a/--aspect` or a preset (`--og`, `--square`, `--cover`, `--portrait`, `--landscape`, `--story`, `--reel`, `--feed`, `--wallpaper`, `--wide`, `--ultra`), `-r/--resolution`, `-n/--num` (1-4; one request, never a loop), `--seed`, `--negative`, `--output-format`, `--transparent`, `-e/--edit` (a reference, repeatable) and `--mask` (with `-e`). A request that needs something narrows the Models that qualify: several references, transparency, a mask or more than one image rule out Models that can't take them. FLUX.2 Pro and Flex, Recraft and Krea make one image per request, and Sunburst makes one image when the output is SVG; every other Model makes at least 4, so `-n` up to 4 works at every Tier. `--describe generate` lists each Model's `maxCount`.
+Task options any capable Model can honour: `-a/--aspect` or a preset (`--og`, `--square`, `--cover`, `--portrait`, `--landscape`, `--story`, `--reel`, `--feed`, `--wallpaper`, `--wide`, `--ultra`), `-r/--resolution`, `-n/--num` (1-4; one request, never a loop), `--seed`, `--negative`, `--output-format`, `--transparent`, `-e/--edit` (a reference, repeatable) and `--mask` (with `-e`). `--open` shows the first result in a viewer; nothing opens without it. A request that needs something narrows the Models that qualify: several references, transparency, a mask or more than one image rule out Models that can't take them. FLUX.2 Pro and Flex, Recraft and Krea make one image per request, and Sunburst makes one image when the output is SVG; every other Model makes at least 4, so `-n` up to 4 works at every Tier. `--describe generate` lists each Model's `maxCount`.
 
 Sunburst and Flare (GPT Image 2.6) are sized exactly: `-a` and `-r` become a width and height in that ratio, kept inside fal's limits (edges in multiples of 16, long edge up to 3840, 8.3 MP at most). `-r 4K` gives the largest size in the ratio, e.g. 3264×2448 at 4:3. With no `-r` they make 2K. An edit with no `-a` is sized from its source image, so `-r` on an edit needs `-a`.
 
@@ -26,7 +26,7 @@ Sunburst and Flare (GPT Image 2.6) are sized exactly: `-a` and `-r` become a wid
 
 Instead: a specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).
 
-Flags: `--prompt <text>` (default: the source's prompt), `-n/--num`, `--look`, `--mood`, `--no-mood`, `--tier`, `-m`, `--param`, `--seed`. The image falls back to the last generation. vary reuses the Model that made the image while that Model can still edit; otherwise it chooses from the editing ranking.
+Flags: `--prompt <text>` (default: the source's prompt), `-n/--num`, `--look`, `--mood`, `--no-mood`, `--tier`, `-m`, `--param`, `--seed`, `--open`. The image falls back to the last generation. vary reuses the Model that made the image while that Model can still edit; otherwise it chooses from the editing ranking.
 
 ```bash
 motif vary hero.png -n 4 --dry-run
@@ -109,7 +109,7 @@ motif "a green kitchen" --look interior --mood overcast --dry-run
 
 ```bash
 echo '{"prompt":"a cat","tier":"fast","aspect":"16:9","numImages":2}' | motif --dry-run
-echo '{"prompt":"a cat","model":"gpt"}' | motif --landscape -r 4K --dry-run
+echo '{"prompt":"a cat","model":"banana"}' | motif --landscape -r 4K --dry-run
 ```
 
 Flag values override stdin values for the same field. The schema:

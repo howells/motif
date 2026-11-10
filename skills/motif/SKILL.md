@@ -51,7 +51,7 @@ motif series run "brutalist architecture" --count 6 --dry-run --format json
 ```
 
 - Use `--format json` and pick fields with `--fields`; don't parse human output.
-- Save outputs inside the repository's Git root (or the current directory outside one), at a new path so the source survives. An output ending in `/` saves every returned file; any other path saves the primary file.
+- Save outputs inside the repository's Git root (or the current directory outside one), at a new path so the source survives. For a Task verb (not `generate`, `vary` or `series`), an output ending in `/` saves every returned file and any other path saves the primary file. `generate` and `vary` write files, not directories: with several images `-o a.png` names them `a-1.png`, `a-2.png`. Nothing opens in a viewer unless you pass `--open`.
 - Generation and variation return `images[].path`. Other tasks return `path` for the primary file and `files[].path` for every file written; `ask` returns data and no file. A dry run reports `output`, where the file would go, not a file that exists.
 
 Errors are JSON on stderr. Exit codes: `2` bad input, `3` authentication, `4` not found, `5` provider failure.

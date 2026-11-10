@@ -6,7 +6,7 @@ One verb per Task: its usage, modes, flags and what to use instead. Part of the 
 
 ## What every Task verb shares
 
-- **Motif chooses the Model.** It takes the highest-ranked Model that can do what the request asks for (a mask, transparency, a video, a mode) at the chosen Tier. The prompt never affects the choice.
+- **Motif chooses the Model.** It takes the highest-ranked Model that can do what the request asks for (a mask, transparency, a video, a mode) at the chosen Tier. What the prompt says never affects the choice. Whether the request has a prompt, and every other option (a mask, a count, an aspect, a format), can rule out a Model that cannot take it, and the choice falls to the next one that can.
 - `--tier fast|balanced|quality` moves the choice along the Task's ranking. The default is `balanced`. A Task with nothing at a Tier falls back to the nearest Model that can do the job, so `--tier fast` on `erase` still runs.
 - `-m <model>` runs that Model instead. `--param key=value` (repeatable) sends a Model-only request field and needs `-m`.
 - A **mode** is a flag such as `--text` or `--pose`. One mode per call; two is `INVALID_OPTION`.

@@ -301,6 +301,18 @@ A resolution name (`0.5K`, `1K`, `2K`, `4K`) is a tier, not a pixel count, and t
 
 `-n` is 1-4 and is one request. Every Model makes at least 4 images except FLUX.2 Pro and Flex, Recraft and Krea (one), so a Model that cannot make the count is skipped; `--describe generate` lists each Model's `maxCount`. `--scale` ranges by Model (Topaz and Clarity 1-4, SeedVR 1-10, Crystal 1-200), and a factor past one Model's range moves to one that takes it; `--describe upscale` lists each Model's `scaleRange`. Crystal bills per output megapixel, so check `--dry-run` before a large factor.
 
+## What changed in refusals
+
+If an older script now fails, or a result changed, check this list first.
+
+- An explicit `-r 2K` (or any resolution) is honoured or refused; it is never quietly dropped. A Model with no resolution setting says so and names the fix.
+- `gpt` takes only the aspects `auto`, `1:1`, `3:2` and `2:3`. `--landscape` (16:9) on it is refused.
+- A format, a scale, a count or a `--param` key outside what the Model takes is refused with what it does take (`details.accepts`, `details.limit`). `--param num_images` is refused in favour of `-n`.
+- A ranked request (no `-m`) falls through to the next Model that can do it, so asking for an upscale factor of 10 picks a Model whose range covers it rather than failing; a pinned `-m` fails instead.
+- PNG is the default format wherever a Model takes one. `-o x.jpg` asks for JPEG, and is refused where the Model cannot make it.
+- Nothing opens in a viewer unless you pass `--open`.
+- A paid run that cannot be fully saved or recorded still reports what it saved, then fails with its own code (`FILES_NOT_SAVED`, `FILE_ACCESS_FAILED`, `CORRUPT_FILE`). Do not run it again; see [output](docs/output.md#when-a-paid-run-could-not-be-recorded). A request that can bill is never resent after an unclear failure (`SUBMISSION_UNCERTAIN`).
+
 ## Response Sanitization
 
 All API response data is sanitized before output to defend against prompt injection embedded in image metadata or API responses. Patterns matching known injection formats (SYSTEM, INSTRUCTION, etc.) are replaced with `[FILTERED]`.
