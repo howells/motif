@@ -79,10 +79,12 @@ Instead: fixing noise, softness or colour without changing the size (restore).
 
 | Flag            | Does                                       |
 | --------------- | ------------------------------------------ |
-| `--scale <n>`   | Upscale factor                             |
+| `--scale <n>`   | Upscale factor, 1 or more (default 2)      |
 | `--transparent` | Keep the alpha channel                     |
 | `--generative`  | Synthesise plausible detail as it enlarges |
 | `--creative`    | Reimagine detail as it enlarges            |
+
+Each Model takes its own range of factors: 1 to 4 on Topaz and Clarity, 1 to 10 on SeedVR, 1 to 200 on Crystal. A factor past a Model's range moves the request to the next Model that takes it, so `--scale 8` reaches SeedVR or Crystal; past 200 is refused. `--describe upscale` lists each Model's `scaleRange`. Crystal bills per output megapixel, so a large factor is costly: check `--dry-run`.
 
 ```bash
 motif upscale photo.jpg --scale 2 --dry-run

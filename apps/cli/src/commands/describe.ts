@@ -724,6 +724,7 @@ function taskDetails(command: string): Record<string, unknown> {
       model: entry.model,
       name: rankedName(entry.model),
       sizing: rankedSizing(entry.model),
+      ...rankedLimits(entry.model, definition.generationModels === true),
       tier: entry.tier,
       ...(entry.mode === undefined ? {} : { mode: entry.mode }),
       benchmark: entry.benchmark ?? null,
@@ -739,6 +740,28 @@ function rankedSizing(model: string): ModelSizing {
     throw new Error(`Ranked Model ${model} is in no registry.`);
   }
   return profile.sizing;
+}
+
+/**
+ * The limits a ranked Model's tables state: the upscale factors it takes
+ * (`scaleRange`) and, for a generation Task, the most images one request makes
+ * (`maxCount`, null where the Model takes a count but states no maximum).
+ */
+function rankedLimits(
+  model: string,
+  generation: boolean
+): { maxCount?: number | null; scaleRange?: { max: number; min: number } } {
+  const profile = modelProfile(model);
+  if (profile === undefined) {
+    throw new Error(`Ranked Model ${model} is in no registry.`);
+  }
+  return {
+    ...(profile.scaleRange !== undefined && { scaleRange: profile.scaleRange }),
+    ...(generation && {
+      maxCount:
+        profile.maxCount ?? (profile.capabilities.has("count") ? null : 1),
+    }),
+  };
 }
 
 /** The display name of a ranked Model; every ranked Model is in a registry. */

@@ -206,6 +206,32 @@ describe("CLI contract", () => {
     }
   });
 
+  it("says how many images each generation Model makes and which factors each upscaler takes", async () => {
+    const limits = async (task: string) =>
+      new Map<unknown, Record<string, unknown>>(
+        asArray(
+          parseJsonLine(
+            (await runMotif(["--describe", task, "--format", "json"])).stdout
+          ).ranking
+        )
+          .map(asRecord)
+          .map((entry) => [entry.model, entry])
+      );
+    const generate = await limits("generate");
+    expect(generate.get("sunburst")).toMatchObject({ maxCount: 10 });
+    expect(generate.get("gpt")).toMatchObject({ maxCount: 4 });
+    expect(generate.get("flux2-pro")).toMatchObject({ maxCount: 1 });
+    const upscale = await limits("upscale");
+    expect(upscale.get("topaz-precision")).toMatchObject({
+      scaleRange: { max: 4, min: 1 },
+    });
+    expect(upscale.get("crystal")).toMatchObject({
+      scaleRange: { max: 200, min: 1 },
+    });
+    expect(upscale.get("topaz-transparent")).not.toHaveProperty("scaleRange");
+    expect(upscale.get("crystal")).not.toHaveProperty("maxCount");
+  });
+
   it("says what a resolution tier means for each Model, and what a dry run asks for", async () => {
     const described = await runMotif([
       "--describe",
