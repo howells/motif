@@ -5,9 +5,9 @@
 
 import type { TaskId } from "@howells/motif-sdk";
 
+import { historyPrompt } from "../utils/config";
 import { generateFilename } from "../utils/image";
-
-const IMAGE_EXT_REGEX = /\.(png|jpg|jpeg|webp)$/i;
+import { derivedOutputPath } from "../utils/output-files";
 
 export type Mode = "edit" | "variations" | "upscale" | "rmbg";
 
@@ -40,32 +40,30 @@ export const OPERATIONS: { key: Mode; label: string; description: string }[] = [
   },
 ];
 
-export function outputPathFor(
-  sourcePath: string,
-  mode: Mode,
-  scale: number
-): string {
+/** Where a mode's file lands: the CLI verbs' name for it, beside the source. */
+export function outputPathFor(sourcePath: string, mode: Mode): string {
   if (mode === "upscale") {
-    return sourcePath.replace(IMAGE_EXT_REGEX, `-up${scale}x.png`);
+    return derivedOutputPath(sourcePath, "-upscale", ".png");
   }
   if (mode === "rmbg") {
-    return sourcePath.replace(IMAGE_EXT_REGEX, "-nobg.png");
+    return derivedOutputPath(sourcePath, "-cutout", ".png");
   }
   return generateFilename("motif-edit");
 }
 
+/** The history prompt: the CLI verbs' `[upscale]` and `[cutout]` tags. */
 export function promptLabelFor(
   mode: Mode,
-  prompts: { edit: string; scale: number; source: string }
+  prompts: { edit: string; source: string }
 ): string {
   if (mode === "edit") {
     return prompts.edit;
   }
   if (mode === "upscale") {
-    return `[upscale ${prompts.scale}x] ${prompts.source}`;
+    return historyPrompt("upscale", prompts.source);
   }
   if (mode === "rmbg") {
-    return `[rmbg] ${prompts.source}`;
+    return historyPrompt("cutout", prompts.source);
   }
   return prompts.source;
 }

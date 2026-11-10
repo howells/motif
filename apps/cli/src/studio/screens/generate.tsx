@@ -1,5 +1,3 @@
-import { resolve } from "node:path";
-
 import { ASPECT_RATIOS, DEFAULT_TIER, RESOLUTIONS } from "@howells/motif-sdk";
 import type {
   AspectRatio,
@@ -11,26 +9,21 @@ import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import { useMemo, useState } from "react";
 
-import { addGeneration, generateId } from "../../utils/config";
 import type { MotifConfig } from "../../utils/config";
-import {
-  generateFilename,
-  getFileSize,
-  getImageDimensions,
-  openImage,
-} from "../../utils/image";
+import { generateFilename } from "../../utils/image";
 import { motifClient } from "../../utils/motif-client";
 import { findPreset } from "../../utils/presets";
+import { Select } from "../components/select";
 import { Spinner } from "../components/spinner";
-import { TierOptions } from "../components/tier-options";
 import {
   acceptsResolution,
   planCost,
   runTask,
-  saveFirstFile,
+  saveRun,
   TIER_OPTIONS,
   tierMatters,
 } from "../task";
+import type { RunResult } from "../task";
 
 type Step =
   | "prompt"
@@ -66,25 +59,15 @@ const PRESETS = [
   return { ...entry, aspect: preset.aspect, resolution: preset.resolution };
 });
 
-type PostAction =
-  | "edit"
-  | "variations"
-  | "upscale"
-  | "rmbg"
-  | "regenerate"
-  | "new"
-  | "home";
+type PostAction = "edit" | "regenerate" | "new" | "home";
 
 const POST_ACTIONS: { key: PostAction; label: string; description: string }[] =
   [
-    { description: "Change it with a new prompt", key: "edit", label: "Edit" },
     {
-      description: "Make similar images",
-      key: "variations",
-      label: "Variations",
+      description: "Change it, vary it, upscale it or cut it out",
+      key: "edit",
+      label: "Edit",
     },
-    { description: "Make it larger", key: "upscale", label: "Upscale" },
-    { description: "Transparent PNG", key: "rmbg", label: "Remove Background" },
     {
       description: "Same prompt, new settings",
       key: "regenerate",
@@ -123,11 +106,7 @@ export function GenerateScreen({
   const [confirmField, setConfirmField] = useState<ConfirmField | null>(null);
   const [confirmIndex, setConfirmIndex] = useState(0);
   const [status, setStatus] = useState("");
-  const [result, setResult] = useState<{
-    path: string;
-    dims: string;
-    size: string;
-  } | null>(null);
+  const [result, setResult] = useState<RunResult | null>(null);
 
   const showTier = tierMatters(config, "generate", { aspect });
   const showResolution = acceptsResolution(client, "generate", {
@@ -143,22 +122,6 @@ export function GenerateScreen({
     ...(showResolution && { resolution }),
   };
   const planned = planCost(client, "generate", input);
-
-  const handleListNavigation = <T extends string>(
-    items: readonly T[],
-    onSelect: (item: T) => void,
-    key: { upArrow?: boolean; downArrow?: boolean; return?: boolean }
-  ) => {
-    if (key.upArrow === true) {
-      setSelectedIndex((i) => (i > 0 ? i - 1 : items.length - 1));
-    } else if (key.downArrow === true) {
-      setSelectedIndex((i) => (i < items.length - 1 ? i + 1 : 0));
-    } else if (key.return === true) {
-      // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
-      onSelect(items[selectedIndex]!);
-      setSelectedIndex(0);
-    }
-  };
 
   const goToConfirm = () => {
     setSelectedIndex(0);
@@ -203,43 +166,11 @@ export function GenerateScreen({
     }
   };
 
-  const handlePresetInput = (key: {
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-    tab?: boolean;
-  }) => {
-    if (key.upArrow === true && selectedIndex > 0) {
-      setSelectedIndex(selectedIndex - 1);
-    } else if (key.downArrow === true && selectedIndex < PRESETS.length - 1) {
-      setSelectedIndex(selectedIndex + 1);
-    } else if (key.return === true) {
-      // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
-      const preset = PRESETS[selectedIndex]!;
-      setAspect(preset.aspect);
-      if (preset.resolution) {
-        setResolution(preset.resolution);
-      }
-      goToConfirm();
-    } else if (key.tab === true) {
+  const handlePresetInput = (key: { tab?: boolean }) => {
+    if (key.tab === true) {
       setSelectedIndex(0);
       setStep(showTier ? "tier" : "aspect");
     }
-  };
-
-  const handleTierInput = (key: {
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-  }) => {
-    handleListNavigation(
-      TIERS,
-      (t) => {
-        setTier(t);
-        setStep("aspect");
-      },
-      key
-    );
   };
 
   const handleAspectInput = (key: {
@@ -285,85 +216,18 @@ export function GenerateScreen({
     }
   };
 
-  const handleResolutionInput = (key: {
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-  }) => {
-    handleListNavigation(
-      RESOLUTIONS,
-      (r) => {
-        setResolution(r);
-        goToConfirm();
-      },
-      key
-    );
-  };
-
-  const handleConfirmFieldEdit = (key: {
-    escape?: boolean;
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-  }) => {
-    const close = () => {
-      setConfirmField(null);
-      setSelectedIndex(0);
-    };
-    if (key.escape === true) {
-      close();
-    } else if (confirmField === "tier") {
-      handleListNavigation(
-        TIERS,
-        (t) => {
-          setTier(t);
-          close();
-        },
-        key
-      );
-    } else if (confirmField === "aspect") {
-      handleListNavigation(
-        ASPECT_RATIOS,
-        (a) => {
-          setAspect(a);
-          close();
-        },
-        key
-      );
-    } else if (confirmField === "resolution") {
-      handleListNavigation(
-        RESOLUTIONS,
-        (r) => {
-          setResolution(r);
-          close();
-        },
-        key
-      );
-    }
-  };
-
   const confirmFields: ConfirmField[] = [
     ...(showTier ? (["tier"] as const) : []),
     "aspect",
     ...(showResolution ? (["resolution"] as const) : []),
   ];
 
-  const getFieldSelectedIndex = (field: ConfirmField): number => {
-    const indexMap: Record<ConfirmField, number> = {
-      aspect: ASPECT_RATIOS.indexOf(aspect),
-      resolution: RESOLUTIONS.indexOf(resolution),
-      tier: TIERS.indexOf(tier),
-    };
-    return indexMap[field];
-  };
-
   const handleConfirmInput = (
     input: string,
     key: { upArrow?: boolean; downArrow?: boolean; return?: boolean }
   ) => {
     if (confirmField) {
-      handleConfirmFieldEdit(key);
-      return;
+      return; // the field's own list is handling the keys
     }
 
     if (key.upArrow === true) {
@@ -374,7 +238,6 @@ export function GenerateScreen({
       const field = confirmFields[confirmIndex];
       if (field !== undefined) {
         setConfirmField(field);
-        setSelectedIndex(getFieldSelectedIndex(field));
       }
     } else if (input === "y" && "cost" in planned) {
       // Fire-and-forget: ink input handlers are synchronous, and
@@ -385,44 +248,30 @@ export function GenerateScreen({
     }
   };
 
-  const handleDoneInput = (key: {
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-  }) => {
-    if (key.upArrow === true) {
-      setSelectedIndex((i) => (i > 0 ? i - 1 : POST_ACTIONS.length - 1));
-    } else if (key.downArrow === true) {
-      setSelectedIndex((i) => (i < POST_ACTIONS.length - 1 ? i + 1 : 0));
-    } else if (key.return === true) {
-      const action = POST_ACTIONS[selectedIndex]?.key;
-      switch (action) {
-        case "edit":
-        case "variations":
-        case "upscale":
-        case "rmbg": {
-          onComplete("edit");
-          break;
-        }
-        case "regenerate": {
-          setStep("preset");
-          setSelectedIndex(0);
-          break;
-        }
-        case "new": {
-          setPrompt("");
-          setResult(null);
-          setStep("prompt");
-          setSelectedIndex(0);
-          break;
-        }
-        case "home": {
-          onComplete("home");
-          break;
-        }
-        case undefined: {
-          break;
-        }
+  const handleDoneAction = (action: PostAction | undefined) => {
+    switch (action) {
+      case "edit": {
+        onComplete("edit");
+        break;
+      }
+      case "regenerate": {
+        setStep("preset");
+        setSelectedIndex(0);
+        break;
+      }
+      case "new": {
+        setPrompt("");
+        setResult(null);
+        setStep("prompt");
+        setSelectedIndex(0);
+        break;
+      }
+      case "home": {
+        onComplete("home");
+        break;
+      }
+      case undefined: {
+        break;
       }
     }
   };
@@ -435,16 +284,10 @@ export function GenerateScreen({
 
     if (step === "preset") {
       handlePresetInput(key);
-    } else if (step === "tier") {
-      handleTierInput(key);
     } else if (step === "aspect") {
       handleAspectInput(key);
-    } else if (step === "resolution") {
-      handleResolutionInput(key);
     } else if (step === "confirm") {
       handleConfirmInput(input, key);
-    } else if (step === "done") {
-      handleDoneInput(key);
     }
   });
 
@@ -455,32 +298,14 @@ export function GenerateScreen({
     try {
       const output = await runTask(client, "generate", input);
 
-      setStatus("Downloading...");
-      const outputPath = await saveFirstFile(output, generateFilename());
-
-      const dims = await getImageDimensions(outputPath);
-      const size = getFileSize(outputPath);
-
-      await addGeneration({
-        aspect,
-        cost: output.cost.usd,
-        id: generateId(),
-        model: output.model,
-        output: resolve(outputPath),
-        prompt,
-        resolution,
-        timestamp: new Date().toISOString(),
-      });
-
-      const fullPath = resolve(outputPath);
-
-      setResult({
-        dims: dims ? `${dims.width}x${dims.height}` : "?",
-        path: fullPath,
-        size,
-      });
-
-      openImage(fullPath);
+      setStatus("Saving...");
+      setResult(
+        await saveRun(output, generateFilename(), {
+          aspect,
+          prompt,
+          resolution,
+        })
+      );
 
       setSelectedIndex(0);
       setStep("done");
@@ -498,28 +323,49 @@ export function GenerateScreen({
     }
   };
 
-  const renderOptions = (options: readonly string[]) => (
-    <Box flexDirection="column">
-      {options.map((option, i) => (
-        <Box key={option}>
-          <Text
-            bold={i === selectedIndex}
-            color={i === selectedIndex ? "magenta" : undefined}
-          >
-            {i === selectedIndex ? "◆ " : "  "}
-            {option}
-          </Text>
-        </Box>
-      ))}
-    </Box>
-  );
-
   const renderConfirmField = (field: ConfirmField) => {
     if (confirmField === field) {
+      const done = () => {
+        setConfirmField(null);
+      };
       if (field === "tier") {
-        return <TierOptions selectedIndex={selectedIndex} />;
+        return (
+          <Select
+            initialIndex={TIERS.indexOf(tier)}
+            items={TIER_OPTIONS.map((option) => ({
+              detail: option.note,
+              label: option.tier,
+            }))}
+            labelWidth={10}
+            onSelect={(index) => {
+              setTier(TIERS[index] ?? tier);
+              done();
+            }}
+          />
+        );
       }
-      return renderOptions(field === "aspect" ? ASPECT_RATIOS : RESOLUTIONS);
+      if (field === "aspect") {
+        return (
+          <Select
+            initialIndex={ASPECT_RATIOS.indexOf(aspect)}
+            items={ASPECT_RATIOS.map((label) => ({ label }))}
+            onSelect={(index) => {
+              setAspect(ASPECT_RATIOS[index] ?? aspect);
+              done();
+            }}
+          />
+        );
+      }
+      return (
+        <Select
+          initialIndex={RESOLUTIONS.indexOf(resolution)}
+          items={RESOLUTIONS.map((label) => ({ label }))}
+          onSelect={(index) => {
+            setResolution(RESOLUTIONS[index] ?? resolution);
+            done();
+          }}
+        />
+      );
     }
     const isActive =
       confirmFields[confirmIndex] === field && confirmField === null;
@@ -600,18 +446,18 @@ export function GenerateScreen({
 
       <Box flexDirection="column" marginTop={1}>
         <Text bold>Continue</Text>
-        {POST_ACTIONS.map((action, i) => (
-          <Box key={action.key} marginLeft={1}>
-            <Text
-              bold={i === selectedIndex}
-              color={i === selectedIndex ? "magenta" : undefined}
-            >
-              {i === selectedIndex ? "◆ " : "  "}
-              {action.label.padEnd(14)}
-            </Text>
-            <Text dimColor={i !== selectedIndex}>{action.description}</Text>
-          </Box>
-        ))}
+        <Box flexDirection="column" marginLeft={1}>
+          <Select
+            items={POST_ACTIONS.map((action) => ({
+              detail: action.description,
+              label: action.label,
+            }))}
+            labelWidth={14}
+            onSelect={(index) => {
+              handleDoneAction(POST_ACTIONS[index]?.key);
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   );
@@ -664,19 +510,24 @@ export function GenerateScreen({
         <Box flexDirection="column">
           <Text bold>Quick presets</Text>
           <Text dimColor>↑↓ select, enter apply, tab for manual</Text>
-          <Box flexDirection="column" marginTop={1}>
-            {PRESETS.map((preset, i) => (
-              <Box key={preset.key} marginLeft={1}>
-                <Text
-                  bold={i === selectedIndex}
-                  color={i === selectedIndex ? "magenta" : undefined}
-                >
-                  {i === selectedIndex ? "◆ " : "  "}
-                  {preset.label.padEnd(14)}
-                </Text>
-                <Text dimColor={i !== selectedIndex}>{preset.description}</Text>
-              </Box>
-            ))}
+          <Box flexDirection="column" marginLeft={1} marginTop={1}>
+            <Select
+              items={PRESETS.map((preset) => ({
+                detail: preset.description,
+                label: preset.label,
+              }))}
+              labelWidth={14}
+              onSelect={(index) => {
+                const preset = PRESETS[index];
+                if (preset !== undefined) {
+                  setAspect(preset.aspect);
+                  if (preset.resolution) {
+                    setResolution(preset.resolution);
+                  }
+                  goToConfirm();
+                }
+              }}
+            />
           </Box>
         </Box>
       )}
@@ -685,7 +536,18 @@ export function GenerateScreen({
         <Box flexDirection="column">
           <Text bold>Speed or quality:</Text>
           <Box flexDirection="column" marginLeft={1} marginTop={1}>
-            <TierOptions selectedIndex={selectedIndex} />
+            <Select
+              items={TIER_OPTIONS.map((option) => ({
+                detail: option.note,
+                label: option.tier,
+              }))}
+              labelWidth={10}
+              onSelect={(index) => {
+                setTier(TIERS[index] ?? DEFAULT_TIER);
+                setSelectedIndex(0);
+                setStep("aspect");
+              }}
+            />
           </Box>
         </Box>
       )}
@@ -696,7 +558,13 @@ export function GenerateScreen({
         <Box flexDirection="column">
           <Text bold>Select resolution:</Text>
           <Box flexDirection="column" marginTop={1}>
-            {renderOptions(RESOLUTIONS)}
+            <Select
+              items={RESOLUTIONS.map((option) => ({ label: option }))}
+              onSelect={(index) => {
+                setResolution(RESOLUTIONS[index] ?? resolution);
+                goToConfirm();
+              }}
+            />
           </Box>
         </Box>
       )}

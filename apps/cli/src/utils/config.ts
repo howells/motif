@@ -324,6 +324,22 @@ export function generateId(): string {
   return randomUUID();
 }
 
+/** A history prompt's leading `[verb] ` tag, from an earlier Task run. */
+const HISTORY_TAG_REGEX = /^\[[\w-]+\]\s*/;
+
+/**
+ * The history prompt for a Task run: `[verb]`, then the prompt it came from.
+ * A source made by an earlier Task run already carries a tag, which is
+ * replaced so history never reads "[layers] [layers]".
+ */
+export function historyPrompt(
+  command: string,
+  prompt: string | undefined
+): string {
+  const base = (prompt ?? "").replace(HISTORY_TAG_REGEX, "").trim();
+  return hasText(base) ? `[${command}] ${base}` : `[${command}]`;
+}
+
 /** What a history entry is made of; `newGeneration` adds the id and timestamp. */
 export type GenerationFields = Omit<Generation, "id" | "timestamp"> & {
   timestamp?: string;

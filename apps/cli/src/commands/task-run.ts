@@ -34,6 +34,7 @@ import type { Generation, MotifConfig } from "../utils/config";
 import {
   addGeneration,
   getLastGeneration,
+  historyPrompt,
   newGeneration,
 } from "../utils/config";
 import { exitNoPrevious, handleError, validateOutput } from "../utils/errors";
@@ -62,9 +63,6 @@ import type { WrittenFile } from "../utils/output-files";
 import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
 import { hasText } from "../utils/text";
 import { readVideoHeader } from "../utils/video-header";
-
-/** A history prompt's leading `[verb] ` tag, from an earlier Task run. */
-const HISTORY_TAG_REGEX = /^\[[\w-]+\]\s*/;
 
 export interface TaskRunSpec {
   /** The verb, as emitted and recorded in history. */
@@ -294,19 +292,6 @@ function withoutKeys(
   return Object.fromEntries(
     Object.entries(data).filter(([key]) => !(key in reserved))
   );
-}
-
-/**
- * The history prompt for a Task run: `[verb]`, then the prompt it came from.
- * A source made by an earlier Task run already carries a tag, which is
- * replaced so history never reads "[layers] [layers]".
- */
-export function historyPrompt(
-  command: string,
-  prompt: string | undefined
-): string {
-  const base = (prompt ?? "").replace(HISTORY_TAG_REGEX, "").trim();
-  return hasText(base) ? `[${command}] ${base}` : `[${command}]`;
 }
 
 /** The history entry for a run that wrote files. */

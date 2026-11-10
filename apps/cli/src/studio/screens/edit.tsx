@@ -10,15 +10,14 @@ import type {
 } from "@howells/motif-sdk";
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { addGeneration, generateId, loadHistory } from "../../utils/config";
+import { loadHistory } from "../../utils/config";
 import type { Generation, MotifConfig } from "../../utils/config";
-import { getFileSize, getImageDimensions, openImage } from "../../utils/image";
 import { imageSource, motifClient } from "../../utils/motif-client";
 import { hasText } from "../../utils/text";
+import { Select } from "../components/select";
 import { Spinner } from "../components/spinner";
-import { TierOptions } from "../components/tier-options";
 import {
   OPERATIONS,
   outputPathFor,
@@ -27,13 +26,8 @@ import {
   TASK_FOR_MODE,
 } from "../edit-modes";
 import type { Mode } from "../edit-modes";
-import {
-  planCost,
-  runTask,
-  saveFirstFile,
-  TIER_OPTIONS,
-  tierMatters,
-} from "../task";
+import { planCost, runTask, saveRun, TIER_OPTIONS, tierMatters } from "../task";
+import type { RunResult } from "../task";
 
 type Step =
   | "select"
@@ -64,23 +58,16 @@ export function EditScreen({
   const [mode, setMode] = useState<Mode | null>(null);
   const [generations, setGenerations] = useState<Generation[]>([]);
   const [selectedGen, setSelectedGen] = useState<Generation | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const [operationIndex, setOperationIndex] = useState(0);
   const [customPath, setCustomPath] = useState("");
   const [useCustomPath, setUseCustomPath] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [scale, setScale] = useState(2);
   const [tier, setTier] = useState<Tier>(DEFAULT_TIER);
-  const [tierIndex, setTierIndex] = useState(0);
   const [image, setImage] = useState<string | null>(null);
   const client = useMemo(() => motifClient(config), [config]);
   const showTier = tierMatters(config, "upscale", { source: "image" });
   const [status, setStatus] = useState("");
-  const [result, setResult] = useState<{
-    path: string;
-    dims: string;
-    size: string;
-  } | null>(null);
+  const [result, setResult] = useState<RunResult | null>(null);
 
   // For custom path mode, create a pseudo-generation object
   const getSourceImage = (): {
@@ -102,56 +89,56 @@ export function EditScreen({
     return selectedGen === null ? null : { ...selectedGen, fromHistory: true };
   };
 
+  /**
+   * Read the source image, then go to the operations. The cost can only be
+   * worked out from the image, so nothing past this step runs until it has
+   * loaded; a file that cannot be read goes through onError and the screen
+   * stays where it is.
+   */
+  const loadSource = useCallback(
+    async (path: string) => {
+      try {
+        setImage(await imageSource(path));
+        setStep("operation");
+      } catch (error) {
+        onError(error instanceof Error ? error : new Error(String(error)));
+      }
+    },
+    [onError]
+  );
+
   useEffect(() => {
     const loadGenerations = async () => {
       const history = await loadHistory();
       if (history.generations.length === 0) {
         setUseCustomPath(true);
-      } else {
-        const latest = history.generations.at(-1) ?? null;
-        setGenerations([...history.generations].reverse());
-        setSelectedGen(latest);
-        if (skipToOperation) {
-          setStep("operation");
-        }
+        return;
+      }
+      const latest = history.generations.at(-1) ?? null;
+      setGenerations([...history.generations].reverse());
+      setSelectedGen(latest);
+      if (skipToOperation && latest !== null) {
+        await loadSource(latest.output);
       }
     };
     // Fire-and-forget: useEffect callbacks cannot be async; errors are non-fatal
     // (screen falls back to custom-path entry).
     void loadGenerations();
-  }, [skipToOperation]);
+  }, [skipToOperation, loadSource]);
 
-  const proceedFromSelect = () => {
-    let path: string;
-    if (useCustomPath) {
-      path = customPath.trim();
-      if (!path) {
-        return;
-      }
-      if (!existsSync(path)) {
-        onError(new Error(`File not found: ${path}`));
-        return;
-      }
-    } else if (selectedGen) {
-      path = selectedGen.output;
-    } else {
+  const proceedFromCustomPath = () => {
+    const path = customPath.trim();
+    if (!path) {
       return;
     }
-    setImage(null);
-    // Fire-and-forget: the image loads in the background so the cost can be
-    // worked out; a file that cannot be read goes through onError.
-    void imageSource(path)
-      .then(setImage)
-      .catch((error: unknown) => {
-        onError(error instanceof Error ? error : new Error(String(error)));
-      });
-    setStep("operation");
-    setOperationIndex(0);
+    if (!existsSync(path)) {
+      onError(new Error(`File not found: ${path}`));
+      return;
+    }
+    void loadSource(path);
   };
 
-  const proceedFromOperation = () => {
-    // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
-    const selectedMode = OPERATIONS[operationIndex]!.key;
+  const proceedFromOperation = (selectedMode: Mode) => {
     setMode(selectedMode);
 
     if (selectedMode === "edit") {
@@ -184,74 +171,33 @@ export function EditScreen({
     }
   };
 
-  const handleHistoryListInput = (
-    input: string,
-    key: {
-      upArrow?: boolean;
-      downArrow?: boolean;
-      tab?: boolean;
-      return?: boolean;
-      ctrl?: boolean;
-      meta?: boolean;
-    }
-  ) => {
-    if (key.upArrow === true && selectedIndex > 0) {
-      setSelectedIndex(selectedIndex - 1);
-      setSelectedGen(generations[selectedIndex - 1] ?? null);
-    } else if (
-      key.downArrow === true &&
-      selectedIndex < generations.length - 1
-    ) {
-      setSelectedIndex(selectedIndex + 1);
-      setSelectedGen(generations[selectedIndex + 1] ?? null);
-    } else if (key.tab === true) {
-      setUseCustomPath(true);
-    } else if (key.return === true) {
-      proceedFromSelect();
-    } else if (hasText(input) && key.ctrl !== true && key.meta !== true) {
-      setCustomPath(input);
-      setUseCustomPath(true);
-    }
-  };
-
-  const handleCustomPathInput = (key: { tab?: boolean }) => {
-    if (key.tab === true && generations.length > 0) {
-      setUseCustomPath(false);
-    }
-  };
-
   const handleSelectInput = (
     input: string,
     key: {
-      upArrow?: boolean;
-      downArrow?: boolean;
       tab?: boolean;
-      return?: boolean;
       ctrl?: boolean;
       meta?: boolean;
+      return?: boolean;
+      upArrow?: boolean;
+      downArrow?: boolean;
     }
   ) => {
     if (useCustomPath) {
-      handleCustomPathInput(key);
-    } else {
-      handleHistoryListInput(input, key);
-    }
-  };
-
-  const handleOperationInput = (key: {
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-  }) => {
-    if (key.upArrow === true && operationIndex > 0) {
-      setOperationIndex(operationIndex - 1);
+      if (key.tab === true && generations.length > 0) {
+        setUseCustomPath(false);
+      }
+    } else if (key.tab === true) {
+      setUseCustomPath(true);
     } else if (
-      key.downArrow === true &&
-      operationIndex < OPERATIONS.length - 1
+      hasText(input) &&
+      key.return !== true &&
+      key.upArrow !== true &&
+      key.downArrow !== true &&
+      key.ctrl !== true &&
+      key.meta !== true
     ) {
-      setOperationIndex(operationIndex + 1);
-    } else if (key.return === true) {
-      proceedFromOperation();
+      setCustomPath(input);
+      setUseCustomPath(true);
     }
   };
 
@@ -265,23 +211,7 @@ export function EditScreen({
     } else if (key.downArrow === true && scale > 1) {
       setScale(scale - 1);
     } else if (key.return === true) {
-      setTierIndex(TIER_OPTIONS.findIndex((option) => option.tier === tier));
       setStep(showTier ? "tier" : "confirm");
-    }
-  };
-
-  const handleTierInput = (key: {
-    upArrow?: boolean;
-    downArrow?: boolean;
-    return?: boolean;
-  }) => {
-    if (key.upArrow === true && tierIndex > 0) {
-      setTierIndex(tierIndex - 1);
-    } else if (key.downArrow === true && tierIndex < TIER_OPTIONS.length - 1) {
-      setTierIndex(tierIndex + 1);
-    } else if (key.return === true) {
-      setTier(TIER_OPTIONS[tierIndex]?.tier ?? DEFAULT_TIER);
-      setStep("confirm");
     }
   };
 
@@ -307,12 +237,8 @@ export function EditScreen({
 
     if (step === "select") {
       handleSelectInput(input, key);
-    } else if (step === "operation") {
-      handleOperationInput(key);
     } else if (step === "scale") {
       handleScaleInput(key);
-    } else if (step === "tier") {
-      handleTierInput(key);
     } else if (step === "confirm") {
       handleConfirmInput(input, key);
     } else if (step === "done" && key.return) {
@@ -361,39 +287,14 @@ export function EditScreen({
       );
 
       setStatus("Saving...");
-      const outputPath = await saveFirstFile(
-        output,
-        outputPathFor(source.output, mode, scale)
+      setResult(
+        await saveRun(output, outputPathFor(source.output, mode), {
+          aspect: source.aspect,
+          editedFrom: resolve(source.output),
+          prompt: promptLabelFor(mode, { edit: prompt, source: source.prompt }),
+          resolution: source.resolution,
+        })
       );
-
-      const dims = await getImageDimensions(outputPath);
-      const size = getFileSize(outputPath);
-
-      await addGeneration({
-        aspect: source.aspect,
-        cost: output.cost.usd,
-        editedFrom: source.output,
-        id: generateId(),
-        model: output.model,
-        output: resolve(outputPath),
-        prompt: promptLabelFor(mode, {
-          edit: prompt,
-          scale,
-          source: source.prompt,
-        }),
-        resolution: source.resolution,
-        timestamp: new Date().toISOString(),
-      });
-
-      const fullPath = resolve(outputPath);
-
-      setResult({
-        dims: dims ? `${dims.width}x${dims.height}` : "?",
-        path: fullPath,
-        size,
-      });
-
-      openImage(fullPath);
 
       setStep("done");
     } catch (error) {
@@ -425,7 +326,7 @@ export function EditScreen({
                 <Text color="magenta">◆ </Text>
                 <TextInput
                   onChange={setCustomPath}
-                  onSubmit={proceedFromSelect}
+                  onSubmit={proceedFromCustomPath}
                   placeholder="/path/to/image.png"
                   value={customPath}
                 />
@@ -436,27 +337,21 @@ export function EditScreen({
               <Text dimColor>
                 Select image (↑↓ navigate, tab for custom path)
               </Text>
-              <Box flexDirection="column" marginTop={1}>
-                {generations.slice(0, 8).map((gen, index) => {
-                  const isSelected = index === selectedIndex;
-                  return (
-                    <Box key={gen.id} marginLeft={1}>
-                      <Text
-                        bold={isSelected}
-                        color={isSelected ? "magenta" : undefined}
-                      >
-                        {isSelected ? "◆ " : "  "}
-                      </Text>
-                      <Box width={40}>
-                        <Text color={isSelected ? "cyan" : undefined}>
-                          {gen.prompt.slice(0, 32)}
-                          {gen.prompt.length > 32 ? "..." : ""}
-                        </Text>
-                      </Box>
-                      <Text dimColor>{basename(gen.output).slice(0, 20)}</Text>
-                    </Box>
-                  );
-                })}
+              <Box flexDirection="column" marginLeft={1} marginTop={1}>
+                <Select
+                  items={generations.slice(0, 8).map((gen) => ({
+                    detail: basename(gen.output).slice(0, 20),
+                    label: `${gen.prompt.slice(0, 32)}${gen.prompt.length > 32 ? "..." : ""}`,
+                  }))}
+                  labelWidth={36}
+                  onSelect={(index) => {
+                    const gen = generations[index];
+                    if (gen !== undefined) {
+                      setSelectedGen(gen);
+                      void loadSource(gen.output);
+                    }
+                  }}
+                />
               </Box>
               {generations.length > 8 && (
                 <Box marginLeft={1} marginTop={1}>
@@ -474,22 +369,20 @@ export function EditScreen({
       {step === "operation" && source && (
         <Box flexDirection="column" marginTop={1}>
           <Text dimColor>Source: {basename(source.output)}</Text>
-          <Box flexDirection="column" marginTop={1}>
-            {OPERATIONS.map((op, index) => {
-              const isSelected = index === operationIndex;
-              return (
-                <Box key={op.key} marginLeft={1}>
-                  <Text
-                    bold={isSelected}
-                    color={isSelected ? "magenta" : undefined}
-                  >
-                    {isSelected ? "◆ " : "  "}
-                    {op.label.padEnd(18)}
-                  </Text>
-                  <Text dimColor={!isSelected}>{op.description}</Text>
-                </Box>
-              );
-            })}
+          <Box flexDirection="column" marginLeft={1} marginTop={1}>
+            <Select
+              items={OPERATIONS.map((op) => ({
+                detail: op.description,
+                label: op.label,
+              }))}
+              labelWidth={18}
+              onSelect={(index) => {
+                const op = OPERATIONS[index];
+                if (op !== undefined) {
+                  proceedFromOperation(op.key);
+                }
+              }}
+            />
           </Box>
         </Box>
       )}
@@ -534,7 +427,20 @@ export function EditScreen({
         <Box flexDirection="column">
           <Text>Speed or quality:</Text>
           <Box flexDirection="column" marginLeft={1} marginTop={1}>
-            <TierOptions selectedIndex={tierIndex} />
+            <Select
+              initialIndex={TIER_OPTIONS.findIndex(
+                (option) => option.tier === tier
+              )}
+              items={TIER_OPTIONS.map((option) => ({
+                detail: option.note,
+                label: option.tier,
+              }))}
+              labelWidth={10}
+              onSelect={(index) => {
+                setTier(TIER_OPTIONS[index]?.tier ?? DEFAULT_TIER);
+                setStep("confirm");
+              }}
+            />
           </Box>
         </Box>
       )}

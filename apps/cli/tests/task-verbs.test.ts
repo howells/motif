@@ -8,8 +8,9 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { MODELS } from "../../../packages/motif-sdk/src/models";
 import { FAL_TOOL_IDS, FAL_TOOLS } from "../../../packages/motif-sdk/src/tools";
-import { generationRecord, historyPrompt } from "../src/commands/task-run";
+import { generationRecord } from "../src/commands/task-run";
 import { TASK_VERBS } from "../src/commands/verbs/task-verbs";
+import { historyPrompt } from "../src/utils/config";
 import { withoutEndpoints } from "../src/utils/task-model";
 import { runMotifIn } from "./cli-env";
 

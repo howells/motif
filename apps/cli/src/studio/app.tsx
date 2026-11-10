@@ -1,5 +1,5 @@
 import { Box, Text, useApp, useInput } from "ink";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { loadConfig, loadHistory, saveConfig } from "../utils/config";
 import type { History, MotifConfig, TotalCost } from "../utils/config";
@@ -69,12 +69,13 @@ export function App({
     }
   });
 
-  const handleError = (err: Error) => {
+  // Stable, so a screen can depend on it in an effect.
+  const handleError = useCallback((err: Error) => {
     setError(err.message);
     setTimeout(() => {
       setError(null);
     }, 5000);
-  };
+  }, []);
 
   const saveSettings = async (edits: Partial<MotifConfig>) => {
     try {

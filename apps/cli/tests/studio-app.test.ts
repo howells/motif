@@ -195,6 +195,47 @@ describe("Studio settings", () => {
     expect(readFileSync(path, "utf-8")).toBe("{broken");
   });
 
+  it("stays on the image list, with the error shown, when the chosen image cannot be read", async () => {
+    const missing = join(home, "gone.png");
+    writeFileSync(
+      join(motifDir, "history.json"),
+      JSON.stringify({
+        generations: [
+          {
+            aspect: "1:1",
+            cost: null,
+            id: "g1",
+            model: "banana",
+            output: missing,
+            prompt: "a cat",
+            resolution: "1K",
+            timestamp: "2026-01-01T00:00:00.000Z",
+          },
+        ],
+        lastSessionDate: new Date().toISOString().split("T")[0],
+        totalCost: {
+          allTime: 0,
+          session: 0,
+          today: 0,
+          unknown: { allTime: 0, session: 0, today: 0 },
+        },
+      })
+    );
+    const studio = await startStudio();
+
+    await studio.press(DOWN, ENTER);
+    await studio.waitForFrame("the image list", (frame) =>
+      frame.includes("Select image")
+    );
+    await studio.press(ENTER);
+    await studio.waitForFrame("the error banner", (frame) =>
+      frame.includes("gone.png")
+    );
+    expect(studio.frame()).toContain("Select image");
+    expect(studio.frame()).not.toContain("Working out the cost");
+    studio.stop();
+  });
+
   it("starts without an API key", async () => {
     const studio = await startStudio();
     expect(studio.frame()).toContain("Generate");

@@ -1,10 +1,8 @@
 /**
  * What Studio's screens share about running a Task: which Tiers are worth
- * offering, whether a request takes a resolution, how a cost reads, and
- * saving the first file a run returned.
+ * offering, whether a request takes a resolution, how a cost reads, and the
+ * save, record and open that end a run.
  */
-
-import { writeFile } from "node:fs/promises";
 
 import {
   formatCost,
@@ -20,19 +18,16 @@ import type {
   Tier,
 } from "@howells/motif-sdk";
 
-import type { MotifConfig } from "../utils/config";
-import { taskPins } from "../utils/config";
-import { downloadImage } from "../utils/image";
+import type { GenerationFields, MotifConfig } from "../utils/config";
+import { addGeneration, newGeneration, taskPins } from "../utils/config";
+import { openImage } from "../utils/image";
+import { saveFiles } from "../utils/output-files";
 
 export const TIER_OPTIONS: readonly { note: string; tier: Tier }[] = [
   { note: "Quickest and cheapest, with less detail", tier: "fast" },
   { note: "Good detail at a fair price", tier: "balanced" },
   { note: "Finest detail, slower and dearer", tier: "quality" },
 ];
-
-const DATA_URL_REGEX = /^data:image\/(\w+);base64,(.*)$/;
-
-const EXTENSION_REGEX = /\.\w+$/;
 
 /** Whether picking a Tier would change what runs for this request. */
 export function tierMatters(
@@ -77,23 +72,46 @@ export function planCost(
     : { error: planned.error.message };
 }
 
-/** Save the first file a run returned; the extension follows the content. */
-export async function saveFirstFile(
+/** What a finished run shows on the done screen. */
+export interface RunResult {
+  dims: string;
+  path: string;
+  size: string;
+}
+
+/**
+ * Save the first file a run returned, record it in history, and show it in the
+ * viewer: the tail every Studio run shares. The extension follows the content.
+ */
+export async function saveRun(
   output: TaskOutput,
-  outputPath: string
-): Promise<string> {
-  const file = output.files[0];
+  outputPath: string,
+  record: Pick<
+    GenerationFields,
+    "aspect" | "editedFrom" | "prompt" | "resolution"
+  >
+): Promise<RunResult> {
+  const [file] = await saveFiles(output.files, { paths: [outputPath] });
   if (file === undefined) {
     throw new Error("The run returned no image.");
   }
-  const inline = DATA_URL_REGEX.exec(file.url);
-  if (inline === null) {
-    return await downloadImage(file.url, outputPath);
-  }
-  const [, extension = "png", base64 = ""] = inline;
-  const path = `${outputPath.replace(EXTENSION_REGEX, "")}.${extension}`;
-  await writeFile(path, Buffer.from(base64, "base64"));
-  return path;
+  await addGeneration(
+    newGeneration({
+      ...record,
+      cost: output.cost.usd,
+      model: output.model,
+      output: file.path,
+    })
+  );
+  openImage(file.path);
+  return {
+    dims:
+      file.width === undefined || file.height === undefined
+        ? "?"
+        : `${file.width}x${file.height}`,
+    path: file.path,
+    size: file.size,
+  };
 }
 
 /** Run a Task and return its output, throwing the error a failed run carries. */
