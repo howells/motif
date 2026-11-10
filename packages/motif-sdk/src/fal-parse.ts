@@ -11,6 +11,13 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+/** A record that is not an array. */
+export function isPlainRecord(
+  value: unknown
+): value is Record<string, unknown> {
+  return isRecord(value) && !Array.isArray(value);
+}
+
 export function asString(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }

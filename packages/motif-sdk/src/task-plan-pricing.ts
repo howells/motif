@@ -11,11 +11,16 @@ import {
 import { estimateCost } from "./cost";
 import type { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
-import { invalidOption, isPresent, projected } from "./task-plan-shared";
+import {
+  invalidOption,
+  isCustomSize,
+  isPresent,
+  projected,
+} from "./task-plan-shared";
 import type { CarriedField } from "./task-plan-shared";
 import type { TaskId } from "./tasks";
 import type { ResolvedCost } from "./tool-cost";
-import type { CustomImageSize, ModelConfig, Resolution } from "./types";
+import type { ModelConfig, Resolution } from "./types";
 
 /** Megapixels a Model's fal price is metered in, when it is. */
 function megapixelRate(config: ModelConfig): number | undefined {
@@ -23,17 +28,6 @@ function megapixelRate(config: ModelConfig): number | undefined {
   return pricing !== undefined && pricing.unit.includes("megapixel")
     ? pricing.unitPrice
     : undefined;
-}
-
-function isCustomSize(value: unknown): value is CustomImageSize {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "width" in value &&
-    "height" in value &&
-    typeof value.width === "number" &&
-    typeof value.height === "number"
-  );
 }
 
 /** Pixels of an `image_size` value: exact, or a named preset's. */

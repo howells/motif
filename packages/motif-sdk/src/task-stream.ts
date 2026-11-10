@@ -3,7 +3,12 @@ import type { Result } from "neverthrow";
 import { z } from "zod";
 
 import { falHttpError, MotifError } from "./errors";
-import { asNumber, asString, isRecord, requestIdFromBody } from "./fal-parse";
+import {
+  asNumber,
+  asString,
+  isPlainRecord,
+  requestIdFromBody,
+} from "./fal-parse";
 import { MODELS } from "./models";
 import type { TaskFile, TaskPlan } from "./task-client";
 import { collectUrls } from "./task-output";
@@ -56,7 +61,7 @@ function parsePayload(text: string): ProviderPayload {
     }
     raw = text;
   }
-  if (!isRecord(raw) || Array.isArray(raw)) {
+  if (!isPlainRecord(raw)) {
     return { raw, files: [] };
   }
   const images = Object.fromEntries(

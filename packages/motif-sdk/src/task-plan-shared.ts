@@ -11,6 +11,7 @@ import { MotifError } from "./errors";
 import type { TaskInput, TaskPlan } from "./task-client";
 import type { TaskId } from "./tasks";
 import type { ResolvedCost } from "./tool-cost";
+import type { CustomImageSize } from "./types";
 
 export const INVALID_OPTION = "INVALID_OPTION";
 
@@ -121,4 +122,16 @@ export function mergeParams(
     }
   }
   return ok({ ...body, ...params });
+}
+
+/** An exact `{ width, height }` in pixels. */
+export function isCustomSize(value: unknown): value is CustomImageSize {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "width" in value &&
+    "height" in value &&
+    typeof value.width === "number" &&
+    typeof value.height === "number"
+  );
 }

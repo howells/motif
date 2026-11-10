@@ -16,6 +16,7 @@
 import type { ImageModel } from "ai";
 
 import { MotifError } from "../errors";
+import { isRecord } from "../fal-parse";
 import type { FalFetch } from "../types";
 import { toProviderFetch } from "./fetch";
 import type { ProviderFetch } from "./fetch";
@@ -89,10 +90,6 @@ type ImageModelV4 = Extract<ImageModel, { specificationVersion: "v4" }>;
 type CallOptions = Parameters<ImageModelV4["doGenerate"]>[0];
 type CallResult = Awaited<ReturnType<ImageModelV4["doGenerate"]>>;
 type InputFile = NonNullable<CallOptions["files"]>[number];
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
 
 function toDataUrl(mediaType: string, data: string | Uint8Array): string {
   const base64 =

@@ -15,6 +15,7 @@ import type { TaskInput } from "./task-client";
 import {
   cannotCarry,
   invalidOption,
+  isCustomSize,
   isPresent,
   mergeParams,
   refuseOthers,
@@ -185,7 +186,7 @@ function outputSize(
   if (typeof imageSize === "string") {
     return FAL_PRESET_SIZES[imageSize];
   }
-  if (isPixelSize(imageSize)) {
+  if (isCustomSize(imageSize)) {
     return imageSize;
   }
   if (imageSize === undefined) {
@@ -201,17 +202,6 @@ function outputSize(
       : undefined;
   }
   return undefined;
-}
-
-function isPixelSize(value: unknown): value is CustomImageSize {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "width" in value &&
-    "height" in value &&
-    typeof value.width === "number" &&
-    typeof value.height === "number"
-  );
 }
 
 /** What the plan knows of the source, for prices that read it. */

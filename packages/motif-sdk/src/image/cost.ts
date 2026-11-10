@@ -9,12 +9,9 @@
  *   3. Unknown → `{ usd: 0, source: "unknown" }`.
  */
 
+import { isRecord } from "../fal-parse";
 import { PROVIDERS } from "./provider";
 import type { ImageCost, ImageProviderId } from "./types";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
 
 /**
  * Extract a provider-reported total cost from a `generateImage` result's

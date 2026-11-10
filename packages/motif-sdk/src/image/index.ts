@@ -22,6 +22,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { falHttpError, isFalAccountLocked, MotifError } from "../errors";
+import { isRecord } from "../fal-parse";
 import type { FalFetch } from "../types";
 import { costForCalls } from "./cost";
 import type { MotifImageDeps } from "./deps";
@@ -399,10 +400,6 @@ function renderWarning(warning: Warning): string {
   }
   // Remaining variant: `{ type: "other", message }`.
   return warning.message;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 /** Look for a provider correlation id in providerMetadata, then response headers. */

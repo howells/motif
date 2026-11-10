@@ -19,7 +19,7 @@ import { getFalKeyFromEnv } from "./env";
 import { MotifError } from "./errors";
 import { deletePayloads, falConnection, uploadToFalCdn } from "./fal-http";
 import type { FalConnection } from "./fal-http";
-import { queueAppPath } from "./fal-parse";
+import { isRecord, queueAppPath } from "./fal-parse";
 import { awaitQueuedRequest, runRequest, runRequestQueued } from "./fal-run";
 import type { FalRequestResult } from "./fal-run";
 import type { ChosenBy, TaskEnvironment } from "./resolve";
@@ -273,10 +273,6 @@ function outputKeysFor(
     return ["image"];
   }
   return ["images"];
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 /** Width and height of every returned file that carries them. */

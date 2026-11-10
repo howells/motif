@@ -3,16 +3,13 @@
  * keys, and what each file is called. Pure: no I/O.
  */
 
+import { isPlainRecord } from "./fal-parse";
 import type { FalToolConfig } from "./tool-types";
 
 /** One URL and the output key it came from. */
 export interface OutputUrl {
   key: string;
   url: string;
-}
-
-function isPlainRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isDownloadableUrl(value: unknown): value is string {
