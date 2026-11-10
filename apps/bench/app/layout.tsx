@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 
 import { SITE } from "@/lib/site/content";
 
-import "@blossom-carousel/react/style.css";
 import "./globals.css";
 
 /** Inter as a *variable* font, deliberately: pinning `weight: [400, 500]`

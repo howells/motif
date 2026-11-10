@@ -14,13 +14,11 @@
     "typecheck": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@blossom-carousel/react": "catalog:",
     "@howells/motif-sdk": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "sharp": "catalog:",
-    "zod": "catalog:"
+    "sharp": "catalog:"
   },
   "devDependencies": {
     "@howells/lint": "catalog:",
@@ -33,6 +31,7 @@
     "babel-plugin-react-compiler": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "zod": "catalog:"
   }
 }

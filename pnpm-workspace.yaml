@@ -6,7 +6,6 @@ catalog:
   "@ai-sdk/fal": "^3.0.48"
   "@ai-sdk/openai": "^4.0.74"
   "@ai-sdk/replicate": "^3.0.48"
-  "@blossom-carousel/react": "^1.5.2"
   "@howells/envy": "^0.3.7"
   "@howells/husky": "^0.3.0"
   "@howells/lint": "^3.5.1"

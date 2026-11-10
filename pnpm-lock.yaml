@@ -15,9 +15,6 @@ catalogs:
     '@ai-sdk/replicate':
       specifier: ^3.0.48
       version: 3.0.77
-    '@blossom-carousel/react':
-      specifier: ^1.5.2
-      version: 1.8.0
     '@howells/envy':
       specifier: ^0.3.7
       version: 0.3.7
@@ -146,9 +143,6 @@ importers:
 
   apps/bench:
     dependencies:
-      '@blossom-carousel/react':
-        specifier: 'catalog:'
-        version: 1.8.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@howells/motif-sdk':
         specifier: workspace:*
         version: link:../../packages/motif-sdk
@@ -164,9 +158,6 @@ importers:
       sharp:
         specifier: 'catalog:'
         version: 0.35.5(@types/node@26.6.6)
-      zod:
-        specifier: 'catalog:'
-        version: 4.6.7
     devDependencies:
       '@howells/lint':
         specifier: 'catalog:'
@@ -201,6 +192,9 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.1.0(@opentelemetry/api@1.9.1)(@types/node@26.6.6)(@vitest/coverage-v8@5.1.0)(jsdom@29.1.1)(vite@8.3.5(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      zod:
+        specifier: 'catalog:'
+        version: 4.6.7
 
   apps/cli:
     dependencies:
@@ -570,25 +564,12 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@blossom-carousel/core@1.1.10':
-    resolution: {integrity: sha512-nixyTKHQwHdzZFKUwJDsoXtfuz8WBgnaeRewC9z+YKMQt/DLcTAj+aqwQ5KF7QsrYbKgeeMZRIX7UnXg6h80pg==}
-
-  '@blossom-carousel/react@1.8.0':
-    resolution: {integrity: sha512-g72IYNL2QLgnBFIxWaLdA7VMTuSf6KHiQqTk85ZdPm7q4y7p+uovRfy9f2ARIWfB700JqVWSTKSu3UAj4kHztA==}
-    peerDependencies:
-      react: '>=18.0.0'
-      react-dom: '>=18.0.0'
-
   '@braintree/sanitize-url@7.1.2':
     resolution: {integrity: sha512-jigsZK+sMF/cuiB7sERuo9V7N9jx+dhmHHnQyDSVdpZwVutaBu7WvNYqMDLSgFgfB30n452TP3vjDAvFC973mA==}
 
   '@bramus/specificity@2.4.3':
     resolution: {integrity: sha512-0GEz8qJWokkUVYQYRukmkSHIFNoBH8QTreeHrAFbvz1XFYc3Y+puhMs8PQ5x8GNugiC2l5jvDBXKLbBIByeSBw==}
     hasBin: true
-
-  '@bramus/style-observer@2.0.2':
-    resolution: {integrity: sha512-oRKamZ9Z637pAZgNGJIbNGiFoYQSeA47PpU4K8hXZq9lQcPu35BCqMG9d9J/ab2CB/0XlXq6ToMnVhHF8mLNqg==}
-    engines: {node: '>=12'}
 
   '@bruits/satteri-android-arm64@0.11.7':
     resolution: {integrity: sha512-ej+1rIKs+yb6/OtcIe1SO22OXjJV0qqUopl5VNZF8Sqc/Pj4m1DXoqBQsPxW5OUYYiDUymIy6hnnn8M78VYk2w==}
@@ -7189,24 +7170,12 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@blossom-carousel/core@1.1.10':
-    dependencies:
-      '@bramus/style-observer': 2.0.2
-
-  '@blossom-carousel/react@1.8.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)':
-    dependencies:
-      '@blossom-carousel/core': 1.1.10
-      react: 19.3.1
-      react-dom: 19.3.1(react@19.3.1)
-
   '@braintree/sanitize-url@7.1.2': {}
 
   '@bramus/specificity@2.4.3':
     dependencies:
       css-tree: 3.2.1
     optional: true
-
-  '@bramus/style-observer@2.0.2': {}
 
   '@bruits/satteri-android-arm64@0.11.7':
     optional: true
