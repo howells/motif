@@ -520,11 +520,16 @@ function generationPlan(
   } catch (error) {
     return err(generationError(error, model, task));
   }
-  const merged = mergeParams(
-    built.body,
-    liftQuality ? params : input.params,
-    ownedGenerationKeys(input)
-  );
+  const effective = liftQuality ? params : input.params;
+  if (effective?.num_images !== undefined) {
+    return err(
+      invalidOption(
+        "params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree.",
+        { field: "params", key: "num_images" }
+      )
+    );
+  }
+  const merged = mergeParams(built.body, effective, ownedGenerationKeys(input));
   if (merged.isErr()) {
     return err(merged.error);
   }

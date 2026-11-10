@@ -464,20 +464,14 @@ describe("createMotif plan", () => {
     ).toBe("INVALID_OPTION");
   });
 
-  it("prices params that change the image count or resolution", () => {
+  it("prices params that change the resolution", () => {
     const base = planned("generate", { model: "banana", prompt: "x" });
-    const four = planned("generate", {
-      model: "banana",
-      params: { num_images: 4 },
-      prompt: "x",
-    });
     const large = planned("generate", {
       model: "banana",
       params: { resolution: "4K" },
       prompt: "x",
     });
 
-    expect(four.cost.usd).toBeCloseTo((base.cost.usd ?? 0) * 4);
     expect(large.cost.usd).toBeCloseTo((base.cost.usd ?? 0) * 2);
   });
 

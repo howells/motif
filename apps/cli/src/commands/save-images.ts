@@ -88,13 +88,13 @@ async function assertTransparent(paths: string[]): Promise<void> {
 export async function saveGeneratedImages(
   files: readonly TaskFile[],
   outputPath: string,
-  numImages: number,
   meta: SaveMeta,
   historyRecorded = true
 ): Promise<SaveResult> {
   const written = await saveFiles(files, {
+    // The files that came back decide the names, never the count asked for.
     paths: files.map((_, i) =>
-      numImages > 1 ? indexedOutputPath(outputPath, i) : outputPath
+      files.length > 1 ? indexedOutputPath(outputPath, i) : outputPath
     ),
   });
 

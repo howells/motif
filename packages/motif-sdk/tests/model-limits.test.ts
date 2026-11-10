@@ -337,14 +337,22 @@ describe("images per request fal's schema allows", () => {
     }
   );
 
-  it("refuses a count above the maximum sent in params", () => {
-    const error = refused("generate", {
-      model: "gpt",
-      params: { num_images: 5 },
-      prompt: "a chair",
-    });
-    expect(error.message).toContain("at most 4");
-  });
+  it.each([1, 2, 5])(
+    "refuses params.num_images=%i and points at count",
+    (num) => {
+      const error = refused("generate", {
+        model: "gpt",
+        params: { num_images: num },
+        prompt: "a chair",
+      });
+      expect(error.code).toBe("INVALID_OPTION");
+      expect(error.details).toStrictEqual({
+        field: "params",
+        key: "num_images",
+      });
+      expect(error.message).toContain("count (-n)");
+    }
+  );
 
   it.each(["flux2-pro", "flux2-flex", "recraft41", "krea3"])(
     "%s takes no count at all",
@@ -372,9 +380,6 @@ describe("images per request fal's schema allows", () => {
     expect(refused("generate", { ...text, count: 2 }).message).toContain(
       "at most 1"
     );
-    expect(
-      refused("generate", { ...text, params: { num_images: 2 } }).message
-    ).toContain("at most 1");
   });
 
   it("ranks past a Model that cannot make the count", () => {

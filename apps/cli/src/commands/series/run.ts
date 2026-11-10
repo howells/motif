@@ -262,7 +262,6 @@ export async function cmdRun(
       const saved = await saveGeneratedImages(
         [file],
         `${outputDir}/${filename}`,
-        1,
         {
           aspect,
           costPerImage: result.cost.usd,

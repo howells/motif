@@ -58,6 +58,55 @@ describe("generate", () => {
     expect(recorded[0]).not.toHaveProperty("editedFrom");
   });
 
+  it("names every file that came back, even when more came back than were asked for", async () => {
+    const dir = project();
+    const run = await motif(
+      dir,
+      ["a cat", "-o", "cat.png", "--format", "json"],
+      { images: [REMOTE_PNG, REMOTE_PNG, REMOTE_PNG] }
+    );
+
+    expect(run.code).toBe(0);
+    const images = objects(json(run.stdout).images);
+    expect(images.map((image) => image.path)).toStrictEqual([
+      join(dir, "cat-1.png"),
+      join(dir, "cat-2.png"),
+      join(dir, "cat-3.png"),
+    ]);
+    expect(history(dir).map((entry) => entry.output)).toStrictEqual([
+      join(dir, "cat-1.png"),
+      join(dir, "cat-2.png"),
+      join(dir, "cat-3.png"),
+    ]);
+  });
+
+  it("refuses --param num_images, which -n owns, before anything is sent", async () => {
+    const dir = project();
+    const log = join(dir, "fal.log");
+    const run = await motif(
+      dir,
+      [
+        "a vase",
+        "-m",
+        "gpt",
+        "--param",
+        "num_images=4",
+        "-o",
+        "batch.png",
+        "--format",
+        "json",
+      ],
+      { images: [REMOTE_PNG] },
+      { FAKE_FAL_LOG: log }
+    );
+
+    expect(run.code).toBe(2);
+    const error = json(run.stderr);
+    expect(error).toMatchObject({ code: "INVALID_OPTION" });
+    expect(String(error.message)).toContain("-n");
+    expect(existsSync(log)).toBe(false);
+  });
+
   it("prints a saved line and the session total in human output", async () => {
     const dir = project();
     const run = await motif(dir, ["a cat", "--format", "human"], {

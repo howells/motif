@@ -235,7 +235,6 @@ export async function runGeneration(
     const saved = await saveGeneratedImages(
       output.files,
       run.outputPath,
-      run.numImages,
       {
         aspect: run.aspect,
         costPerImage:

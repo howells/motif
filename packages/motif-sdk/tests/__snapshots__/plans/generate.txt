@@ -21,7 +21,7 @@ generate - sunburst count 1.5 => ERR INVALID_OPTION count must be a whole number
 generate - sunburst count 5 => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
 generate - sunburst count 11 => ERR NO_MODEL_AVAILABLE sunburst (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - sunburst count 2 svg => ERR NO_MODEL_AVAILABLE sunburst (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
-generate - sunburst params num_images 11 => ERR INVALID_OPTION GPT Image 2.6 Sunburst makes at most 10 images per request, not 11. {"field":"count","model":"sunburst","task":"generate"}
+generate - sunburst params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - sunburst seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - sunburst seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - sunburst box outside => ERR INVALID_OPTION sunburst cannot take boxes for generate. {"field":"boxes","model":"sunburst","task":"generate"}
@@ -29,7 +29,7 @@ generate - sunburst params bogus => sunburst openai/gpt-image-2.6/sunburst/text-
 generate - sunburst params aspect => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","quality":"max"}
 generate - sunburst params 4K => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","quality":"max","resolution":"4K"}
 generate - sunburst params gif => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"gif","prompt":"a lighthouse at dusk","quality":"max"}
-generate - sunburst params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"sunburst","task":"generate"}
+generate - sunburst params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - sunburst scale 3 => ERR INVALID_OPTION sunburst cannot take scale for generate. {"field":"scale","model":"sunburst","task":"generate"}
 generate - sunburst scale -1 => ERR INVALID_OPTION sunburst cannot take scale for generate. {"field":"scale","model":"sunburst","task":"generate"}
 generate - sunburst scale 0.5 => ERR INVALID_OPTION sunburst cannot take scale for generate. {"field":"scale","model":"sunburst","task":"generate"}
@@ -64,7 +64,7 @@ generate - flare count 1.5 => ERR INVALID_OPTION count must be a whole number of
 generate - flare count 5 => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
 generate - flare count 11 => ERR NO_MODEL_AVAILABLE flare (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flare count 2 svg => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":2,"output_format":"svg","prompt":"the shoe","quality":"max"}
-generate - flare params num_images 11 => ERR INVALID_OPTION GPT Image 2.6 Flare makes at most 10 images per request, not 11. {"field":"count","model":"flare","task":"generate"}
+generate - flare params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flare seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flare seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flare box outside => ERR INVALID_OPTION flare cannot take boxes for generate. {"field":"boxes","model":"flare","task":"generate"}
@@ -72,7 +72,7 @@ generate - flare params bogus => flare openai/gpt-image-2.6/flare/text-to-image 
 generate - flare params aspect => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","quality":"max"}
 generate - flare params 4K => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","quality":"max","resolution":"4K"}
 generate - flare params gif => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"gif","prompt":"a lighthouse at dusk","quality":"max"}
-generate - flare params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"flare","task":"generate"}
+generate - flare params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flare scale 3 => ERR INVALID_OPTION flare cannot take scale for generate. {"field":"scale","model":"flare","task":"generate"}
 generate - flare scale -1 => ERR INVALID_OPTION flare cannot take scale for generate. {"field":"scale","model":"flare","task":"generate"}
 generate - flare scale 0.5 => ERR INVALID_OPTION flare cannot take scale for generate. {"field":"scale","model":"flare","task":"generate"}
@@ -107,7 +107,7 @@ generate - seedream5 count 1.5 => ERR INVALID_OPTION count must be a whole numbe
 generate - seedream5 count 5 => seedream5 bytedance/seedream/v5/pro/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.3375} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"prompt":"the shoe"}
 generate - seedream5 count 11 => ERR NO_MODEL_AVAILABLE seedream5 (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - seedream5 count 2 svg => ERR NO_MODEL_AVAILABLE seedream5 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - seedream5 params num_images 11 => ERR INVALID_OPTION Seedream 5.0 Pro makes at most 6 images per request, not 11. {"field":"count","model":"seedream5","task":"generate"}
+generate - seedream5 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - seedream5 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - seedream5 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - seedream5 box outside => ERR INVALID_OPTION seedream5 cannot take boxes for generate. {"field":"boxes","model":"seedream5","task":"generate"}
@@ -115,7 +115,7 @@ generate - seedream5 params bogus => seedream5 bytedance/seedream/v5/pro/text-to
 generate - seedream5 params aspect => seedream5 bytedance/seedream/v5/pro/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","num_images":1,"prompt":"a lighthouse at dusk"}
 generate - seedream5 params 4K => ERR INVALID_OPTION seedream5 does not take a resolution. {"field":"params","key":"resolution","model":"seedream5","task":"generate"}
 generate - seedream5 params gif => ERR INVALID_OPTION seedream5 does not take an output format. {"field":"params","key":"output_format","model":"seedream5","task":"generate"}
-generate - seedream5 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"seedream5","task":"generate"}
+generate - seedream5 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - seedream5 scale 3 => ERR INVALID_OPTION seedream5 cannot take scale for generate. {"field":"scale","model":"seedream5","task":"generate"}
 generate - seedream5 scale -1 => ERR INVALID_OPTION seedream5 cannot take scale for generate. {"field":"scale","model":"seedream5","task":"generate"}
 generate - seedream5 scale 0.5 => ERR INVALID_OPTION seedream5 cannot take scale for generate. {"field":"scale","model":"seedream5","task":"generate"}
@@ -150,7 +150,7 @@ generate - gpt count 1.5 => ERR INVALID_OPTION count must be a whole number of a
 generate - gpt count 5 => ERR NO_MODEL_AVAILABLE gpt (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - gpt count 11 => ERR NO_MODEL_AVAILABLE gpt (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - gpt count 2 svg => ERR NO_MODEL_AVAILABLE gpt (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - gpt params num_images 11 => ERR INVALID_OPTION GPT Image 1.5 makes at most 4 images per request, not 11. {"field":"count","model":"gpt","task":"generate"}
+generate - gpt params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - gpt seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - gpt seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - gpt box outside => ERR INVALID_OPTION gpt cannot take boxes for generate. {"field":"boxes","model":"gpt","task":"generate"}
@@ -158,7 +158,7 @@ generate - gpt params bogus => gpt fal-ai/gpt-image-1.5 queued=false by=model ti
 generate - gpt params aspect => ERR INVALID_OPTION gpt takes aspect_ratio auto, 1:1, 3:2, 2:3, not "21:9". {"accepts":["auto","1:1","3:2","2:3"],"field":"params","key":"aspect_ratio","model":"gpt","task":"generate"}
 generate - gpt params 4K => ERR INVALID_OPTION gpt does not take a resolution. {"field":"params","key":"resolution","model":"gpt","task":"generate"}
 generate - gpt params gif => ERR INVALID_OPTION gpt takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"gpt","task":"generate"}
-generate - gpt params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"gpt","task":"generate"}
+generate - gpt params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - gpt scale 3 => ERR INVALID_OPTION gpt cannot take scale for generate. {"field":"scale","model":"gpt","task":"generate"}
 generate - gpt scale -1 => ERR INVALID_OPTION gpt cannot take scale for generate. {"field":"scale","model":"gpt","task":"generate"}
 generate - gpt scale 0.5 => ERR INVALID_OPTION gpt cannot take scale for generate. {"field":"scale","model":"gpt","task":"generate"}
@@ -193,7 +193,7 @@ generate - mai-image-2.5-pro count 1.5 => ERR INVALID_OPTION count must be a who
 generate - mai-image-2.5-pro count 5 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - mai-image-2.5-pro count 11 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - mai-image-2.5-pro count 2 svg => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - mai-image-2.5-pro params num_images 11 => ERR INVALID_OPTION MAI Image 2.5 Pro makes at most 4 images per request, not 11. {"field":"count","model":"mai-image-2.5-pro","task":"generate"}
+generate - mai-image-2.5-pro params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - mai-image-2.5-pro seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - mai-image-2.5-pro seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - mai-image-2.5-pro box outside => ERR INVALID_OPTION mai-image-2.5-pro cannot take boxes for generate. {"field":"boxes","model":"mai-image-2.5-pro","task":"generate"}
@@ -201,7 +201,7 @@ generate - mai-image-2.5-pro params bogus => mai-image-2.5-pro microsoft/mai-ima
 generate - mai-image-2.5-pro params aspect => ERR INVALID_OPTION mai-image-2.5-pro takes aspect_ratio auto, 1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3, not "21:9". {"accepts":["auto","1:1","4:3","3:4","16:9","9:16","3:2","2:3"],"field":"params","key":"aspect_ratio","model":"mai-image-2.5-pro","task":"generate"}
 generate - mai-image-2.5-pro params 4K => ERR INVALID_OPTION mai-image-2.5-pro does not take a resolution. {"field":"params","key":"resolution","model":"mai-image-2.5-pro","task":"generate"}
 generate - mai-image-2.5-pro params gif => ERR INVALID_OPTION mai-image-2.5-pro takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"mai-image-2.5-pro","task":"generate"}
-generate - mai-image-2.5-pro params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"mai-image-2.5-pro","task":"generate"}
+generate - mai-image-2.5-pro params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - mai-image-2.5-pro scale 3 => ERR INVALID_OPTION mai-image-2.5-pro cannot take scale for generate. {"field":"scale","model":"mai-image-2.5-pro","task":"generate"}
 generate - mai-image-2.5-pro scale -1 => ERR INVALID_OPTION mai-image-2.5-pro cannot take scale for generate. {"field":"scale","model":"mai-image-2.5-pro","task":"generate"}
 generate - mai-image-2.5-pro scale 0.5 => ERR INVALID_OPTION mai-image-2.5-pro cannot take scale for generate. {"field":"scale","model":"mai-image-2.5-pro","task":"generate"}
@@ -236,7 +236,7 @@ generate - banana21 count 1.5 => ERR INVALID_OPTION count must be a whole number
 generate - banana21 count 5 => ERR NO_MODEL_AVAILABLE banana21 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana21 count 11 => ERR NO_MODEL_AVAILABLE banana21 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana21 count 2 svg => ERR NO_MODEL_AVAILABLE banana21 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - banana21 params num_images 11 => ERR INVALID_OPTION Nano Banana 2.1 makes at most 4 images per request, not 11. {"field":"count","model":"banana21","task":"generate"}
+generate - banana21 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana21 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana21 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana21 box outside => ERR INVALID_OPTION banana21 cannot take boxes for generate. {"field":"boxes","model":"banana21","task":"generate"}
@@ -244,7 +244,7 @@ generate - banana21 params bogus => banana21 google/nano-banana-2.1 queued=false
 generate - banana21 params aspect => banana21 google/nano-banana-2.1 queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","resolution":"2K"}
 generate - banana21 params 4K => banana21 google/nano-banana-2.1 queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"aspect_ratio":"1:1","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","resolution":"4K"}
 generate - banana21 params gif => ERR INVALID_OPTION banana21 takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"banana21","task":"generate"}
-generate - banana21 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"banana21","task":"generate"}
+generate - banana21 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana21 scale 3 => ERR INVALID_OPTION banana21 cannot take scale for generate. {"field":"scale","model":"banana21","task":"generate"}
 generate - banana21 scale -1 => ERR INVALID_OPTION banana21 cannot take scale for generate. {"field":"scale","model":"banana21","task":"generate"}
 generate - banana21 scale 0.5 => ERR INVALID_OPTION banana21 cannot take scale for generate. {"field":"scale","model":"banana21","task":"generate"}
@@ -279,7 +279,7 @@ generate - grok-image-2 count 1.5 => ERR INVALID_OPTION count must be a whole nu
 generate - grok-image-2 count 5 => grok-image-2 xai/grok-imagine-image/v2.0/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.4} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":5,"output_format":"png","prompt":"the shoe","resolution":"2k"}
 generate - grok-image-2 count 11 => ERR NO_MODEL_AVAILABLE grok-image-2 (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - grok-image-2 count 2 svg => ERR NO_MODEL_AVAILABLE grok-image-2 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - grok-image-2 params num_images 11 => ERR INVALID_OPTION Grok Imagine Image 2.0 makes at most 10 images per request, not 11. {"field":"count","model":"grok-image-2","task":"generate"}
+generate - grok-image-2 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - grok-image-2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - grok-image-2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - grok-image-2 box outside => ERR INVALID_OPTION grok-image-2 cannot take boxes for generate. {"field":"boxes","model":"grok-image-2","task":"generate"}
@@ -287,7 +287,7 @@ generate - grok-image-2 params bogus => grok-image-2 xai/grok-imagine-image/v2.0
 generate - grok-image-2 params aspect => ERR INVALID_OPTION grok-image-2 takes aspect_ratio 16:9, 4:3, 3:2, 1:1, 2:3, 3:4, 9:16, not "21:9". {"accepts":["16:9","4:3","3:2","1:1","2:3","3:4","9:16"],"field":"params","key":"aspect_ratio","model":"grok-image-2","task":"generate"}
 generate - grok-image-2 params 4K => ERR INVALID_OPTION grok-image-2 takes resolution 1K, 2K, not "4K". {"accepts":["1K","2K"],"field":"params","key":"resolution","model":"grok-image-2","task":"generate"}
 generate - grok-image-2 params gif => ERR INVALID_OPTION grok-image-2 takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"grok-image-2","task":"generate"}
-generate - grok-image-2 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"grok-image-2","task":"generate"}
+generate - grok-image-2 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - grok-image-2 scale 3 => ERR INVALID_OPTION grok-image-2 cannot take scale for generate. {"field":"scale","model":"grok-image-2","task":"generate"}
 generate - grok-image-2 scale -1 => ERR INVALID_OPTION grok-image-2 cannot take scale for generate. {"field":"scale","model":"grok-image-2","task":"generate"}
 generate - grok-image-2 scale 0.5 => ERR INVALID_OPTION grok-image-2 cannot take scale for generate. {"field":"scale","model":"grok-image-2","task":"generate"}
@@ -322,7 +322,7 @@ generate - muse-image count 1.5 => ERR INVALID_OPTION count must be a whole numb
 generate - muse-image count 5 => muse-image meta/muse-image/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":5,"output_format":"png","prompt":"the shoe"}
 generate - muse-image count 11 => ERR NO_MODEL_AVAILABLE muse-image (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - muse-image count 2 svg => ERR NO_MODEL_AVAILABLE muse-image (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - muse-image params num_images 11 => ERR INVALID_OPTION Meta Muse Image makes at most 10 images per request, not 11. {"field":"count","model":"muse-image","task":"generate"}
+generate - muse-image params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - muse-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - muse-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - muse-image box outside => ERR INVALID_OPTION muse-image cannot take boxes for generate. {"field":"boxes","model":"muse-image","task":"generate"}
@@ -330,7 +330,7 @@ generate - muse-image params bogus => muse-image meta/muse-image/text-to-image q
 generate - muse-image params aspect => muse-image meta/muse-image/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk"}
 generate - muse-image params 4K => ERR INVALID_OPTION muse-image does not take a resolution. {"field":"params","key":"resolution","model":"muse-image","task":"generate"}
 generate - muse-image params gif => ERR INVALID_OPTION muse-image takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"muse-image","task":"generate"}
-generate - muse-image params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"muse-image","task":"generate"}
+generate - muse-image params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - muse-image scale 3 => ERR INVALID_OPTION muse-image cannot take scale for generate. {"field":"scale","model":"muse-image","task":"generate"}
 generate - muse-image scale -1 => ERR INVALID_OPTION muse-image cannot take scale for generate. {"field":"scale","model":"muse-image","task":"generate"}
 generate - muse-image scale 0.5 => ERR INVALID_OPTION muse-image cannot take scale for generate. {"field":"scale","model":"muse-image","task":"generate"}
@@ -365,7 +365,7 @@ generate - banana2 count 1.5 => ERR INVALID_OPTION count must be a whole number 
 generate - banana2 count 5 => ERR NO_MODEL_AVAILABLE banana2 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana2 count 11 => ERR NO_MODEL_AVAILABLE banana2 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana2 count 2 svg => ERR NO_MODEL_AVAILABLE banana2 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - banana2 params num_images 11 => ERR INVALID_OPTION Nano Banana 2 makes at most 4 images per request, not 11. {"field":"count","model":"banana2","task":"generate"}
+generate - banana2 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana2 box outside => ERR INVALID_OPTION banana2 cannot take boxes for generate. {"field":"boxes","model":"banana2","task":"generate"}
@@ -373,7 +373,7 @@ generate - banana2 params bogus => banana2 fal-ai/nano-banana-2 queued=false by=
 generate - banana2 params aspect => banana2 fal-ai/nano-banana-2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.12} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","resolution":"2K"}
 generate - banana2 params 4K => banana2 fal-ai/nano-banana-2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.16} prompt="a lighthouse at dusk" body={"aspect_ratio":"1:1","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","resolution":"4K"}
 generate - banana2 params gif => ERR INVALID_OPTION banana2 takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"banana2","task":"generate"}
-generate - banana2 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"banana2","task":"generate"}
+generate - banana2 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana2 scale 3 => ERR INVALID_OPTION banana2 cannot take scale for generate. {"field":"scale","model":"banana2","task":"generate"}
 generate - banana2 scale -1 => ERR INVALID_OPTION banana2 cannot take scale for generate. {"field":"scale","model":"banana2","task":"generate"}
 generate - banana2 scale 0.5 => ERR INVALID_OPTION banana2 cannot take scale for generate. {"field":"scale","model":"banana2","task":"generate"}
@@ -408,7 +408,7 @@ generate - qwen3 count 1.5 => ERR INVALID_OPTION count must be a whole number of
 generate - qwen3 count 5 => qwen3 alibaba/qwen-image-3/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"output_format":"png","prompt":"the shoe"}
 generate - qwen3 count 11 => ERR NO_MODEL_AVAILABLE qwen3 (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - qwen3 count 2 svg => ERR NO_MODEL_AVAILABLE qwen3 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - qwen3 params num_images 11 => ERR INVALID_OPTION Qwen Image 3 makes at most 6 images per request, not 11. {"field":"count","model":"qwen3","task":"generate"}
+generate - qwen3 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - qwen3 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - qwen3 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - qwen3 box outside => ERR INVALID_OPTION qwen3 cannot take boxes for generate. {"field":"boxes","model":"qwen3","task":"generate"}
@@ -416,7 +416,7 @@ generate - qwen3 params bogus => qwen3 alibaba/qwen-image-3/text-to-image queued
 generate - qwen3 params aspect => qwen3 alibaba/qwen-image-3/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk"}
 generate - qwen3 params 4K => ERR INVALID_OPTION qwen3 does not take a resolution. {"field":"params","key":"resolution","model":"qwen3","task":"generate"}
 generate - qwen3 params gif => ERR INVALID_OPTION qwen3 takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"qwen3","task":"generate"}
-generate - qwen3 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"qwen3","task":"generate"}
+generate - qwen3 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - qwen3 scale 3 => ERR INVALID_OPTION qwen3 cannot take scale for generate. {"field":"scale","model":"qwen3","task":"generate"}
 generate - qwen3 scale -1 => ERR INVALID_OPTION qwen3 cannot take scale for generate. {"field":"scale","model":"qwen3","task":"generate"}
 generate - qwen3 scale 0.5 => ERR INVALID_OPTION qwen3 cannot take scale for generate. {"field":"scale","model":"qwen3","task":"generate"}
@@ -451,7 +451,7 @@ generate - mai-image-2.5 count 1.5 => ERR INVALID_OPTION count must be a whole n
 generate - mai-image-2.5 count 5 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - mai-image-2.5 count 11 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - mai-image-2.5 count 2 svg => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - mai-image-2.5 params num_images 11 => ERR INVALID_OPTION MAI Image 2.5 makes at most 4 images per request, not 11. {"field":"count","model":"mai-image-2.5","task":"generate"}
+generate - mai-image-2.5 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - mai-image-2.5 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - mai-image-2.5 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - mai-image-2.5 box outside => ERR INVALID_OPTION mai-image-2.5 cannot take boxes for generate. {"field":"boxes","model":"mai-image-2.5","task":"generate"}
@@ -459,7 +459,7 @@ generate - mai-image-2.5 params bogus => mai-image-2.5 microsoft/mai-image-2.5 q
 generate - mai-image-2.5 params aspect => ERR INVALID_OPTION mai-image-2.5 takes aspect_ratio auto, 1:1, 4:3, 3:4, 16:9, 9:16, 3:2, 2:3, not "21:9". {"accepts":["auto","1:1","4:3","3:4","16:9","9:16","3:2","2:3"],"field":"params","key":"aspect_ratio","model":"mai-image-2.5","task":"generate"}
 generate - mai-image-2.5 params 4K => ERR INVALID_OPTION mai-image-2.5 does not take a resolution. {"field":"params","key":"resolution","model":"mai-image-2.5","task":"generate"}
 generate - mai-image-2.5 params gif => ERR INVALID_OPTION mai-image-2.5 takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"mai-image-2.5","task":"generate"}
-generate - mai-image-2.5 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"mai-image-2.5","task":"generate"}
+generate - mai-image-2.5 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - mai-image-2.5 scale 3 => ERR INVALID_OPTION mai-image-2.5 cannot take scale for generate. {"field":"scale","model":"mai-image-2.5","task":"generate"}
 generate - mai-image-2.5 scale -1 => ERR INVALID_OPTION mai-image-2.5 cannot take scale for generate. {"field":"scale","model":"mai-image-2.5","task":"generate"}
 generate - mai-image-2.5 scale 0.5 => ERR INVALID_OPTION mai-image-2.5 cannot take scale for generate. {"field":"scale","model":"mai-image-2.5","task":"generate"}
@@ -494,7 +494,7 @@ generate - banana count 1.5 => ERR INVALID_OPTION count must be a whole number o
 generate - banana count 5 => ERR NO_MODEL_AVAILABLE banana (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana count 11 => ERR NO_MODEL_AVAILABLE banana (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana count 2 svg => ERR NO_MODEL_AVAILABLE banana (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - banana params num_images 11 => ERR INVALID_OPTION Nano Banana Pro makes at most 4 images per request, not 11. {"field":"count","model":"banana","task":"generate"}
+generate - banana params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana box outside => ERR INVALID_OPTION banana cannot take boxes for generate. {"field":"boxes","model":"banana","task":"generate"}
@@ -502,7 +502,7 @@ generate - banana params bogus => banana fal-ai/nano-banana-pro queued=false by=
 generate - banana params aspect => banana fal-ai/nano-banana-pro queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.15} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","resolution":"2K"}
 generate - banana params 4K => banana fal-ai/nano-banana-pro queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.3} prompt="a lighthouse at dusk" body={"aspect_ratio":"1:1","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk","resolution":"4K"}
 generate - banana params gif => ERR INVALID_OPTION banana takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"banana","task":"generate"}
-generate - banana params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"banana","task":"generate"}
+generate - banana params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana scale 3 => ERR INVALID_OPTION banana cannot take scale for generate. {"field":"scale","model":"banana","task":"generate"}
 generate - banana scale -1 => ERR INVALID_OPTION banana cannot take scale for generate. {"field":"scale","model":"banana","task":"generate"}
 generate - banana scale 0.5 => ERR INVALID_OPTION banana cannot take scale for generate. {"field":"scale","model":"banana","task":"generate"}
@@ -537,7 +537,7 @@ generate - ideogram4 count 1.5 => ERR INVALID_OPTION count must be a whole numbe
 generate - ideogram4 count 5 => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - ideogram4 count 11 => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - ideogram4 count 2 svg => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - ideogram4 params num_images 11 => ERR INVALID_OPTION Ideogram V4 makes at most 4 images per request, not 11. {"field":"count","model":"ideogram4","task":"generate"}
+generate - ideogram4 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - ideogram4 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - ideogram4 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - ideogram4 box outside => ERR INVALID_OPTION ideogram4 cannot take boxes for generate. {"field":"boxes","model":"ideogram4","task":"generate"}
@@ -545,7 +545,7 @@ generate - ideogram4 params bogus => ideogram4 ideogram/v4 queued=false by=model
 generate - ideogram4 params aspect => ideogram4 ideogram/v4 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03145728} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk"}
 generate - ideogram4 params 4K => ERR INVALID_OPTION ideogram4 does not take a resolution. {"field":"params","key":"resolution","model":"ideogram4","task":"generate"}
 generate - ideogram4 params gif => ERR INVALID_OPTION ideogram4 takes output_format jpeg, png, not "gif". {"accepts":["jpeg","png"],"field":"params","key":"output_format","model":"ideogram4","task":"generate"}
-generate - ideogram4 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"ideogram4","task":"generate"}
+generate - ideogram4 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - ideogram4 scale 3 => ERR INVALID_OPTION ideogram4 cannot take scale for generate. {"field":"scale","model":"ideogram4","task":"generate"}
 generate - ideogram4 scale -1 => ERR INVALID_OPTION ideogram4 cannot take scale for generate. {"field":"scale","model":"ideogram4","task":"generate"}
 generate - ideogram4 scale 0.5 => ERR INVALID_OPTION ideogram4 cannot take scale for generate. {"field":"scale","model":"ideogram4","task":"generate"}
@@ -580,7 +580,7 @@ generate - flux2-flex count 1.5 => ERR INVALID_OPTION count must be a whole numb
 generate - flux2-flex count 5 => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flux2-flex count 11 => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flux2-flex count 2 svg => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
-generate - flux2-flex params num_images 11 => ERR INVALID_OPTION flux2-flex does not take more than one image. {"field":"params","key":"num_images","model":"flux2-flex","task":"generate"}
+generate - flux2-flex params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flux2-flex seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flux2-flex seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flux2-flex box outside => ERR INVALID_OPTION flux2-flex cannot take boxes for generate. {"field":"boxes","model":"flux2-flex","task":"generate"}
@@ -588,7 +588,7 @@ generate - flux2-flex params bogus => flux2-flex fal-ai/flux-2-flex queued=false
 generate - flux2-flex params aspect => flux2-flex fal-ai/flux-2-flex queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.052428800000000005} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","output_format":"png","prompt":"a lighthouse at dusk"}
 generate - flux2-flex params 4K => ERR INVALID_OPTION flux2-flex does not take a resolution. {"field":"params","key":"resolution","model":"flux2-flex","task":"generate"}
 generate - flux2-flex params gif => ERR INVALID_OPTION flux2-flex takes output_format jpeg, png, not "gif". {"accepts":["jpeg","png"],"field":"params","key":"output_format","model":"flux2-flex","task":"generate"}
-generate - flux2-flex params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"flux2-flex","task":"generate"}
+generate - flux2-flex params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flux2-flex scale 3 => ERR INVALID_OPTION flux2-flex cannot take scale for generate. {"field":"scale","model":"flux2-flex","task":"generate"}
 generate - flux2-flex scale -1 => ERR INVALID_OPTION flux2-flex cannot take scale for generate. {"field":"scale","model":"flux2-flex","task":"generate"}
 generate - flux2-flex scale 0.5 => ERR INVALID_OPTION flux2-flex cannot take scale for generate. {"field":"scale","model":"flux2-flex","task":"generate"}
@@ -623,7 +623,7 @@ generate - recraft41 count 1.5 => ERR INVALID_OPTION count must be a whole numbe
 generate - recraft41 count 5 => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - recraft41 count 11 => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - recraft41 count 2 svg => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
-generate - recraft41 params num_images 11 => ERR INVALID_OPTION recraft41 does not take more than one image. {"field":"params","key":"num_images","model":"recraft41","task":"generate"}
+generate - recraft41 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - recraft41 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - recraft41 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - recraft41 box outside => ERR INVALID_OPTION recraft41 cannot take boxes for generate. {"field":"boxes","model":"recraft41","task":"generate"}
@@ -631,7 +631,7 @@ generate - recraft41 params bogus => recraft41 fal-ai/recraft/v4.1/text-to-image
 generate - recraft41 params aspect => recraft41 fal-ai/recraft/v4.1/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.035} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","prompt":"a lighthouse at dusk"}
 generate - recraft41 params 4K => ERR INVALID_OPTION recraft41 does not take a resolution. {"field":"params","key":"resolution","model":"recraft41","task":"generate"}
 generate - recraft41 params gif => ERR INVALID_OPTION recraft41 does not take an output format. {"field":"params","key":"output_format","model":"recraft41","task":"generate"}
-generate - recraft41 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"recraft41","task":"generate"}
+generate - recraft41 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - recraft41 scale 3 => ERR INVALID_OPTION recraft41 cannot take scale for generate. {"field":"scale","model":"recraft41","task":"generate"}
 generate - recraft41 scale -1 => ERR INVALID_OPTION recraft41 cannot take scale for generate. {"field":"scale","model":"recraft41","task":"generate"}
 generate - recraft41 scale 0.5 => ERR INVALID_OPTION recraft41 cannot take scale for generate. {"field":"scale","model":"recraft41","task":"generate"}
@@ -666,7 +666,7 @@ generate - flux2-pro count 1.5 => ERR INVALID_OPTION count must be a whole numbe
 generate - flux2-pro count 5 => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flux2-pro count 11 => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flux2-pro count 2 svg => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
-generate - flux2-pro params num_images 11 => ERR INVALID_OPTION flux2-pro does not take more than one image. {"field":"params","key":"num_images","model":"flux2-pro","task":"generate"}
+generate - flux2-pro params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flux2-pro seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flux2-pro seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flux2-pro box outside => ERR INVALID_OPTION flux2-pro cannot take boxes for generate. {"field":"boxes","model":"flux2-pro","task":"generate"}
@@ -674,7 +674,7 @@ generate - flux2-pro params bogus => flux2-pro fal-ai/flux-2-pro queued=false by
 generate - flux2-pro params aspect => flux2-pro fal-ai/flux-2-pro queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03145728} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","output_format":"png","prompt":"a lighthouse at dusk"}
 generate - flux2-pro params 4K => ERR INVALID_OPTION flux2-pro does not take a resolution. {"field":"params","key":"resolution","model":"flux2-pro","task":"generate"}
 generate - flux2-pro params gif => ERR INVALID_OPTION flux2-pro takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"flux2-pro","task":"generate"}
-generate - flux2-pro params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"flux2-pro","task":"generate"}
+generate - flux2-pro params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flux2-pro scale 3 => ERR INVALID_OPTION flux2-pro cannot take scale for generate. {"field":"scale","model":"flux2-pro","task":"generate"}
 generate - flux2-pro scale -1 => ERR INVALID_OPTION flux2-pro cannot take scale for generate. {"field":"scale","model":"flux2-pro","task":"generate"}
 generate - flux2-pro scale 0.5 => ERR INVALID_OPTION flux2-pro cannot take scale for generate. {"field":"scale","model":"flux2-pro","task":"generate"}
@@ -709,7 +709,7 @@ generate - krea3 count 1.5 => ERR INVALID_OPTION count must be a whole number of
 generate - krea3 count 5 => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - krea3 count 11 => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - krea3 count 2 svg => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
-generate - krea3 params num_images 11 => ERR INVALID_OPTION krea3 does not take more than one image. {"field":"params","key":"num_images","model":"krea3","task":"generate"}
+generate - krea3 params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - krea3 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - krea3 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - krea3 box outside => ERR INVALID_OPTION krea3 cannot take boxes for generate. {"field":"boxes","model":"krea3","task":"generate"}
@@ -717,7 +717,7 @@ generate - krea3 params bogus => krea3 krea/v3/text-to-image queued=false by=mod
 generate - krea3 params aspect => krea3 krea/v3/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.026214400000000002} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","output_format":"png","prompt":"a lighthouse at dusk"}
 generate - krea3 params 4K => ERR INVALID_OPTION krea3 does not take a resolution. {"field":"params","key":"resolution","model":"krea3","task":"generate"}
 generate - krea3 params gif => ERR INVALID_OPTION krea3 takes output_format png, jpeg, not "gif". {"accepts":["png","jpeg"],"field":"params","key":"output_format","model":"krea3","task":"generate"}
-generate - krea3 params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"krea3","task":"generate"}
+generate - krea3 params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - krea3 scale 3 => ERR INVALID_OPTION krea3 cannot take scale for generate. {"field":"scale","model":"krea3","task":"generate"}
 generate - krea3 scale -1 => ERR INVALID_OPTION krea3 cannot take scale for generate. {"field":"scale","model":"krea3","task":"generate"}
 generate - krea3 scale 0.5 => ERR INVALID_OPTION krea3 cannot take scale for generate. {"field":"scale","model":"krea3","task":"generate"}
@@ -752,7 +752,7 @@ generate - grok-image-quality count 1.5 => ERR INVALID_OPTION count must be a wh
 generate - grok-image-quality count 5 => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - grok-image-quality count 11 => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - grok-image-quality count 2 svg => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - grok-image-quality params num_images 11 => ERR INVALID_OPTION Grok Imagine Image Quality makes at most 4 images per request, not 11. {"field":"count","model":"grok-image-quality","task":"generate"}
+generate - grok-image-quality params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - grok-image-quality seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - grok-image-quality seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - grok-image-quality box outside => ERR INVALID_OPTION grok-image-quality cannot take boxes for generate. {"field":"boxes","model":"grok-image-quality","task":"generate"}
@@ -760,7 +760,7 @@ generate - grok-image-quality params bogus => grok-image-quality xai/grok-imagin
 generate - grok-image-quality params aspect => ERR INVALID_OPTION grok-image-quality takes aspect_ratio 16:9, 4:3, 3:2, 1:1, 2:3, 3:4, 9:16, not "21:9". {"accepts":["16:9","4:3","3:2","1:1","2:3","3:4","9:16"],"field":"params","key":"aspect_ratio","model":"grok-image-quality","task":"generate"}
 generate - grok-image-quality params 4K => ERR INVALID_OPTION grok-image-quality takes resolution 1K, 2K, not "4K". {"accepts":["1K","2K"],"field":"params","key":"resolution","model":"grok-image-quality","task":"generate"}
 generate - grok-image-quality params gif => ERR INVALID_OPTION grok-image-quality takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"grok-image-quality","task":"generate"}
-generate - grok-image-quality params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"grok-image-quality","task":"generate"}
+generate - grok-image-quality params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - grok-image-quality scale 3 => ERR INVALID_OPTION grok-image-quality cannot take scale for generate. {"field":"scale","model":"grok-image-quality","task":"generate"}
 generate - grok-image-quality scale -1 => ERR INVALID_OPTION grok-image-quality cannot take scale for generate. {"field":"scale","model":"grok-image-quality","task":"generate"}
 generate - grok-image-quality scale 0.5 => ERR INVALID_OPTION grok-image-quality cannot take scale for generate. {"field":"scale","model":"grok-image-quality","task":"generate"}
@@ -838,7 +838,7 @@ generate - banana2-lite count 1.5 => ERR INVALID_OPTION count must be a whole nu
 generate - banana2-lite count 5 => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana2-lite count 11 => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - banana2-lite count 2 svg => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - banana2-lite params num_images 11 => ERR INVALID_OPTION Nano Banana 2 Lite makes at most 4 images per request, not 11. {"field":"count","model":"banana2-lite","task":"generate"}
+generate - banana2-lite params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana2-lite seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana2-lite seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana2-lite box outside => ERR INVALID_OPTION banana2-lite cannot take boxes for generate. {"field":"boxes","model":"banana2-lite","task":"generate"}
@@ -846,7 +846,7 @@ generate - banana2-lite params bogus => banana2-lite google/nano-banana-2-lite q
 generate - banana2-lite params aspect => banana2-lite google/nano-banana-2-lite queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk"}
 generate - banana2-lite params 4K => ERR INVALID_OPTION banana2-lite does not take a resolution. {"field":"params","key":"resolution","model":"banana2-lite","task":"generate"}
 generate - banana2-lite params gif => ERR INVALID_OPTION banana2-lite takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"banana2-lite","task":"generate"}
-generate - banana2-lite params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"banana2-lite","task":"generate"}
+generate - banana2-lite params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - banana2-lite scale 3 => ERR INVALID_OPTION banana2-lite cannot take scale for generate. {"field":"scale","model":"banana2-lite","task":"generate"}
 generate - banana2-lite scale -1 => ERR INVALID_OPTION banana2-lite cannot take scale for generate. {"field":"scale","model":"banana2-lite","task":"generate"}
 generate - banana2-lite scale 0.5 => ERR INVALID_OPTION banana2-lite cannot take scale for generate. {"field":"scale","model":"banana2-lite","task":"generate"}
@@ -881,7 +881,7 @@ generate - grok-image count 1.5 => ERR INVALID_OPTION count must be a whole numb
 generate - grok-image count 5 => ERR NO_MODEL_AVAILABLE grok-image (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - grok-image count 11 => ERR NO_MODEL_AVAILABLE grok-image (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - grok-image count 2 svg => ERR NO_MODEL_AVAILABLE grok-image (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - grok-image params num_images 11 => ERR INVALID_OPTION Grok Imagine Image makes at most 4 images per request, not 11. {"field":"count","model":"grok-image","task":"generate"}
+generate - grok-image params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - grok-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - grok-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - grok-image box outside => ERR INVALID_OPTION grok-image cannot take boxes for generate. {"field":"boxes","model":"grok-image","task":"generate"}
@@ -889,7 +889,7 @@ generate - grok-image params bogus => grok-image xai/grok-imagine-image queued=f
 generate - grok-image params aspect => ERR INVALID_OPTION grok-image takes aspect_ratio 16:9, 4:3, 3:2, 1:1, 2:3, 3:4, 9:16, not "21:9". {"accepts":["16:9","4:3","3:2","1:1","2:3","3:4","9:16"],"field":"params","key":"aspect_ratio","model":"grok-image","task":"generate"}
 generate - grok-image params 4K => ERR INVALID_OPTION grok-image takes resolution 1K, 2K, not "4K". {"accepts":["1K","2K"],"field":"params","key":"resolution","model":"grok-image","task":"generate"}
 generate - grok-image params gif => ERR INVALID_OPTION grok-image takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"grok-image","task":"generate"}
-generate - grok-image params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"grok-image","task":"generate"}
+generate - grok-image params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - grok-image scale 3 => ERR INVALID_OPTION grok-image cannot take scale for generate. {"field":"scale","model":"grok-image","task":"generate"}
 generate - grok-image scale -1 => ERR INVALID_OPTION grok-image cannot take scale for generate. {"field":"scale","model":"grok-image","task":"generate"}
 generate - grok-image scale 0.5 => ERR INVALID_OPTION grok-image cannot take scale for generate. {"field":"scale","model":"grok-image","task":"generate"}
@@ -924,7 +924,7 @@ generate - seedream5-lite count 1.5 => ERR INVALID_OPTION count must be a whole 
 generate - seedream5-lite count 5 => seedream5-lite bytedance/seedream/v5/lite/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.17500000000000002} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"prompt":"the shoe"}
 generate - seedream5-lite count 11 => ERR NO_MODEL_AVAILABLE seedream5-lite (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - seedream5-lite count 2 svg => ERR NO_MODEL_AVAILABLE seedream5-lite (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - seedream5-lite params num_images 11 => ERR INVALID_OPTION Seedream 5.0 Lite makes at most 6 images per request, not 11. {"field":"count","model":"seedream5-lite","task":"generate"}
+generate - seedream5-lite params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - seedream5-lite seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - seedream5-lite seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - seedream5-lite box outside => ERR INVALID_OPTION seedream5-lite cannot take boxes for generate. {"field":"boxes","model":"seedream5-lite","task":"generate"}
@@ -932,7 +932,7 @@ generate - seedream5-lite params bogus => seedream5-lite bytedance/seedream/v5/l
 generate - seedream5-lite params aspect => seedream5-lite bytedance/seedream/v5/lite/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.035} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","num_images":1,"prompt":"a lighthouse at dusk"}
 generate - seedream5-lite params 4K => ERR INVALID_OPTION seedream5-lite does not take a resolution. {"field":"params","key":"resolution","model":"seedream5-lite","task":"generate"}
 generate - seedream5-lite params gif => ERR INVALID_OPTION seedream5-lite does not take an output format. {"field":"params","key":"output_format","model":"seedream5-lite","task":"generate"}
-generate - seedream5-lite params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"seedream5-lite","task":"generate"}
+generate - seedream5-lite params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - seedream5-lite scale 3 => ERR INVALID_OPTION seedream5-lite cannot take scale for generate. {"field":"scale","model":"seedream5-lite","task":"generate"}
 generate - seedream5-lite scale -1 => ERR INVALID_OPTION seedream5-lite cannot take scale for generate. {"field":"scale","model":"seedream5-lite","task":"generate"}
 generate - seedream5-lite scale 0.5 => ERR INVALID_OPTION seedream5-lite cannot take scale for generate. {"field":"scale","model":"seedream5-lite","task":"generate"}
@@ -967,7 +967,7 @@ generate - flux2-turbo count 1.5 => ERR INVALID_OPTION count must be a whole num
 generate - flux2-turbo count 5 => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flux2-turbo count 11 => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
 generate - flux2-turbo count 2 svg => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
-generate - flux2-turbo params num_images 11 => ERR INVALID_OPTION FLUX.2 Turbo makes at most 4 images per request, not 11. {"field":"count","model":"flux2-turbo","task":"generate"}
+generate - flux2-turbo params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flux2-turbo seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flux2-turbo seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flux2-turbo box outside => ERR INVALID_OPTION flux2-turbo cannot take boxes for generate. {"field":"boxes","model":"flux2-turbo","task":"generate"}
@@ -975,7 +975,7 @@ generate - flux2-turbo params bogus => flux2-turbo fal-ai/flux-2/turbo queued=fa
 generate - flux2-turbo params aspect => flux2-turbo fal-ai/flux-2/turbo queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.008388608} prompt="a lighthouse at dusk" body={"aspect_ratio":"21:9","image_size":"square_hd","num_images":1,"output_format":"png","prompt":"a lighthouse at dusk"}
 generate - flux2-turbo params 4K => ERR INVALID_OPTION flux2-turbo does not take a resolution. {"field":"params","key":"resolution","model":"flux2-turbo","task":"generate"}
 generate - flux2-turbo params gif => ERR INVALID_OPTION flux2-turbo takes output_format jpeg, png, webp, not "gif". {"accepts":["jpeg","png","webp"],"field":"params","key":"output_format","model":"flux2-turbo","task":"generate"}
-generate - flux2-turbo params count 0 => ERR INVALID_OPTION params.num_images must be a whole number of at least 1, not 0. {"field":"params","key":"num_images","model":"flux2-turbo","task":"generate"}
+generate - flux2-turbo params count 0 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 generate - flux2-turbo scale 3 => ERR INVALID_OPTION flux2-turbo cannot take scale for generate. {"field":"scale","model":"flux2-turbo","task":"generate"}
 generate - flux2-turbo scale -1 => ERR INVALID_OPTION flux2-turbo cannot take scale for generate. {"field":"scale","model":"flux2-turbo","task":"generate"}
 generate - flux2-turbo scale 0.5 => ERR INVALID_OPTION flux2-turbo cannot take scale for generate. {"field":"scale","model":"flux2-turbo","task":"generate"}

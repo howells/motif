@@ -110,7 +110,7 @@ function refusal(
 
 /**
  * The first param that would get past a limit Motif enforces on the Task
- * option for the same field: ratio, resolution, output format, count, seed,
+ * option for the same field: ratio, resolution, output format, seed,
  * negative prompt and image size.
  */
 export function generationParamsRefusal(
@@ -171,20 +171,6 @@ export function generationParamsRefusal(
     );
     if (bad !== undefined) {
       return bad;
-    }
-  }
-  if (params.num_images !== undefined) {
-    const count = params.num_images;
-    if (!(Number.isInteger(count) && Number(count) >= 1)) {
-      return refusal(
-        task,
-        model,
-        "num_images",
-        `params.num_images must be a whole number of at least 1, not ${JSON.stringify(count)}.`
-      );
-    }
-    if (count !== 1 && !config.supportsNumImages) {
-      return unsupported("num_images", "more than one image");
     }
   }
   if (params.seed !== undefined) {

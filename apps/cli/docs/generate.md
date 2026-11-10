@@ -55,7 +55,7 @@ Prices are in the [cost reference](costs.md#generate-and-vary). Read the live li
 
 ### Model-only options
 
-Options only one Model understands (Recraft styles, FLUX steps, Ideogram's rendering speed, web search) go through `--param key=value`, which needs `-m`. Values parse as JSON where they can.
+Options only one Model understands (Recraft styles, FLUX steps, Ideogram's rendering speed, web search) go through `--param key=value`, which needs `-m`. Values parse as JSON where they can. A key a Task option owns is refused: `--param num_images=4` fails with `INVALID_OPTION` and points at `-n`, so what is sent, priced and saved always agree. Files are named from what comes back: more than one file is `-1`, `-2` and so on, whatever was asked for.
 
 Nano Banana 2.1 supports 1K, 2K and 4K output and up to 14 references, with no 0.5K output. Omit `thinking_level` to use fal's `medium` default, or set it with `-m banana21 --param thinking_level=medium`. Its token-billed cost is `null` in a dry run.
 

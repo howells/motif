@@ -186,23 +186,18 @@ export async function cmdGenerate(
 
     spinner?.succeed("Generated!");
 
-    const saved = await saveGeneratedImages(
-      result.files,
-      outputPath,
-      numImages,
-      {
-        aspect,
-        costPerImage:
-          result.cost.usd === null || result.files.length === 0
-            ? null
-            : result.cost.usd / result.files.length,
-        look: creative?.look,
-        model: result.model,
-        mood: creative?.mood,
-        prompt: result.prompt ?? fullPrompt,
-        resolution,
-      }
-    );
+    const saved = await saveGeneratedImages(result.files, outputPath, {
+      aspect,
+      costPerImage:
+        result.cost.usd === null || result.files.length === 0
+          ? null
+          : result.cost.usd / result.files.length,
+      look: creative?.look,
+      model: result.model,
+      mood: creative?.mood,
+      prompt: result.prompt ?? fullPrompt,
+      resolution,
+    });
     if (!isStructured(emitOpts.format)) {
       for (const image of saved.images) {
         console.log(savedLine(image));
