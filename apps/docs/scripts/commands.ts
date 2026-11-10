@@ -4,7 +4,7 @@
  * the Paper boards settled on, and one worked example per command with the images that show it.
  *
  * Everything else on a command page (synopsis, options, Models, prices, the
- * dry run) is read from the CLI and the SDK by `generate-commands.ts`, so
+ * dry run) is read from `motif --describe` and the SDK by `generate-commands.ts`, so
  * nothing here can drift from what the tool does. This file holds only the
  * words and pictures that no schema carries.
  */
@@ -37,16 +37,26 @@ export interface Example {
 }
 
 export interface CommandSpec {
+  /** Why the page shows no generated dry run, in a sentence, for a command
+   * whose dry run needs something the page cannot make. */
+  readonly dryRunNote?: string;
   readonly example: Example;
   /** The page's title: the job in plain words, sentence case, no full stop.
    * Where the homepage has a headline for the Task these are its words; the
    * breadcrumb, sidebar and pagination keep the command id. */
   readonly headline: string;
   readonly id: string;
-  /** The line on the All commands page, from the Paper board. */
-  readonly summary: string;
   /** The lede, where the board words it differently from the index line. */
   readonly lede?: string;
+  /** For a command with subcommands: the one whose synopsis and options lead
+   * the page. */
+  readonly leads?: string;
+  /** The line on the All commands page, from the Paper board. Leave it out
+   * where the CLI's own description says the same. */
+  readonly summary?: string;
+  /** The CLI has no `--describe` entry for it: it is interactive, and no agent
+   * calls it. The page shows the example as its synopsis. */
+  readonly undescribed?: true;
 }
 
 export interface GroupSpec {
@@ -120,6 +130,7 @@ export const GROUPS: readonly GroupSpec[] = [
         },
         headline: "A matching set",
         id: "series",
+        leads: "run",
         summary: "A consistent set from a theme",
       },
     ],
@@ -472,6 +483,7 @@ export const GROUPS: readonly GroupSpec[] = [
         headline: "Work in the terminal Studio",
         id: "studio",
         summary: "The interactive terminal Studio",
+        undescribed: true,
       },
       {
         example: {
@@ -499,6 +511,16 @@ export const GROUPS: readonly GroupSpec[] = [
         headline: "See past Generations and spend",
         id: "history",
         summary: "Past Generations and spend",
+      },
+      {
+        dryRunNote:
+          "`--dry-run` reports what the run would collect and where the files would go, without contacting fal. It needs the record of a run that is waiting, so there is no sample here.",
+        example: {
+          args: "motif resume 8f2a1c3e-91d4-4b6a-a7f0-52c19e7d3b04",
+          note: "A queued run fal accepted but Motif could not finish prints its request id. This collects it and finishes it as the original command would, with nothing billed twice. With no id it lists the runs that can be collected.",
+        },
+        headline: "Collect a run that did not finish",
+        id: "resume",
       },
     ],
     folder: "terminal",

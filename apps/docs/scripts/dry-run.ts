@@ -39,8 +39,9 @@ export function dryRun(
       cpSync(join(IMAGES, source), join(work, name));
     }
     const base = example.args.replace(/^motif /u, "");
-    const fields = hasFields ? " --fields cost,costBasis,output" : "";
     const pick = example.pick;
+    const fields =
+      hasFields && pick === undefined ? " --fields cost,costBasis,output" : "";
     const command =
       pick === undefined
         ? `motif ${base} --dry-run${fields}`

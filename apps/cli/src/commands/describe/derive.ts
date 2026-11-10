@@ -15,6 +15,7 @@ import { TASK_VERBS } from "../verbs/task-verbs";
 import { COMMAND_TASKS, commandTask, taskRouting } from "../verbs/tasks";
 import { promptSource, usageLine } from "../verbs/verb-kit";
 import type { VerbDefinition } from "../verbs/verb-kit";
+import { cliFacts } from "./cli";
 import {
   COMMAND_NOTES,
   COMMON_NOTES,
@@ -250,6 +251,7 @@ export function commandSchema(command: Command): CommandSchema {
     type: "object",
   };
   const schema: Schema = {
+    cli: cliFacts(command),
     command: name,
     description: description ?? command.description(),
     ...(verb !== undefined && { usage: usageLine(verb) }),

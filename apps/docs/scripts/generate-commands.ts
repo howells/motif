@@ -2,8 +2,9 @@
  * Writes the command pages from the tool itself.
  *
  * Reads, in this order of authority:
- *  - the built CLI (`apps/cli/bin/motif`): `--help` for the synopsis and
- *    options, `--describe` for the one-line description, and a real
+ *  - the built CLI (`apps/cli/bin/motif`): `motif --describe` for each
+ *    command's description, synopsis, options and subcommands, the options
+ *    every Task verb shares, and whether it has a dry run; and a real
  *    `--dry-run` for the dry-run example. Dry runs need no key and no network.
  *  - the SDK's Task table and registries: which Models a command ranks, what
  *    each is called, and what it costs per image where the registry says.
@@ -33,7 +34,7 @@ import { z } from "zod";
 
 import { here, motif } from "./cli";
 import { GROUPS } from "./commands";
-import type { CommandSpec, GroupSpec, Picture } from "./commands";
+import type { CommandSpec, Picture } from "./commands";
 import { dryRun } from "./dry-run";
 
 const CLI_BUILD = here("../../cli/dist/index.js");
@@ -42,95 +43,127 @@ const IMAGES = here("../public/images/commands");
 
 // ─── The CLI ────────────────────────────────────────────────────────────
 
-interface Flag {
+const OPTION = z.object({
+  description: z.string(),
+  flags: z.string(),
+  long: z.string(),
+});
+
+const COMMAND_LINE = z.object({
+  options: z.array(OPTION),
+  synopsis: z.string(),
+});
+
+const DESCRIBE = z.object({
+  commands: z.record(
+    z.string(),
+    z.object({
+      cli: COMMAND_LINE.extend({
+        subcommands: z
+          .array(
+            COMMAND_LINE.extend({ description: z.string(), name: z.string() })
+          )
+          .optional(),
+      }).optional(),
+      description: z.string(),
+      supports_dry_run: z.boolean().optional(),
+    })
+  ),
+  common_options: z.array(OPTION),
+});
+
+type Option = z.infer<typeof OPTION>;
+type Described = z.infer<typeof DESCRIBE>;
+
+/** What a command page says about the command line: read from `--describe`. */
+interface Facts {
   readonly description: string;
-  readonly flag: string;
+  /** Every option the command takes, common ones included. */
+  readonly options: readonly Option[];
+  readonly subcommands: readonly { description: string; usage: string }[];
+  readonly supportsDryRun: boolean;
+  /** One line each: the command, and the subcommands it has. */
+  readonly synopsis: readonly string[];
 }
 
-interface Help {
-  readonly flags: readonly Flag[];
-  /** Subcommands, for the one command that has them. */
-  readonly subcommands?: readonly Flag[];
-  readonly synopsis: string;
-}
-
-const FLAG_LINE = /^ {2}(-\S.*?) {2,}(\S.*)$/u;
-const CONTINUATION = /^ {10,}(\S.*)$/u;
-
-/** The Options block of a `--help` text, with wrapped descriptions rejoined. */
-function parseFlags(help: string): Flag[] {
-  const flags: { description: string; flag: string }[] = [];
-  let inOptions = false;
-  for (const line of help.split("\n")) {
-    if (line === "Options:") {
-      inOptions = true;
-    } else if (inOptions && line.trim() === "") {
-      inOptions = false;
-    } else if (inOptions) {
-      const match = FLAG_LINE.exec(line);
-      const more = CONTINUATION.exec(line);
-      const last = flags.at(-1);
-      if (match?.[1] !== undefined && match[2] !== undefined) {
-        flags.push({ description: match[2], flag: match[1] });
-      } else if (more?.[1] !== undefined && last !== undefined) {
-        last.description = `${last.description} ${more[1]}`;
-      }
-    }
+function readDescribe(cwd: string, home: string): Described {
+  const { code, out } = motif(["--describe", "--format", "json"], cwd, home);
+  if (code !== 0) {
+    throw new Error(`motif --describe exited ${code}`);
   }
-  return flags.filter((entry) => !entry.flag.endsWith("--help"));
+  return DESCRIBE.parse(JSON.parse(out));
 }
 
 /** `motif x [options] [y]` as `motif x [y] [options]`, so every synopsis ends
- * the same way. */
-function parseSynopsis(help: string): string {
-  const usage = help.split("\n").find((line) => line.startsWith("Usage: "));
-  if (usage === undefined) {
-    throw new Error("a --help text had no Usage line");
-  }
-  const tokens = usage
-    .replace("Usage: ", "")
+ * the same way. A synopsis with no `[options]` is left as it is. */
+function optionsLast(usage: string): string {
+  const tokens = usage.split(" ");
+  return tokens.includes("[options]")
+    ? `${tokens.filter((token) => token !== "[options]").join(" ")} [options]`
+    : usage;
+}
+
+const withoutOptions = (usage: string): string =>
+  usage
     .split(" ")
-    .filter((token) => token !== "[options]");
-  return `${tokens.join(" ")} [options]`;
-}
+    .filter((token) => token !== "[options]")
+    .join(" ");
 
-function readHelp(args: readonly string[], cwd: string, home: string): Help {
-  const { code, out } = motif([...args, "--help"], cwd, home);
-  if (code !== 0) {
-    throw new Error(`motif ${args.join(" ")} --help exited ${code}`);
+/** The facts of one command's page. A command with subcommands leads with
+ * the one its spec names. */
+function factsFor(spec: CommandSpec, described: Described): Facts {
+  const entry = described.commands[spec.id];
+  if (entry === undefined) {
+    if (spec.undescribed === true) {
+      return {
+        description: spec.summary ?? "",
+        options: [],
+        subcommands: [],
+        supportsDryRun: false,
+        synopsis: [spec.example.args],
+      };
+    }
+    throw new Error(`motif --describe has no command "${spec.id}"`);
   }
-  return { flags: parseFlags(out), synopsis: parseSynopsis(out) };
+  const { cli } = entry;
+  if (cli === undefined) {
+    throw new Error(`motif --describe gave "${spec.id}" no command line`);
+  }
+  const subcommands = cli.subcommands ?? [];
+  const lead = subcommands.find((sub) => sub.name === spec.leads);
+  if (subcommands.length > 0 && lead === undefined) {
+    throw new Error(
+      `${spec.id} has subcommands, so its spec must name the one that leads (leads: ...)`
+    );
+  }
+  return {
+    description: entry.description,
+    options: [...(lead?.options ?? []), ...cli.options],
+    subcommands: subcommands.map((sub) => ({
+      description: sub.description,
+      usage: withoutOptions(sub.synopsis),
+    })),
+    supportsDryRun: entry.supports_dry_run === true,
+    synopsis: [
+      ...(lead === undefined ? [] : [optionsLast(lead.synopsis)]),
+      optionsLast(cli.synopsis),
+    ],
+  };
 }
 
-/** The flags that are not the command's own: they appear on every command and
- * are listed once, on the All commands page. */
-const COMMON = new Set([
-  "--fields",
-  "--format",
-  "--open",
-  "--param",
-  "--seed",
-  "-m, --model",
-  "-o, --output",
-]);
-
-/** The flag name without its argument: `--mask <path>` is `--mask`. */
-const flagKey = (flag: string): string =>
-  flag.split(/ <| \[/u)[0]?.trim() ?? flag;
-
-const isCommon = (entry: Flag): boolean => COMMON.has(flagKey(entry.flag));
-
-/** Flags that belong to other commands but appear in the bare `motif` help,
- * which is where generate, last and history live. */
-const NOT_GENERATE = new Set([
-  "--describe",
-  "--history",
-  "--last",
-  "--limit",
-  "--offset",
-  "--version",
-  "-V, --version",
-]);
+/** The options a page lists as its own. A command that takes every common
+ * option leaves them to the All commands page; any other lists what it takes. */
+function ownOptions(
+  options: readonly Option[],
+  common: readonly Option[]
+): readonly Option[] {
+  const longs = new Set(options.map((option) => option.long));
+  if (!common.every((option) => longs.has(option.long))) {
+    return options;
+  }
+  const shared = new Set(common.map((option) => option.long));
+  return options.filter((option) => !shared.has(option.long));
+}
 
 // ─── Models and price ───────────────────────────────────────────────────
 
@@ -189,11 +222,11 @@ const sentenceCase = (text: string): string =>
   `${text.slice(0, 1).toUpperCase()}${text.slice(1)}`;
 
 /** When a ranked entry is chosen, in the words a reader would use. */
-function whenChosen(entry: RankedModel, flags: readonly Flag[]): string {
+function whenChosen(entry: RankedModel, flags: readonly Option[]): string {
   const parts = [sentenceCase(entry.tier)];
   if (entry.mode !== undefined) {
     const flag = `--${entry.mode}`;
-    const known = flags.some((candidate) => flagKey(candidate.flag) === flag);
+    const known = flags.some((candidate) => candidate.long === flag);
     parts.push(known ? `with \`${flag}\`` : `in ${entry.mode} mode`);
   }
   for (const need of entry.requires ?? []) {
@@ -209,7 +242,7 @@ const tierOrder = [
 
 /** The Models a Task ranks, as display names with a price, plus the sentence
  * that introduces them. */
-function modelTable(task: TaskId, flags: readonly Flag[]): string[] {
+function modelTable(task: TaskId, flags: readonly Option[]): string[] {
   const definition: TaskDefinition = TASKS[task];
   const ranked = definition.models.toSorted(
     (left, right) =>
@@ -280,120 +313,28 @@ function pictures(items: readonly Picture[]): string {
   ].join("\n");
 }
 
-// ─── Commands that are not a single verb ───────────────────────────────
-
-/** `last`, `history`, `describe` and `studio` are not verbs with a help text of
- * their own: they are flags on the bare `motif`, or the Studio. Their options
- * are picked from the bare help by name, so the words stay the CLI's. */
-const BARE = {
-  describe: {
-    flags: ["--describe", "--format", "--fields"],
-    synopsis: "motif --describe [command]",
-  },
-  history: {
-    flags: ["--history", "--limit", "--offset", "--format", "--fields"],
-    synopsis: "motif --history [options]",
-  },
-  last: { flags: ["--last", "--format", "--fields"], synopsis: "motif --last" },
-  studio: { flags: [], synopsis: "motif studio" },
-} as const;
-
-const isBare = (id: string): id is keyof typeof BARE => id in BARE;
-
-function bareHelp(id: keyof typeof BARE, root: Help): Help {
-  const wanted = new Set<string>(BARE[id].flags);
-  return {
-    flags: root.flags.filter((entry) => wanted.has(flagKey(entry.flag))),
-    synopsis: BARE[id].synopsis,
-  };
-}
-
-// ─── Series subcommands ─────────────────────────────────────────────────
-
-const SUBCOMMAND_LINE = /^ {2}(\S.*?) {2,}(\S.*)$/u;
-
-/** The Commands block of `motif series --help`: one row for each subcommand. */
-function seriesSubcommands(cwd: string, home: string): Flag[] {
-  const { code, out } = motif(["series", "--help"], cwd, home);
-  if (code !== 0) {
-    throw new Error(`motif series --help exited ${code}`);
-  }
-  const rows: { description: string; flag: string }[] = [];
-  let inCommands = false;
-  for (const line of out.split("\n")) {
-    if (line === "Commands:") {
-      inCommands = true;
-    } else if (inCommands && line.trim() === "") {
-      inCommands = false;
-    } else if (inCommands) {
-      const match = SUBCOMMAND_LINE.exec(line);
-      const more = CONTINUATION.exec(line);
-      const last = rows.at(-1);
-      if (match?.[1] !== undefined && match[2] !== undefined) {
-        const tokens = match[1]
-          .split(" ")
-          .filter((token) => token !== "[options]");
-        rows.push({
-          description: match[2],
-          flag: `motif series ${tokens.join(" ")}`,
-        });
-      } else if (more?.[1] !== undefined && last !== undefined) {
-        last.description = `${last.description} ${more[1]}`;
-      }
-    }
-  }
-  return rows.filter((row) => !row.flag.includes(" help"));
-}
-
 // ─── Pages ──────────────────────────────────────────────────────────────
 
 const isTask = (id: string): id is TaskId => id in TASKS;
 
-const optionsTable = (flags: readonly Flag[]): string =>
+const optionsTable = (options: readonly Option[]): string =>
   [
     "| Flag | What it does |",
     "| --- | --- |",
-    ...flags.map(
+    ...options.map(
       (entry) =>
-        `| ${inline(entry.flag)} | ${escapeText(withStop(entry.description))} |`
+        `| ${inline(entry.flags)} | ${escapeText(withStop(entry.description))} |`
     ),
   ].join("\n");
 
-interface Described {
-  readonly description: string;
-  readonly supportsDryRun: boolean;
-}
-
-const DESCRIBE = z.object({
-  commands: z.record(
-    z.string(),
-    z.object({
-      description: z.string().optional(),
-      supports_dry_run: z.boolean().optional(),
-    })
-  ),
-});
-
-function describeAll(cwd: string, home: string): Map<string, Described> {
-  const { code, out } = motif(["--describe", "--format", "json"], cwd, home);
-  if (code !== 0) {
-    throw new Error(`motif --describe exited ${code}`);
-  }
-  const parsed = DESCRIBE.parse(JSON.parse(out));
-  return new Map(
-    Object.entries(parsed.commands).map(([id, entry]) => [
-      id,
-      {
-        description: entry.description ?? "",
-        supportsDryRun: entry.supports_dry_run === true,
-      },
-    ])
-  );
-}
-
-function modelsSection(spec: CommandSpec, help: Help): string[] {
+function modelsSection(spec: CommandSpec, facts: Facts): string[] {
   if (isTask(spec.id)) {
-    return ["## Models and price", "", ...modelTable(spec.id, help.flags), ""];
+    return [
+      "## Models and price",
+      "",
+      ...modelTable(spec.id, facts.options),
+      "",
+    ];
   }
   if (spec.id === "series") {
     return [
@@ -414,15 +355,11 @@ function modelsSection(spec: CommandSpec, help: Help): string[] {
   return [];
 }
 
-function dryRunSection(
-  spec: CommandSpec,
-  help: Help,
-  described: Described | undefined
-): string[] {
-  const dryRunnable =
-    help.flags.some((entry) => flagKey(entry.flag) === "--dry-run") ||
-    described?.supportsDryRun === true;
-  if (!dryRunnable) {
+function dryRunSection(spec: CommandSpec, facts: Facts): string[] {
+  if (spec.dryRunNote !== undefined) {
+    return ["## Dry run", "", spec.dryRunNote, ""];
+  }
+  if (!facts.supportsDryRun) {
     return [
       "## Dry run",
       "",
@@ -430,9 +367,7 @@ function dryRunSection(
       "",
     ];
   }
-  const hasFields = help.flags.some(
-    (entry) => flagKey(entry.flag) === "--fields"
-  );
+  const hasFields = facts.options.some((entry) => entry.long === "--fields");
   const { command, output } = dryRun(spec, spec.example, hasFields);
   return [
     "## Dry run",
@@ -446,18 +381,43 @@ function dryRunSection(
   ];
 }
 
+/** The Options section: the options this command takes beyond the common ones,
+ * and a pointer to those. */
+function optionsSection(
+  spec: CommandSpec,
+  facts: Facts,
+  own: readonly Option[],
+  takesCommon: boolean
+): string[] {
+  const common = "[common options](/commands#common-options)";
+  if (own.length === 0) {
+    return takesCommon
+      ? ["## Options", "", `It takes only the ${common}.`, ""]
+      : [];
+  }
+  return [
+    "## Options",
+    "",
+    ...(facts.subcommands.length === 0
+      ? []
+      : [`These are the options for \`${spec.id} ${spec.leads}\`.`, ""]),
+    optionsTable(own),
+    "",
+    ...(takesCommon ? [`It also takes the ${common}.`, ""] : []),
+  ];
+}
+
 function commandPage(
   spec: CommandSpec,
-  group: GroupSpec,
-  help: Help,
-  described: Described | undefined
+  facts: Facts,
+  common: readonly Option[]
 ): string {
-  const own = help.flags.filter((entry) => !isCommon(entry));
-  const subcommands = help.subcommands ?? [];
+  const own = ownOptions(facts.options, common);
+  const takesCommon = own.length < facts.options.length;
   const lines: string[] = [
     "---",
     `title: ${JSON.stringify(spec.headline)}`,
-    `description: ${JSON.stringify(withStop(spec.lede ?? spec.summary))}`,
+    `description: ${JSON.stringify(withStop(spec.lede ?? spec.summary ?? facts.description))}`,
     "sidebar:",
     `  label: ${spec.id}`,
     "---",
@@ -466,7 +426,7 @@ function commandPage(
     "",
     "## Synopsis",
     "",
-    fence(help.synopsis),
+    fence(facts.synopsis.join("\n")),
     "",
     "## Example",
     "",
@@ -480,7 +440,7 @@ function commandPage(
     ...(spec.example.pictures === undefined
       ? []
       : [pictures(spec.example.pictures), ""]),
-    ...(subcommands.length === 0
+    ...(facts.subcommands.length === 0
       ? []
       : [
           "## Subcommands",
@@ -490,33 +450,21 @@ function commandPage(
           [
             "| Subcommand | What it does |",
             "| --- | --- |",
-            ...subcommands.map(
+            ...facts.subcommands.map(
               (row) =>
-                `| ${inline(row.flag)} | ${escapeText(withStop(row.description))} |`
+                `| ${inline(row.usage)} | ${escapeText(withStop(row.description))} |`
             ),
           ].join("\n"),
           "",
         ]),
-    ...(own.length === 0
-      ? []
-      : [
-          "## Options",
-          "",
-          ...(subcommands.length === 0
-            ? []
-            : ["These are the options for `series run`.", ""]),
-          optionsTable(own),
-          "",
-          "It also takes the [common options](/commands#common-options).",
-          "",
-        ]),
-    ...modelsSection(spec, help),
-    ...dryRunSection(spec, help, described),
+    ...optionsSection(spec, facts, own, takesCommon),
+    ...modelsSection(spec, facts),
+    ...dryRunSection(spec, facts),
   ];
   return `${lines.join("\n").trimEnd()}\n`;
 }
 
-function indexPage(commonFlags: readonly Flag[]): string {
+function indexPage(described: Described): string {
   const sections = GROUPS.flatMap((group) => [
     `## ${group.name}`,
     "",
@@ -525,7 +473,7 @@ function indexPage(commonFlags: readonly Flag[]): string {
     "  <tbody>",
     ...group.commands.map(
       (spec) =>
-        `    <tr><td><a href="/commands/${spec.id}"><code>${spec.id}</code></a></td><td>${spec.summary}</td></tr>`
+        `    <tr><td><a href="/commands/${spec.id}"><code>${spec.id}</code></a></td><td>${spec.summary ?? factsFor(spec, described).description}</td></tr>`
     ),
     "  </tbody>",
     "</table>",
@@ -544,9 +492,9 @@ function indexPage(commonFlags: readonly Flag[]): string {
     ...sections,
     "## Common options",
     "",
-    "Every command takes these, alongside its own.",
+    "The commands that make or change an image take these, alongside their own. Any other command lists the options it takes.",
     "",
-    optionsTable(commonFlags),
+    optionsTable(described.common_options),
     "",
   ].join("\n");
 }
@@ -572,12 +520,7 @@ function main(): void {
   }
   const scratch = realpathSync(mkdtempSync(join(tmpdir(), "motif-docs-home-")));
   try {
-    const described = describeAll(scratch, scratch);
-    const root = readHelp([], scratch, scratch);
-    const rootOwn = root.flags.filter(
-      (entry) =>
-        !NOT_GENERATE.has(entry.flag) && !NOT_GENERATE.has(flagKey(entry.flag))
-    );
+    const described = readDescribe(scratch, scratch);
 
     rmSync(OUT, { force: true, recursive: true });
     mkdirSync(OUT, { recursive: true });
@@ -585,13 +528,7 @@ function main(): void {
       join(OUT, "meta.ts"),
       meta("Commands", ["index", ...GROUPS.map((group) => group.folder)])
     );
-
-    // The common options, from a Task verb's own help, so the words are the verbs'.
-    const sample = readHelp(["erase"], scratch, scratch);
-    writeFileSync(
-      join(OUT, "index.mdx"),
-      indexPage(sample.flags.filter(isCommon))
-    );
+    writeFileSync(join(OUT, "index.mdx"), indexPage(described));
 
     for (const group of GROUPS) {
       const folder = join(OUT, `(${group.folder})`);
@@ -604,27 +541,9 @@ function main(): void {
         )
       );
       for (const spec of group.commands) {
-        let help: Help;
-        if (spec.id === "generate") {
-          help = {
-            flags: rootOwn,
-            synopsis: "motif [prompt] [options]",
-          };
-        } else if (isBare(spec.id)) {
-          help = bareHelp(spec.id, root);
-        } else if (spec.id === "series") {
-          const run = readHelp(["series", "run"], scratch, scratch);
-          help = {
-            flags: run.flags,
-            subcommands: seriesSubcommands(scratch, scratch),
-            synopsis: `${run.synopsis}\nmotif series <subcommand> [options]`,
-          };
-        } else {
-          help = readHelp([spec.id], scratch, scratch);
-        }
         writeFileSync(
           join(folder, `${spec.id}.mdx`),
-          commandPage(spec, group, help, described.get(spec.id))
+          commandPage(spec, factsFor(spec, described), described.common_options)
         );
       }
     }

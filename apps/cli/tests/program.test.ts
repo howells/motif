@@ -217,6 +217,29 @@ describe("--describe is derived from the program", () => {
     }
   );
 
+  it.each(described.map((command) => [command.name(), command] as const))(
+    "%s gives its command line as commander prints it",
+    async (name, command) => {
+      const result = await run(["--describe", name, "--format", "json"]);
+      const { cli } = json(result.stdout);
+      expect(JSON.stringify(cli)).toMatch(/"synopsis":"motif /);
+      // Angle brackets and `[` reach the reader as written, not as [FILTERED].
+      expect(result.stdout).not.toContain("[FILTERED]");
+      const flags = command.options
+        .filter((option) => name !== "generate" || option.long !== "--last")
+        .map((option) => option.flags);
+      expect(JSON.stringify(cli)).toContain(flags[0]);
+    }
+  );
+
+  it("lists the options every Task verb shares, once", async () => {
+    const result = await run(["--describe", "--format", "json"]);
+    const common = json(result.stdout).common_options;
+    expect(Array.isArray(common)).toBe(true);
+    expect(JSON.stringify(common)).toContain("--dry-run");
+    expect(JSON.stringify(common)).toContain("-o, --output <file-or-dir>");
+  });
+
   it("lists a flag on vary that its schema once omitted", () => {
     expect(commandSchema(findCommand("vary")).input.properties).toHaveProperty(
       "markup"

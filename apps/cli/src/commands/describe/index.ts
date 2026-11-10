@@ -16,7 +16,9 @@ import { emitDocument } from "../../utils/output";
 import type { EmitOptions } from "../../utils/output";
 import { hasText } from "../../utils/text";
 import { PACKAGE_VERSION } from "../../version";
+import { TASK_VERBS } from "../verbs/task-verbs";
 import { commandTask, TASK_INDEX, taskRouting } from "../verbs/tasks";
+import { commonOptions, flagCliFacts } from "./cli";
 import { commandSchema, flagInput, globalFlags } from "./derive";
 import type { Schema } from "./notes";
 import { FLAG_COMMANDS, HISTORY_OUTPUT } from "./outputs";
@@ -41,6 +43,19 @@ const HISTORY_FLAGS = ["limit", "offset"];
 
 /** Commands that are flags on the root rather than subcommands. */
 const FLAG_COMMAND_NAMES = ["describe", "errors", "history", "last"];
+
+/** The root flags each flag command reads, in the order its page lists them, and how it is typed. */
+const FLAG_CLI: Record<string, { attributes: string[]; synopsis: string }> = {
+  describe: {
+    attributes: ["describe", "format", "fields"],
+    synopsis: "motif --describe [command]",
+  },
+  history: {
+    attributes: ["history", "limit", "offset", "format", "fields"],
+    synopsis: "motif --history [options]",
+  },
+  last: { attributes: ["last", "format", "fields"], synopsis: "motif --last" },
+};
 
 /** The subcommands that have a schema. */
 function describedCommands(program: Command): Command[] {
@@ -91,11 +106,15 @@ function flagCommandSchema(name: string, program: Command): Schema {
       }
     }
   })();
+  const cli = FLAG_CLI[name];
   return {
     command: schema.command,
     description: schema.description,
     ...taskRouting(row),
     ...schema,
+    ...(cli !== undefined && {
+      cli: flagCliFacts(generateOf(program), cli.attributes, cli.synopsis),
+    }),
   };
 }
 
@@ -119,6 +138,12 @@ function fullSchema(program: Command) {
     commands: Object.fromEntries(
       commandNames(program).map((name) => [name, schemaOf(name, program)])
     ),
+    // The options every Task verb takes, so a reader lists them once.
+    common_options: commonOptions(
+      describedCommands(program).filter((command) =>
+        TASK_VERBS.some((verb) => verb.command === command.name())
+      )
+    ),
     description: "fal.ai image generation CLI",
     enums: {
       aspect_ratios: ASPECT_RATIOS,
@@ -140,12 +165,14 @@ function fullSchema(program: Command) {
   };
 }
 
-/** Run the describe command */
+/** Run the describe command. The schema is the CLI's own text, so it is not
+ * sanitized: a synopsis such as `<prompt>` must reach the reader as written. */
 export function runDescribe(
   program: Command,
   commandName: string | undefined,
-  options: EmitOptions
+  emitted: EmitOptions
 ): void {
+  const options: EmitOptions = { ...emitted, sanitize: false };
   if (commandName === "tasks") {
     emitDocument(tasksSchema(), options);
   } else if (hasText(commandName)) {
