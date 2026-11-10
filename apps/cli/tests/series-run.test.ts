@@ -263,3 +263,68 @@ describe("runSeries full generate flow (mocked fal)", () => {
     expect(persisted.outputs[1]?.refsUsed).toContain("series-anchor");
   });
 });
+
+describe("runSeries when a later scene fails", () => {
+  it("keeps the scenes already generated in global history", async () => {
+    const image = await import("../src/utils/image");
+    const { runSeries } = await import("../src/commands/series");
+    const { loadHistory } = await import("../src/utils/config");
+    const { loadSeries } = await import("../src/utils/series");
+
+    let requests = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        requests += 1;
+        return requests <= 2
+          ? new Response(
+              JSON.stringify({
+                images: [{ url: `https://cdn.example/scene-${requests}.png` }],
+              }),
+              { headers: { "content-type": "application/json" }, status: 200 }
+            )
+          : new Response(JSON.stringify({ detail: "rejected" }), {
+              headers: { "content-type": "application/json" },
+              status: 422,
+            });
+      })
+    );
+    vi.mocked(image.downloadImage).mockImplementation(
+      async (_url, outputPath) => {
+        writeFileSync(outputPath, PNG_1X1);
+        return outputPath;
+      }
+    );
+    vi.mocked(image.getImageDimensions).mockResolvedValue({
+      height: 1,
+      width: 1,
+    });
+    vi.mocked(image.getFileSize).mockReturnValue("1 B");
+    vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    vi.spyOn(process.stderr, "write").mockReturnValue(true);
+    vi.spyOn(process, "exit").mockImplementation((): never => {
+      throw new Error("process.exit");
+    });
+
+    await expect(
+      runSeries([
+        "run",
+        "Failing Towers",
+        "--count",
+        "3",
+        "--format",
+        "json",
+        "--model",
+        "banana",
+      ])
+    ).rejects.toThrow("process.exit");
+
+    const history = await loadHistory();
+    expect(history.generations).toHaveLength(2);
+    const series = await loadSeries("failing-towers");
+    expect(series.outputs).toHaveLength(2);
+    for (const [index, generation] of history.generations.entries()) {
+      expect(generation.output).toContain(series.outputs[index]?.filename);
+    }
+  });
+});

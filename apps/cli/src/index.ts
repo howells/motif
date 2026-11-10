@@ -8,6 +8,8 @@ import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
 import { loadConfig, loadHistory, saveConfig } from "./utils/config";
 import type { MotifConfig } from "./utils/config";
+import { formatForParseErrors, handleError } from "./utils/errors";
+import { CorruptFileError } from "./utils/stored-json";
 
 async function main() {
   const config = await loadConfig();
@@ -78,6 +80,13 @@ async function launchStudio() {
 }
 
 main().catch((error: unknown) => {
+  if (error instanceof CorruptFileError) {
+    handleError(
+      error,
+      "CORRUPT_FILE",
+      formatForParseErrors(process.argv.slice(2))
+    );
+  }
   console.error(error);
   process.exit(1);
 });

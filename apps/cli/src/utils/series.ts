@@ -17,17 +17,15 @@ import {
   rmSync,
   unlinkSync,
 } from "node:fs";
-import { readFile } from "node:fs/promises";
-import { homedir } from "node:os";
 import { basename, join, resolve } from "node:path";
 
 import type { AspectRatio, Resolution } from "@howells/motif-sdk";
 
-import { atomicWrite } from "./config";
+import { atomicWrite, MOTIF_DIR } from "./config";
 import { validateEditPath, validateResourceId } from "./input";
+import { isRecord, readJsonFile, requiredFieldProblem } from "./stored-json";
 import { hasText } from "./text";
 
-const MOTIF_DIR = join(homedir(), ".motif");
 const SERIES_DIR = join(MOTIF_DIR, "series");
 
 // -- Types --
@@ -139,6 +137,10 @@ export async function createSeries(options: {
   if (existsSync(dir)) {
     throw new Error(`Series "${options.name}" already exists (slug: ${slug})`);
   }
+  // Checked before anything is created, so a bad image leaves no half-made series.
+  const sourcePath = hasText(options.fromImage)
+    ? validateEditPath(options.fromImage)
+    : undefined;
 
   mkdirSync(dir, { mode: 0o700, recursive: true });
   mkdirSync(join(dir, "refs"), { recursive: true });
@@ -164,8 +166,7 @@ export async function createSeries(options: {
   }
 
   // Copy the initial style reference image if provided
-  if (hasText(options.fromImage)) {
-    const sourcePath = validateEditPath(options.fromImage);
+  if (sourcePath !== undefined) {
     const filename = `style-${basename(sourcePath)}`;
     cpSync(sourcePath, join(dir, "refs", filename));
     config.refs.push({
@@ -180,21 +181,64 @@ export async function createSeries(options: {
   return config;
 }
 
-function isSeriesConfig(value: unknown): value is SeriesConfig {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+function seriesProblem(slug: string, value: unknown): string | undefined {
+  if (!isRecord(value)) {
+    return "expected a JSON object";
+  }
+  const field =
+    requiredFieldProblem(value, "slug", "string") ??
+    requiredFieldProblem(value, "name", "string") ??
+    requiredFieldProblem(value, "defaultAspect", "string") ??
+    requiredFieldProblem(value, "defaultResolution", "string") ??
+    requiredFieldProblem(value, "updated", "string");
+  if (field !== undefined) {
+    return field;
+  }
+  if (value.slug !== slug) {
+    return `"slug" is ${JSON.stringify(value.slug)} but the directory is "${slug}"`;
+  }
+  const { outputs, refs } = value;
+  if (!Array.isArray(refs)) {
+    return '"refs" must be an array';
+  }
+  for (const ref of refs) {
+    if (
+      !isRecord(ref) ||
+      requiredFieldProblem(ref, "filename", "string") !== undefined ||
+      requiredFieldProblem(ref, "tag", "string") !== undefined
+    ) {
+      return 'each of "refs" needs a string "filename" and "tag"';
+    }
+  }
+  if (!Array.isArray(outputs)) {
+    return '"outputs" must be an array';
+  }
+  for (const output of outputs) {
+    if (
+      !isRecord(output) ||
+      requiredFieldProblem(output, "filename", "string") !== undefined ||
+      requiredFieldProblem(output, "prompt", "string") !== undefined ||
+      !Array.isArray(output.refsUsed)
+    ) {
+      return 'each of "outputs" needs a string "filename" and "prompt" and a "refsUsed" array';
+    }
+  }
+  return undefined;
+}
+
+export function seriesExists(slug: string): boolean {
+  return existsSync(seriesConfigPath(slug));
 }
 
 export async function loadSeries(slug: string): Promise<SeriesConfig> {
-  const configPath = seriesConfigPath(slug);
-  if (!existsSync(configPath)) {
+  const config = await readJsonFile<SeriesConfig>(
+    seriesConfigPath(slug),
+    (value) => seriesProblem(slug, value)
+  );
+  if (config === undefined) {
     throw new Error(`Series not found: ${slug}`);
   }
-  const raw = await readFile(configPath, "utf-8");
-  const parsed: unknown = JSON.parse(raw);
-  if (!isSeriesConfig(parsed)) {
-    throw new Error(`Invalid series config file: ${configPath}`);
-  }
-  return parsed;
+  return config;
 }
 
 export async function saveSeries(config: SeriesConfig): Promise<void> {
@@ -205,22 +249,22 @@ export async function saveSeries(config: SeriesConfig): Promise<void> {
   );
 }
 
+/**
+ * Every series, newest first. A directory without a `series.json` is not a
+ * series and is left out; a `series.json` that cannot be used fails the listing
+ * with `CorruptFileError` naming it.
+ */
 export async function listSeries(): Promise<SeriesConfig[]> {
   ensureSeriesDir();
 
-  const dirs = readdirSync(SERIES_DIR, { withFileTypes: true })
-    .filter((d) => d.isDirectory())
+  const slugs = readdirSync(SERIES_DIR, { withFileTypes: true })
+    .filter(
+      (d) =>
+        d.isDirectory() && existsSync(join(SERIES_DIR, d.name, "series.json"))
+    )
     .map((d) => d.name);
 
-  const series: SeriesConfig[] = [];
-  for (const slug of dirs) {
-    try {
-      series.push(await loadSeries(slug));
-    } catch {
-      // Skip corrupted series
-    }
-  }
-
+  const series = await Promise.all(slugs.map(loadSeries));
   return series.sort(
     (a, b) => new Date(b.updated).getTime() - new Date(a.updated).getTime()
   );

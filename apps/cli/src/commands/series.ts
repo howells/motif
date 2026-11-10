@@ -80,6 +80,7 @@ import {
   recordOutput,
   removeRef,
   resolveRefs,
+  seriesExists,
   seriesOutputsDir,
   slugify,
 } from "../utils/series";
@@ -284,23 +285,19 @@ export async function loadOrCreateRunSeries(options: {
     return await loadSeries(options.series);
   }
 
-  const name = options.theme;
-  const slug = slugify(name);
-  try {
-    return await createSeries({
-      defaultAspect: options.aspect,
-      defaultResolution: options.resolution,
-      look: options.look,
-      mood: options.mood,
-      name,
-      stylePrompt: options.stylePrompt,
-    });
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("already exists")) {
-      return await loadSeries(slug);
-    }
-    throw error;
+  // The same theme again continues the series it made the first time.
+  const slug = slugify(options.theme);
+  if (seriesExists(slug)) {
+    return await loadSeries(slug);
   }
+  return await createSeries({
+    defaultAspect: options.aspect,
+    defaultResolution: options.resolution,
+    look: options.look,
+    mood: options.mood,
+    name: options.theme,
+    stylePrompt: options.stylePrompt,
+  });
 }
 
 // -- Commands --
@@ -948,7 +945,6 @@ async function cmdRun(
       height?: number;
       size: string;
     }[] = [];
-    const generations: Generation[] = [];
     const now = new Date().toISOString();
     let anchorPath: string | undefined;
     let totalCost: number | null = 0;
@@ -987,18 +983,22 @@ async function cmdRun(
         size,
         width: dims?.width,
       });
-      generations.push({
-        aspect,
-        cost: result.cost.usd,
-        id: generateId(),
-        ...(hasText(creative?.look) && { look: creative.look }),
-        model: result.model,
-        ...(hasText(creative?.mood) && { mood: creative.mood }),
-        output: resolve(actualOutputPath),
-        prompt: result.prompt ?? fullPrompts[i] ?? sanitizedTheme,
-        resolution,
-        timestamp: now,
-      });
+      // Recorded scene by scene: a later scene that fails must not lose the
+      // ones already paid for.
+      await addGenerations([
+        {
+          aspect,
+          cost: result.cost.usd,
+          id: generateId(),
+          ...(hasText(creative?.look) && { look: creative.look }),
+          model: result.model,
+          ...(hasText(creative?.mood) && { mood: creative.mood }),
+          output: resolve(actualOutputPath),
+          prompt: result.prompt ?? fullPrompts[i] ?? sanitizedTheme,
+          resolution,
+          timestamp: now,
+        },
+      ]);
       await recordOutput(config.slug, {
         aspect,
         cost: result.cost.usd,
@@ -1014,7 +1014,6 @@ async function cmdRun(
       });
     }
 
-    await addGenerations(generations);
     spinner?.succeed("Generated series run");
 
     if (isStructured(emitOpts.format)) {

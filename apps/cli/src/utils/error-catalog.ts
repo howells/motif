@@ -55,6 +55,12 @@ export const ERROR_CATALOG = {
       "The fal account is out of credit. Top up at https://fal.ai/dashboard/billing, then run the command again",
     ],
   }),
+  CORRUPT_FILE: metadata("CORRUPT_FILE", 422, {
+    suggestions: [
+      "details.path names the file; Motif has not changed it",
+      "Repair the JSON, or delete or move the file to start fresh, then run the command again",
+    ],
+  }),
   DESCRIBE_FAILED: metadata("DESCRIBE_FAILED", 500, {
     isRetriable: true,
     suggestions: [...ERROR_SUGGESTIONS.describe],

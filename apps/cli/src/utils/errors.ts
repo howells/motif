@@ -5,6 +5,7 @@ import { getErrorMetadata } from "./error-catalog";
 import { validateOutputPath } from "./input";
 import { emitError, resolveFormat } from "./output";
 import type { OutputFormat } from "./output";
+import { CorruptFileError } from "./stored-json";
 
 /** Build the RFC 7807 `instance` URN from a fal request id, if the error carries one. */
 function instanceForError(err: unknown): string | undefined {
@@ -64,6 +65,9 @@ function isStringArray(value: unknown): value is string[] {
 }
 
 function getStructuredDetails(err: unknown): unknown {
+  if (err instanceof CorruptFileError) {
+    return { path: err.path };
+  }
   if (
     hasProperty(err, "code") &&
     err.code === "INVALID_OPTION" &&
@@ -123,10 +127,14 @@ export function validateOutput(
 }
 
 /**
- * Error codes the SDK assigns that outrank a command's own failure code,
- * because they name the real cause (a locked account is not a failed render).
+ * Error codes that outrank a command's own failure code, because they name the
+ * real cause: a locked account is not a failed render, and an unusable config
+ * file is not a missing series.
  */
-function sdkErrorCode(err: unknown): string | undefined {
+function causeErrorCode(err: unknown): string | undefined {
+  if (err instanceof CorruptFileError) {
+    return "CORRUPT_FILE";
+  }
   return err instanceof MotifError && err.code === ACCOUNT_LOCKED
     ? ACCOUNT_LOCKED
     : undefined;
@@ -137,7 +145,7 @@ export function handleError(
   fallbackCode: string,
   format: OutputFormat
 ): never {
-  const code = sdkErrorCode(err) ?? fallbackCode;
+  const code = causeErrorCode(err) ?? fallbackCode;
   const metadata = getErrorMetadata(code);
   emitError(
     {

@@ -6,14 +6,18 @@ import {
   unlinkSync,
   writeFileSync,
 } from "node:fs";
-import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
 import { isTaskId, sumCosts } from "@howells/motif-sdk";
 import type { AspectRatio, Resolution, TaskId } from "@howells/motif-sdk";
 
-import { parseJsonAs } from "./json";
+import {
+  isRecord,
+  optionalFieldProblem,
+  readJsonFile,
+  requiredFieldProblem,
+} from "./stored-json";
 import { hasText } from "./text";
 
 const MOTIF_DIR = join(homedir(), ".motif");
@@ -106,11 +110,65 @@ const emptyTotalCost = (): TotalCost => ({
   unknown: { allTime: 0, session: 0, today: 0 },
 });
 
-const DEFAULT_HISTORY: History = {
+const today = (): string => new Date().toISOString().split("T")[0] ?? "";
+
+const emptyHistory = (): History => ({
   generations: [],
-  lastSessionDate: new Date().toISOString().split("T")[0] ?? "",
+  lastSessionDate: today(),
   totalCost: emptyTotalCost(),
-};
+});
+
+const COST_WINDOWS = ["session", "today", "allTime"] as const;
+
+function configProblem(value: unknown): string | undefined {
+  if (!isRecord(value)) {
+    return "expected a JSON object";
+  }
+  return (
+    optionalFieldProblem(value, "apiKey", "string") ??
+    optionalFieldProblem(value, "defaultAspect", "string") ??
+    optionalFieldProblem(value, "defaultResolution", "string") ??
+    optionalFieldProblem(value, "openAfterGenerate", "boolean") ??
+    optionalFieldProblem(value, "tasks", "object")
+  );
+}
+
+function historyProblem(value: unknown): string | undefined {
+  if (!isRecord(value)) {
+    return "expected a JSON object";
+  }
+  if (!Array.isArray(value.generations)) {
+    return '"generations" must be an array';
+  }
+  if (!value.generations.every(isRecord)) {
+    return '"generations" must hold only objects';
+  }
+  const lastSessionDate = requiredFieldProblem(
+    value,
+    "lastSessionDate",
+    "string"
+  );
+  if (lastSessionDate !== undefined) {
+    return lastSessionDate;
+  }
+  const { totalCost } = value;
+  if (!isRecord(totalCost)) {
+    return '"totalCost" must be an object';
+  }
+  const { unknown } = totalCost;
+  if (!isRecord(unknown)) {
+    return '"totalCost.unknown" must be an object';
+  }
+  for (const window of COST_WINDOWS) {
+    const problem =
+      requiredFieldProblem(totalCost, window, "number") ??
+      requiredFieldProblem(unknown, window, "number");
+    if (problem !== undefined) {
+      return `"totalCost" is incomplete: ${problem}`;
+    }
+  }
+  return undefined;
+}
 
 function ensureMotifDir(): void {
   if (!existsSync(MOTIF_DIR)) {
@@ -157,93 +215,65 @@ export function mergeConfigLayers(
   return merged;
 }
 
+/**
+ * The config in effect: defaults, then `~/.motif/config.json`, then `.motifrc`
+ * in the working directory. A file that exists but cannot be used throws
+ * `CorruptFileError`; a missing one is skipped.
+ */
 export async function loadConfig(): Promise<MotifConfig> {
   ensureMotifDir();
 
   let config = { ...DEFAULT_CONFIG };
-
-  // Load global config
-  if (existsSync(CONFIG_PATH)) {
-    let stored: Partial<MotifConfig> | undefined;
-    try {
-      stored = parseJsonAs<Partial<MotifConfig>>(
-        await readFile(CONFIG_PATH, "utf-8")
-      );
-    } catch (error) {
-      console.error(
-        `Warning: Failed to parse ${CONFIG_PATH}: ${error instanceof Error ? error.message : String(error)}`
-      );
-      console.error("Using default configuration.");
-    }
+  for (const path of [CONFIG_PATH, LOCAL_CONFIG_PATH]) {
+    const stored = await readJsonFile<Partial<MotifConfig>>(
+      path,
+      configProblem
+    );
     if (stored !== undefined) {
       config = mergeConfigLayers(config, stored);
     }
   }
-
-  // Load local config (overrides global)
-  if (existsSync(LOCAL_CONFIG_PATH)) {
-    try {
-      const raw = await readFile(LOCAL_CONFIG_PATH, "utf-8");
-      config = mergeConfigLayers(
-        config,
-        parseJsonAs<Partial<MotifConfig>>(raw)
-      );
-    } catch (error) {
-      console.error(
-        `Warning: Failed to parse ${LOCAL_CONFIG_PATH}: ${error instanceof Error ? error.message : String(error)}`
-      );
-    }
-  }
-
   return config;
 }
 
+/**
+ * Merge `config` into `~/.motif/config.json`, so only the keys passed are
+ * written. A config file that cannot be used throws `CorruptFileError` and is
+ * left as it is.
+ */
 export async function saveConfig(config: Partial<MotifConfig>): Promise<void> {
   ensureMotifDir();
 
-  let existing: Partial<MotifConfig> = {};
-  if (existsSync(CONFIG_PATH)) {
-    try {
-      const raw = await readFile(CONFIG_PATH, "utf-8");
-      existing = parseJsonAs<Partial<MotifConfig>>(raw);
-    } catch {
-      // Start from an empty file if the existing config is corrupted
-    }
-  }
-
-  const merged = { ...existing, ...config };
-  await atomicWrite(CONFIG_PATH, JSON.stringify(merged, null, 2));
+  const existing =
+    (await readJsonFile<Partial<MotifConfig>>(CONFIG_PATH, configProblem)) ??
+    {};
+  await atomicWrite(
+    CONFIG_PATH,
+    JSON.stringify({ ...existing, ...config }, null, 2)
+  );
 }
 
+/**
+ * The saved history, with the session and daily costs reset on a new day. A
+ * missing file is an empty history; a file that cannot be used throws
+ * `CorruptFileError`, so the next write cannot replace it.
+ */
 export async function loadHistory(): Promise<History> {
   ensureMotifDir();
 
-  if (!existsSync(HISTORY_PATH)) {
-    return { ...DEFAULT_HISTORY, totalCost: emptyTotalCost() };
+  const history = await readJsonFile<History>(HISTORY_PATH, historyProblem);
+  if (history === undefined) {
+    return emptyHistory();
   }
 
-  try {
-    const raw = await readFile(HISTORY_PATH, "utf-8");
-    const history = parseJsonAs<History>(raw);
-
-    // Reset session/daily costs if it's a new day
-    const today = new Date().toISOString().split("T")[0] ?? "";
-    if (history.lastSessionDate !== today) {
-      history.totalCost.session = 0;
-      history.totalCost.today = 0;
-      history.totalCost.unknown.session = 0;
-      history.totalCost.unknown.today = 0;
-      history.lastSessionDate = today;
-    }
-
-    return history;
-  } catch (error) {
-    console.error(
-      `Warning: Failed to load history from ${HISTORY_PATH}: ${error instanceof Error ? error.message : String(error)}`
-    );
-    console.error("Starting with empty history.");
-    return { ...DEFAULT_HISTORY, totalCost: emptyTotalCost() };
+  if (history.lastSessionDate !== today()) {
+    history.totalCost.session = 0;
+    history.totalCost.today = 0;
+    history.totalCost.unknown.session = 0;
+    history.totalCost.unknown.today = 0;
+    history.lastSessionDate = today();
   }
+  return history;
 }
 
 export async function saveHistory(history: History): Promise<void> {
@@ -273,7 +303,7 @@ export async function addGenerations(generations: Generation[]): Promise<void> {
   history.totalCost.unknown.today += unknown;
   history.totalCost.unknown.allTime += unknown;
 
-  history.lastSessionDate = new Date().toISOString().split("T")[0] ?? "";
+  history.lastSessionDate = today();
 
   // Keep only last 100 generations (remove oldest from front)
   while (history.generations.length > 100) {

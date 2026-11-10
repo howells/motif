@@ -161,7 +161,7 @@ Structured failures exit with a semantic process code derived from the error's R
 | --- | --- | --- | --- |
 | `0` | Success | - | - |
 | `1` | Unknown / unmapped | - | Unstructured crashes; any status outside the ranges below |
-| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_MODEL_AVAILABLE` |
+| `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_MODEL_AVAILABLE`, `CORRUPT_FILE` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
 | `5` | Upstream (fal) failure | `5xx` | `TASK_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `TRANSPARENCY_MISSING` |
