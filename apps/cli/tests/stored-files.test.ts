@@ -247,6 +247,26 @@ describe("through the CLI", () => {
     expect(readFileSync(path, "utf-8")).toBe("{");
   });
 
+  it("reports a directory where the config should be as FILE_ACCESS_FAILED, not a stack", async () => {
+    const path = join(motifDir, "config.json");
+    mkdirSync(path);
+
+    const result = await runMotifIn(home, [
+      "a sunset",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(parseJson(result.stderr.trim())).toMatchObject({
+      code: "FILE_ACCESS_FAILED",
+      details: { cause: "EISDIR", operation: "read", path },
+      error: true,
+      status: 422,
+    });
+  });
+
   it("reports a corrupt series as CORRUPT_FILE, not SERIES_NOT_FOUND", async () => {
     const dir = join(motifDir, "series", "broken");
     mkdirSync(dir, { recursive: true });

@@ -17,6 +17,7 @@ import {
   optionalFieldProblem,
   readJsonFile,
   requiredFieldProblem,
+  StorageError,
 } from "./stored-json";
 import { hasText } from "./text";
 
@@ -169,7 +170,11 @@ function historyProblem(value: unknown): string | undefined {
 
 function ensureMotifDir(): void {
   if (!existsSync(MOTIF_DIR)) {
-    mkdirSync(MOTIF_DIR, { mode: 0o700, recursive: true });
+    try {
+      mkdirSync(MOTIF_DIR, { mode: 0o700, recursive: true });
+    } catch (error) {
+      throw new StorageError(MOTIF_DIR, "write", error);
+    }
   }
 }
 
@@ -196,7 +201,7 @@ export async function atomicWrite(
     } catch {
       // Ignore cleanup errors
     }
-    throw error;
+    throw new StorageError(filePath, "write", error);
   }
 }
 

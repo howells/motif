@@ -24,7 +24,7 @@ In JSON mode, errors are written to stderr as one object:
 
 ## Codes
 
-- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`, `CORRUPT_FILE`.
+- General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`, `CORRUPT_FILE`, `FILE_ACCESS_FAILED`.
 - Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
@@ -56,5 +56,7 @@ In JSON mode, errors are written to stderr as one object:
 `INVALID_RESPONSE` exits `5` and `is_retriable` is `false`: fal's answer was not the JSON it should be. When fal had already accepted the run, `instance` is `urn:fal:request:<id>` and `details.requestId` and `details.endpoint` name it; it may still finish and be billed. Motif has no command that resumes a run from the CLI (the SDK's `resume` does), so look the request up in fal's dashboard rather than running the command again.
 
 `CORRUPT_FILE` exits `2` (status `422`): `~/.motif/config.json`, `.motifrc`, `~/.motif/history.json` or a series' `series.json` exists but is not valid JSON or has the wrong shape. `details.path` names the file. Motif never overwrites such a file, so nothing is lost; repair it or move it away, then run the command again. A missing file is not an error: it means default config or empty history. `series list` fails the same way when any one series file is unusable.
+
+`FILE_ACCESS_FAILED` exits `2` (status `422`): the operating system would not let Motif read or write a file it keeps (`~/.motif/config.json`, `.motifrc`, history or a series file), for instance a directory where the file should be or no permission. `details.path` names it, `details.operation` is `read` or `write`, and `details.cause` is the system's error name (`EACCES`, `EISDIR`...). Nothing was changed; fix the permissions or what stands at that path, then run the command again.
 
 `TRANSPARENCY_MISSING` is explained with transparency in [generate and vary](generate.md#transparency).

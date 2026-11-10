@@ -7,8 +7,11 @@ import { runSheet } from "./commands/sheet";
 import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
 import { loadConfig, loadHistory } from "./utils/config";
-import { formatForParseErrors, handleError } from "./utils/errors";
-import { CorruptFileError } from "./utils/stored-json";
+import {
+  formatForParseErrors,
+  handleError,
+  isStoredFileError,
+} from "./utils/errors";
 
 async function main() {
   const args = process.argv.slice(2);
@@ -51,7 +54,7 @@ async function launchStudio() {
 }
 
 main().catch((error: unknown) => {
-  if (error instanceof CorruptFileError) {
+  if (isStoredFileError(error)) {
     handleError(
       error,
       "CORRUPT_FILE",

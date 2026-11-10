@@ -10,7 +10,7 @@ import type { KnownErrorCode } from "./error-catalog";
 import { validateOutputPath } from "./input";
 import { emitError, resolveFormat } from "./output";
 import type { OutputFormat } from "./output";
-import { CorruptFileError } from "./stored-json";
+import { CorruptFileError, StorageError } from "./stored-json";
 
 /** Build the RFC 7807 `instance` URN from a fal request id, if the error carries one. */
 function instanceForError(err: unknown): string | undefined {
@@ -67,6 +67,9 @@ function getStructuredDetails(err: unknown): unknown {
   if (err instanceof CorruptFileError) {
     return { path: err.path };
   }
+  if (err instanceof StorageError) {
+    return { cause: err.errno, operation: err.operation, path: err.path };
+  }
   if (err instanceof CreativeOptionError) {
     return {
       availableIds: err.availableIds,
@@ -107,6 +110,9 @@ function causeErrorCode(err: unknown): KnownErrorCode | undefined {
   if (err instanceof CorruptFileError) {
     return "CORRUPT_FILE";
   }
+  if (err instanceof StorageError) {
+    return "FILE_ACCESS_FAILED";
+  }
   return err instanceof MotifError && err.code === ACCOUNT_LOCKED
     ? ACCOUNT_LOCKED
     : undefined;
@@ -128,6 +134,13 @@ export function handleError(
     format
   );
   exitForErrorCode(code);
+}
+
+/** Whether `err` is a failure of a file Motif keeps, which has its own code. */
+export function isStoredFileError(
+  err: unknown
+): err is CorruptFileError | StorageError {
+  return err instanceof CorruptFileError || err instanceof StorageError;
 }
 
 /**

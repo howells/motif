@@ -19,6 +19,33 @@ export class CorruptFileError extends Error {
   }
 }
 
+/**
+ * A file Motif keeps that the operating system would not let it read or write
+ * (permissions, a directory where the file should be, a full disk). The
+ * file's content was never judged, and Motif changed nothing.
+ */
+export class StorageError extends Error {
+  readonly errno: string;
+  readonly operation: "read" | "write";
+  readonly path: string;
+
+  constructor(path: string, operation: "read" | "write", cause: unknown) {
+    const reason = cause instanceof Error ? cause.message : String(cause);
+    super(`Cannot ${operation} ${path}: ${reason}`);
+    this.name = "StorageError";
+    this.errno = errnoCode(cause);
+    this.operation = operation;
+    this.path = path;
+  }
+}
+
+/** The errno name of a failed file call (EACCES, EISDIR...), or "unknown". */
+function errnoCode(error: unknown): string {
+  return error instanceof Error && "code" in error
+    ? String(error.code)
+    : "unknown";
+}
+
 /** Returns what is wrong with a parsed value, or undefined when it is fine. */
 export type ShapeCheck = (value: unknown) => string | undefined;
 
@@ -54,13 +81,13 @@ export function requiredFieldProblem(
 }
 
 function isMissingFile(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return errnoCode(error) === "ENOENT";
 }
 
 /**
  * Read and parse a JSON file. A missing file is `undefined`; a file that does
- * not parse or fails `check` throws `CorruptFileError`. Other read failures
- * (permissions) propagate as they are.
+ * not parse or fails `check` throws `CorruptFileError`. Any other read failure
+ * (permissions, a directory in its place) throws `StorageError`.
  */
 export async function readJsonFile<T>(
   path: string,
@@ -73,7 +100,7 @@ export async function readJsonFile<T>(
     if (isMissingFile(error)) {
       return undefined;
     }
-    throw error;
+    throw new StorageError(path, "read", error);
   }
 
   let parsed: T;

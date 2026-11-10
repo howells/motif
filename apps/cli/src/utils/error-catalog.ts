@@ -68,6 +68,12 @@ export const ERROR_CATALOG = {
   EMPTY_PROMPT: metadata("EMPTY_PROMPT", 400, {
     suggestions: [...ERROR_SUGGESTIONS.prompt],
   }),
+  FILE_ACCESS_FAILED: metadata("FILE_ACCESS_FAILED", 422, {
+    suggestions: [
+      "details.path names the file and details.cause the operating system's error; Motif has not changed it",
+      "Fix the permissions or what stands at that path, then run the command again",
+    ],
+  }),
   INVALID_EDIT_PATH: metadata("INVALID_EDIT_PATH", 400),
   INVALID_IMAGE_PATH: metadata("INVALID_IMAGE_PATH", 400),
   INVALID_OPTION: metadata("INVALID_OPTION", 400, {
