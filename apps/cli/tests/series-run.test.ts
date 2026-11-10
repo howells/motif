@@ -60,7 +60,7 @@ const PNG_1X1 = Buffer.from(
 describe("buildSeriesRunStylePrompt", () => {
   it("prefers an explicit style over the generated fallback", async () => {
     const { buildSeriesRunStylePrompt } =
-      await import("../src/commands/series");
+      await import("../src/commands/series/scenes");
     expect(buildSeriesRunStylePrompt("towers", "brutalist concrete")).toBe(
       "brutalist concrete"
     );
@@ -68,7 +68,7 @@ describe("buildSeriesRunStylePrompt", () => {
 
   it("synthesizes a cohesive style prompt from the theme", async () => {
     const { buildSeriesRunStylePrompt } =
-      await import("../src/commands/series");
+      await import("../src/commands/series/scenes");
     const prompt = buildSeriesRunStylePrompt("towers");
     expect(prompt).toContain("towers");
   });
@@ -76,7 +76,7 @@ describe("buildSeriesRunStylePrompt", () => {
 
 describe("midSentenceTheme", () => {
   it("lower-cases a theme's first letter mid-sentence, but not an acronym", async () => {
-    const { midSentenceTheme } = await import("../src/commands/series");
+    const { midSentenceTheme } = await import("../src/commands/series/scenes");
     expect(midSentenceTheme("A ceramics studio")).toBe("a ceramics studio");
     expect(midSentenceTheme("Brutalist Towers")).toBe("brutalist Towers");
     expect(midSentenceTheme("NASA missions")).toBe("NASA missions");
@@ -85,7 +85,8 @@ describe("midSentenceTheme", () => {
 
 describe("buildSeriesRunScenes", () => {
   it("produces one indexed scene prompt per requested image", async () => {
-    const { buildSeriesRunScenes } = await import("../src/commands/series");
+    const { buildSeriesRunScenes } =
+      await import("../src/commands/series/scenes");
     const scenes = buildSeriesRunScenes("towers", 3);
     expect(scenes).toHaveLength(3);
     expect(scenes[0]).toContain("Image 1 of 3");
@@ -94,7 +95,8 @@ describe("buildSeriesRunScenes", () => {
   });
 
   it("cycles through the scene foci for large counts", async () => {
-    const { buildSeriesRunScenes } = await import("../src/commands/series");
+    const { buildSeriesRunScenes } =
+      await import("../src/commands/series/scenes");
     const scenes = buildSeriesRunScenes("towers", 9);
     expect(scenes).toHaveLength(9);
     // Focus list has 8 entries, so scene 9 reuses the first focus.
@@ -105,7 +107,8 @@ describe("buildSeriesRunScenes", () => {
 describe("loadOrCreateRunSeries", () => {
   it("loads an existing series when a slug is supplied", async () => {
     const { createSeries } = await import("../src/utils/series");
-    const { loadOrCreateRunSeries } = await import("../src/commands/series");
+    const { loadOrCreateRunSeries } =
+      await import("../src/commands/series/scenes");
 
     const created = await createSeries({ name: "Existing Run" });
     const loaded = await loadOrCreateRunSeries({
@@ -122,7 +125,8 @@ describe("loadOrCreateRunSeries", () => {
 
   it("creates a new series from the theme when none is supplied", async () => {
     const { loadSeries } = await import("../src/utils/series");
-    const { loadOrCreateRunSeries } = await import("../src/commands/series");
+    const { loadOrCreateRunSeries } =
+      await import("../src/commands/series/scenes");
 
     const config = await loadOrCreateRunSeries({
       aspect: "3:2",
@@ -141,7 +145,8 @@ describe("loadOrCreateRunSeries", () => {
   });
 
   it("pins the run's look and mood on the series it creates", async () => {
-    const { loadOrCreateRunSeries } = await import("../src/commands/series");
+    const { loadOrCreateRunSeries } =
+      await import("../src/commands/series/scenes");
 
     const config = await loadOrCreateRunSeries({
       aspect: "3:2",
@@ -157,7 +162,8 @@ describe("loadOrCreateRunSeries", () => {
 
   it("falls back to loading when the theme slug already exists", async () => {
     const { createSeries } = await import("../src/utils/series");
-    const { loadOrCreateRunSeries } = await import("../src/commands/series");
+    const { loadOrCreateRunSeries } =
+      await import("../src/commands/series/scenes");
 
     const first = await createSeries({
       name: "Repeat Theme",

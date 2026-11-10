@@ -174,14 +174,11 @@ export default {
     },
     {
       // Exact-file max-lines exceptions: models.ts is a metadata table (data,
-      // not logic); the CLI command/screen files are oversized god files
-      // whose split is a real follow-up refactor, out of scope for the lint
-      // migration.
+      // not logic); describe.ts is the schema, one long declaration per
+      // command.
       files: [
         "packages/motif-sdk/src/models.ts",
         "apps/cli/src/commands/describe.ts",
-        "apps/cli/src/commands/series.ts",
-        "apps/cli/src/studio/screens/generate.tsx",
       ],
       rules: {
         "max-lines": "off",
