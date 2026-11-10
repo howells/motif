@@ -210,3 +210,31 @@ describe("dry-run prices", () => {
     );
   });
 });
+
+describe("Crystal's price", () => {
+  const crystal = (scale?: number, sourceSize?: typeof ONE_MEGAPIXEL) =>
+    planned("upscale", { image: IMAGE, model: "crystal", scale, sourceSize });
+
+  it("bills per output megapixel: 1024x1024 at 2x is 4.19 MP", () => {
+    const plan = crystal(2, { height: 1024, width: 1024 });
+    expect(plan.cost.basis).toBe("projected");
+    expect(plan.cost.usd).toBeCloseTo((0.016 * 1024 * 1024 * 4) / 1_000_000, 8);
+    expect(plan.cost.usd).toBeCloseTo(0.067, 3);
+  });
+
+  it("projects the default factor of 2 when none is asked for", () => {
+    expect(crystal(undefined, ONE_MEGAPIXEL).cost.usd).toBeCloseTo(0.064, 8);
+  });
+
+  it("shows the ruinous ceiling: 200x of a 1 MP source is hundreds of dollars", () => {
+    expect(crystal(200, ONE_MEGAPIXEL).cost.usd).toBeCloseTo(0.016 * 40_000, 6);
+  });
+
+  it("is unknown, not a flat guess, when the source size is not", () => {
+    expect(crystal(2).cost).toStrictEqual({ basis: "unknown", usd: null });
+    expect(crystal().cost).toStrictEqual({
+      basis: "unknown",
+      usd: null,
+    });
+  });
+});

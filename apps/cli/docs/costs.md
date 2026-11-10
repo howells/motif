@@ -93,7 +93,7 @@ Topaz bills per 24 output megapixels, so a 4x upscale of a 2MP source (32MP out)
 | `topaz-image` | quality | $0.08 to 24MP, $0.16 to 48MP, up to $1.36. Queued |
 | `clarity` | balanced | $0.03/MP |
 | `seedvr-upscale` | balanced | $0.001/MP. Queued |
-| `crystal` | fast | $0.02 |
+| `crystal` | fast | $0.016/MP of output. Scale goes to 200, so check `--dry-run`. |
 | `topaz-transparent` | `--transparent` | $0.08 per 24 output MP. Queued |
 | `topaz-video` | video | $0.01/sec to 720p output, $0.02 to 1080p, $0.08 above; doubled at 60fps. Queued |
 | `topaz-generative` | `--generative` | $0.08 per started 8 output MP. Queued |

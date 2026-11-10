@@ -1165,8 +1165,9 @@ export const MODELS: Record<string, ModelConfig> = {
     endpoint: "clarityai/crystal-upscaler",
     name: "Crystal Upscaler",
     outputKeys: ["image"],
-    price: { kind: "call", usd: 0.02 },
-    pricing: "$0.02",
+    // fal's model page, 2026-11-10: $0.016 per megapixel of output (4 MP = $0.064, 16 MP = $0.256).
+    price: { kind: "megapixel", usd: 0.016 },
+    pricing: "$0.016/MP of output",
     scaleField: "scale_factor",
     // fal OpenAPI schema for clarityai/crystal-upscaler, 2026-11-10: scale_factor 1 to 200.
     // The ceiling is real but costs per output megapixel: `--dry-run` shows the projection.
