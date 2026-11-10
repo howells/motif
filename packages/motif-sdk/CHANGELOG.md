@@ -1,5 +1,46 @@
 # @howells/motif-sdk
 
+## 7.3.0
+
+Released alongside `@howells/motif-cli` 5.3.0.
+
+### Minor Changes
+
+- An option is now either sent in a form the endpoint accepts or refused with what the Model does take; it is never dropped or sent out of range. This covers output format, scale, count, seed, aspect, resolution and `params`.
+- Ranked selection asks the planner whether each Model can carry the request, so a request falls through to the next ranked Model that can do it instead of failing on the first. An explicit, Look or pinned Model is still refused, never swapped. Default choices are unchanged.
+- PNG is the default output format for every image Model that takes a format. Thirteen tool Models that returned JPEG by default (the Topaz upscalers and restorers, `seedvr-upscale`, `flux-outpaint`, `iclight-v2`, `ideogram-tiling`, `text-removal`) now return PNG. Pass `outputFormat` for anything else.
+- An edit with no `aspect` follows its source: `auto` where the Model takes it, otherwise the nearest ratio it can make. It used to come back square on most Models.
+- An explicit `resolution: "2K"` is honoured or refused like any other resolution. It was silently ignored on Models that have one size.
+- `transparent` sends PNG, and is refused with an opaque format.
+- `gpt` takes only `auto`, `1:1`, `3:2` and `2:3`; other aspects were rounded to one of its three sizes.
+- Upscale factors are checked against each endpoint's range: 1 to 4 on Topaz and Clarity, 1 to 10 on SeedVR, 1 to 200 on Crystal. Count is checked against each generation Model's maximum, and Sunburst and Flare make one image at a time as SVG.
+- `segment` needs a prompt or boxes; it used to run on the endpoint's own default subject. Pixel boxes are checked against the source size.
+- `layers` on `seedream-layerize` sends the endpoint's own size names; `aspect` other than `auto` is refused there.
+- `params` on tool Models are checked against the endpoint's parameters: unknown keys and wrong types are refused. A `params` key cannot set a field a Task option owns (`num_images`, `aspect_ratio`, `resolution`, `output_format`, `seed`, `image_size`) past that option's limits, and `num_images` is refused in favour of `count`.
+- Crystal is priced at $0.016 per megapixel of output, as fal bills it, in place of a flat $0.02.
+- A run or queue submission is attempted once. A timeout, connection error or 5xx on it returns `SUBMISSION_UNCERTAIN`, because fal may have accepted and billed it; it used to be retried up to three times. Polling and result fetches still retry.
+- A response that is not valid JSON returns `INVALID_RESPONSE` instead of throwing. Every failure after fal accepts a run carries `requestId` and `endpoint`.
+- `estimateCost` throws for an unknown Model, or one with no per-image price, instead of returning a guessed $0.10 per image.
+- `plan()` results carry `size`, the exact pixels requested when Motif knows them. `modelProfile()` carries `sizing`, `maxCount` and `scaleRange`.
+- `plan().queued` says whether the Model always queues. It no longer reflects `onProgress` or `onSubmitted`; `run` behaves as before.
+- `FORMAT_PRESETS` gains `feed`, `reel`, `wallpaper` and `ultra`, and each preset carries a `description`. New exports: `FormatPreset`, `refusedOption`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`. `FalToolPrice` gains the `output-second` kind.
+
+### CLI 5.3.0
+
+- Nothing opens in a viewer unless `--open` is passed. `--no-open` is removed and fails as an unknown option, the stdin field `noOpen` is replaced by `open`, and the `openAfterGenerate` config key is ignored. `--no-open` never worked on `series`.
+- `motif series` reads its arguments only. The stdin JSON form (`{"command":"series-run",...}` and the other `series-*` commands) is removed, along with the wait on stdin that could hang a `series` command under `execFile`.
+- An unusable `config.json`, `.motifrc`, `history.json` or `series.json` fails with `CORRUPT_FILE` (exit 2) and is left untouched. These files used to be replaced with defaults or an empty history on the next write. An unreadable one fails with `FILE_ACCESS_FAILED`.
+- History and Series files are checked before a paid request, not after. If recording fails after a run, the result is still printed, with `historyRecorded: false` and a `historyFailure`.
+- `series run` plans every scene before the first request and refuses the run if any scene cannot be made. It records history after each scene, so a failed run keeps the scenes already paid for, and every scene is requested at the same size. Its dry run reports each scene's Model and size.
+- When more than one file comes back, each is saved under its own name; a batch could overwrite itself. If some files fail to save, the rest are kept and recorded, and `FILES_NOT_SAVED` lists each failure with its URL and the request id.
+- A file is never written over another that the command did not name, output directories are checked before spending, and an output path cannot leave the output root through a symlink.
+- `-o out.jpg` or `-o out.webp` asks the Model for that format, and is refused if the Model cannot make it. It used to save PNG bytes under a renamed file.
+- Dry runs report `size`. `--describe` rankings report `sizing`, `maxCount` and `scaleRange` per Model. Runs report `requestId`.
+- `--limit` and `--offset` reject values that are not whole numbers.
+- `series gen --resolution 2K` sends the resolution, as `series run` does.
+- Studio applies a key or setting saved in Settings straight away, and no longer copies project `.motifrc` values into `~/.motif/config.json`. It always opens results. Upscale and cutout files are named `-upscale` and `-cutout`, as the commands name them.
+- New error codes: `CORRUPT_FILE`, `FILE_ACCESS_FAILED`, `FILES_NOT_SAVED`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`.
+
 ## 7.2.0
 
 Released alongside `@howells/motif-cli` 5.2.0.
