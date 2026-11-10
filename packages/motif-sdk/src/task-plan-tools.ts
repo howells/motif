@@ -21,7 +21,8 @@ import {
   refuseOthers,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
-import type { TaskId } from "./tasks";
+import { TASKS } from "./tasks";
+import type { TaskDefinition, TaskId } from "./tasks";
 import { projectedToolCost } from "./tool-cost";
 import type { OutputDimensions, SourceFacts } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
@@ -355,7 +356,8 @@ function toolOptions(
   }
 
   if (isPresent(input, "mood")) {
-    if (task !== "relight" || !parameters.has("prompt")) {
+    const definition: TaskDefinition = TASKS[task];
+    if (definition.takesMood !== true || !parameters.has("prompt")) {
       return err(cannotCarry("mood", model, task));
     }
     options.prompt = moodPrompt(input);

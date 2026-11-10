@@ -567,12 +567,12 @@ function resolveRanked(
   const qualifying = new Map<Tier, string>();
   let firstBlock: Extract<Check, { ok: false }> | undefined;
   let keyBlock: string | undefined;
-  // Generation with References is image editing, so use the editing evidence.
-  const definition: TaskDefinition =
-    task === "generate" && (request.references ?? 0) > 0
-      ? TASKS.vary
-      : TASKS[task];
-  for (const entry of definition.models) {
+  const definition: TaskDefinition = TASKS[task];
+  const ranking =
+    (request.references ?? 0) > 0
+      ? (definition.referenceModels ?? definition.models)
+      : definition.models;
+  for (const entry of ranking) {
     if (entry.mode !== request.mode) {
       continue;
     }
@@ -644,9 +644,6 @@ function rankedRefusal(
   );
 }
 
-/** Tasks whose Models are generation Models, the only ones a Look can fix. */
-const LOOK_TASKS: ReadonlySet<TaskId> = new Set<TaskId>(["generate", "vary"]);
-
 /** Models fixed ahead of the ranking, in precedence order. */
 function fixedModels(
   task: TaskId,
@@ -657,8 +654,10 @@ function fixedModels(
   if (request.model !== undefined && request.model !== "") {
     fixed.push({ chosenBy: "model", model: request.model });
   }
+  // Only a generation Model can be fixed by a Look.
+  const definition: TaskDefinition = TASKS[task];
   const look =
-    request.look === undefined || !LOOK_TASKS.has(task)
+    request.look === undefined || definition.generationModels !== true
       ? undefined
       : getLook(request.look);
   if (look !== undefined) {

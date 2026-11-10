@@ -40,7 +40,7 @@ import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { toolPlan } from "./task-plan-tools";
 import { videoPlan } from "./task-plan-video";
 import { isTaskId, TASKS } from "./tasks";
-import type { RankedModel, TaskId } from "./tasks";
+import type { RankedModel, TaskDefinition, TaskId } from "./tasks";
 import { isFalToolId } from "./tools";
 import type { GenerateOptions, ImageQuality, ModelConfig } from "./types";
 
@@ -69,6 +69,7 @@ function creativeOf(input: TaskInput): CreativeDirection | undefined {
 // ─── Resolution ────────────────────────────────────────────────────────
 
 function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
+  const definition: TaskDefinition = TASKS[task];
   const references =
     (input.references?.length ?? 0) +
     (task === "vary" && input.image !== undefined ? 1 : 0);
@@ -81,7 +82,7 @@ function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
   return {
     aspect: input.aspect,
     count: input.count,
-    look: task === "generate" || task === "vary" ? input.look : undefined,
+    look: definition.generationModels === true ? input.look : undefined,
     markup: input.markup !== undefined,
     mask: input.mask !== undefined,
     mode: input.mode,
@@ -91,7 +92,7 @@ function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
     references,
     // 2K is every generation Model's default size, so it asks for nothing.
     resolution:
-      (task === "generate" || task === "vary") && input.resolution === "2K"
+      definition.generationModels === true && input.resolution === "2K"
         ? undefined
         : input.resolution,
     rig: input.rig,
@@ -200,8 +201,9 @@ function missingSource(
   model: string,
   input: TaskInput
 ): MotifError | undefined {
+  const definition: TaskDefinition = TASKS[task];
   if (
-    task === "generate" ||
+    definition.sourceless === true ||
     input.image !== undefined ||
     input.video !== undefined
   ) {
@@ -216,27 +218,22 @@ function missingSource(
     : invalidOption(`${task} needs a source image.`, { field: "image", task });
 }
 
-/** Tasks that take their Source and exactly one Reference. */
-const ONE_REFERENCE_TASKS: ReadonlySet<TaskId> = new Set<TaskId>([
-  "restyle",
-  "try-on",
-]);
-
 /** Refusals a Task makes whatever Model it resolves to. */
 function taskInputRefusal(
   task: TaskId,
   input: TaskInput
 ): MotifError | undefined {
-  if (ONE_REFERENCE_TASKS.has(task) && input.references?.length !== 1) {
+  const definition: TaskDefinition = TASKS[task];
+  if (definition.oneReference === true && input.references?.length !== 1) {
     return invalidOption(`${task} takes exactly one reference image.`, {
       field: "references",
       task,
     });
   }
   const described = (input.prompt ?? "") !== "" || (input.mood ?? "") !== "";
-  if (task === "relight" && input.mode === undefined && !described) {
+  if (definition.takesMood === true && input.mode === undefined && !described) {
     return invalidOption(
-      "relight needs a prompt describing the light, or a mood.",
+      `${task} needs a prompt describing the light, or a mood.`,
       { field: "prompt", task }
     );
   }
@@ -381,9 +378,10 @@ function generationPlan(
   if (refused !== undefined) {
     return err(refused);
   }
-  if (task === "generate" && (input.prompt ?? "") === "") {
+  const definition: TaskDefinition = TASKS[task];
+  if (definition.needsPrompt === true && (input.prompt ?? "") === "") {
     return err(
-      invalidOption("generate needs a prompt.", { field: "prompt", task })
+      invalidOption(`${task} needs a prompt.`, { field: "prompt", task })
     );
   }
   const editImageUrls = [

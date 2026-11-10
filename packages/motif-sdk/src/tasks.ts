@@ -86,6 +86,24 @@ export interface TaskDefinition {
   readonly modes?: readonly TaskMode[];
   /** Best first. Order within a Tier is the order tried at that Tier. */
   readonly models: readonly RankedModel[];
+  /**
+   * Its ranked Models are generation Models: a Look can fix one, and 2K is
+   * their default size, so asking for 2K asks for nothing.
+   */
+  readonly generationModels?: true;
+  /** Refuses a request with no prompt. */
+  readonly needsPrompt?: true;
+  /** Takes its Source and exactly one Reference. */
+  readonly oneReference?: true;
+  /** The ranking used when the request carries References, in place of `models`. */
+  readonly referenceModels?: readonly RankedModel[];
+  /** Makes a new image, so there is no Source to ask for. */
+  readonly sourceless?: true;
+  /**
+   * A Mood is joined to the prompt on its tool Models, and the plain job needs
+   * a prompt or a Mood to say what light to make.
+   */
+  readonly takesMood?: true;
 }
 
 const HAND_RANKED_AT = "2026-09-16";
@@ -268,11 +286,15 @@ export const TASKS = {
   generate: {
     basis:
       "Order follows Arena text-to-image (https://arena.ai/leaderboard/image/text-to-image), read 2026-10-29. Sunburst and Flare lead quality at the benchmarked max setting. Balanced starts with Nano Banana 2.1 on preliminary Arena evidence, then Grok Image 2 and Muse Image. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Fast keeps Nano Banana 2 Lite, budget Grok and Seedream 5 Lite, and FLUX.2 Turbo. Design, transparency and tuned Look routes are capability exceptions. Generation with References uses the separate editing ranking. Older routes are explicit/pin/Look-only.",
+    generationModels: true,
     models: GENERATION_MODELS_RANKED,
+    needsPrompt: true,
     notFor:
       "Variations of an image you already have (vary), or a consistent set of images (series run).",
     rankedAt: IMAGE_RANKED_AT,
     rankedFrom: "hand",
+    referenceModels: EDITING_MODELS_RANKED,
+    sourceless: true,
     summary:
       "Make an image from a prompt, or change an image you pass as a reference.",
   },
@@ -417,6 +439,7 @@ export const TASKS = {
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
     summary: "Change the light in a photo without regenerating it.",
+    takesMood: true,
   },
   restore: {
     basis:
@@ -448,6 +471,7 @@ export const TASKS = {
     basis: "Hand-ranked. One Model: TeleStyle v2.",
     models: [{ model: "telestyle-v2", tier: "balanced" }],
     notFor: "A house style kept across images (generate with a look).",
+    oneReference: true,
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
     summary: "Redraw an image in the style of a reference image.",
@@ -499,6 +523,7 @@ export const TASKS = {
     basis: "Hand-ranked. One Model: Google's virtual try-on.",
     models: [{ model: "virtual-try-on", tier: "balanced" }],
     notFor: "Changing clothes by description (generate with a reference).",
+    oneReference: true,
     rankedAt: HAND_RANKED_AT,
     rankedFrom: "hand",
     summary: "Dress a person in a garment from another image.",
@@ -549,6 +574,7 @@ export const TASKS = {
   vary: {
     basis:
       "Order follows Arena image edit, single image (https://arena.ai/leaderboard/image/image-edit/single-image), read 2026-10-29. Editing order differs from generation: Grok Image 2 leads balanced, ahead of Nano Banana 2.1, and Seedream 5 Pro outranks GPT Image 1.5. Arena scores Krea 3 only at its Ultra setting, which costs $0.27 to $0.35 an edit and ignores the requested size, so krea3, which runs fal's default setting, is ranked as unscored. Models not yet on the board follow the ranked ones in their Tier, in their previous order. The Artificial Analysis v2 snapshot of 2026-10-07 stays as recorded benchmark data. Sunburst and Flare use max quality. vary reuses a previously chosen Model when explicitly supplied, including retained legacy routes.",
+    generationModels: true,
     models: EDITING_MODELS_RANKED,
     notFor:
       "A specific change to an image described in words (generate with a reference), or a set of different scenes in one style (series run).",
