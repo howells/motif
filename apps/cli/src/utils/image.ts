@@ -1,35 +1,17 @@
 import { execFile } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { existsSync, statSync, unlinkSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { extname, join, parse, resolve } from "node:path";
 
+import sharp from "sharp";
+
 import { hasText } from "./text";
 
-const DIMENSION_REGEX = /(\d+)\s*x\s*(\d+)/g;
 const URL_TAIL_REGEX = /[?#]/;
 const FILE_EXTENSION_REGEX = /^\.[a-z0-9]{1,8}$/i;
-const SIPS_HEIGHT_REGEX = /pixelHeight:\s*(\d+)/;
-const SIPS_WIDTH_REGEX = /pixelWidth:\s*(\d+)/;
 
 /** Minimal environment for child processes — excludes secrets like FAL_KEY */
 const SAFE_ENV = { PATH: process.env.PATH ?? "" };
-
-/** Run a command and return { stdout, exitCode } */
-async function exec(
-  cmd: string,
-  args: string[]
-): Promise<{ stdout: string; exitCode: number }> {
-  return await new Promise((resolve) => {
-    execFile(cmd, args, { env: SAFE_ENV }, (error, stdout) => {
-      resolve({
-        exitCode:
-          error === null ? 0 : typeof error.code === "number" ? error.code : 1,
-        stdout: stdout ?? "",
-      });
-    });
-  });
-}
 
 function detectImageExtension(
   buffer: Buffer,
@@ -280,75 +262,25 @@ export async function imageToDataUrl(imagePath: string): Promise<string> {
 }
 
 /**
- * Resize an image using sips (macOS)
- * Returns the path to the resized image (temp file if resized)
+ * Pixel size of an image file, or null when sharp cannot read it.
+ *
+ * Outputs that are not images (a video clip, a GLB mesh) pass through here and
+ * have no size to report. The size is only an annotation on a file that is
+ * already saved, so an unreadable file reads as null rather than failing a run
+ * that has been paid for.
  */
-export async function resizeImage(
-  imagePath: string,
-  maxSize = 1024
-): Promise<string> {
-  const tempPath = `/tmp/motif-resize-${randomUUID()}.png`;
-
-  try {
-    const result = await exec("sips", [
-      "-Z",
-      String(maxSize),
-      imagePath,
-      "--out",
-      tempPath,
-    ]);
-
-    if (result.exitCode === 0 && existsSync(tempPath)) {
-      return tempPath;
-    }
-  } catch {
-    // sips not available, fall through
-  }
-
-  return imagePath;
-}
-
-/** Get image dimensions from a file */
 export async function getImageDimensions(
   imagePath: string
 ): Promise<{ width: number; height: number } | null> {
   try {
-    const result = await exec("sips", [
-      "-g",
-      "pixelWidth",
-      "-g",
-      "pixelHeight",
-      imagePath,
-    ]);
-    const width = SIPS_WIDTH_REGEX.exec(result.stdout)?.[1];
-    const height = SIPS_HEIGHT_REGEX.exec(result.stdout)?.[1];
-
-    if (result.exitCode === 0 && hasText(width) && hasText(height)) {
-      return {
-        height: Number.parseInt(height, 10),
-        width: Number.parseInt(width, 10),
-      };
-    }
+    const { height, pageHeight, width } = await sharp(imagePath).metadata();
+    const pageOrWholeHeight = pageHeight ?? height;
+    return width === undefined || pageOrWholeHeight === undefined
+      ? null
+      : { height: pageOrWholeHeight, width };
   } catch {
-    // sips not available, fall back to file
+    return null;
   }
-
-  try {
-    const result = await exec("file", [imagePath]);
-    const matches = [...result.stdout.matchAll(DIMENSION_REGEX)];
-    const match = matches.at(-1);
-
-    if (match !== undefined && hasText(match[1]) && hasText(match[2])) {
-      return {
-        height: Number.parseInt(match[2], 10),
-        width: Number.parseInt(match[1], 10),
-      };
-    }
-  } catch {
-    // Ignore errors
-  }
-
-  return null;
 }
 
 /** Get file size in human-readable format */
@@ -404,15 +336,4 @@ export function openImage(imagePath: string): boolean {
     return true;
   }
   return false;
-}
-
-/** Delete a temporary file safely */
-export function deleteTempFile(filePath: string): void {
-  try {
-    if (filePath.startsWith("/tmp/motif-") && existsSync(filePath)) {
-      unlinkSync(filePath);
-    }
-  } catch {
-    // Ignore cleanup errors
-  }
 }

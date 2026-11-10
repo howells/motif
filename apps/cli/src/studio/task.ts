@@ -6,7 +6,11 @@
 
 import { writeFile } from "node:fs/promises";
 
-import { formatCost, tierChangesChoice } from "@howells/motif-sdk";
+import {
+  formatCost,
+  INVALID_OPTION,
+  tierChangesChoice,
+} from "@howells/motif-sdk";
 import type {
   MotifClient,
   TaskId,
@@ -25,9 +29,6 @@ export const TIER_OPTIONS: readonly { note: string; tier: Tier }[] = [
   { note: "Good detail at a fair price", tier: "balanced" },
   { note: "Finest detail, slower and dearer", tier: "quality" },
 ];
-
-/** The SDK's code for a refused option; the package index does not export it. */
-const INVALID_OPTION = "INVALID_OPTION";
 
 const DATA_URL_REGEX = /^data:image\/(\w+);base64,(.*)$/;
 

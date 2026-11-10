@@ -160,9 +160,6 @@ export function App({
           />
         );
       }
-      default: {
-        return <HomeScreen history={history} onNavigate={setScreen} />;
-      }
     }
   };
 

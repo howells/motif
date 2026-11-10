@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-export function getPackageVersion(): string {
+function getPackageVersion(): string {
   try {
     const parsed: unknown = JSON.parse(
       readFileSync(new URL("../package.json", import.meta.url), "utf-8")

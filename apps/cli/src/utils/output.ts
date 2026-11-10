@@ -9,6 +9,7 @@
 import chalk from "chalk";
 
 import { getErrorMetadata } from "./error-catalog";
+import type { KnownErrorCode } from "./error-catalog";
 import { hasText } from "./text";
 
 /** Narrow an unknown value to a plain (non-array) object. */
@@ -19,7 +20,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 export type OutputFormat = "human" | "json" | "ndjson";
 
 /** Detect if stdout is an interactive terminal */
-export function isInteractive(): boolean {
+function isInteractive(): boolean {
   return process.stdout.isTTY;
 }
 
@@ -157,7 +158,7 @@ export interface StructuredError {
   /** HTTP-equivalent status code (RFC 7807 `status`) */
   status: number;
   /** Machine-readable error code */
-  code: string;
+  code: KnownErrorCode;
   /** Human-readable detail message */
   message: string;
   /** Additional context */
@@ -175,68 +176,36 @@ export interface StructuredError {
   suggestions?: string[];
 }
 
-/** Derive RFC 7807 fields from an error code */
-function deriveRfc7807(
-  code: string,
-  overrides?: {
-    doc_uri?: string;
-    type?: string;
-    title?: string;
-    status?: number;
-  }
-): { doc_uri: string; type: string; title: string; status: number } {
-  const metadata = getErrorMetadata(code);
-  return {
-    doc_uri: overrides?.doc_uri ?? metadata.docUri,
-    status: overrides?.status ?? metadata.status,
-    title: overrides?.title ?? metadata.title,
-    type: overrides?.type ?? metadata.type,
-  };
-}
-
-/** Emit a structured error */
+/** Emit a structured error. Its RFC 7807 fields all come from the code's catalog entry. */
 export function emitError(
   error: {
-    code: string;
+    code: KnownErrorCode;
     message: string;
     details?: unknown;
-    doc_uri?: string;
     instance?: string;
-    is_retriable?: boolean;
     suggestions?: string[];
-    /** RFC 7807 fields — auto-derived from code if omitted */
-    type?: string;
-    title?: string;
-    status?: number;
   },
   format: OutputFormat
 ): void {
-  const rfc = deriveRfc7807(error.code, {
-    doc_uri: error.doc_uri,
-    status: error.status,
-    title: error.title,
-    type: error.type,
-  });
   const metadata = getErrorMetadata(error.code);
 
   // Presence check matches the original truthiness: falsy details (undefined,
   // null, "", 0, false) are omitted from the envelope.
   const hasDetails = Boolean(error.details);
+  const suggestions = error.suggestions ?? metadata.suggestions;
 
   const structured: StructuredError = {
-    type: rfc.type,
-    title: rfc.title,
-    status: rfc.status,
-    doc_uri: rfc.doc_uri,
+    type: metadata.type,
+    title: metadata.title,
+    status: metadata.status,
+    doc_uri: metadata.docUri,
     error: true,
     code: error.code,
     message: error.message,
     ...(hasDetails ? { details: error.details } : {}),
     ...(hasText(error.instance) ? { instance: error.instance } : {}),
-    is_retriable: error.is_retriable ?? metadata.isRetriable,
-    ...(error.suggestions || metadata.suggestions
-      ? { suggestions: error.suggestions ?? metadata.suggestions }
-      : {}),
+    is_retriable: metadata.isRetriable,
+    ...(suggestions ? { suggestions } : {}),
   };
 
   if (format === "json" || format === "ndjson") {

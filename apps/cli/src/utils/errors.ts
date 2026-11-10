@@ -1,7 +1,12 @@
-import { ACCOUNT_LOCKED, MotifError } from "@howells/motif-sdk";
+import {
+  ACCOUNT_LOCKED,
+  CreativeOptionError,
+  MotifError,
+} from "@howells/motif-sdk";
 import type { Command, CommanderError } from "commander";
 
 import { getErrorMetadata } from "./error-catalog";
+import type { KnownErrorCode } from "./error-catalog";
 import { validateOutputPath } from "./input";
 import { emitError, resolveFormat } from "./output";
 import type { OutputFormat } from "./output";
@@ -37,7 +42,7 @@ export function exitCodeForStatus(status: number): number {
  * status. Use after emitting a structured error so exit codes stay aligned
  * with the RFC 7807 `status` field agents already receive.
  */
-export function exitForErrorCode(code: string): never {
+export function exitForErrorCode(code: KnownErrorCode): never {
   process.exit(exitCodeForStatus(getErrorMetadata(code).status));
 }
 
@@ -51,59 +56,18 @@ export function getErrorMessage(err: unknown): string {
   return "Unknown error";
 }
 
-function hasProperty<K extends string>(
-  value: unknown,
-  key: K
-): value is Record<K, unknown> {
-  return typeof value === "object" && value !== null && key in value;
-}
-
-function isStringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) && value.every((item) => typeof item === "string")
-  );
-}
-
+/** The details an error carries that the envelope should repeat. */
 function getStructuredDetails(err: unknown): unknown {
   if (err instanceof CorruptFileError) {
     return { path: err.path };
   }
-  if (
-    hasProperty(err, "code") &&
-    err.code === "INVALID_OPTION" &&
-    hasProperty(err, "option") &&
-    typeof err.option === "string" &&
-    hasProperty(err, "model") &&
-    typeof err.model === "string" &&
-    hasProperty(err, "supportedOptions") &&
-    isStringArray(err.supportedOptions) &&
-    hasProperty(err, "modelsSupporting") &&
-    isStringArray(err.modelsSupporting)
-  ) {
-    return {
-      model: err.model,
-      modelsSupporting: err.modelsSupporting,
-      option: err.option,
-      supportedOptions: err.supportedOptions,
-    };
-  }
-  if (
-    hasProperty(err, "code") &&
-    err.code === "INVALID_OPTION" &&
-    hasProperty(err, "field") &&
-    typeof err.field === "string" &&
-    hasProperty(err, "value") &&
-    typeof err.value === "string" &&
-    hasProperty(err, "availableIds") &&
-    isStringArray(err.availableIds)
-  ) {
+  if (err instanceof CreativeOptionError) {
     return {
       availableIds: err.availableIds,
       field: err.field,
       value: err.value,
     };
   }
-
   return undefined;
 }
 
@@ -127,11 +91,13 @@ export function validateOutput(
 }
 
 /**
- * Error codes that outrank a command's own failure code, because they name the
- * real cause: a locked account is not a failed render, and an unusable config
- * file is not a missing series.
+ * The code an error names for itself, when that outranks the failure code of
+ * the command that caught it: a locked account is not a failed render, and an
+ * unusable config file is not a missing series. These are the only errors that
+ * arrive carrying a code of their own; every other failure takes the catching
+ * command's code, so no code reaches the envelope that the catalog lacks.
  */
-function causeErrorCode(err: unknown): string | undefined {
+function causeErrorCode(err: unknown): KnownErrorCode | undefined {
   if (err instanceof CorruptFileError) {
     return "CORRUPT_FILE";
   }
@@ -142,27 +108,20 @@ function causeErrorCode(err: unknown): string | undefined {
 
 export function handleError(
   err: unknown,
-  fallbackCode: string,
+  fallbackCode: KnownErrorCode,
   format: OutputFormat
 ): never {
   const code = causeErrorCode(err) ?? fallbackCode;
-  const metadata = getErrorMetadata(code);
   emitError(
     {
       code,
       details: getStructuredDetails(err),
-      doc_uri: metadata.docUri,
       instance: instanceForError(err),
-      is_retriable: metadata.isRetriable,
       message: getErrorMessage(err),
-      status: metadata.status,
-      suggestions: metadata.suggestions,
-      title: metadata.title,
-      type: metadata.type,
     },
     format
   );
-  process.exit(exitCodeForStatus(metadata.status));
+  exitForErrorCode(code);
 }
 
 /**

@@ -47,6 +47,7 @@ import {
   formatForParseErrors,
   handleError,
   routeCommanderErrors,
+  validateOption,
 } from "../utils/errors";
 import {
   downloadImage,
@@ -215,14 +216,6 @@ async function runSeriesTask(
   return ran.value;
 }
 
-function validateSeriesOption<T>(emitOpts: EmitOptions, fn: () => T): T {
-  try {
-    return fn();
-  } catch (error) {
-    handleError(error, "INVALID_OPTION", emitOpts.format);
-  }
-}
-
 function splitRefTags(refs: string | undefined): string[] | undefined {
   return refs
     ?.split(",")
@@ -312,20 +305,20 @@ async function cmdCreate(
   try {
     const requested = resolveCreativeDirection(opts);
     const pinned = requested
-      ? validateSeriesOption(
-          emitOpts,
+      ? validateOption(
+          emitOpts.format,
           () => validateCreativeDirection(requested).selected
         )
       : undefined;
     const look = hasText(pinned?.look) ? getLook(pinned.look) : undefined;
 
     const defaultAspect = hasText(opts.aspect)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.aspect ?? "", ASPECT_RATIOS, "aspect")
         )
       : undefined;
     const defaultResolution = hasText(opts.resolution)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.resolution ?? "", RESOLUTIONS, "resolution")
         )
       : undefined;
@@ -543,7 +536,7 @@ async function cmdGenerate(
 
     const creative = seriesCreativeDirection(opts, config);
     const creativeResult = creative
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           enrichPrompt({ creative, prompt: sanitized })
         )
       : undefined;
@@ -560,16 +553,16 @@ async function cmdGenerate(
       validateResourceId(opts.model, "model");
     }
     const aspect = hasText(opts.aspect)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.aspect ?? "", ASPECT_RATIOS, "aspect")
         )
       : config.defaultAspect;
     const resolution = hasText(opts.resolution)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.resolution ?? "", RESOLUTIONS, "resolution")
         )
       : config.defaultResolution;
-    const numImages = validateSeriesOption(emitOpts, () =>
+    const numImages = validateOption(emitOpts.format, () =>
       parseIntegerOption(opts.num ?? "1", "num images", { max: 4, min: 1 })
     );
 
@@ -793,24 +786,24 @@ async function cmdRun(
       validateResourceId(opts.model, "model");
     }
 
-    const count = validateSeriesOption(emitOpts, () =>
+    const count = validateOption(emitOpts.format, () =>
       parseIntegerOption(opts.count ?? "4", "series run count", {
         max: SERIES_RUN_MAX_COUNT,
         min: 1,
       })
     );
     const aspect = hasText(opts.aspect)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.aspect ?? "", ASPECT_RATIOS, "aspect")
         )
       : (existingSeries?.defaultAspect ?? "1:1");
     const resolution = hasText(opts.resolution)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.resolution ?? "", RESOLUTIONS, "resolution")
         )
       : (existingSeries?.defaultResolution ?? "2K");
     const tier = hasText(opts.tier)
-      ? validateSeriesOption(emitOpts, () =>
+      ? validateOption(emitOpts.format, () =>
           validateEnumOption(opts.tier ?? "", TIERS, "tier")
         )
       : undefined;
@@ -828,7 +821,7 @@ async function cmdRun(
     const baseScenePrompts = buildSeriesRunScenes(sanitizedTheme, count);
     const enrichedScenes = baseScenePrompts.map((baseScenePrompt) =>
       creative
-        ? validateSeriesOption(emitOpts, () =>
+        ? validateOption(emitOpts.format, () =>
             enrichPrompt({ creative, prompt: baseScenePrompt })
           )
         : undefined
@@ -1055,10 +1048,10 @@ async function cmdHistory(
   try {
     const config = await loadSeries(slug);
     const all = [...config.outputs].reverse();
-    const limit = validateSeriesOption(emitOpts, () =>
+    const limit = validateOption(emitOpts.format, () =>
       parseIntegerOption(opts.limit ?? "10", "limit", { min: 1 })
     );
-    const offset = validateSeriesOption(emitOpts, () =>
+    const offset = validateOption(emitOpts.format, () =>
       parseIntegerOption(opts.offset ?? "0", "offset", { min: 0 })
     );
     const page = all.slice(offset, offset + limit);

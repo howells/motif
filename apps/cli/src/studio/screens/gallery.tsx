@@ -59,11 +59,8 @@ export function GalleryScreen({ history, onBack }: GalleryScreenProps) {
     }
     const selected = pageItems[selectedIndex];
     if (key.return && selected) {
-      try {
-        openImage(selected.output);
-      } catch {
-        // Image may have been deleted; silently ignore
-      }
+      // Best-effort and never throws; a deleted image just does not open.
+      openImage(selected.output);
     }
   });
 

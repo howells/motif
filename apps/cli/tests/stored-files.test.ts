@@ -274,3 +274,24 @@ describe("history of a valid file through the CLI", () => {
     expect(parseJson(result.stdout).total).toBe(1);
   });
 });
+
+describe("history paging flags", () => {
+  it.each([
+    ["--limit", "abc"],
+    ["--limit", "0"],
+    ["--offset", "-1"],
+  ])("refuses %s %s as INVALID_OPTION", async (flag, value) => {
+    const result = await runMotifIn(home, [
+      "--history",
+      flag,
+      value,
+      "--format",
+      "json",
+    ]);
+
+    expect(result.code).toBe(2);
+    expect(parseJson(result.stderr.trim())).toMatchObject({
+      code: "INVALID_OPTION",
+    });
+  });
+});

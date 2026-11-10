@@ -172,23 +172,19 @@ describe("emitError", () => {
   });
 
   it("emits structured error JSON to stderr in json mode", () => {
-    emitError({ code: "TEST_ERR", message: "test failed" }, "json");
+    emitError({ code: "TASK_FAILED", message: "test failed" }, "json");
 
     const parsed = parseOutput(writtenData.trim());
-    // Core fields
     expect(parsed).toMatchObject({
-      code: "TEST_ERR",
-      doc_uri: "motif://describe/errors#test-err",
+      code: "TASK_FAILED",
+      doc_uri: "motif://describe/errors#task-failed",
       error: true,
-      is_retriable: false,
+      is_retriable: true,
       message: "test failed",
-      status: 500,
-      type: "urn:motif:error:test-err",
+      status: 502,
+      title: "Task Failed",
+      type: "urn:motif:error:task-failed",
     });
-    // RFC 7807 fields — auto-derived for unknown codes
-    expect(typeof parsed.type).toBe("string");
-    expect(typeof parsed.title).toBe("string");
-    expect(typeof parsed.status).toBe("number");
   });
 
   it("RFC 7807: auto-derives type URI from code", () => {
@@ -216,9 +212,9 @@ describe("emitError", () => {
   });
 
   it("emits human-readable error in human mode", () => {
-    emitError({ code: "TEST_ERR", message: "test failed" }, "human");
+    emitError({ code: "TASK_FAILED", message: "test failed" }, "human");
 
-    expect(writtenData).toContain("TEST_ERR");
+    expect(writtenData).toContain("TASK_FAILED");
     expect(writtenData).toContain("test failed");
   });
 });

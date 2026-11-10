@@ -42,7 +42,7 @@ describe("handleError instance (fal request URN)", () => {
     expect(() => {
       handleError(
         new MotifError("Request failed: 500", 500, undefined, "req_fal_abc123"),
-        "GENERATION_FAILED",
+        "TASK_FAILED",
         "json"
       );
     }).toThrow("process.exit");
@@ -64,7 +64,7 @@ describe("handleError instance (fal request URN)", () => {
     expect(() => {
       handleError(
         new MotifError("Request failed: 500", 500),
-        "GENERATION_FAILED",
+        "TASK_FAILED",
         "json"
       );
     }).toThrow("process.exit");
@@ -97,7 +97,7 @@ describe("handleError for a locked fal account", () => {
 
   it("reports ACCOUNT_LOCKED over the command's own code, not retriable, exit 3", () => {
     for (const fallback of [
-      "GENERATION_FAILED",
+      "TASK_FAILED",
       "TOOL_FAILED",
       "UPSCALE_FAILED",
       "RMBG_FAILED",

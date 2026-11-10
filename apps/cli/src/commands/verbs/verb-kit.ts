@@ -73,14 +73,6 @@ export function invalid(message: string, format: OutputFormat): never {
   handleError(new Error(message), "INVALID_OPTION", format);
 }
 
-export function parsed<T>(format: OutputFormat, fn: () => T): T {
-  try {
-    return fn();
-  } catch (error) {
-    handleError(error, "INVALID_OPTION", format);
-  }
-}
-
 /** The positionals, then any flags the usage names. */
 export function usageTail(definition: VerbDefinition): string {
   return definition.usageFlags === undefined

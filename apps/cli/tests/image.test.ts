@@ -35,6 +35,25 @@ describe("getImageDimensions", () => {
   });
 });
 
+describe("getImageDimensions for files that are not readable images", () => {
+  it("reports null for a video or mesh file instead of failing", async () => {
+    testDir = mkdtempSync(join(tmpdir(), "motif-image-test-"));
+    const clip = join(testDir, "clip.mp4");
+    writeFileSync(
+      clip,
+      Buffer.from("\u0000\u0000\u0000\u0018ftypmp42-not-an-image")
+    );
+
+    await expect(getImageDimensions(clip)).resolves.toBeNull();
+  });
+
+  it("reports null for a path that does not exist", async () => {
+    await expect(
+      getImageDimensions("/nonexistent/motif-missing.png")
+    ).resolves.toBeNull();
+  });
+});
+
 describe("downloadImage", () => {
   it("renames .png outputs to .jpg when fal returns JPEG bytes", async () => {
     testDir = mkdtempSync(join(tmpdir(), "motif-image-test-"));

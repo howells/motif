@@ -20,7 +20,7 @@ import type {
 } from "@howells/motif-sdk";
 import { InvalidArgumentError, Option } from "commander";
 
-import { handleError } from "../../utils/errors";
+import { handleError, validateOption } from "../../utils/errors";
 import {
   parseIntegerOption,
   parseNumberOption,
@@ -32,7 +32,7 @@ import { hasText } from "../../utils/text";
 import { parseBoxes, parseMargin, parseSizes } from "./pixel-options";
 import { exclusiveFlag } from "./shared";
 import type { VerbOptions } from "./shared";
-import { always, invalid, never, parsed, stringOption } from "./verb-kit";
+import { always, invalid, never, stringOption } from "./verb-kit";
 import type { VerbDefinition } from "./verb-kit";
 
 async function maskInput(
@@ -89,7 +89,7 @@ function reframeTarget(
     return {};
   }
   return {
-    aspect: parsed(format, () =>
+    aspect: validateOption(format, () =>
       validateEnumOption(aspect, ASPECT_RATIOS, "aspect")
     ),
   };
@@ -190,7 +190,7 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     extension: ".mp4",
     input: (options, format) => ({
       ...(hasText(stringOption(options, "duration")) && {
-        duration: parsed(format, () =>
+        duration: validateOption(format, () =>
           parseIntegerOption(
             stringOption(options, "duration") ?? "",
             "duration",
@@ -251,7 +251,7 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
       return outputFormat === undefined
         ? {}
         : {
-            outputFormat: parsed(format, () =>
+            outputFormat: validateOption(format, () =>
               validateEnumOption(outputFormat, OUTPUT_FORMATS, "output format")
             ),
           };
@@ -278,7 +278,7 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
       return {
         ...(await maskInput(options, format)),
         ...(boxes !== undefined && {
-          boxes: parsed(format, () => parseBoxes(boxes)),
+          boxes: validateOption(format, () => parseBoxes(boxes)),
         }),
       };
     },
@@ -380,10 +380,10 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
       return {
         ...(mode === undefined ? reframeTarget(options, format) : {}),
         ...(margin !== undefined && {
-          margin: parsed(format, () => parseMargin(margin)),
+          margin: validateOption(format, () => parseMargin(margin)),
         }),
         ...(sizes !== undefined && {
-          sizes: parsed(format, () => parseSizes(sizes)),
+          sizes: validateOption(format, () => parseSizes(sizes)),
         }),
       };
     },
@@ -515,7 +515,7 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
       const scale = stringOption(options, "scale");
       return {
         ...(scale !== undefined && {
-          scale: parsed(format, () =>
+          scale: validateOption(format, () =>
             parseNumberOption(scale, "scale", { min: 1 })
           ),
         }),

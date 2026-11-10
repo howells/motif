@@ -5,7 +5,6 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { mergeConfigLayers } from "../src/utils/config";
-import { studioGenerateModel } from "../src/utils/task-model";
 import { runMotifIn } from "./cli-env";
 
 const tempHomes: string[] = [];
@@ -91,17 +90,6 @@ describe("config layers", () => {
       generate: { model: "flare" },
       upscale: { model: "crystal" },
     });
-  });
-
-  it("gives Studio a ranked Model when the generate pin is unusable", () => {
-    const model = studioGenerateModel({
-      defaultAspect: "1:1",
-      defaultResolution: "2K",
-      openAfterGenerate: true,
-      tasks: { generate: { model: "imagen" } },
-    });
-    expect(model).not.toBe("imagen");
-    expect(model).toMatch(/\S/);
   });
 });
 

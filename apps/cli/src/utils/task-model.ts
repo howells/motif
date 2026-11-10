@@ -100,7 +100,7 @@ function flagRefusal(
  * MISSING_API_KEY (exit 3) every other command reports; a Model that is not
  * one for the Task is UNKNOWN_MODEL; anything else is NO_MODEL_AVAILABLE.
  */
-export function exitNoModelAvailable(
+function exitNoModelAvailable(
   resolution: RefusedResolution,
   format: OutputFormat
 ): never {
@@ -252,26 +252,4 @@ export function exitTaskError(
     handleError(error, ACCOUNT_LOCKED, format);
   }
   exitTaskFailed(error.message, context, format, error.requestId);
-}
-
-/**
- * The Model Studio starts a generation on: the generate pin, else the ranking.
- * Studio opens without a key so one can be set in Settings; then the ranking
- * is read as if every key were set, which is what runs once they are. A pin
- * the generate Task cannot use gives way to the ranking rather than failing.
- */
-export function studioGenerateModel(config: MotifConfig): string {
-  const { generate: _pin, ...otherPins } = config.tasks ?? {};
-  const unpinned: MotifConfig = { ...config, tasks: otherPins };
-  for (const candidate of [config, unpinned]) {
-    for (const dryRun of [false, true]) {
-      const resolution = resolveTaskModel("generate", {}, candidate, {
-        dryRun,
-      });
-      if (resolution.ok) {
-        return resolution.model;
-      }
-    }
-  }
-  throw new Error("No generate Model is available.");
 }

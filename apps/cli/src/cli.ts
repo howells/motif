@@ -28,8 +28,13 @@ import {
   handleError,
   refuseFlagValues,
   routeCommanderErrors,
+  validateOption,
 } from "./utils/errors";
-import { readStdinJson, reservedPromptSuggestion } from "./utils/input";
+import {
+  parseIntegerOption,
+  readStdinJson,
+  reservedPromptSuggestion,
+} from "./utils/input";
 import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
 import type { EmitOptions, OutputFormat } from "./utils/output";
 import { firstText, hasText } from "./utils/text";
@@ -248,12 +253,16 @@ export async function runCli(args: string[]): Promise<void> {
         limit:
           stdinData?.limit ??
           (hasText(options.limit)
-            ? Number.parseInt(options.limit, 10)
+            ? validateOption(format, () =>
+                parseIntegerOption(options.limit ?? "", "limit", { min: 1 })
+              )
             : undefined),
         offset:
           stdinData?.offset ??
           (hasText(options.offset)
-            ? Number.parseInt(options.offset, 10)
+            ? validateOption(format, () =>
+                parseIntegerOption(options.offset ?? "", "offset", { min: 0 })
+              )
             : undefined),
       },
       emitOpts
