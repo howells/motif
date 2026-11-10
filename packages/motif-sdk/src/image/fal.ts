@@ -4,7 +4,7 @@
  * Builds a Vercel AI SDK `ImageModel` from `@ai-sdk/fal`. Building a model
  * performs no network I/O — the request only happens when `generateImage`
  * invokes `model.doGenerate`. This is the lightweight fal *image* adapter; the
- * richer `FalClient` fal client (queue, upload, tools) is separate.
+ * Task client (`createMotif`) runs fal's queue, upload and tools.
  *
  * ENDPOINT QUIRK (Phase 0): fal's gpt-image endpoint wants `image_size` as a
  * STRING enum (e.g. "1024x1024"), passed at generate time via
@@ -22,8 +22,8 @@
 import { createFal } from "@ai-sdk/fal";
 import type { ImageModel } from "ai";
 
+import { MotifError } from "../errors";
 import { MODELS } from "../models";
-import { MotifError } from "../server";
 import type { FalFetch } from "../types";
 import { toProviderFetch } from "./fetch";
 import type { ImageProviderAdapter } from "./provider";

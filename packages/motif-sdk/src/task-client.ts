@@ -17,16 +17,12 @@ import type { Result } from "neverthrow";
 
 import { getFalKeyFromEnv } from "./env";
 import { MotifError } from "./errors";
+import { deletePayloads, falConnection, uploadToFalCdn } from "./fal-http";
+import type { FalConnection } from "./fal-http";
 import { queueAppPath } from "./fal-parse";
+import { awaitQueuedRequest, runRequest, runRequestQueued } from "./fal-run";
+import type { FalRequestResult } from "./fal-run";
 import type { ChosenBy, TaskEnvironment } from "./resolve";
-import { FalClient } from "./server";
-import {
-  awaitQueuedRequest,
-  falRequestExecutor,
-  runRequest,
-  runRequestQueued,
-} from "./server-tools";
-import type { FalRequestResult } from "./server-tools";
 import {
   collectUrls,
   labelUrls,
@@ -382,7 +378,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     };
   }
 
-  function falClient(): Result<FalClient, MotifError> {
+  function connection(): Result<FalConnection, MotifError> {
     const apiKey = presentKey(config.falKey ?? getFalKeyFromEnv());
     if (apiKey === undefined) {
       return err(
@@ -391,14 +387,7 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
         })
       );
     }
-    return ok(
-      new FalClient({
-        apiKey,
-        ...(config.fetch !== undefined && { fetch: config.fetch }),
-        ...(config.retries !== undefined && { retries: config.retries }),
-        ...(config.timeout !== undefined && { timeout: config.timeout }),
-      })
-    );
+    return ok(falConnection(apiKey, config));
   }
 
   function plan(
@@ -413,9 +402,9 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
     task: TaskId,
     input: TaskInput
   ): Promise<Result<TaskOutput, MotifError>> {
-    const client = falClient();
-    if (client.isErr()) {
-      return err(client.error);
+    const fal = connection();
+    if (fal.isErr()) {
+      return err(fal.error);
     }
     const planned = plan(task, input);
     if (planned.isErr()) {
@@ -430,18 +419,17 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
       endpoint: chosen.endpoint,
       headers,
     };
-    const executor = falRequestExecutor(client.value);
     // `onSubmitted` promises the request id before any wait, which only fal's
     // queue gives, so it queues every Model, not only those planned as queued.
     const queued = chosen.queued || input.onSubmitted !== undefined;
     const result = queued
       ? await runRequestQueued(
-          executor,
+          fal.value,
           prepared,
           input.onProgress,
           input.onSubmitted
         )
-      : await runRequest(executor, prepared);
+      : await runRequest(fal.value, prepared);
     return result.map((value) => falOutput(chosen, value));
   }
 
@@ -455,12 +443,12 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
       return err(planned.error);
     }
     const chosen = planned.value;
-    const client = falClient();
-    if (client.isErr()) {
-      return err(client.error);
+    const fal = connection();
+    if (fal.isErr()) {
+      return err(fal.error);
     }
     const result = await awaitQueuedRequest(
-      falRequestExecutor(client.value),
+      fal.value,
       { endpoint: queueAppPath(chosen.endpoint), requestId },
       input.onProgress
     );
@@ -492,20 +480,20 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
   return {
     ...tasks,
     async deletePayloads(requestId) {
-      const client = falClient();
-      return client.isErr()
-        ? err(client.error)
-        : await client.value.deletePayloads(requestId);
+      const fal = connection();
+      return fal.isErr()
+        ? err(fal.error)
+        : await deletePayloads(fal.value, requestId);
     },
     plan,
     resume,
     run,
     stream: taskStreamer(config, plan, context),
     async upload(bytes, contentType, fileName) {
-      const client = falClient();
-      return client.isErr()
-        ? err(client.error)
-        : await client.value.uploadToFalCdn(bytes, {
+      const fal = connection();
+      return fal.isErr()
+        ? err(fal.error)
+        : await uploadToFalCdn(fal.value, bytes, {
             contentType,
             fileName: fileName ?? "upload",
           });

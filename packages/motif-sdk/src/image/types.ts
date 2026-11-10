@@ -2,7 +2,7 @@
  * Public types for the provider-agnostic image generation + editing layer
  * (`@howells/motif-sdk/image`).
  *
- * This layer is additive: it sits alongside the fal-specific `FalClient`
+ * This layer is additive: it sits alongside the Task client
  * surface and reuses the SDK's Result convention (`Result<T, MotifError>` — no
  * thrown exceptions).
  *
@@ -20,7 +20,7 @@
 
 import type { Result } from "neverthrow";
 
-import type { MotifError } from "../server";
+import type { MotifError } from "../errors";
 import type { FalFetch } from "../types";
 
 /**
@@ -112,7 +112,7 @@ export interface GenerateImageOptions {
   signal?: AbortSignal;
   /**
    * Extra HTTP headers forwarded to the provider request. Fal's non-retained IO
-   * (paired with FalClient.deletePayloads) is
+   * (paired with `MotifClient.deletePayloads`) is
    * `headers: { "X-Fal-Store-IO": "0" }`.
    */
   headers?: Record<string, string>;
@@ -158,7 +158,7 @@ export interface EditImageOptions {
   signal?: AbortSignal;
   /**
    * Extra HTTP headers forwarded to the provider request. Fal's non-retained IO
-   * (paired with FalClient.deletePayloads) is
+   * (paired with `MotifClient.deletePayloads`) is
    * `headers: { "X-Fal-Store-IO": "0" }`.
    */
   headers?: Record<string, string>;

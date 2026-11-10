@@ -9,7 +9,7 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import type { ImageModel } from "ai";
 
-import { MotifError } from "../server";
+import { MotifError } from "../errors";
 import type { FalFetch } from "../types";
 import { toProviderFetch } from "./fetch";
 import type { ImageProviderAdapter } from "./provider";

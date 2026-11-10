@@ -55,7 +55,7 @@ export {
   motifEnvSchema,
   parseMotifEnv,
 } from "./env";
-export { MotifError } from "./server";
+export { MotifError } from "./errors";
 export { formatCost, sumCosts } from "./tool-cost";
 export type { OutputDimensions, ResolvedCost } from "./tool-cost";
 

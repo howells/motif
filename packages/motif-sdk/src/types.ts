@@ -239,38 +239,7 @@ export interface GenerateOptions {
   transparent?: boolean;
 }
 
-export interface ToolRunOptions {
-  input?: string;
-  inputs?: string[];
-  options?: Record<string, unknown>;
-  tool: string;
-}
-
-export type ToolResponse = Record<string, unknown>;
-
-/** ─── Response Types ─────────────────────────────────────────── */
-
-export interface MotifImage {
-  content_type?: string;
-  height?: number;
-  url: string;
-  width?: number;
-}
-
-export interface MotifResponse {
-  images: MotifImage[];
-  prompt?: string;
-  requestId?: string;
-  seed?: number;
-}
-
 /** ─── Queue Types ────────────────────────────────────────────── */
-
-export interface QueuedJob {
-  endpoint: string;
-  estimatedCost: number | null;
-  requestId: string;
-}
 
 export interface JobStatus {
   error?: string;
@@ -279,16 +248,8 @@ export interface JobStatus {
   status: "queued" | "processing" | "completed" | "failed";
 }
 
-/**
- * A tool run accepted by the fal queue.
- *
- * Returned by `FalClient.submitTool`, and the handle passed back to
- * `checkToolStatus` / `getToolResult`. The job itself carries no cost: the
- * rate lives on the registry entry as `FalToolConfig.price`, and for a queued
- * endpoint it is usually per-megapixel or metered, so the final cost is only
- * known once the result is in.
- */
-export interface QueuedToolJob {
+/** A run accepted by the fal queue, as the handle to poll and read it. */
+export interface QueuedJob {
   endpoint: string;
   requestId: string;
 }
@@ -297,13 +258,3 @@ export interface QueuedToolJob {
 
 /** The network seam: a `fetch`-shaped function. */
 export type FalFetch = (url: string, init: RequestInit) => Promise<Response>;
-
-export interface FalClientConfig {
-  apiKey: string;
-  /** Replaces global fetch for every request. Retries and timeouts still apply. */
-  fetch?: FalFetch;
-  /** Max retry attempts for 429/5xx errors (default 3, set 0 to disable) */
-  retries?: number;
-  /** Request timeout in ms (default 120_000) */
-  timeout?: number;
-}

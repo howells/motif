@@ -1,11 +1,4 @@
-/**
- * `MotifError` and its coercion helper.
- *
- * Extracted from `server.ts` so `server-tools.ts` can construct errors without
- * importing back into `server.ts` — that import was a dependency cycle. Both
- * `server.ts` and `server-tools.ts` import from here, and `server.ts`
- * re-exports `MotifError` so the package's public surface is unchanged.
- */
+/** `MotifError` and the fal HTTP error mapping. */
 
 export class MotifError extends Error {
   readonly status: number;

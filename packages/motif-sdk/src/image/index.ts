@@ -21,8 +21,7 @@ import type { GenerateImageResult, ImageModel, JSONValue, Warning } from "ai";
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { falHttpError, isFalAccountLocked } from "../errors";
-import { MotifError } from "../server";
+import { falHttpError, isFalAccountLocked, MotifError } from "../errors";
 import type { FalFetch } from "../types";
 import { costForCalls } from "./cost";
 import type { MotifImageDeps } from "./deps";

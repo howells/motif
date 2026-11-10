@@ -1,4 +1,4 @@
-import type { JobStatus, MotifImage } from "./types";
+import type { JobStatus } from "./types";
 
 /**
  * Boundary parsing for fal.ai HTTP responses.
@@ -17,25 +17,6 @@ export function asString(value: unknown): string | undefined {
 
 export function asNumber(value: unknown): number | undefined {
   return typeof value === "number" ? value : undefined;
-}
-
-export function toMotifImage(value: unknown): MotifImage {
-  if (isRecord(value)) {
-    return {
-      content_type: asString(value.content_type),
-      height: asNumber(value.height),
-      url: asString(value.url) ?? "",
-      width: asNumber(value.width),
-    };
-  }
-  return { url: "" };
-}
-
-export function parseImages(value: unknown): MotifImage[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-  return value.map((entry) => toMotifImage(entry));
 }
 
 export function parseLogs(value: unknown): JobStatus["logs"] {

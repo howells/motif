@@ -9,7 +9,7 @@
 
 import type { ImageModel } from "ai";
 
-import { MotifError } from "../server";
+import { MotifError } from "../errors";
 import type { FalFetch } from "../types";
 import { falAdapter } from "./fal";
 import { openaiAdapter } from "./openai";
