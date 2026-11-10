@@ -10,16 +10,13 @@ import type { CreativeInput } from "./creative";
 
 export interface CliOptions {
   aspect?: string;
-  cover?: boolean;
   describe?: string | boolean;
   dryRun?: boolean;
   edit?: string[];
   ephemeral?: boolean;
-  feed?: boolean;
   fields?: string;
   format?: string;
   history?: boolean;
-  landscape?: boolean;
   last?: boolean;
   limit?: string;
   look?: string;
@@ -32,21 +29,13 @@ export interface CliOptions {
   noOpen?: boolean;
   num?: string;
   offset?: string;
-  og?: boolean;
   output?: string;
   outputFormat?: string;
   param?: string[];
-  portrait?: boolean;
-  reel?: boolean;
   resolution?: string;
   seed?: string;
-  square?: boolean;
-  story?: boolean;
   tier?: string;
   transparent?: boolean;
-  ultra?: boolean;
-  wallpaper?: boolean;
-  wide?: boolean;
 }
 
 /** JSON payload accepted via stdin */

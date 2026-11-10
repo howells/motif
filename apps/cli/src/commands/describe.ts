@@ -11,6 +11,7 @@
 import {
   ASPECT_RATIOS,
   CREATIVE_TAXONOMY,
+  FORMAT_PRESETS,
   isTaskId,
   LOOKS,
   modelProfile,
@@ -247,33 +248,25 @@ function generateSchema() {
       },
       type: "object",
     },
-    presets: {
-      cover: {
-        aspect: "2:3",
-        description: "Kindle/eBook cover",
-        resolution: "2K",
-      },
-      feed: { aspect: "4:5", description: "Instagram Feed" },
-      landscape: { aspect: "16:9", description: "Landscape" },
-      og: { aspect: "16:9", description: "Open Graph / social share" },
-      portrait: { aspect: "2:3", description: "Portrait" },
-      reel: { aspect: "9:16", description: "Instagram Reel" },
-      square: { aspect: "1:1", description: "Square" },
-      story: { aspect: "9:16", description: "Instagram/TikTok Story" },
-      ultra: {
-        aspect: "21:9",
-        description: "Ultra-wide banner",
-        resolution: "2K",
-      },
-      wallpaper: {
-        aspect: "9:16",
-        description: "iPhone wallpaper",
-        resolution: "2K",
-      },
-      wide: { aspect: "21:9", description: "Cinematic wide" },
-    },
+    presets: formatPresets(),
     supports_dry_run: true,
   };
+}
+
+/** The format presets as `--describe` lists them, sorted by id. */
+function formatPresets() {
+  return Object.fromEntries(
+    Object.entries(FORMAT_PRESETS)
+      .toSorted(([a], [b]) => a.localeCompare(b))
+      .map(([id, { aspect, description, resolution }]) => [
+        id,
+        {
+          aspect,
+          description,
+          ...(resolution !== undefined && { resolution }),
+        },
+      ])
+  );
 }
 
 function lastSchema() {

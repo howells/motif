@@ -37,6 +37,7 @@ import {
 } from "./utils/input";
 import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
 import type { EmitOptions, OutputFormat } from "./utils/output";
+import { addPresetOptions, PRESET_IDS } from "./utils/presets";
 import { firstText, hasText } from "./utils/text";
 import { PACKAGE_VERSION } from "./version";
 
@@ -142,22 +143,9 @@ export async function runCli(args: string[]): Promise<void> {
     )
     .option("-r, --resolution <res>", `Resolution (${RESOLUTIONS.join(", ")})`)
     .option("-o, --output <file>", "Output filename")
-    .option("-n, --num <count>", "Number of images 1-4")
-    // Format presets
-    .option("--cover", "Kindle/eBook cover: 2:3, 2K (1600×2400)")
-    .option("--square", "Square: 1:1")
-    .option("--landscape", "Landscape: 16:9")
-    .option("--portrait", "Portrait: 2:3")
-    // Social media presets
-    .option("--story", "Instagram/TikTok Story: 9:16 (1080×1920)")
-    .option("--reel", "Instagram Reel: 9:16 (1080×1920)")
-    .option("--feed", "Instagram Feed portrait: 4:5 (1080×1350)")
-    .option("--og", "Open Graph / social share: 16:9 (1200×630)")
-    // Device presets
-    .option("--wallpaper", "iPhone wallpaper: 9:16")
-    // Cinematic presets
-    .option("--wide", "Cinematic wide: 21:9")
-    .option("--ultra", "Ultra-wide banner: 21:9, 2K")
+    .option("-n, --num <count>", "Number of images 1-4");
+  addPresetOptions(program, PRESET_IDS);
+  program
     // Output options
     .option("--transparent", "Transparent background PNG")
     .option("--mask <path>", "Mask image for an edit with -e")

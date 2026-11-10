@@ -280,16 +280,65 @@ export class ImageSizeBoundsError extends Error {
   }
 }
 
-/** Format presets that set aspect + resolution in one click */
-export const FORMAT_PRESETS: Record<
-  string,
-  { label: string; aspect: AspectRatio; resolution?: Resolution }
-> = {
-  cover: { aspect: "2:3", label: "Cover", resolution: "2K" },
-  landscape: { aspect: "16:9", label: "Landscape" },
-  og: { aspect: "16:9", label: "OG Image" },
-  portrait: { aspect: "2:3", label: "Portrait" },
-  square: { aspect: "1:1", label: "Square" },
-  story: { aspect: "9:16", label: "Story" },
-  wide: { aspect: "21:9", label: "Wide" },
+/** A named output format: an aspect, and a resolution when the format needs one. */
+export interface FormatPreset {
+  readonly aspect: AspectRatio;
+  /** What the format is for, in a few words. */
+  readonly description: string;
+  /** Short title for pickers. */
+  readonly label: string;
+  readonly resolution?: Resolution;
+  /** The platform's pixel spec, such as "1080×1920", when it publishes one. */
+  readonly size?: string;
+}
+
+/** Format presets that set aspect + resolution in one click, in display order. */
+export const FORMAT_PRESETS: Record<string, FormatPreset> = {
+  cover: {
+    aspect: "2:3",
+    description: "Kindle/eBook cover",
+    label: "Cover",
+    resolution: "2K",
+    size: "1600×2400",
+  },
+  square: { aspect: "1:1", description: "Square", label: "Square" },
+  landscape: { aspect: "16:9", description: "Landscape", label: "Landscape" },
+  portrait: { aspect: "2:3", description: "Portrait", label: "Portrait" },
+  story: {
+    aspect: "9:16",
+    description: "Instagram/TikTok Story",
+    label: "Story",
+    size: "1080×1920",
+  },
+  reel: {
+    aspect: "9:16",
+    description: "Instagram Reel",
+    label: "Reel",
+    size: "1080×1920",
+  },
+  feed: {
+    aspect: "4:5",
+    description: "Instagram Feed",
+    label: "Feed",
+    size: "1080×1350",
+  },
+  og: {
+    aspect: "16:9",
+    description: "Open Graph / social share",
+    label: "OG Image",
+    size: "1200×630",
+  },
+  wallpaper: {
+    aspect: "9:16",
+    description: "iPhone wallpaper",
+    label: "Wallpaper",
+    resolution: "2K",
+  },
+  wide: { aspect: "21:9", description: "Cinematic wide", label: "Wide" },
+  ultra: {
+    aspect: "21:9",
+    description: "Ultra-wide banner",
+    label: "Ultra",
+    resolution: "2K",
+  },
 };

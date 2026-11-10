@@ -7,11 +7,7 @@
 
 import { existsSync } from "node:fs";
 
-import {
-  ASPECT_RATIOS,
-  CREATIVE_TAXONOMY,
-  FORMAT_PRESETS,
-} from "@howells/motif-sdk";
+import { ASPECT_RATIOS, CREATIVE_TAXONOMY } from "@howells/motif-sdk";
 import type {
   AspectRatio,
   Resolution,
@@ -28,6 +24,7 @@ import {
 } from "../../utils/input";
 import { imageSource, REMOTE_URL_REGEX } from "../../utils/motif-client";
 import type { OutputFormat } from "../../utils/output";
+import { addPresetOptions, findPreset } from "../../utils/presets";
 import { hasText } from "../../utils/text";
 import { parseBoxes, parseMargin, parseSizes } from "./pixel-options";
 import { exclusiveFlag } from "./shared";
@@ -50,6 +47,11 @@ async function maskInput(
   }
 }
 
+/**
+ * The format presets reframe takes. The SDK table also has reel, feed,
+ * wallpaper and ultra; those restate story, portrait and wide, so reframe
+ * keeps its original seven.
+ */
 const REFRAME_PRESETS = [
   "cover",
   "landscape",
@@ -76,7 +78,7 @@ function reframeTarget(
     );
   }
   if (preset !== undefined) {
-    const target = FORMAT_PRESETS[preset];
+    const target = findPreset(preset);
     if (target === undefined) {
       invalid(`No format preset named ${preset}`, format);
     }
@@ -400,18 +402,13 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
       },
     ],
     options: (command) =>
-      command
-        .option(
+      addPresetOptions(
+        command.option(
           "-a, --aspect <ratio>",
           `Target ratio (${ASPECT_RATIOS.join(", ")})`
-        )
-        .option("--cover", "Kindle/eBook cover: 2:3")
-        .option("--landscape", "Landscape: 16:9")
-        .option("--og", "Open Graph / social share: 16:9")
-        .option("--portrait", "Portrait: 2:3")
-        .option("--square", "Square: 1:1")
-        .option("--story", "Instagram/TikTok Story: 9:16")
-        .option("--wide", "Cinematic wide: 21:9"),
+        ),
+        REFRAME_PRESETS
+      ),
     promptFirst: never,
     sourceKind: "image",
     task: "reframe",

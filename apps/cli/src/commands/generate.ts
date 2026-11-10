@@ -48,6 +48,7 @@ import {
 } from "../utils/motif-client";
 import { emit, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
+import { chosenPreset } from "../utils/presets";
 import { exitTaskError, exitTaskFailed } from "../utils/task-model";
 import { firstText, hasText } from "../utils/text";
 import {
@@ -297,21 +298,8 @@ function aspectIsChosen(
   lookAspect: string | undefined,
   config: MotifConfig
 ): boolean {
-  const presetFlags = [
-    "cover",
-    "story",
-    "reel",
-    "feed",
-    "og",
-    "wallpaper",
-    "ultra",
-    "wide",
-    "square",
-    "landscape",
-    "portrait",
-  ] as const;
   return (
-    presetFlags.some((flag) => options[flag] === true) ||
+    chosenPreset(options) !== undefined ||
     hasText(stdinData?.preset) ||
     hasText(options.aspect ?? stdinData?.aspect) ||
     lookAspect !== undefined ||

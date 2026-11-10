@@ -11,6 +11,7 @@ import type { CliOptions } from "./cli-types";
 import { handleError } from "./errors";
 import { validateEditPath, validateEnumOption } from "./input";
 import type { OutputFormat } from "./output";
+import { chosenPreset, findPreset, PRESET_IDS } from "./presets";
 import { hasText } from "./text";
 
 // -- Constants --
@@ -24,51 +25,19 @@ export function resolvePreset(
   defaultAspect: AspectRatio,
   defaultResolution: Resolution
 ): { aspect: AspectRatio; resolution: Resolution } {
-  const PRESET_FLAGS = [
-    "cover",
-    "story",
-    "reel",
-    "feed",
-    "og",
-    "wallpaper",
-    "ultra",
-    "wide",
-    "square",
-    "landscape",
-    "portrait",
-  ] as const;
-  const cliPreset = PRESET_FLAGS.find((flag) => options[flag] === true);
-  const preset = cliPreset ?? stdinPreset;
+  const preset = chosenPreset(options) ?? stdinPreset;
 
-  const PRESET_MAP: Record<
-    string,
-    { aspect: AspectRatio; resolution?: Resolution }
-  > = {
-    cover: { aspect: "2:3", resolution: "2K" },
-    feed: { aspect: "4:5" },
-    landscape: { aspect: "16:9" },
-    og: { aspect: "16:9" },
-    portrait: { aspect: "2:3" },
-    reel: { aspect: "9:16" },
-    square: { aspect: "1:1" },
-    story: { aspect: "9:16" },
-    ultra: { aspect: "21:9", resolution: "2K" },
-    wallpaper: { aspect: "9:16", resolution: "2K" },
-    wide: { aspect: "21:9" },
-  };
-
-  if (hasText(preset) && preset in PRESET_MAP) {
-    // biome-ignore lint/style/noNonNullAssertion: Index is guaranteed to exist due to the `in` check
-    const p = PRESET_MAP[preset]!;
-    return {
-      aspect: p.aspect,
-      resolution: p.resolution ?? defaultResolution,
-    };
-  }
   if (hasText(preset)) {
-    throw new Error(
-      `preset must be one of ${Object.keys(PRESET_MAP).join(", ")}: ${JSON.stringify(preset)}`
-    );
+    const found = findPreset(preset);
+    if (found === undefined) {
+      throw new Error(
+        `preset must be one of ${PRESET_IDS.toSorted().join(", ")}: ${JSON.stringify(preset)}`
+      );
+    }
+    return {
+      aspect: found.aspect,
+      resolution: found.resolution ?? defaultResolution,
+    };
   }
 
   return {

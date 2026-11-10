@@ -20,6 +20,7 @@ import {
   openImage,
 } from "../../utils/image";
 import { motifClient } from "../../utils/motif-client";
+import { findPreset } from "../../utils/presets";
 import { Spinner } from "../components/spinner";
 import { TierOptions } from "../components/tier-options";
 import {
@@ -45,44 +46,25 @@ type ConfirmField = "tier" | "aspect" | "resolution";
 
 const TIERS: readonly Tier[] = TIER_OPTIONS.map(({ tier }) => tier);
 
-interface Preset {
-  aspect: AspectRatio;
-  description: string;
-  key: string;
-  label: string;
-  resolution?: Resolution;
-}
-
-const PRESETS: Preset[] = [
-  { aspect: "1:1", description: "1:1", key: "square", label: "Square" },
-  { aspect: "16:9", description: "16:9", key: "landscape", label: "Landscape" },
-  { aspect: "2:3", description: "2:3", key: "portrait", label: "Portrait" },
-  {
-    aspect: "9:16",
-    description: "9:16 vertical",
-    key: "story",
-    label: "Story/Reel",
-  },
-  {
-    aspect: "21:9",
-    description: "21:9 ultra-wide",
-    key: "wide",
-    label: "Cinematic",
-  },
-  {
-    aspect: "2:3",
-    description: "2:3 @ 2K",
-    key: "cover",
-    label: "Book Cover",
-    resolution: "2K",
-  },
-  {
-    aspect: "16:9",
-    description: "16:9 OG image",
-    key: "og",
-    label: "Social Share",
-  },
-];
+/**
+ * The presets Studio offers, as ids into the SDK's format table with Studio's
+ * own labels. The table supplies each one's aspect and resolution.
+ */
+const PRESETS = [
+  { description: "1:1", key: "square", label: "Square" },
+  { description: "16:9", key: "landscape", label: "Landscape" },
+  { description: "2:3", key: "portrait", label: "Portrait" },
+  { description: "9:16 vertical", key: "story", label: "Story/Reel" },
+  { description: "21:9 ultra-wide", key: "wide", label: "Cinematic" },
+  { description: "2:3 @ 2K", key: "cover", label: "Book Cover" },
+  { description: "16:9 OG image", key: "og", label: "Social Share" },
+].map((entry) => {
+  const preset = findPreset(entry.key);
+  if (preset === undefined) {
+    throw new Error(`No format preset named ${entry.key}`);
+  }
+  return { ...entry, aspect: preset.aspect, resolution: preset.resolution };
+});
 
 type PostAction =
   | "edit"

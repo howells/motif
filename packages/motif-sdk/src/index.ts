@@ -20,6 +20,7 @@ export { err, ok } from "neverthrow";
 export {
   ASPECT_RATIOS,
   FORMAT_PRESETS,
+  type FormatPreset,
   ImageSizeBoundsError,
   RESOLUTIONS,
 } from "./aspects";
