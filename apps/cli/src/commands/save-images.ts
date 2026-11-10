@@ -20,7 +20,8 @@ import chalk from "chalk";
 
 import { hasTransparentPixels, TransparencyMissingError } from "../utils/alpha";
 import { addGenerations, newGeneration } from "../utils/config";
-import { exitForErrorCode } from "../utils/errors";
+import { exitForErrorCode, recordingFailure } from "../utils/errors";
+import type { RecordingFailure } from "../utils/errors";
 import { decodeDataUrl, indexedOutputPath } from "../utils/image";
 import { emitError, isStructured } from "../utils/output";
 import type { OutputFormat } from "../utils/output";
@@ -60,6 +61,12 @@ export interface SaveMeta {
 
 export interface SaveResult {
   cost: number | null;
+  /**
+   * Why history was not written although the files were: set only when the
+   * history file could not be used. The caller reports the result, then calls
+   * `exitIfNotRecorded` with it.
+   */
+  historyFailure?: RecordingFailure;
   historyRecorded: boolean;
   id: string;
   images: SavedImage[];
@@ -121,9 +128,11 @@ export async function saveGeneratedImages(
       timestamp: now,
     })
   );
-  if (historyRecorded) {
-    await addGenerations(generations);
-  }
+  const historyFailure = historyRecorded
+    ? await recordingFailure(async () => {
+        await addGenerations(generations);
+      })
+    : undefined;
 
   const { known: totalCost, unknown } = sumCosts(
     generations.map((g) => g.cost)
@@ -132,7 +141,8 @@ export async function saveGeneratedImages(
   const lastGen = generations.at(-1)!;
   return {
     cost: unknown > 0 ? null : totalCost,
-    historyRecorded,
+    historyFailure,
+    historyRecorded: historyRecorded && historyFailure === undefined,
     id: lastGen.id,
     images: written.map((file, i): SavedImage => {
       const url = files[i]?.url;

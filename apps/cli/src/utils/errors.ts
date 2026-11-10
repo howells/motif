@@ -136,6 +136,64 @@ export function handleError(
   exitForErrorCode(code);
 }
 
+/** What a stored-file failure after a paid run reports on stderr. */
+export interface RecordingFailure {
+  code: KnownErrorCode;
+  details: unknown;
+  message: string;
+}
+
+/**
+ * Run a step that records a finished, paid run (history, a series file). A
+ * failure of a file Motif keeps is returned, not thrown, so the caller can
+ * still report the files already saved; any other failure is a bug and
+ * propagates.
+ */
+export async function recordingFailure(
+  record: () => Promise<void>
+): Promise<RecordingFailure | undefined> {
+  try {
+    await record();
+    return undefined;
+  } catch (error) {
+    if (!isStoredFileError(error)) {
+      throw error;
+    }
+    return {
+      code:
+        error instanceof CorruptFileError
+          ? "CORRUPT_FILE"
+          : "FILE_ACCESS_FAILED",
+      details: getStructuredDetails(error),
+      message: `The run finished and its files are saved, but it was not recorded: ${error.message}`,
+    };
+  }
+}
+
+/**
+ * Report a recording failure after the result has been printed: its own code
+ * and exit code, with the advice that fits a run that is already paid for.
+ */
+export function exitIfNotRecorded(
+  failure: RecordingFailure | undefined,
+  format: OutputFormat
+): void {
+  if (failure === undefined) {
+    return;
+  }
+  emitError(
+    {
+      ...failure,
+      suggestions: [
+        "The files are saved and reported on stdout: do not run the command again, it would bill again",
+        "details.path names the file Motif could not use; fix it, and the next run records normally",
+      ],
+    },
+    format
+  );
+  exitForErrorCode(failure.code);
+}
+
 /** Whether `err` is a failure of a file Motif keeps, which has its own code. */
 export function isStoredFileError(
   err: unknown

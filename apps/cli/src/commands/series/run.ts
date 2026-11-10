@@ -15,12 +15,15 @@ import type { TaskOutput } from "@howells/motif-sdk";
 import chalk from "chalk";
 import ora from "ora";
 
-import { loadConfig } from "../../utils/config";
+import { loadConfig, loadHistory } from "../../utils/config";
 import {
   exitForErrorCode,
+  exitIfNotRecorded,
   handleError,
+  recordingFailure,
   validateOption,
 } from "../../utils/errors";
+import type { RecordingFailure } from "../../utils/errors";
 import {
   parseIntegerOption,
   validateEnumOption,
@@ -214,6 +217,10 @@ export async function cmdRun(
       return;
     }
 
+    // Spending comes last: a history file that cannot be used must fail
+    // before fal bills anything, not after.
+    await loadHistory();
+
     // A new Series pins the look and mood this run used.
     const config = await loadOrCreateRunSeries({
       aspect,
@@ -238,6 +245,7 @@ export async function cmdRun(
     let anchorPath: string | undefined;
     let totalCost: number | null = 0;
     let lastResult: TaskOutput | undefined;
+    let failure: RecordingFailure | undefined;
 
     for (const [i, scene] of scenes.entries()) {
       const outputNum = String(config.outputs.length + i + 1).padStart(3, "0");
@@ -288,19 +296,26 @@ export async function cmdRun(
         size: image.size,
         width: image.width,
       });
-      await recordOutput(config.slug, {
-        aspect,
-        cost: result.cost.usd,
-        filename: basename(image.path),
-        model: result.model,
-        prompt,
-        refsUsed: [
-          ...(refTags ?? config.refs.map((ref) => ref.tag)),
-          ...(anchor.length > 0 ? ["series-anchor"] : []),
-        ],
-        resolution,
-        timestamp: new Date().toISOString(),
+      const seriesFailure = await recordingFailure(async () => {
+        await recordOutput(config.slug, {
+          aspect,
+          cost: result.cost.usd,
+          filename: basename(image.path),
+          model: result.model,
+          prompt,
+          refsUsed: [
+            ...(refTags ?? config.refs.map((ref) => ref.tag)),
+            ...(anchor.length > 0 ? ["series-anchor"] : []),
+          ],
+          resolution,
+          timestamp: new Date().toISOString(),
+        });
       });
+      failure = saved.historyFailure ?? seriesFailure;
+      if (failure !== undefined) {
+        // Later scenes would be paid for and unrecorded too: stop here.
+        break;
+      }
     }
 
     spinner?.succeed("Generated series run");
@@ -319,12 +334,17 @@ export async function cmdRun(
           series: config.slug,
           stylePrompt,
           theme: sanitizedTheme,
+          ...(failure !== undefined && {
+            historyFailure: failure,
+            historyRecorded: false,
+          }),
         },
         emitOpts
       );
     }
 
     openAfterRun(savedImages[0]?.path, opts.open);
+    exitIfNotRecorded(failure, emitOpts.format);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
   }

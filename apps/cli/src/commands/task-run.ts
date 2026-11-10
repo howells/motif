@@ -33,11 +33,18 @@ import type { Ora } from "ora";
 import type { Generation, MotifConfig } from "../utils/config";
 import {
   addGeneration,
+  loadHistory,
   getLastGeneration,
   historyPrompt,
   newGeneration,
 } from "../utils/config";
-import { exitNoPrevious, handleError, validateOutput } from "../utils/errors";
+import {
+  exitIfNotRecorded,
+  exitNoPrevious,
+  handleError,
+  recordingFailure,
+  validateOutput,
+} from "../utils/errors";
 import {
   generateFilename,
   withExtension,
@@ -60,7 +67,11 @@ import {
   saveFiles,
 } from "../utils/output-files";
 import type { WrittenFile } from "../utils/output-files";
-import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
+import {
+  exitAfterRunFailed,
+  exitTaskError,
+  taskFields,
+} from "../utils/task-model";
 import { hasText } from "../utils/text";
 import { readVideoHeader } from "../utils/video-header";
 
@@ -380,6 +391,12 @@ export async function runTask(
     return;
   }
 
+  // Spending comes last: a history file that cannot be used must fail before
+  // fal bills anything, not after.
+  if (spec.writesFiles) {
+    await loadHistory();
+  }
+
   const withChrome = !isStructured(emitOpts.format) && spec.quiet !== true;
   const { report, spinner } = startProgress(spec, source, withChrome);
   const context = { model: plan.model, task: spec.task };
@@ -412,13 +429,19 @@ export async function runTask(
       }
     }
     const [primary] = written;
-    await recordRun(spec, output, source, primary);
+    const recording = await recordingFailure(async () => {
+      await recordRun(spec, output, source, primary);
+    });
 
     const fields = {
       command: spec.command,
       ...taskFields(output),
       source: source?.path ?? null,
       files: written,
+      requestId: output.requestId,
+      ...(recording === undefined
+        ? {}
+        : { historyFailure: recording, historyRecorded: false }),
       ...(primary === undefined
         ? {}
         : {
@@ -439,12 +462,9 @@ export async function runTask(
       }
     }
     openAfterRun(primary?.path, input.open);
+    exitIfNotRecorded(recording, emitOpts.format);
   } catch (error) {
     spinner?.fail(`${spec.verb} failed`);
-    exitTaskFailed(
-      error instanceof Error ? error.message : String(error),
-      context,
-      emitOpts.format
-    );
+    exitAfterRunFailed(error, context, emitOpts.format);
   }
 }

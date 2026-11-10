@@ -22,7 +22,7 @@ import type {
 
 import type { MotifConfig } from "./config";
 import { MISSING_FAL_KEY_MESSAGE, taskPins } from "./config";
-import { exitForErrorCode, handleError } from "./errors";
+import { exitForErrorCode, handleError, isStoredFileError } from "./errors";
 import { emitError } from "./output";
 import type { OutputFormat } from "./output";
 import { hasText } from "./text";
@@ -208,6 +208,26 @@ export function exitTaskFailed(
     format
   );
   exitForErrorCode("TASK_FAILED");
+}
+
+/**
+ * Report a failure after a run that fal already finished (saving or reporting
+ * its files) and exit. A file Motif keeps that cannot be used keeps its own
+ * code; anything else is TASK_FAILED.
+ */
+export function exitAfterRunFailed(
+  error: unknown,
+  context: { model?: string; task: string },
+  format: OutputFormat
+): never {
+  if (isStoredFileError(error)) {
+    handleError(error, "CORRUPT_FILE", format);
+  }
+  exitTaskFailed(
+    error instanceof Error ? error.message : String(error),
+    context,
+    format
+  );
 }
 
 /**

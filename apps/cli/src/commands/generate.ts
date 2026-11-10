@@ -30,7 +30,11 @@ import { loadHistory } from "../utils/config";
 import type { MotifConfig } from "../utils/config";
 import { formatTotal } from "../utils/cost";
 import { resolveCreativeDirection } from "../utils/creative";
-import { handleError, validateOption } from "../utils/errors";
+import {
+  exitIfNotRecorded,
+  handleError,
+  validateOption,
+} from "../utils/errors";
 import {
   OUTPUT_FORMATS,
   resolveEditPaths,
@@ -52,7 +56,11 @@ import {
 import { emit, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { openAfterRun } from "../utils/output-files";
-import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
+import {
+  exitAfterRunFailed,
+  exitTaskError,
+  taskFields,
+} from "../utils/task-model";
 import { firstText, hasText } from "../utils/text";
 import {
   deleteEphemeralPayloads,
@@ -204,6 +212,12 @@ export async function runGeneration(
     return;
   }
 
+  // Spending comes last: a history file that cannot be used must fail before
+  // fal bills anything, not after.
+  if (!run.ephemeral) {
+    await loadHistory();
+  }
+
   if (!isStructured(emitOpts.format)) {
     printStart(run, plan);
   }
@@ -268,11 +282,8 @@ export async function runGeneration(
         cost: saved.cost,
         ...run.extra,
         ephemeral: run.ephemeral,
-        ...(run.ephemeral && {
-          payloadsDeleted,
-          requestId: output.requestId,
-          storeIo: false,
-        }),
+        requestId: output.requestId,
+        ...(run.ephemeral && { payloadsDeleted, storeIo: false }),
         ...(hasText(payloadDeleteError) && { payloadDeleteError }),
         prompt: output.prompt,
         warnings: run.warnings,
@@ -283,10 +294,11 @@ export async function runGeneration(
       },
       emitOpts
     );
+    exitIfNotRecorded(saved.historyFailure, emitOpts.format);
   } catch (error) {
     exitIfTransparencyMissing(error, emitOpts.format);
-    exitTaskFailed(
-      error instanceof Error ? error.message : String(error),
+    exitAfterRunFailed(
+      error,
       { model: output.model, task: run.task },
       emitOpts.format
     );

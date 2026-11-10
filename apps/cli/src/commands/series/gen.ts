@@ -12,10 +12,12 @@ import {
 import chalk from "chalk";
 import ora from "ora";
 
-import { loadConfig } from "../../utils/config";
+import { loadConfig, loadHistory } from "../../utils/config";
 import {
   exitForErrorCode,
+  exitIfNotRecorded,
   handleError,
+  recordingFailure,
   validateOption,
 } from "../../utils/errors";
 import {
@@ -162,6 +164,9 @@ export async function cmdGenerate(
     }
 
     // -- Generate --
+    // Spending comes last: a history file that cannot be used must fail
+    // before fal bills anything, not after.
+    await loadHistory();
     const outputDir = seriesOutputsDir(slug);
     const outputNum = String(config.outputs.length + 1).padStart(3, "0");
     const outputFilename = hasText(opts.output)
@@ -205,16 +210,19 @@ export async function cmdGenerate(
     }
 
     // Record in series history
-    await recordOutput(slug, {
-      aspect,
-      cost: result.cost.usd,
-      filename: basename(saved.images[0]?.path ?? outputFilename),
-      model: result.model,
-      prompt: result.prompt ?? fullPrompt,
-      refsUsed: refTags ?? config.refs.map((r) => r.tag),
-      resolution,
-      timestamp: new Date().toISOString(),
+    const seriesFailure = await recordingFailure(async () => {
+      await recordOutput(slug, {
+        aspect,
+        cost: result.cost.usd,
+        filename: basename(saved.images[0]?.path ?? outputFilename),
+        model: result.model,
+        prompt: result.prompt ?? fullPrompt,
+        refsUsed: refTags ?? config.refs.map((r) => r.tag),
+        resolution,
+        timestamp: new Date().toISOString(),
+      });
     });
+    const failure = saved.historyFailure ?? seriesFailure;
 
     if (isStructured(emitOpts.format)) {
       emit(
@@ -238,12 +246,18 @@ export async function cmdGenerate(
             creative: creativeResult.creative,
           }),
           outputIndex: config.outputs.length + 1,
+          requestId: result.requestId,
+          ...(failure !== undefined && {
+            historyFailure: failure,
+            historyRecorded: false,
+          }),
         },
         emitOpts
       );
     }
 
     openAfterRun(saved.images[0]?.path, opts.open);
+    exitIfNotRecorded(failure, emitOpts.format);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
   }
