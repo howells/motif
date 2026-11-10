@@ -44,9 +44,10 @@ export interface WrittenFile {
 }
 
 /**
- * Before anything is spent: the output path passes the output rules, and its
- * directory (the path itself for a directory target) exists or can be created,
- * and can be written to. A run that would only find out after fal billed it
+ * Before anything is spent: the output's directory (the path itself for a
+ * directory target) exists or can be created, and can be written to. The path
+ * was already checked against the output root where the user named it; a
+ * Series' own folder under `~/.motif` is outside that root by design. A run that would only find out after fal billed it
  * fails here with `INVALID_OUTPUT_PATH` instead.
  */
 export async function prepareOutput(
@@ -55,8 +56,7 @@ export async function prepareOutput(
   format: OutputFormat
 ): Promise<void> {
   try {
-    const checked = validateOutputPath(path);
-    const directory = kind === "directory" ? checked : dirname(checked);
+    const directory = kind === "directory" ? path : dirname(path);
     await mkdir(directory, { recursive: true });
     await access(directory, constants.W_OK);
   } catch (error) {
