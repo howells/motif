@@ -7,7 +7,13 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { falHttpError, isFalAccountLocked, MotifError } from "./errors";
+import {
+  falHttpError,
+  INVALID_RESPONSE,
+  isFalAccountLocked,
+  MotifError,
+  SUBMISSION_UNCERTAIN,
+} from "./errors";
 import {
   asNumber,
   asString,
@@ -48,13 +54,64 @@ export function falConnection(
   };
 }
 
+/**
+ * A request that creates a billable job and got no clear answer: a connection
+ * error, a timeout or a 5xx. fal may have accepted it, so the message says so
+ * and nothing resends it. Nothing in this repo sources an idempotency key for
+ * fal submissions, so none is sent and no resend can be made safe.
+ */
+function submissionUncertain(
+  status: number,
+  reason: string,
+  requestId?: string
+): MotifError {
+  return new MotifError(
+    `fal did not confirm the request (${reason}). fal may have accepted it and may bill for it; check fal's dashboard before submitting again.`,
+    status,
+    SUBMISSION_UNCERTAIN,
+    requestId
+  );
+}
+
+/** A request's `RequestInit`, plus whether sending it again is harmless. */
+export type FalRequestInit = RequestInit & {
+  /**
+   * The caller states that a repeat cannot create a second billable job (a
+   * status poll, a result fetch, a storage call). Only then is the request
+   * retried after a connection error, a timeout or a 5xx. A request that can
+   * bill is attempted once, and that failure is `SUBMISSION_UNCERTAIN`. A 429
+   * is a refusal before any work, so every request retries it.
+   */
+  safeToRetry: boolean;
+};
+
+/** Parse a response body as JSON, or say that fal sent something else. */
+export async function readJson(
+  response: Response,
+  what: string
+): Promise<Result<unknown, MotifError>> {
+  try {
+    return ok((await response.json()) as unknown);
+  } catch {
+    return err(
+      new MotifError(
+        `fal's ${what} was not valid JSON`,
+        response.status,
+        INVALID_RESPONSE,
+        response.headers.get("x-fal-request-id") ?? undefined
+      )
+    );
+  }
+}
+
 /** Authenticated fetch to fal.ai APIs with retry logic. */
 export async function request(
   connection: FalConnection,
   url: string,
-  options: RequestInit = {}
+  { safeToRetry, ...options }: FalRequestInit
 ): Promise<Result<Response, MotifError>> {
   let lastError: MotifError | null = null;
+  const ambiguousRetries = safeToRetry ? connection.retries : 0;
 
   for (let attempt = 0; attempt <= connection.retries; attempt++) {
     const controller = new AbortController();
@@ -75,10 +132,10 @@ export async function request(
 
       clearTimeout(timeoutId);
 
-      // Retry on 429 or 5xx
+      // Retry on 429, and on 5xx when a repeat is harmless
       if (
-        (response.status === 429 || response.status >= 500) &&
-        attempt < connection.retries
+        (response.status === 429 && attempt < connection.retries) ||
+        (response.status >= 500 && attempt < ambiguousRetries)
       ) {
         const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
         await new Promise((r) => {
@@ -91,6 +148,15 @@ export async function request(
         const text = await response.text();
         const requestId =
           response.headers.get("x-fal-request-id") ?? requestIdFromBody(text);
+        if (!safeToRetry && response.status >= 500) {
+          return err(
+            submissionUncertain(
+              response.status,
+              `${response.status} ${text}`,
+              requestId
+            )
+          );
+        }
         return err(falHttpError(response.status, text, requestId));
       }
 
@@ -102,13 +168,14 @@ export async function request(
         return err(error);
       }
 
-      lastError = new MotifError(
-        error instanceof Error ? error.message : String(error),
-        0
-      );
+      const reason = error instanceof Error ? error.message : String(error);
+      if (!safeToRetry) {
+        return err(submissionUncertain(0, reason));
+      }
+      lastError = new MotifError(reason, 0);
 
       // Retry on network errors
-      if (attempt < connection.retries) {
+      if (attempt < ambiguousRetries) {
         const delay = 1000 * 2 ** attempt;
         await new Promise((r) => {
           setTimeout(r, delay);
@@ -127,12 +194,16 @@ export async function getJobStatus(
   requestId: string
 ): Promise<Result<JobStatus, MotifError>> {
   const url = `${FAL_QUEUE_URL}/${endpoint}/requests/${requestId}/status?logs=1`;
-  const response = await request(connection, url);
+  const response = await request(connection, url, { safeToRetry: true });
   if (response.isErr()) {
     return err(response.error);
   }
 
-  const data: unknown = await response.value.json();
+  const parsed = await readJson(response.value, "job status");
+  if (parsed.isErr()) {
+    return err(parsed.error);
+  }
+  const data = parsed.value;
   const record = isRecord(data) ? data : {};
   const rawStatus = asString(record.status);
 
@@ -179,13 +250,23 @@ export async function uploadToFalCdn(
         file_name: options.fileName,
       }),
       method: "POST",
+      // Starting an upload again only makes another unused slot; storage is
+      // not billed per job.
+      safeToRetry: true,
     }
   );
   if (initiateResponse.isErr()) {
     return err(initiateResponse.error);
   }
 
-  const initiateData: unknown = await initiateResponse.value.json();
+  const initiateJson = await readJson(
+    initiateResponse.value,
+    "upload initiate response"
+  );
+  if (initiateJson.isErr()) {
+    return err(initiateJson.error);
+  }
+  const initiateData = initiateJson.value;
   const fileUrl = isRecord(initiateData)
     ? (asString(initiateData.file_url) ?? "")
     : "";
@@ -248,7 +329,7 @@ export async function deletePayloads(
   const response = await request(
     connection,
     `${FAL_API_URL}/v1/models/requests/${encodeURIComponent(requestId)}/payloads`,
-    { method: "DELETE" }
+    { method: "DELETE", safeToRetry: true }
   );
   if (response.isErr()) {
     return err(response.error);

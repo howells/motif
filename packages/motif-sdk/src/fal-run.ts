@@ -6,9 +6,15 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { MotifError } from "./errors";
-import { FAL_BASE_URL, FAL_QUEUE_URL, getJobStatus, request } from "./fal-http";
-import type { FalConnection } from "./fal-http";
+import { INVALID_RESPONSE, MotifError, SUBMISSION_UNCERTAIN } from "./errors";
+import {
+  FAL_BASE_URL,
+  FAL_QUEUE_URL,
+  getJobStatus,
+  readJson,
+  request,
+} from "./fal-http";
+import type { FalConnection, FalRequestInit } from "./fal-http";
 import {
   asString,
   endpointFromQueueUrl,
@@ -40,12 +46,28 @@ export interface FalRequestResult {
   requestId?: string;
 }
 
-function requestInit(prepared: PreparedFalRequest): RequestInit {
+/** A billable POST: attempted once, because a repeat could bill twice. */
+function requestInit(prepared: PreparedFalRequest): FalRequestInit {
   return {
     body: JSON.stringify(prepared.body),
     headers: prepared.headers ?? {},
     method: "POST",
+    safeToRetry: false,
   };
+}
+
+/**
+ * An error from a job fal accepted, with the id and queue path a caller needs
+ * to resume it. Its message says the job may still be billed.
+ */
+function acceptedJobError(error: MotifError, job: QueuedJob): MotifError {
+  return new MotifError(
+    `${error.message} (fal accepted request ${job.requestId}; it may still finish and be billed, so resume it instead of submitting again)`,
+    error.status,
+    error.code,
+    job.requestId,
+    { ...error.details, endpoint: job.endpoint, requestId: job.requestId }
+  );
 }
 
 /** POST a prepared request to fal's synchronous endpoint. */
@@ -62,8 +84,20 @@ export async function runRequest(
     return err(response.error);
   }
 
-  const data: unknown = await response.value.json();
-  const record = isRecord(data) ? data : {};
+  const parsed = await readJson(response.value, "run response");
+  if (parsed.isErr()) {
+    // fal answered 200, so the run finished and was billed.
+    return err(
+      new MotifError(
+        `${parsed.error.message}; the run finished at fal and may have been billed`,
+        parsed.error.status,
+        INVALID_RESPONSE,
+        parsed.error.requestId,
+        { endpoint: prepared.endpoint }
+      )
+    );
+  }
+  const record = isRecord(parsed.value) ? parsed.value : {};
   const requestId =
     response.value.headers.get("x-fal-request-id") ??
     asString(record.request_id);
@@ -84,8 +118,19 @@ async function submitRequest(
     return err(response.error);
   }
 
-  const data: unknown = await response.value.json();
-  const submission = parseQueueSubmission(data);
+  const parsed = await readJson(response.value, "queue submission response");
+  const submission = parseQueueSubmission(parsed.isOk() ? parsed.value : null);
+  if (submission.requestId === "") {
+    return err(
+      new MotifError(
+        "fal's queue submission response carried no request id. fal may have accepted the request and may bill for it; check fal's dashboard before submitting again.",
+        response.value.status,
+        SUBMISSION_UNCERTAIN,
+        undefined,
+        { endpoint: prepared.endpoint }
+      )
+    );
+  }
 
   return ok({
     endpoint: endpointFromQueueUrl(submission.responseUrl, prepared.endpoint),
@@ -99,13 +144,16 @@ async function getJobResult(
   job: QueuedJob
 ): Promise<Result<Record<string, unknown>, MotifError>> {
   const url = `${FAL_QUEUE_URL}/${job.endpoint}/requests/${job.requestId}`;
-  const response = await request(connection, url);
+  const response = await request(connection, url, { safeToRetry: true });
   if (response.isErr()) {
     return err(response.error);
   }
 
-  const data: unknown = await response.value.json();
-  return ok(isRecord(data) ? data : {});
+  const parsed = await readJson(response.value, "job result");
+  if (parsed.isErr()) {
+    return err(parsed.error);
+  }
+  return ok(isRecord(parsed.value) ? parsed.value : {});
 }
 
 /** Poll a submitted job to completion and fetch its result. Submits nothing. */
@@ -119,7 +167,7 @@ export async function awaitQueuedRequest(
   for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt++) {
     const status = await getJobStatus(connection, job.endpoint, job.requestId);
     if (status.isErr()) {
-      return err(status.error);
+      return err(acceptedJobError(status.error, job));
     }
 
     const logs = status.value.logs ?? [];
@@ -133,12 +181,20 @@ export async function awaitQueuedRequest(
 
     if (status.value.status === "completed") {
       const result = await getJobResult(connection, job);
-      return result.map((data) => ({ data, requestId: job.requestId }));
+      if (result.isErr()) {
+        return err(acceptedJobError(result.error, job));
+      }
+      return ok({ data: result.value, requestId: job.requestId });
     }
 
     if (status.value.status === "failed") {
       const message = status.value.error ?? "Queued run failed";
-      return err(new MotifError(message, 0, undefined, job.requestId));
+      return err(
+        new MotifError(message, 0, undefined, job.requestId, {
+          endpoint: job.endpoint,
+          requestId: job.requestId,
+        })
+      );
     }
 
     await new Promise((resolve) => {
@@ -146,9 +202,7 @@ export async function awaitQueuedRequest(
     });
   }
 
-  return err(
-    new MotifError("Queued run timed out", 0, undefined, job.requestId)
-  );
+  return err(acceptedJobError(new MotifError("Queued run timed out", 0), job));
 }
 
 /**

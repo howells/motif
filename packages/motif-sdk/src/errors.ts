@@ -28,6 +28,16 @@ export class MotifError extends Error {
 /** Error code for a fal account that is locked, usually for lack of credit. */
 export const ACCOUNT_LOCKED = "ACCOUNT_LOCKED";
 
+/**
+ * Error code for a request that can bill a job and got no clear answer (a
+ * connection error, a timeout, a 5xx, or an unreadable acceptance). fal may
+ * have accepted it, so the caller must not blindly submit it again.
+ */
+export const SUBMISSION_UNCERTAIN = "SUBMISSION_UNCERTAIN";
+
+/** Error code for a fal response whose body was not the JSON it should be. */
+export const INVALID_RESPONSE = "INVALID_RESPONSE";
+
 const ACCOUNT_LOCKED_DETAIL = "User is locked";
 
 /**

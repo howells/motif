@@ -7,9 +7,11 @@
 import {
   ACCOUNT_LOCKED,
   getFalKeyFromEnv,
+  INVALID_RESPONSE,
   MotifError,
   NO_MODEL_AVAILABLE,
   resolveTask,
+  SUBMISSION_UNCERTAIN,
 } from "@howells/motif-sdk";
 import type {
   TaskId,
@@ -255,6 +257,20 @@ export function exitTaskError(
   }
   if (error.code === ACCOUNT_LOCKED) {
     handleError(error, ACCOUNT_LOCKED, format);
+  }
+  if (error.code === SUBMISSION_UNCERTAIN || error.code === INVALID_RESPONSE) {
+    emitError(
+      {
+        code: error.code,
+        details: { ...details, model: context.model, task: context.task },
+        ...(error.requestId === undefined
+          ? {}
+          : { instance: `urn:fal:request:${error.requestId}` }),
+        message: withoutEndpoints(error.message, context.task),
+      },
+      format
+    );
+    exitForErrorCode(error.code);
   }
   exitTaskFailed(error.message, context, format, error.requestId);
 }

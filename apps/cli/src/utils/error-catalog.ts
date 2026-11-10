@@ -79,6 +79,11 @@ export const ERROR_CATALOG = {
       "Use a relative path such as -o out/image.png, without .. segments",
     ],
   }),
+  INVALID_RESPONSE: metadata("INVALID_RESPONSE", 502, {
+    suggestions: [
+      "details.requestId and details.endpoint name the run when fal had accepted it; it may still finish and be billed, so do not submit the same command again",
+    ],
+  }),
   INVALID_STDIN: metadata("INVALID_STDIN", 400, {
     suggestions: [
       "Provide valid JSON matching the motif stdin schema; run 'motif --describe --format json' for the schema",
@@ -122,6 +127,12 @@ export const ERROR_CATALOG = {
   }),
   SERIES_REF_REMOVE_FAILED: metadata("SERIES_REF_REMOVE_FAILED", 500, {
     suggestions: [...ERROR_SUGGESTIONS.series],
+  }),
+  SUBMISSION_UNCERTAIN: metadata("SUBMISSION_UNCERTAIN", 502, {
+    suggestions: [
+      "fal may have accepted the request and may bill for it: check fal's dashboard before running the command again",
+      "Motif does not resend a request that can bill",
+    ],
   }),
   TASK_FAILED: metadata("TASK_FAILED", 502, {
     isRetriable: true,

@@ -43,7 +43,12 @@ export {
   sanitizePrompt,
   validateCreativeDirection,
 } from "./creative";
-export { ACCOUNT_LOCKED, isFalAccountLocked } from "./errors";
+export {
+  ACCOUNT_LOCKED,
+  INVALID_RESPONSE,
+  isFalAccountLocked,
+  SUBMISSION_UNCERTAIN,
+} from "./errors";
 export { INVALID_OPTION } from "./task-plan-shared";
 export {
   type PromptWarning,

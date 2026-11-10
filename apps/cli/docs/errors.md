@@ -25,7 +25,7 @@ In JSON mode, errors are written to stderr as one object:
 ## Codes
 
 - General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`, `CORRUPT_FILE`.
-- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`.
+- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
 ## Task errors
@@ -50,6 +50,10 @@ In JSON mode, errors are written to stderr as one object:
 `UNKNOWN_MODEL` exits `2`: `-m` names something that isn't a Model for this Task. `details.blockedBy` is `unknown-model`, `unblockedBy` is `["model"]`, and the message lists the Models the Task accepts.
 
 `TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran.
+
+`SUBMISSION_UNCERTAIN` exits `5` and `is_retriable` is `false`: fal did not confirm a request that can bill (a connection error, a timeout or a 5xx before any answer). fal may have accepted it and may bill for it, so Motif sends a billable request once and never resends it, and neither should you: check fal's dashboard first. Status polls and result fetches, which cannot bill, are retried.
+
+`INVALID_RESPONSE` exits `5` and `is_retriable` is `false`: fal's answer was not the JSON it should be. When fal had already accepted the run, `instance` is `urn:fal:request:<id>` and `details.requestId` and `details.endpoint` name it; it may still finish and be billed. Motif has no command that resumes a run from the CLI (the SDK's `resume` does), so look the request up in fal's dashboard rather than running the command again.
 
 `CORRUPT_FILE` exits `2` (status `422`): `~/.motif/config.json`, `.motifrc`, `~/.motif/history.json` or a series' `series.json` exists but is not valid JSON or has the wrong shape. `details.path` names the file. Motif never overwrites such a file, so nothing is lost; repair it or move it away, then run the command again. A missing file is not an error: it means default config or empty history. `series list` fails the same way when any one series file is unusable.
 

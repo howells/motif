@@ -10,7 +10,11 @@ const PNG_1X1 = Buffer.from(
 );
 
 // oxlint-disable-next-line no-restricted-properties -- a test fixture reading the variables its spawning test sets
-const { FAKE_FAL_LOG: log, FAKE_FAL_RESULT: result = "{}" } = process.env;
+const {
+  FAKE_FAL_LOG: log,
+  FAKE_FAL_POST_STATUS: postStatus,
+  FAKE_FAL_RESULT: result = "{}",
+} = process.env;
 
 const realFetch = globalThis.fetch;
 
@@ -32,8 +36,14 @@ globalThis.fetch = async (input, init) => {
       `${JSON.stringify({ body: init?.body ?? null, method: init?.method ?? "GET", url })}\n`
     );
   }
+  if (url.startsWith("https://cdn.fake/broken")) {
+    return new Response("broken", { status: 500 });
+  }
   if (url.startsWith("https://cdn.fake/")) {
     return new Response(PNG_1X1, { headers: { "content-type": "image/png" } });
+  }
+  if (init?.method === "POST" && postStatus !== undefined) {
+    return new Response("", { status: Number(postStatus) });
   }
   const parsed: unknown = JSON.parse(result);
   if (typeof parsed !== "object" || parsed === null) {

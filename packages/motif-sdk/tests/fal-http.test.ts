@@ -51,7 +51,9 @@ describe("fal request", () => {
         1
       );
 
-      const pending = request(connection, "https://fal.run/x");
+      const pending = request(connection, "https://fal.run/x", {
+        safeToRetry: true,
+      });
       await vi.runAllTimersAsync();
       const result = await pending;
 
@@ -71,7 +73,9 @@ describe("fal request", () => {
       3
     );
 
-    const result = await request(connection, "https://fal.run/x");
+    const result = await request(connection, "https://fal.run/x", {
+      safeToRetry: true,
+    });
 
     expect(result.isErr() && result.error.code).toBe("ACCOUNT_LOCKED");
     expect(result.isErr() && result.error.status).toBe(403);
@@ -83,7 +87,9 @@ describe("fal request", () => {
       new Response('{"detail":"Forbidden"}', { status: 403 }),
     ]);
 
-    const result = await request(connection, "https://fal.run/x");
+    const result = await request(connection, "https://fal.run/x", {
+      safeToRetry: true,
+    });
 
     expect(result.isErr() && result.error.code).toBeUndefined();
   });
@@ -96,7 +102,9 @@ describe("fal request", () => {
       }),
     ]);
 
-    const result = await request(connection, "https://fal.run/x");
+    const result = await request(connection, "https://fal.run/x", {
+      safeToRetry: true,
+    });
 
     const error = result.isErr() ? result.error : undefined;
     expect(error?.requestId).toBe("req_fal_err_789");
@@ -108,7 +116,9 @@ describe("fal request", () => {
       new Response("upstream unavailable", { status: 503 }),
     ]);
 
-    const result = await request(connection, "https://fal.run/x");
+    const result = await request(connection, "https://fal.run/x", {
+      safeToRetry: true,
+    });
 
     expect(result.isErr()).toBe(true);
     expect(result.isErr() && result.error.requestId).toBeUndefined();
@@ -188,5 +198,175 @@ describe("fal runs", () => {
     expect(error?.message).toBe("out of memory");
     expect(error?.requestId).toBe("req_tool_3");
     expect(calls).toHaveLength(2);
+  });
+});
+
+describe("fal runs never resend a request that can bill", () => {
+  const submission = { body: { prompt: "x" }, endpoint: "fal-ai/flux-2-pro" };
+
+  it("attempts a queue submission that returns 502 exactly once and says it may have been accepted", async () => {
+    const { calls, connection } = connectionOn(
+      [new Response("bad gateway", { status: 502 })],
+      3
+    );
+
+    const result = await runRequestQueued(connection, submission);
+
+    expect(calls).toHaveLength(1);
+    const error = result.isErr() ? result.error : undefined;
+    expect(error?.code).toBe("SUBMISSION_UNCERTAIN");
+    expect(error?.status).toBe(502);
+    expect(error?.message).toMatch(/may have accepted it and may bill/);
+  });
+
+  it("attempts a synchronous run that returns 503 exactly once", async () => {
+    const { calls, connection } = connectionOn(
+      [new Response("busy", { status: 503 })],
+      3
+    );
+
+    const result = await runRequest(connection, submission);
+
+    expect(calls).toHaveLength(1);
+    expect(result.isErr() && result.error.code).toBe("SUBMISSION_UNCERTAIN");
+  });
+
+  it("attempts a submission whose connection fails exactly once", async () => {
+    let attempts = 0;
+    const connection = falConnection("test-key", {
+      fetch: async () => {
+        attempts += 1;
+        return await Promise.reject(new Error("socket hang up"));
+      },
+      retries: 3,
+    });
+
+    const result = await runRequestQueued(connection, submission);
+
+    expect(attempts).toBe(1);
+    expect(result.isErr() && result.error.code).toBe("SUBMISSION_UNCERTAIN");
+  });
+
+  it("still retries a 429, which fal refuses before doing any work", async () => {
+    vi.useFakeTimers();
+    try {
+      const { calls, connection } = connectionOn(
+        [
+          new Response("slow down", { status: 429 }),
+          jsonResponse({
+            request_id: "req_1",
+            response_url:
+              "https://queue.fal.run/fal-ai/flux-2-pro/requests/req_1",
+          }),
+          jsonResponse({ status: "FAILED", error: "stop" }),
+        ],
+        1
+      );
+
+      const pending = runRequestQueued(connection, submission);
+      await vi.runAllTimersAsync();
+      await pending;
+
+      expect(calls[0]?.method).toBe("POST");
+      expect(calls[1]?.method).toBe("POST");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("retries a status poll that returns 502 and finishes the run", async () => {
+    vi.useFakeTimers();
+    try {
+      const { calls, connection } = connectionOn(
+        [
+          jsonResponse({
+            request_id: "req_2",
+            response_url:
+              "https://queue.fal.run/fal-ai/flux-2-pro/requests/req_2",
+          }),
+          new Response("bad gateway", { status: 502 }),
+          jsonResponse({ status: "COMPLETED" }),
+          jsonResponse({ images: [] }),
+        ],
+        1
+      );
+
+      const pending = runRequestQueued(connection, submission);
+      await vi.runAllTimersAsync();
+      const result = await pending;
+
+      expect(result.isOk()).toBe(true);
+      expect(calls).toHaveLength(4);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
+
+describe("fal failures after a job is accepted", () => {
+  const submission = { body: {}, endpoint: "fal-ai/flux-2-pro" };
+  const accepted = () =>
+    jsonResponse({
+      request_id: "req_9",
+      response_url: "https://queue.fal.run/fal-ai/flux-2-pro/requests/req_9",
+    });
+
+  it("returns an error, not a rejection, for a truncated status body, and carries the request id", async () => {
+    const { connection } = connectionOn([accepted(), new Response('{"stat')]);
+
+    const result = await runRequestQueued(connection, submission);
+
+    const error = result.isErr() ? result.error : undefined;
+    expect(error?.code).toBe("INVALID_RESPONSE");
+    expect(error?.requestId).toBe("req_9");
+    expect(error?.details).toMatchObject({
+      endpoint: "fal-ai/flux-2-pro",
+      requestId: "req_9",
+    });
+    expect(error?.message).toMatch(/resume it/);
+  });
+
+  it("carries the request id when the result body is truncated", async () => {
+    const { connection } = connectionOn([
+      accepted(),
+      jsonResponse({ status: "COMPLETED" }),
+      new Response("{"),
+    ]);
+
+    const result = await runRequestQueued(connection, submission);
+
+    expect(result.isErr() && result.error.requestId).toBe("req_9");
+    expect(result.isErr() && result.error.code).toBe("INVALID_RESPONSE");
+  });
+
+  it("carries the request id when polling fails for good", async () => {
+    const { connection } = connectionOn(
+      [accepted(), new Response("gone", { status: 502 })],
+      0
+    );
+
+    const result = await runRequestQueued(connection, submission);
+
+    expect(result.isErr() && result.error.requestId).toBe("req_9");
+    expect(result.isErr() && result.error.status).toBe(502);
+  });
+
+  it("treats a queue acceptance with no readable body as uncertain", async () => {
+    const { connection } = connectionOn([new Response("not json")]);
+
+    const result = await runRequestQueued(connection, submission);
+
+    expect(result.isErr() && result.error.code).toBe("SUBMISSION_UNCERTAIN");
+  });
+
+  it("returns an error for a synchronous run whose body is not JSON", async () => {
+    const { connection } = connectionOn([
+      new Response("<html>", { headers: { "x-fal-request-id": "req_s" } }),
+    ]);
+
+    const result = await runRequest(connection, submission);
+
+    expect(result.isErr() && result.error.code).toBe("INVALID_RESPONSE");
+    expect(result.isErr() && result.error.requestId).toBe("req_s");
   });
 });
