@@ -70,11 +70,24 @@ class FakeStdout extends PassThrough {
   }
 }
 
-const settle = async (): Promise<void> => {
-  await new Promise((resolve) => {
-    setTimeout(resolve, 80);
-  });
-};
+const DEADLINE_MS = 15_000;
+
+/** Polls until the condition holds; a loaded machine only makes this slower, never wrong. */
+async function waitFor(
+  what: string,
+  condition: () => boolean,
+  deadlineMs = DEADLINE_MS
+): Promise<void> {
+  const end = Date.now() + deadlineMs;
+  while (!condition()) {
+    if (Date.now() > end) {
+      throw new Error(`timed out waiting for ${what}`);
+    }
+    await new Promise((resolve) => {
+      setTimeout(resolve, 10);
+    });
+  }
+}
 
 async function startStudio(configOverride: Record<string, unknown> = {}) {
   const { loadConfig, loadHistory } = await import("../src/utils/config");
@@ -93,15 +106,23 @@ async function startStudio(configOverride: Record<string, unknown> = {}) {
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- test double standing in for the terminal's stdout
     stdout: stdout as unknown as NodeJS.WriteStream,
   });
-  await settle();
+  await waitFor("the first frame", () => stdout.frames.length > 0);
 
   return {
     frame: () => stdout.frames.at(-1) ?? "",
+    /** Types each key and waits for ink to render a frame in response. */
     async press(...keys: string[]) {
       for (const key of keys) {
+        const before = stdout.frames.length;
         stdin.write(key);
-        await settle();
+        await waitFor(
+          `a frame after key ${JSON.stringify(key)}`,
+          () => stdout.frames.length > before
+        );
       }
+    },
+    async waitForFrame(what: string, test: (frame: string) => boolean) {
+      await waitFor(what, () => test(stdout.frames.at(-1) ?? ""));
     },
     stop: () => {
       instance.unmount();
@@ -119,6 +140,9 @@ describe("Studio settings", () => {
     const studio = await startStudio({ apiKey: "project-local-key-9999" });
 
     await studio.press(...OPEN_SETTINGS_TOGGLE, ENTER, "s");
+    await waitFor("the save to reach the file", () =>
+      readFileSync(path, "utf-8").includes("openAfterGenerate")
+    );
     studio.stop();
 
     expect(JSON.parse(readFileSync(path, "utf-8"))).toStrictEqual({
@@ -131,9 +155,13 @@ describe("Studio settings", () => {
     const studio = await startStudio();
 
     await studio.press(...OPEN_SETTINGS_TOGGLE, ENTER, "s");
-    expect(studio.frame()).toContain("Generate");
+    await studio.waitForFrame("the Home screen after saving", (frame) =>
+      frame.includes("Make an image from a prompt")
+    );
     await studio.press(DOWN, DOWN, DOWN, ENTER);
-    expect(studio.frame()).toMatch(/Open After Generate\s+No/);
+    await studio.waitForFrame("Settings showing the saved value", (frame) =>
+      /Open After Generate\s+No/.test(frame)
+    );
     studio.stop();
   });
 
@@ -143,8 +171,10 @@ describe("Studio settings", () => {
     writeFileSync(path, "{broken");
 
     await studio.press(...OPEN_SETTINGS_TOGGLE, ENTER, "s");
+    await studio.waitForFrame("the error banner", (frame) =>
+      frame.includes("not valid JSON")
+    );
     expect(studio.frame()).toContain("✗");
-    expect(studio.frame()).toContain("not valid JSON");
     expect(studio.frame()).toContain("Settings");
     studio.stop();
 
