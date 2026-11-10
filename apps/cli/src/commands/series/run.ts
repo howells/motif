@@ -54,12 +54,27 @@ import {
   SERIES_RUN_MAX_COUNT,
 } from "./scenes";
 import {
+  anchoredSize,
+  PLANNING_ANCHOR,
+  planScenes,
   runSeriesTask,
   sentSize,
   seriesCreativeDirection,
   seriesInput,
   splitRefTags,
 } from "./shared";
+
+/** The sum of the prices, or null when any is unknown. */
+function sumKnown(prices: readonly (number | null)[]): number | null {
+  let total = 0;
+  for (const price of prices) {
+    if (price === null) {
+      return null;
+    }
+    total += price;
+  }
+  return total;
+}
 
 export async function cmdRun(
   theme: string,
@@ -151,6 +166,7 @@ export async function cmdRun(
     );
     const references = await imageSources(refPaths);
     const size = sentSize(opts, { aspect, resolution });
+    const anchored = anchoredSize(opts, { aspect, resolution });
     const sceneInput = (index: number, model?: string, extra: string[] = []) =>
       seriesInput({
         count: 1,
@@ -158,7 +174,7 @@ export async function cmdRun(
         model,
         prompt: scenes[index]?.request ?? sanitizedTheme,
         references: [...references, ...extra],
-        size,
+        size: extra.length > 0 ? anchored : size,
         tier,
       });
 
@@ -172,7 +188,29 @@ export async function cmdRun(
     const plan = planned.value;
     const maxRefs = modelProfile(plan.model)?.maxReferences ?? 0;
     const canUseAnchorReference = refPaths.length < maxRefs;
-    const estimatedCost = plan.cost.usd === null ? null : plan.cost.usd * count;
+
+    // Planning is pure and free: plan every scene as the run will send it,
+    // later scenes anchored on the first, and refuse the whole run now if any
+    // cannot be planned, rather than after the first scenes are paid for.
+    const scenePlans = planScenes(count, (index) =>
+      index === 0
+        ? planned
+        : client.plan(
+            "generate",
+            sceneInput(
+              index,
+              plan.model,
+              canUseAnchorReference ? [PLANNING_ANCHOR] : []
+            ),
+            { dryRun }
+          )
+    );
+    if ("error" in scenePlans) {
+      exitTaskError(scenePlans.error, emitOpts.format, { task: "generate" });
+    }
+    const estimatedCost = sumKnown(
+      scenePlans.plans.map((scenePlan) => scenePlan.cost.usd)
+    );
 
     if (dryRun) {
       emit(
@@ -201,8 +239,10 @@ export async function cmdRun(
             baseScenePrompt: baseScene,
             enrichedScenePrompt: scene,
             index: index + 1,
+            model: scenePlans.plans[index]?.model,
             prompt: full,
             scenePrompt: scene,
+            size: scenePlans.plans[index]?.size,
           })),
           valid: true,
         },

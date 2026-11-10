@@ -4,9 +4,11 @@ import type {
   AspectRatio,
   CreativeDirection,
   MotifClient,
+  MotifError,
   Resolution,
   TaskInput,
   TaskOutput,
+  TaskPlan,
   Tier,
 } from "@howells/motif-sdk";
 
@@ -52,6 +54,46 @@ export function sentSize(
       resolution: size.resolution,
     }),
   };
+}
+
+/**
+ * The size an anchored scene sends. The anchor is a reference, so the request
+ * is an edit, and an edit with no aspect follows its source or the nearest
+ * ratio a Model makes. Scene 1 with no aspect is a 1:1 render, so every
+ * anchored scene names the Series' aspect (chosen or the 1:1 default) and
+ * comes out the same shape as scene 1. A resolution is sent only when it was
+ * chosen, as for scene 1.
+ */
+export function anchoredSize(
+  flags: { aspect?: string; resolution?: string },
+  size: { aspect: AspectRatio; resolution: Resolution }
+): { aspect: AspectRatio; resolution?: Resolution } {
+  return { ...sentSize(flags, size), aspect: size.aspect };
+}
+
+/** A 1x1 PNG that stands in for the anchor image while scenes are planned, before it exists. */
+export const PLANNING_ANCHOR =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+
+/**
+ * Plan every scene's real request before anything is paid for: `plan(i)` is
+ * scene `i`'s request, anchored where the run will anchor it. The first
+ * refusal ends the planning, so a run that cannot plan scene N spends nothing
+ * on scenes 1 to N-1.
+ */
+export function planScenes(
+  count: number,
+  plan: (index: number) => ReturnType<MotifClient["plan"]>
+): { plans: TaskPlan[] } | { error: MotifError } {
+  const plans: TaskPlan[] = [];
+  for (let index = 0; index < count; index++) {
+    const planned = plan(index);
+    if (planned.isErr()) {
+      return { error: planned.error };
+    }
+    plans.push(planned.value);
+  }
+  return { plans };
 }
 
 /**

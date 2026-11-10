@@ -37,7 +37,7 @@ motif series history luna-s-adventure
 3. **Pinned look and mood** are stored on the series and added to every scene prompt in `series gen` and `series run`. A `--look` or `--mood` flag on gen or run replaces the pinned value for that call. The `--style` prompt goes first, then the scene, then the look and mood sentences. `series create` validates the pair with the same rules as `generate`, so a mood on a flat look fails with `INVALID_OPTION`. `--no-mood` on gen or run drops the pinned mood for that call. A `series run` without `--series` creates a Series that pins the look and mood the run used.
 4. **References** (tagged) are passed to the Model as references. Several references rule out Models that can't take that many.
 5. **Outputs** are tracked per series with the prompt, references used and cost.
-6. **Live runs** reuse the first image as a style anchor for later images when the Model takes references.
+6. **Live runs** reuse the first image as a style anchor for later images when the Model takes references. That makes scenes 2 and up edits, so `series run` plans every scene as it will send it (anchored ones included) before it submits anything, and refuses the whole run with nothing spent if any scene cannot be planned. The dry run reports each scene's `model` and `size` from its own plan. Every anchored scene names the Series' aspect (the one chosen, else 1:1), so all scenes come out the same shape.
 
 ## Rules
 
