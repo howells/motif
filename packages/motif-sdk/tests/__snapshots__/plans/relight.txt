@@ -6,6 +6,7 @@ relight - iclight-v2 mood => iclight-v2 fal-ai/iclight-v2 queued=false by=model 
 relight - iclight-v2 mask => iclight-v2 fal-ai/iclight-v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08000000000000002} prompt="the shoe" body={"image_url":"https://example.com/source.png","mask_image_url":"https://example.com/reference.png","prompt":"the shoe"}
 relight - iclight-v2 transparent => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 1K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
+relight - iclight-v2 2K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
 relight - iclight-v2 4K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
 relight - iclight-v2 ref1 => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 ref2 => ERR NO_MODEL_AVAILABLE iclight-v2 (model) cannot do references. {"blockedBy":"references","task":"relight","unblockedBy":["option"]}
@@ -19,6 +20,7 @@ relight even lighting-restoration mood => ERR INVALID_OPTION lighting-restoratio
 relight even lighting-restoration mask => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do mask. {"blockedBy":"mask","task":"relight","unblockedBy":["option"]}
 relight even lighting-restoration transparent => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
 relight even lighting-restoration 1K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
+relight even lighting-restoration 2K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration 4K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration ref1 => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do references. {"blockedBy":"references","task":"relight","unblockedBy":["option"]}
 relight even lighting-restoration ref2 => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do references. {"blockedBy":"references","task":"relight","unblockedBy":["option"]}
@@ -32,6 +34,7 @@ relight flat remove-lighting mood => ERR INVALID_OPTION remove-lighting cannot t
 relight flat remove-lighting mask => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do mask. {"blockedBy":"mask","task":"relight","unblockedBy":["option"]}
 relight flat remove-lighting transparent => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
 relight flat remove-lighting 1K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
+relight flat remove-lighting 2K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting 4K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting ref1 => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do references. {"blockedBy":"references","task":"relight","unblockedBy":["option"]}
 relight flat remove-lighting ref2 => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do references. {"blockedBy":"references","task":"relight","unblockedBy":["option"]}

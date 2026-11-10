@@ -94,6 +94,7 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ["mask", (input) => ({ ...input, mask: OTHER_IMAGE, prompt: "the shoe" })],
   ["transparent", (input) => ({ ...input, transparent: true })],
   ["1K", (input) => ({ ...input, prompt: "the shoe", resolution: "1K" })],
+  ["2K", (input) => ({ ...input, prompt: "the shoe", resolution: "2K" })],
   ["4K", (input) => ({ ...input, prompt: "the shoe", resolution: "4K" })],
   ["ref1", (input) => ({ ...input, references: [OTHER_IMAGE] })],
   [

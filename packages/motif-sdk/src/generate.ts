@@ -133,11 +133,7 @@ function validateGenerateOptions(
   if (options.aspect !== undefined && sizeMode === "none") {
     unsupported(config, "aspect");
   }
-  if (
-    options.resolution !== undefined &&
-    options.resolution !== "2K" &&
-    !config.supportsResolution
-  ) {
+  if (options.resolution !== undefined && !config.supportsResolution) {
     unsupported(config, "resolution");
   }
   // An edit with no aspect is sized from its source ("auto"), which has no

@@ -83,11 +83,7 @@ function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
     negativePrompt: input.negativePrompt !== undefined,
     outputFormat: input.outputFormat,
     references,
-    // 2K is every generation Model's default size, so it asks for nothing.
-    resolution:
-      definition.generationModels === true && input.resolution === "2K"
-        ? undefined
-        : input.resolution,
+    resolution: input.resolution,
     rig: input.rig,
     seed: input.seed !== undefined,
     source,

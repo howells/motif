@@ -6,6 +6,7 @@ reframe - ideogram-reframe mood => ERR INVALID_OPTION ideogram-reframe cannot ta
 reframe - ideogram-reframe mask => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
 reframe - ideogram-reframe transparent => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe - ideogram-reframe 1K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ideogram-reframe 2K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
 reframe - ideogram-reframe 4K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
 reframe - ideogram-reframe ref1 => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
 reframe - ideogram-reframe ref2 => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
@@ -19,6 +20,7 @@ reframe - bria-expand mood => ERR INVALID_OPTION bria-expand cannot take mood fo
 reframe - bria-expand mask => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
 reframe - bria-expand transparent => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe - bria-expand 1K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - bria-expand 2K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[2048,1152],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - bria-expand 4K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[4096,2304],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - bria-expand ref1 => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
 reframe - bria-expand ref2 => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
@@ -32,6 +34,7 @@ reframe margin flux-outpaint mood => ERR INVALID_OPTION flux-outpaint cannot tak
 reframe margin flux-outpaint mask => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint transparent => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint 1K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint 2K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint 4K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint ref1 => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint ref2 => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
@@ -45,6 +48,7 @@ reframe sizes smart-resize mood => ERR INVALID_OPTION smart-resize cannot take m
 reframe sizes smart-resize mask => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize transparent => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize 1K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize 2K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize 4K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize ref1 => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize ref2 => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}

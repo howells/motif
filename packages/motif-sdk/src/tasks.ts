@@ -87,8 +87,7 @@ export interface TaskDefinition {
   /** Best first. Order within a Tier is the order tried at that Tier. */
   readonly models: readonly RankedModel[];
   /**
-   * Its ranked Models are generation Models: a Look can fix one, and 2K is
-   * their default size, so asking for 2K asks for nothing.
+   * Its ranked Models are generation Models: a Look can fix one.
    */
   readonly generationModels?: true;
   /** Refuses a request with no prompt. */
