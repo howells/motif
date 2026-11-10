@@ -1,5 +1,24 @@
 # @howells/motif-sdk
 
+## 7.4.0
+
+Released alongside `@howells/motif-cli` 5.4.0.
+
+### Minor Changes
+
+- `resumePlan` collects a queued run from the plan it was made with, and `runsQueued` says whether a run will queue.
+- `onSubmitted` reports the request id as soon as fal accepts a queued run.
+- A request fal has no record of, or whose result has expired, returns `REQUEST_NOT_FOUND`. A job fal reports as failed carries `details.jobFailed`.
+
+### CLI 5.4.0
+
+- `motif resume <requestId>` collects a queued run fal accepted and finishes it as the original command would: same file names, history and output. `motif resume` alone lists the runs waiting. A queued run that fails after fal accepts it now suggests the exact `motif resume` command.
+- Runs waiting to be collected are kept in `~/.motif/pending`, without image data, and removed once saved. Ephemeral runs, synchronous runs, Series scenes and Studio runs are not kept.
+- New error codes: `PENDING_RUN_NOT_FOUND` and `REQUEST_NOT_FOUND`.
+- `--describe` derives every command's input from the options the command really takes, so `vary` lists `markup` and `generate` lists `negativePrompt`, `outputFormat` and `preset`. Each command carries `cli` (synopsis, options and subcommands), and `common_options` lists what every Task verb shares.
+- `--describe` text is no longer passed through the prompt filter, which printed `[FILTERED]` in `animate`'s usage.
+- `motif generate --help` shows `motif generate [options] [prompt]` and no longer lists `--version`.
+
 ## 7.3.0
 
 Released alongside `@howells/motif-cli` 5.3.0.
