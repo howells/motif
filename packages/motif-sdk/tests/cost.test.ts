@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { estimateCost } from "../src/cost";
-import { MODELS } from "../src/models";
+import { GENERATION_MODELS, MODELS } from "../src/models";
 
 function price(model: string): number {
   const value = MODELS[model]?.pricePerImageUsd;
@@ -35,5 +35,17 @@ describe("estimateCost", () => {
 
   it("ignores resolution for models without tiered pricing", () => {
     expect(estimateCost("flux2-pro", "4K")).toBeCloseTo(price("flux2-pro"));
+  });
+});
+
+describe("estimateCost refusals", () => {
+  it("refuses an id that is not a registry Model", () => {
+    expect(() => estimateCost("nope")).toThrow("Unknown Model: nope");
+  });
+
+  it("prices every generation Model or marks it token-metered", () => {
+    for (const id of GENERATION_MODELS) {
+      expect(() => estimateCost(id)).not.toThrow();
+    }
   });
 });

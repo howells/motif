@@ -34,48 +34,44 @@ const FAL_GPT_IMAGE_MODEL = "fal-ai/gpt-image-1.5";
 /** Env var read for the fal key when `apiKey` is not supplied in config. */
 export const FAL_API_KEY_ENV = "FAL_KEY";
 
+function registryPrice(modelId: string): number {
+  const price = MODELS[modelId]?.pricePerImageUsd;
+  if (typeof price !== "number") {
+    throw new MotifError(`Registry Model ${modelId} has no per-image price`, 0);
+  }
+  return price;
+}
+
 /**
  * Static fal USD/image, keyed by the fal ENDPOINT id. Cost tracking must price
  * the endpoints consumers actually pass. Every price is
  * sourced from the fal registry snapshot in `../models`
  * (`MODELS[...].pricePerImageUsd`) so this table stays in sync rather than
- * drifting to a second hand-maintained copy; the `??` fallbacks are the registry
- * values at time of writing, used only if a registry entry loses its optional
- * price. Each key is `MODELS[x].endpoint`; the trailing comment cites the
- * `MODELS` key it comes from. Covers the flux2 family, banana, seedream, and
+ * drifting to a second hand-maintained copy; a registry entry without a price throws at
+ * load. Each key is `MODELS[x].endpoint`. Covers the flux2 family, banana, seedream, and
  * the other priced fal generation endpoints.
  */
 const FAL_IMAGE_PRICE_USD: Readonly<Record<string, number>> = {
-  // FLUX.2 family.
-  "fal-ai/flux-2-pro": MODELS["flux2-pro"]?.pricePerImageUsd ?? 0.03, // MODELS["flux2-pro"]
-  "fal-ai/flux-2-flex": MODELS["flux2-flex"]?.pricePerImageUsd ?? 0.05, // MODELS["flux2-flex"]
-  "fal-ai/flux-2/turbo": MODELS["flux2-turbo"]?.pricePerImageUsd ?? 0.008, // MODELS["flux2-turbo"]
-  // gpt-image (fal adds overhead vs OpenAI-direct — see design doc §10).
-  [FAL_GPT_IMAGE_MODEL]: MODELS.gpt?.pricePerImageUsd ?? 0.133, // MODELS.gpt
-  // Nano Banana (Gemini image) family.
-  "fal-ai/nano-banana-2": MODELS.banana2?.pricePerImageUsd ?? 0.08, // MODELS.banana2
-  "fal-ai/nano-banana-pro": MODELS.banana?.pricePerImageUsd ?? 0.15, // MODELS.banana
-  // Seedream family.
-  "bytedance/seedream/v5/pro/text-to-image":
-    MODELS.seedream5?.pricePerImageUsd ?? 0.0675, // MODELS.seedream5
-  "bytedance/seedream/v5/lite/text-to-image":
-    MODELS["seedream5-lite"]?.pricePerImageUsd ?? 0.035, // MODELS["seedream5-lite"]
-  // Other priced fal generation endpoints.
-  "fal-ai/recraft/v4.1/text-to-image":
-    MODELS.recraft41?.pricePerImageUsd ?? 0.035, // MODELS.recraft41
-  "ideogram/v4": MODELS.ideogram4?.pricePerImageUsd ?? 0.03, // MODELS.ideogram4
-  "xai/grok-imagine-image": MODELS["grok-image"]?.pricePerImageUsd ?? 0.02, // MODELS["grok-image"]
-  "xai/grok-imagine-image/v2.0/text-to-image":
-    MODELS["grok-image-2"]?.pricePerImageUsd ?? 0.06, // MODELS["grok-image-2"]
+  "fal-ai/flux-2-pro": registryPrice("flux2-pro"),
+  "fal-ai/flux-2-flex": registryPrice("flux2-flex"),
+  "fal-ai/flux-2/turbo": registryPrice("flux2-turbo"),
+  [FAL_GPT_IMAGE_MODEL]: registryPrice("gpt"),
+  "fal-ai/nano-banana-2": registryPrice("banana2"),
+  "fal-ai/nano-banana-pro": registryPrice("banana"),
+  "bytedance/seedream/v5/pro/text-to-image": registryPrice("seedream5"),
+  "bytedance/seedream/v5/lite/text-to-image": registryPrice("seedream5-lite"),
+  "fal-ai/recraft/v4.1/text-to-image": registryPrice("recraft41"),
+  "ideogram/v4": registryPrice("ideogram4"),
+  "xai/grok-imagine-image": registryPrice("grok-image"),
+  "xai/grok-imagine-image/v2.0/text-to-image": registryPrice("grok-image-2"),
   "xai/grok-imagine-image/quality/text-to-image":
-    MODELS["grok-image-quality"]?.pricePerImageUsd ?? 0.05, // MODELS["grok-image-quality"]
-  "meta/muse-image/text-to-image":
-    MODELS["muse-image"]?.pricePerImageUsd ?? 0.01, // MODELS["muse-image"]
-  "microsoft/mai-image-2.5-pro":
-    MODELS["mai-image-2.5-pro"]?.pricePerImageUsd ?? 0.17, // MODELS["mai-image-2.5-pro"]
-  "fal-ai/ideogram/v3/generate-transparent":
-    MODELS["ideogram3-transparent"]?.pricePerImageUsd ?? 0.06, // MODELS["ideogram3-transparent"]
-  "alibaba/qwen-image-3/text-to-image": MODELS.qwen3?.pricePerImageUsd ?? 0.04, // MODELS.qwen3
+    registryPrice("grok-image-quality"),
+  "meta/muse-image/text-to-image": registryPrice("muse-image"),
+  "microsoft/mai-image-2.5-pro": registryPrice("mai-image-2.5-pro"),
+  "fal-ai/ideogram/v3/generate-transparent": registryPrice(
+    "ideogram3-transparent"
+  ),
+  "alibaba/qwen-image-3/text-to-image": registryPrice("qwen3"),
 };
 
 /**

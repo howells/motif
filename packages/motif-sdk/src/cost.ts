@@ -1,9 +1,11 @@
+import { MotifError } from "./errors";
 import { MODELS } from "./models";
 import type { Resolution } from "./types";
 
 /**
  * Estimate cost based on model and settings. `editImages` is the number of
  * input images on an edit, for Models whose edits cost more than generation.
+ * Null for a token-metered Model; throws for an id with no per-image price.
  */
 export function estimateCost(
   model: string,
@@ -11,9 +13,16 @@ export function estimateCost(
   numImages = 1,
   editImages = 0
 ): number | null {
-  const configuredPrice = MODELS[model]?.pricePerImageUsd;
+  const config = MODELS[model];
+  if (config === undefined) {
+    throw new MotifError(`Unknown Model: ${model}`, 0, "UNKNOWN_MODEL");
+  }
+  const configuredPrice = config.pricePerImageUsd;
   if (configuredPrice === null) {
     return null;
+  }
+  if (configuredPrice === undefined) {
+    throw new MotifError(`${model} has no per-image price`, 0);
   }
   if (model === "mai-image-2.5-pro" && editImages > 0) {
     // fal quotes ~$0.18-$0.27 per output image with one input; project the top.
@@ -30,52 +39,34 @@ export function estimateCost(
     const perImage = resolution === "2K" || resolution === "4K" ? 0.07 : 0.05;
     return perImage * numImages + 0.01 * editImages;
   }
-  if (configuredPrice !== undefined) {
-    if (model === "banana" && resolution === "4K") {
-      return configuredPrice * 2 * numImages;
-    }
-    if (model === "seedream5" && (resolution === "2K" || resolution === "4K")) {
-      // fal tiers Seedream v5 Pro: $0.0675 up to 1536², $0.135 up to 2048²
-      // (2K/4K settings map to the larger, doubled tier).
-      return configuredPrice * 2 * numImages;
-    }
-    if (
-      model === "grok-image-2" &&
-      (resolution === "2K" || resolution === "4K")
-    ) {
-      // fal tiers Grok Imagine Image 2.0 at medium quality: 1K $0.06, 2K $0.08.
-      return 0.08 * numImages;
-    }
-    if (model === "banana2") {
-      // fal tiers nano-banana-2 by resolution: 0.5K $0.06, 1K $0.08, 2K $0.12, 4K $0.16
-      const multiplier =
-        resolution === "4K"
-          ? 2
-          : resolution === "2K"
-            ? 1.5
-            : resolution === "0.5K"
-              ? 0.75
-              : 1;
-      return configuredPrice * multiplier * numImages;
-    }
-    return configuredPrice * numImages;
+  if (model === "banana" && resolution === "4K") {
+    return configuredPrice * 2 * numImages;
   }
-
-  switch (model) {
-    case "gpt": {
-      return 0.133 * numImages;
-    }
-    case "clarity": {
-      // fal bills clarity-upscaler at $0.03/MP.
-      return 0.03 * numImages;
-    }
-    case "crystal": {
-      return 0.02 * numImages;
-    }
-    default: {
-      return 0.1 * numImages;
-    }
+  if (model === "seedream5" && (resolution === "2K" || resolution === "4K")) {
+    // fal tiers Seedream v5 Pro: $0.0675 up to 1536², $0.135 up to 2048²
+    // (2K/4K settings map to the larger, doubled tier).
+    return configuredPrice * 2 * numImages;
   }
+  if (
+    model === "grok-image-2" &&
+    (resolution === "2K" || resolution === "4K")
+  ) {
+    // fal tiers Grok Imagine Image 2.0 at medium quality: 1K $0.06, 2K $0.08.
+    return 0.08 * numImages;
+  }
+  if (model === "banana2") {
+    // fal tiers nano-banana-2 by resolution: 0.5K $0.06, 1K $0.08, 2K $0.12, 4K $0.16
+    const multiplier =
+      resolution === "4K"
+        ? 2
+        : resolution === "2K"
+          ? 1.5
+          : resolution === "0.5K"
+            ? 0.75
+            : 1;
+    return configuredPrice * multiplier * numImages;
+  }
+  return configuredPrice * numImages;
 }
 
 /** Estimate cost for video generation */
