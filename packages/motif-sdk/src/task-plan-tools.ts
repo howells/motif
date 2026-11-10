@@ -26,8 +26,9 @@ import { projectedToolCost } from "./tool-cost";
 import type { OutputDimensions, SourceFacts } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
 import type { FalToolParameter } from "./tool-parameters.generated";
+import type { FalToolConfig } from "./tool-types";
 import { buildFalToolRequest, FAL_TOOLS } from "./tools";
-import type { FalToolConfig, FalToolId } from "./tools";
+import type { FalToolId } from "./tools";
 import type { AspectRatio, CustomImageSize } from "./types";
 
 type Box = NonNullable<TaskInput["boxes"]>[number];

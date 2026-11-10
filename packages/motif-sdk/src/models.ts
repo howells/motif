@@ -1108,36 +1108,7 @@ export const MODELS: Record<string, ModelConfig> = {
   },
 };
 
-/** Curated generation Models, the only ones Motif recommends. */
-export const GENERATION_MODELS = [
-  "sunburst",
-  "flare",
-  "gpt",
-  "banana21",
-  "banana2",
-  "banana",
-  "mai-image-2.5",
-  "mai-image-2.5-pro",
-  "seedream5",
-  "qwen3",
-  "banana2-lite",
-  "grok-image-2",
-  "grok-image-quality",
-  "grok-image",
-  "muse-image",
-  "krea3",
-  "flux2-flex",
-  "flux2-pro",
-  "flux2-turbo",
-  "seedream5-lite",
-  "ideogram4",
-  "ideogram3-transparent",
-  "recraft41",
-] as const;
-
-/** Models whose fal endpoints support image editing (vary/edit flows). */
-export const EDIT_CAPABLE_MODELS = GENERATION_MODELS.filter(
-  (id) => MODELS[id]?.supportsEdit === true
+/** The generation Models, in registry order. */
+export const GENERATION_MODELS = Object.keys(MODELS).filter(
+  (id) => MODELS[id]?.type === "generation"
 );
-
-export type GenerationModelName = (typeof GENERATION_MODELS)[number];

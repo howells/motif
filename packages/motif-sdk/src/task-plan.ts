@@ -44,8 +44,6 @@ import type { RankedModel, TaskId } from "./tasks";
 import { isFalToolId } from "./tools";
 import type { GenerateOptions, ImageQuality, ModelConfig } from "./types";
 
-export { INVALID_OPTION } from "./task-plan-shared";
-
 /** Keys and pins the planner resolves against. */
 export interface PlanContext {
   falKey?: string;
