@@ -8,7 +8,6 @@
 - [Agent instructions](./AGENTS.md) - repo commands, package map, architecture rules and permission boundaries.
 - [CLI agent guide](./apps/cli/AGENTS.md) - driving the `motif` command from an agent.
 - [Domain language](./GLOSSARY.md) - Task, Model, Tier, Source, Reference, Series, Look, Mood.
-- [Security notes](./docs/security.md) - key handling, local history exposure and ephemeral runs.
 
 ## What do you want to do?
 
@@ -50,14 +49,6 @@ Motif recommends 23 generation Models, ordered by Arena (read 29 October 2026). 
 - [Output](./apps/cli/docs/output.md) - where each command puts its path, field masks, chaining, pagination.
 - [Errors](./apps/cli/docs/errors.md) - the catalogue, including `NO_MODEL_AVAILABLE` and `TASK_FAILED`.
 - [Series](./apps/cli/docs/series.md) - themed runs, references, pinned looks and moods.
-
-## Guides
-
-- [Understanding images](./docs/tools/understanding-images.md) - segment, ask, read, and segment-then-edit.
-- [Control maps](./docs/tools/preprocessors.md) - which map for which job.
-- [Repair and restore](./docs/tools/repair-and-restore.md) - erase at each Tier, restore modes, relighting.
-- [Layers, vectors and materials](./docs/tools/layers-vectors-materials.md) - layers, SVG tracing, photo to PBR.
-- [Pipelines](./docs/tools/pipelines.md) - chained commands and where each puts its output path.
 
 ## SDK
 

@@ -248,20 +248,32 @@ describe("the homepage content", () => {
     expect(wrong).toStrictEqual([]);
   });
 
-  it("has a placeholder for every opaque image, and none for a cut-out", async () => {
-    const wrong: string[] = [];
-    for (const image of images) {
-      const { isOpaque } = await sharp(path.join(PUBLIC, image.src)).stats();
-      const has = placeholderOf(image.src) !== undefined;
-      if (isOpaque && !has) {
-        wrong.push(`${image.src} has no placeholder: run pnpm placeholders`);
-      }
-      if (!isOpaque && has) {
-        wrong.push(`${image.src} is a cut-out with a placeholder`);
-      }
+  // Decoding every picture to read its alpha takes seconds on a quiet machine
+  // and longer beside the other packages' tests, so it gets a longer timeout
+  // than vitest's five seconds.
+  it(
+    "has a placeholder for every opaque image, and none for a cut-out",
+    { timeout: 60_000 },
+    async () => {
+      const found = await Promise.all(
+        images.map(async (image) => {
+          const { isOpaque } = await sharp(
+            path.join(PUBLIC, image.src)
+          ).stats();
+          const has = placeholderOf(image.src) !== undefined;
+          if (isOpaque && !has) {
+            return [`${image.src} has no placeholder: run pnpm placeholders`];
+          }
+          if (!isOpaque && has) {
+            return [`${image.src} is a cut-out with a placeholder`];
+          }
+          return [];
+        })
+      );
+      const wrong = found.flat();
+      expect(wrong).toStrictEqual([]);
     }
-    expect(wrong).toStrictEqual([]);
-  });
+  );
 
   it("describes every image in its alt text", () => {
     expect(images.filter((image) => image.alt.trim() === "")).toStrictEqual([]);

@@ -1,4 +1,4 @@
-import { MASTHEAD_LINKS, SITE } from "@/lib/site/content";
+import { GITHUB_URL, SITE } from "@/lib/site/content";
 import { CHAPTERS } from "@/lib/site/home/chapters";
 import { docs, INSTALL, taskCommand } from "@/lib/site/home/commands";
 import type { Home, Link } from "@/lib/site/home/types";
@@ -7,15 +7,7 @@ import type { Home, Link } from "@/lib/site/home/types";
  * it (desktop and phone homepage artboards). The words follow that file
  * exactly; change them there first. */
 
-function github(): Link {
-  const found = MASTHEAD_LINKS.find((link) => link.label === "GitHub");
-  if (found === undefined) {
-    throw new Error("MASTHEAD_LINKS has no GitHub link");
-  }
-  return { href: found.href, label: found.label };
-}
-
-const GITHUB = github();
+const GITHUB: Link = { href: GITHUB_URL, label: "GitHub" };
 
 const STILL_LIFE =
   "Two amber glass bottles, one holding a sprig of dried flowers, and a small brass dish on a walnut shelf against an olive wall, with late sun throwing leaf shadows across it.";

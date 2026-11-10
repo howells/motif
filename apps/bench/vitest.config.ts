@@ -7,10 +7,6 @@ import { defineConfig } from "vitest/config";
  * No `vite-tsconfig-paths` dependency needed for one alias.
  */
 export default defineConfig({
-  // Next compiles JSX itself (`"jsx": "preserve"`); render tests need it
-  // compiled here, with the automatic runtime the App uses. Vite 8 compiles
-  // with Oxc, so the setting lives under `oxc`.
-  oxc: { jsx: { runtime: "automatic" } },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "."),

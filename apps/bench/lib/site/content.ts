@@ -1,6 +1,6 @@
 /** The site's name, address and install line, read by the root layout, the
- * share card, robots, the sitemap and the homepage, and the links to the
- * packages. The homepage's own words live in `lib/site/home/`. */
+ * share card, robots, the sitemap and the homepage. The homepage's own words
+ * live in `lib/site/home/`. */
 
 export const SITE = {
   description:
@@ -13,8 +13,4 @@ export const SITE = {
   url: "https://motif.danielhowells.com",
 } as const;
 
-export const MASTHEAD_LINKS = [
-  { href: "https://www.npmjs.com/package/@howells/motif-cli", label: "npm" },
-  { href: "https://github.com/howells/motif", label: "GitHub" },
-  { href: "https://www.npmjs.com/package/@howells/motif-sdk", label: "SDK" },
-] as const;
+export const GITHUB_URL = "https://github.com/howells/motif";
