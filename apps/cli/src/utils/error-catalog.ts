@@ -74,6 +74,12 @@ export const ERROR_CATALOG = {
       "Fix the permissions or what stands at that path, then run the command again",
     ],
   }),
+  FILES_NOT_SAVED: metadata("FILES_NOT_SAVED", 502, {
+    suggestions: [
+      "The run finished and was billed: do not run the command again",
+      "stdout lists the files that were saved; details.failed lists each file that was not, with the provider URL to fetch it from, and details.requestId names the run at fal",
+    ],
+  }),
   INVALID_EDIT_PATH: metadata("INVALID_EDIT_PATH", 400),
   INVALID_IMAGE_PATH: metadata("INVALID_IMAGE_PATH", 400),
   INVALID_OPTION: metadata("INVALID_OPTION", 400, {

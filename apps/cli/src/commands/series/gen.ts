@@ -16,6 +16,7 @@ import { loadConfig, loadHistory } from "../../utils/config";
 import {
   exitForErrorCode,
   exitIfNotRecorded,
+  exitIfNotSaved,
   handleError,
   recordingFailure,
   validateOption,
@@ -29,7 +30,7 @@ import {
 import { imageSources, motifClient } from "../../utils/motif-client";
 import { emit, emitError, isStructured, savedLine } from "../../utils/output";
 import type { EmitOptions } from "../../utils/output";
-import { openAfterRun } from "../../utils/output-files";
+import { openAfterRun, prepareOutput } from "../../utils/output-files";
 import {
   buildSeriesPrompt,
   loadSeries,
@@ -176,6 +177,8 @@ export async function cmdGenerate(
       ? validateOutputPath(opts.output)
       : `${outputDir}/${outputFilename}`;
 
+    await prepareOutput(outputPath, "file", emitOpts.format);
+
     if (!isStructured(emitOpts.format)) {
       console.log(chalk.bold(`\nSeries: ${config.name}`));
       console.log(`Refs: ${refPaths.length}`);
@@ -247,6 +250,7 @@ export async function cmdGenerate(
           }),
           outputIndex: config.outputs.length + 1,
           requestId: result.requestId,
+          ...(saved.failed !== undefined && { failed: saved.failed }),
           ...(failure !== undefined && {
             historyFailure: failure,
             historyRecorded: false,
@@ -257,6 +261,11 @@ export async function cmdGenerate(
     }
 
     openAfterRun(saved.images[0]?.path, opts.open);
+    exitIfNotSaved(
+      saved.failed ?? [],
+      { model: result.model, requestId: result.requestId, task: "generate" },
+      emitOpts.format
+    );
     exitIfNotRecorded(failure, emitOpts.format);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);

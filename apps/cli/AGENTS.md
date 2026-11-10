@@ -164,7 +164,7 @@ Structured failures exit with a semantic process code derived from the error's R
 | `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_MODEL_AVAILABLE`, `CORRUPT_FILE`, `FILE_ACCESS_FAILED` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
 | `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
-| `5` | Upstream (fal) failure | `5xx` | `TASK_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `TRANSPARENCY_MISSING`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE` |
+| `5` | Upstream (fal) failure | `5xx` | `TASK_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `TRANSPARENCY_MISSING`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`, `FILES_NOT_SAVED` |
 
 `NO_MODEL_AVAILABLE` (exit `2`) means no Model can do what the request asks. Its `details` carry `blockedBy` (the capability, `key` or input that stopped it), `unblockedBy` and, when a key would help, `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input. A missing `FAL_KEY` is still reported as `MISSING_API_KEY`.
 

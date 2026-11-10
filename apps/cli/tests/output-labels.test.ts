@@ -28,7 +28,7 @@ describe("saveFiles output labels", () => {
     stubFetch();
     const dir = await mkdtemp(join(tmpdir(), "lbl-"));
     const maps = ["basecolor", "normal", "roughness", "metalness", "height"];
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       maps.map((label, i) => ({
         key: "images",
         label,
@@ -53,7 +53,7 @@ describe("saveFiles output labels", () => {
       "metalness",
       "height",
     ];
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       requested.map((label, i) => ({
         key: "images",
         label,
@@ -69,7 +69,7 @@ describe("saveFiles output labels", () => {
   it("falls back to positional names when only some files are labelled", async () => {
     stubFetch();
     const dir = await mkdtemp(join(tmpdir(), "lbl-"));
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       [
         { key: "images", label: "basecolor", url: "https://x/0.png" },
         { key: "images", url: "https://x/1.png" },
@@ -86,7 +86,7 @@ describe("saveFiles output labels", () => {
     stubFetch();
     const dir = await mkdtemp(join(tmpdir(), "lbl-"));
     const layers = ["0-background", "1-left-amber-glass-bottle", "2-pear"];
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       layers.map((label, i) => ({
         key: "layers",
         label,
@@ -102,7 +102,7 @@ describe("saveFiles output labels", () => {
   it("is unchanged when no labels are given", async () => {
     stubFetch();
     const dir = await mkdtemp(join(tmpdir(), "lbl-"));
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       [0, 1].map((i) => ({ key: "masks", url: `https://x/${i}.png` })),
       { directory: dir }
     );

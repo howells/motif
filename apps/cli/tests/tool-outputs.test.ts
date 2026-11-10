@@ -36,7 +36,7 @@ describe(saveFiles, () => {
     testDir = mkdtempSync(join(tmpdir(), "motif-tool-outputs-"));
     stubPngFetch();
 
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       [
         { key: "masks", url: "https://fal.media/m1.png" },
         { key: "masks", url: "https://fal.media/m2.png" },
@@ -61,7 +61,7 @@ describe(saveFiles, () => {
     testDir = mkdtempSync(join(tmpdir(), "motif-tool-outputs-"));
     stubPngFetch();
 
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       [
         { key: "image", url: "https://fal.media/a.png" },
         { key: "mask_image", url: "https://fal.media/b.png" },
@@ -85,7 +85,7 @@ describe(saveFiles, () => {
     stubPngFetch();
     const nested = join(testDir, "out", "run");
 
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       [{ key: "image", url: "https://fal.media/a.png?token=abc" }],
       { directory: nested }
     );
@@ -96,7 +96,7 @@ describe(saveFiles, () => {
   it("writes inline data in a directory, naming it from the bytes", async () => {
     testDir = mkdtempSync(join(tmpdir(), "motif-tool-outputs-"));
 
-    const written = await saveFiles(
+    const { written } = await saveFiles(
       [{ key: "image", url: `data:image/png;base64,${PNG_1X1}` }],
       { directory: testDir }
     );

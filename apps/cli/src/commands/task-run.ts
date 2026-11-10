@@ -40,6 +40,7 @@ import {
 } from "../utils/config";
 import {
   exitIfNotRecorded,
+  exitIfNotSaved,
   exitNoPrevious,
   handleError,
   recordingFailure,
@@ -64,6 +65,7 @@ import type { EmitOptions } from "../utils/output";
 import {
   derivedOutputPath,
   openAfterRun,
+  prepareOutput,
   saveFiles,
 } from "../utils/output-files";
 import type { WrittenFile } from "../utils/output-files";
@@ -395,6 +397,11 @@ export async function runTask(
   // fal bills anything, not after.
   if (spec.writesFiles) {
     await loadHistory();
+    await prepareOutput(
+      target.path,
+      target.directoryMode ? "directory" : "file",
+      emitOpts.format
+    );
   }
 
   const withChrome = !isStructured(emitOpts.format) && spec.quiet !== true;
@@ -416,7 +423,7 @@ export async function runTask(
         `${spec.command} produced no downloadable output: the response carried no files`
       );
     }
-    const written = await saveFiles(
+    const { failed, written } = await saveFiles(
       output.files,
       target.directoryMode
         ? { directory: target.path }
@@ -439,6 +446,7 @@ export async function runTask(
       source: source?.path ?? null,
       files: written,
       requestId: output.requestId,
+      ...(failed.length > 0 && { failed }),
       ...(recording === undefined
         ? {}
         : { historyFailure: recording, historyRecorded: false }),
@@ -462,6 +470,11 @@ export async function runTask(
       }
     }
     openAfterRun(primary?.path, input.open);
+    exitIfNotSaved(
+      failed,
+      { ...context, requestId: output.requestId },
+      emitOpts.format
+    );
     exitIfNotRecorded(recording, emitOpts.format);
   } catch (error) {
     spinner?.fail(`${spec.verb} failed`);

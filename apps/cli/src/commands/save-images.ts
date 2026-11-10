@@ -9,7 +9,6 @@
 
 import { resolve } from "node:path";
 
-import { sumCosts } from "@howells/motif-sdk";
 import type {
   AspectRatio,
   MotifClient,
@@ -26,6 +25,7 @@ import { decodeDataUrl, indexedOutputPath } from "../utils/image";
 import { emitError, isStructured } from "../utils/output";
 import type { OutputFormat } from "../utils/output";
 import { saveFiles } from "../utils/output-files";
+import type { FailedFile } from "../utils/output-files";
 import { hasText } from "../utils/text";
 
 export interface SavedImage {
@@ -62,13 +62,19 @@ export interface SaveMeta {
 export interface SaveResult {
   cost: number | null;
   /**
+   * Returned files that could not be written; present only when some failed.
+   * The caller reports them after the result.
+   */
+  failed?: FailedFile[];
+  /**
    * Why history was not written although the files were: set only when the
    * history file could not be used. The caller reports the result, then calls
    * `exitIfNotRecorded` with it.
    */
   historyFailure?: RecordingFailure;
   historyRecorded: boolean;
-  id: string;
+  /** The last history entry's id; absent when no file was saved. */
+  id?: string;
   images: SavedImage[];
   timestamp: string;
 }
@@ -98,7 +104,7 @@ export async function saveGeneratedImages(
   meta: SaveMeta,
   historyRecorded = true
 ): Promise<SaveResult> {
-  const written = await saveFiles(files, {
+  const { failed, written } = await saveFiles(files, {
     // The files that came back decide the names, never the count asked for.
     paths: files.map((_, i) =>
       files.length > 1 ? indexedOutputPath(outputPath, i) : outputPath
@@ -134,16 +140,16 @@ export async function saveGeneratedImages(
       })
     : undefined;
 
-  const { known: totalCost, unknown } = sumCosts(
-    generations.map((g) => g.cost)
-  );
-  // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since files is non-empty
-  const lastGen = generations.at(-1)!;
+  // The run billed every returned file, saved or not.
+  const cost =
+    meta.costPerImage === null ? null : meta.costPerImage * files.length;
+  const lastGen = generations.at(-1);
   return {
-    cost: unknown > 0 ? null : totalCost,
+    cost,
+    ...(failed.length > 0 && { failed }),
     historyFailure,
     historyRecorded: historyRecorded && historyFailure === undefined,
-    id: lastGen.id,
+    id: lastGen?.id,
     images: written.map((file, i): SavedImage => {
       const url = files[i]?.url;
       return {
@@ -155,7 +161,7 @@ export async function saveGeneratedImages(
         width: file.width,
       };
     }),
-    timestamp: lastGen.timestamp,
+    timestamp: lastGen?.timestamp ?? now,
   };
 }
 

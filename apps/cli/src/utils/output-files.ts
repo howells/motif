@@ -5,11 +5,12 @@
  * and measured one way.
  */
 
-import { mkdir } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { access, constants, mkdir } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 
 import type { TaskFile } from "@howells/motif-sdk";
 
+import { handleError } from "./errors";
 import {
   decodeDataUrl,
   downloadImage,
@@ -21,6 +22,7 @@ import {
   withFileExtension,
 } from "./image";
 import { validateOutputPath } from "./input";
+import type { OutputFormat } from "./output";
 
 /** Extensions `derivedOutputPath` strips before appending its suffix. */
 const SOURCE_EXT_REGEX = /\.(png|jpg|jpeg|webp|mp4|mov|m4v|webm)$/i;
@@ -39,6 +41,43 @@ export interface WrittenFile {
   path: string;
   size: string;
   width?: number;
+}
+
+/**
+ * Before anything is spent: the output path passes the output rules, and its
+ * directory (the path itself for a directory target) exists or can be created,
+ * and can be written to. A run that would only find out after fal billed it
+ * fails here with `INVALID_OUTPUT_PATH` instead.
+ */
+export async function prepareOutput(
+  path: string,
+  kind: "directory" | "file",
+  format: OutputFormat
+): Promise<void> {
+  try {
+    const checked = validateOutputPath(path);
+    const directory = kind === "directory" ? checked : dirname(checked);
+    await mkdir(directory, { recursive: true });
+    await access(directory, constants.W_OK);
+  } catch (error) {
+    handleError(error, "INVALID_OUTPUT_PATH", format);
+  }
+}
+
+/** A returned file that could not be written. */
+export interface FailedFile {
+  key: string;
+  message: string;
+  /** Where it would have been written. */
+  path: string;
+  /** The provider-hosted URL to fetch it from again, when it had one. */
+  remoteUrl?: string;
+}
+
+/** What {@link saveFiles} did: the files that landed, and each that did not. */
+export interface SaveOutcome {
+  failed: FailedFile[];
+  written: WrittenFile[];
 }
 
 /**
@@ -103,10 +142,15 @@ function stemFor(file: TaskFile, sameKey: readonly TaskFile[]): string {
   return label ?? (position === 0 ? file.key : `${file.key}-${position + 1}`);
 }
 
+/** The URL a failed file can be fetched from again: never an inline data URL. */
+function remoteUrlOf(url: string): string | undefined {
+  return decodeDataUrl(url) === null ? url : undefined;
+}
+
 async function writeAll(
   writes: readonly { file: TaskFile; path: string }[]
-): Promise<WrittenFile[]> {
-  return await Promise.all(
+): Promise<SaveOutcome> {
+  const settled = await Promise.allSettled(
     writes.map(
       async ({ file, path }) =>
         await describeFile(
@@ -118,13 +162,34 @@ async function writeAll(
         )
     )
   );
+  const outcome: SaveOutcome = { failed: [], written: [] };
+  for (const [index, result] of settled.entries()) {
+    const write = writes[index];
+    if (result.status === "fulfilled") {
+      outcome.written.push(result.value);
+    } else if (write !== undefined) {
+      outcome.failed.push({
+        key: write.file.key,
+        message:
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason),
+        path: resolve(write.path),
+        remoteUrl: remoteUrlOf(write.file.url),
+      });
+    }
+  }
+  return outcome;
 }
 
-/** Write a run's output files, in parallel, and describe what landed. */
+/**
+ * Write a run's output files, in parallel, and say what landed and what did
+ * not. A file that fails never hides the ones that were saved.
+ */
 export async function saveFiles(
   files: readonly TaskFile[],
   target: SaveTarget
-): Promise<WrittenFile[]> {
+): Promise<SaveOutcome> {
   if ("directory" in target) {
     await mkdir(target.directory, { recursive: true });
     return await writeAll(

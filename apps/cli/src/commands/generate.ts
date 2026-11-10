@@ -32,6 +32,7 @@ import { formatTotal } from "../utils/cost";
 import { resolveCreativeDirection } from "../utils/creative";
 import {
   exitIfNotRecorded,
+  exitIfNotSaved,
   handleError,
   validateOption,
 } from "../utils/errors";
@@ -55,7 +56,7 @@ import {
 } from "../utils/motif-client";
 import { emit, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
-import { openAfterRun } from "../utils/output-files";
+import { openAfterRun, prepareOutput } from "../utils/output-files";
 import {
   exitAfterRunFailed,
   exitTaskError,
@@ -217,6 +218,7 @@ export async function runGeneration(
   if (!run.ephemeral) {
     await loadHistory();
   }
+  await prepareOutput(run.outputPath, "file", emitOpts.format);
 
   if (!isStructured(emitOpts.format)) {
     printStart(run, plan);
@@ -293,6 +295,11 @@ export async function runGeneration(
         numImages: run.numImages,
       },
       emitOpts
+    );
+    exitIfNotSaved(
+      saved.failed ?? [],
+      { model: output.model, requestId: output.requestId, task: run.task },
+      emitOpts.format
     );
     exitIfNotRecorded(saved.historyFailure, emitOpts.format);
   } catch (error) {

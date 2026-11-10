@@ -194,6 +194,38 @@ export function exitIfNotRecorded(
   exitForErrorCode(failure.code);
 }
 
+/**
+ * After a result has been printed: when some returned files could not be
+ * written, report each one (path, reason, provider URL) as FILES_NOT_SAVED and
+ * exit non-zero. The run is paid for, so the advice is to fetch, not to rerun.
+ */
+export function exitIfNotSaved(
+  failed: readonly {
+    key: string;
+    message: string;
+    path: string;
+    remoteUrl?: string;
+  }[],
+  context: { model?: string; requestId?: string; task: string },
+  format: OutputFormat
+): void {
+  if (failed.length === 0) {
+    return;
+  }
+  emitError(
+    {
+      code: "FILES_NOT_SAVED",
+      details: { failed, model: context.model, task: context.task },
+      ...(context.requestId === undefined
+        ? {}
+        : { instance: `urn:fal:request:${context.requestId}` }),
+      message: `The run finished, but ${failed.length} returned ${failed.length === 1 ? "file was" : "files were"} not saved: ${failed.map((file) => `${file.path} (${file.message})`).join("; ")}`,
+    },
+    format
+  );
+  exitForErrorCode("FILES_NOT_SAVED");
+}
+
 /** Whether `err` is a failure of a file Motif keeps, which has its own code. */
 export function isStoredFileError(
   err: unknown

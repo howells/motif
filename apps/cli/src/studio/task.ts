@@ -91,9 +91,16 @@ export async function saveRun(
     "aspect" | "editedFrom" | "prompt" | "resolution"
   >
 ): Promise<RunResult> {
-  const [file] = await saveFiles(output.files, { paths: [outputPath] });
+  const {
+    failed: [failure],
+    written: [file],
+  } = await saveFiles(output.files, { paths: [outputPath] });
   if (file === undefined) {
-    throw new Error("The run returned no image.");
+    throw new Error(
+      failure === undefined
+        ? "The run returned no image."
+        : `The run finished and was billed, but ${failure.path} was not saved: ${failure.message}.${failure.remoteUrl === undefined ? "" : ` Fetch it from ${failure.remoteUrl}.`}`
+    );
   }
   await addGeneration(
     newGeneration({

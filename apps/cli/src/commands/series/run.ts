@@ -19,6 +19,7 @@ import { loadConfig, loadHistory } from "../../utils/config";
 import {
   exitForErrorCode,
   exitIfNotRecorded,
+  exitIfNotSaved,
   handleError,
   recordingFailure,
   validateOption,
@@ -36,7 +37,8 @@ import {
 } from "../../utils/motif-client";
 import { emit, emitError, isStructured } from "../../utils/output";
 import type { EmitOptions } from "../../utils/output";
-import { openAfterRun } from "../../utils/output-files";
+import { openAfterRun, prepareOutput } from "../../utils/output-files";
+import type { FailedFile } from "../../utils/output-files";
 import {
   loadSeries,
   recordOutput,
@@ -272,6 +274,7 @@ export async function cmdRun(
       theme: sanitizedTheme,
     });
     const outputDir = seriesOutputsDir(config.slug);
+    await prepareOutput(outputDir, "directory", emitOpts.format);
     const spinner = isStructured(emitOpts.format)
       ? null
       : ora(`Generating ${count} image series...`).start();
@@ -286,6 +289,8 @@ export async function cmdRun(
     let totalCost: number | null = 0;
     let lastResult: TaskOutput | undefined;
     let failure: RecordingFailure | undefined;
+    let notSaved: FailedFile[] = [];
+    let notSavedContext: { model?: string; requestId?: string } = {};
 
     for (const [i, scene] of scenes.entries()) {
       const outputNum = String(config.outputs.length + i + 1).padStart(3, "0");
@@ -322,7 +327,11 @@ export async function cmdRun(
       );
       const [image] = saved.images;
       if (image === undefined) {
-        throw new Error("Series run saved no images");
+        // The scene was paid for and not saved: report it, and stop before
+        // paying for another.
+        notSaved = saved.failed ?? [];
+        notSavedContext = { model: result.model, requestId: result.requestId };
+        break;
       }
       anchorPath ??= image.path;
       totalCost =
@@ -374,6 +383,7 @@ export async function cmdRun(
           series: config.slug,
           stylePrompt,
           theme: sanitizedTheme,
+          ...(notSaved.length > 0 && { failed: notSaved }),
           ...(failure !== undefined && {
             historyFailure: failure,
             historyRecorded: false,
@@ -384,6 +394,11 @@ export async function cmdRun(
     }
 
     openAfterRun(savedImages[0]?.path, opts.open);
+    exitIfNotSaved(
+      notSaved,
+      { ...notSavedContext, task: "generate" },
+      emitOpts.format
+    );
     exitIfNotRecorded(failure, emitOpts.format);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
