@@ -39,7 +39,6 @@ import {
 import { exitNoPrevious, handleError, validateOutput } from "../utils/errors";
 import {
   generateFilename,
-  openImage,
   withExtension,
   withFileExtension,
 } from "../utils/image";
@@ -54,7 +53,11 @@ import {
 } from "../utils/motif-client";
 import { emit, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
-import { derivedOutputPath, saveFiles } from "../utils/output-files";
+import {
+  derivedOutputPath,
+  openAfterRun,
+  saveFiles,
+} from "../utils/output-files";
 import type { WrittenFile } from "../utils/output-files";
 import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
 import { hasText } from "../utils/text";
@@ -449,9 +452,7 @@ export async function runTask(
         console.log(body);
       }
     }
-    if (primary && config.openAfterGenerate && input.noOpen !== true) {
-      openImage(primary.path);
-    }
+    openAfterRun(config, primary?.path, input.noOpen);
   } catch (error) {
     spinner?.fail(`${spec.verb} failed`);
     exitTaskFailed(

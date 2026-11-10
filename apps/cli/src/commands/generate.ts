@@ -26,7 +26,9 @@ import chalk from "chalk";
 import ora from "ora";
 
 import type { CliOptions, StdinPayload } from "../utils/cli-types";
+import { loadHistory } from "../utils/config";
 import type { MotifConfig } from "../utils/config";
+import { formatTotal } from "../utils/cost";
 import { resolveCreativeDirection } from "../utils/creative";
 import { handleError, validateOption } from "../utils/errors";
 import {
@@ -47,8 +49,9 @@ import {
   planForOutput,
   redactDataUrls,
 } from "../utils/motif-client";
-import { emit, isStructured } from "../utils/output";
+import { emit, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
+import { openAfterRun } from "../utils/output-files";
 import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
 import { firstText, hasText } from "../utils/text";
 import {
@@ -56,7 +59,23 @@ import {
   exitIfTransparencyMissing,
   saveGeneratedImages,
 } from "./save-images";
+import type { SaveResult } from "./save-images";
 import { commonInput } from "./verbs/shared";
+
+/** The human report of a save: a line per file, then the session's spend. */
+async function printSaved(saved: SaveResult): Promise<void> {
+  for (const image of saved.images) {
+    console.log(savedLine(image));
+  }
+  if (saved.historyRecorded) {
+    const { totalCost } = await loadHistory();
+    console.log(
+      chalk.dim(
+        `\nSession: ${formatTotal(totalCost.session, totalCost.unknown.session)} | Today: ${formatTotal(totalCost.today, totalCost.unknown.today)}`
+      )
+    );
+  }
+}
 
 /** Print prompt warnings in yellow for human output. */
 function printPromptWarnings(warnings: readonly PromptWarning[]): void {
@@ -230,11 +249,12 @@ export async function runGeneration(
         requireTransparency: run.transparent,
         resolution: run.resolution,
       },
-      config,
-      emitOpts,
-      run.noOpen,
       !run.ephemeral
     );
+    if (!isStructured(emitOpts.format)) {
+      await printSaved(saved);
+    }
+    openAfterRun(config, saved.images[0]?.path, run.noOpen);
 
     const { payloadDeleteError, payloadsDeleted } = run.ephemeral
       ? await deleteEphemeralPayloads(client, output.requestId, emitOpts.format)

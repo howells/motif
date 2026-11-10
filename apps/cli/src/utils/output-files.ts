@@ -10,11 +10,13 @@ import { join, resolve } from "node:path";
 
 import type { TaskFile } from "@howells/motif-sdk";
 
+import type { MotifConfig } from "./config";
 import {
   decodeDataUrl,
   downloadImage,
   getFileSize,
   getImageDimensions,
+  openImage,
   saveBytes,
   urlExtension,
   withFileExtension,
@@ -23,6 +25,17 @@ import { validateOutputPath } from "./input";
 
 /** Extensions `derivedOutputPath` strips before appending its suffix. */
 const SOURCE_EXT_REGEX = /\.(png|jpg|jpeg|webp|mp4|mov|m4v|webm)$/i;
+
+/** Open the first file of a run in the viewer, unless config or the caller says not to. */
+export function openAfterRun(
+  config: MotifConfig,
+  path: string | undefined,
+  noOpen = false
+): void {
+  if (path !== undefined && config.openAfterGenerate && !noOpen) {
+    openImage(path);
+  }
+}
 
 /** A file written to disk by {@link saveFiles}. */
 export interface WrittenFile {

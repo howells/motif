@@ -19,17 +19,11 @@ import type {
 import chalk from "chalk";
 
 import { hasTransparentPixels, TransparencyMissingError } from "../utils/alpha";
-import {
-  addGenerations,
-  loadConfig,
-  loadHistory,
-  newGeneration,
-} from "../utils/config";
-import { formatTotal } from "../utils/cost";
+import { addGenerations, newGeneration } from "../utils/config";
 import { exitForErrorCode } from "../utils/errors";
-import { decodeDataUrl, indexedOutputPath, openImage } from "../utils/image";
-import { emitError, isStructured, savedLine } from "../utils/output";
-import type { EmitOptions, OutputFormat } from "../utils/output";
+import { decodeDataUrl, indexedOutputPath } from "../utils/image";
+import { emitError, isStructured } from "../utils/output";
+import type { OutputFormat } from "../utils/output";
 import { saveFiles } from "../utils/output-files";
 import { hasText } from "../utils/text";
 
@@ -86,14 +80,16 @@ async function assertTransparent(paths: string[]): Promise<void> {
   }
 }
 
+/**
+ * Write a run's files, check transparency if asked, and build, and optionally
+ * record, one history entry per file. Prints and opens nothing: each caller
+ * reports in its own format.
+ */
 export async function saveGeneratedImages(
   files: readonly TaskFile[],
   outputPath: string,
   numImages: number,
   meta: SaveMeta,
-  config: Awaited<ReturnType<typeof loadConfig>>,
-  emitOpts: EmitOptions,
-  noOpen?: boolean,
   historyRecorded = true
 ): Promise<SaveResult> {
   const written = await saveFiles(files, {
@@ -125,24 +121,6 @@ export async function saveGeneratedImages(
       timestamp: now,
     })
   );
-  const savedImages = written.map((file, i): SavedImage => {
-    const url = files[i]?.url;
-    return {
-      height: file.height,
-      path: file.path,
-      remoteUrl:
-        url === undefined || decodeDataUrl(url) !== null ? undefined : url,
-      size: file.size,
-      width: file.width,
-    };
-  });
-
-  if (!isStructured(emitOpts.format)) {
-    for (const file of written) {
-      console.log(savedLine(file));
-    }
-  }
-
   if (historyRecorded) {
     await addGenerations(generations);
   }
@@ -152,29 +130,21 @@ export async function saveGeneratedImages(
   );
   // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since files is non-empty
   const lastGen = generations.at(-1)!;
-
-  if (historyRecorded && !isStructured(emitOpts.format)) {
-    const history = await loadHistory();
-    const totals = history.totalCost;
-    console.log(
-      chalk.dim(
-        `\nSession: ${formatTotal(totals.session, totals.unknown.session)} | Today: ${formatTotal(totals.today, totals.unknown.today)}`
-      )
-    );
-  }
-
-  // Open the first image after all downloads complete, by the path actually
-  // written: the extension may have been corrected from the file's content.
-  if (config.openAfterGenerate && noOpen !== true) {
-    // biome-ignore lint/style/noNonNullAssertion: written[0] exists since files is non-empty
-    openImage(written[0]!.path);
-  }
-
   return {
     cost: unknown > 0 ? null : totalCost,
     historyRecorded,
     id: lastGen.id,
-    images: savedImages,
+    images: written.map((file, i): SavedImage => {
+      const url = files[i]?.url;
+      return {
+        height: file.height,
+        path: file.path,
+        remoteUrl:
+          url === undefined || decodeDataUrl(url) !== null ? undefined : url,
+        size: file.size,
+        width: file.width,
+      };
+    }),
     timestamp: lastGen.timestamp,
   };
 }

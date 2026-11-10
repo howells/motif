@@ -9,8 +9,7 @@
  * motif series history "my-series"
  */
 
-import { writeFile } from "node:fs/promises";
-import { basename, join, parse, resolve } from "node:path";
+import { basename, resolve } from "node:path";
 
 import {
   ASPECT_RATIOS,
@@ -28,18 +27,15 @@ import type {
   CreativeDirection,
   MotifClient,
   Resolution,
-  TaskFile,
   TaskInput,
   TaskOutput,
-  TaskPlan,
   Tier,
 } from "@howells/motif-sdk";
 import chalk from "chalk";
 import { Command } from "commander";
 import ora from "ora";
 
-import { addGenerations, generateId, loadConfig } from "../utils/config";
-import type { Generation } from "../utils/config";
+import { loadConfig } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
 import type { CreativeInput } from "../utils/creative";
 import {
@@ -50,27 +46,22 @@ import {
   validateOption,
 } from "../utils/errors";
 import {
-  downloadImage,
-  getFileSize,
-  getImageDimensions,
-  indexedOutputPath,
-  openImage,
-} from "../utils/image";
-import {
   parseIntegerOption,
   validateEnumOption,
   validateOutputPath,
   validateResourceId,
 } from "../utils/input";
-import { imageSource, motifClient } from "../utils/motif-client";
+import { imageSource, imageSources, motifClient } from "../utils/motif-client";
 import {
   emit,
   emitError,
   emitStream,
   isStructured,
   resolveFormat,
+  savedLine,
 } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
+import { openAfterRun } from "../utils/output-files";
 import {
   addRef,
   buildSeriesPrompt,
@@ -86,8 +77,9 @@ import {
   slugify,
 } from "../utils/series";
 import type { SeriesConfig } from "../utils/series";
-import { exitTaskError } from "../utils/task-model";
+import { exitTaskError, identityFields } from "../utils/task-model";
 import { hasText } from "../utils/text";
+import { saveGeneratedImages } from "./save-images";
 
 // -- Helpers --
 
@@ -139,44 +131,41 @@ function seriesCreativeDirection(
   return resolveCreativeDirection(flags, pinned);
 }
 
-/** The fields every Series payload carries about the Task and its Model. */
-function taskFields(plan: TaskOutput | TaskPlan): Record<string, unknown> {
+/**
+ * The aspect and resolution a Series call sends: a flag's value, or a value
+ * other than the 1:1 / 2K the Models default to. An unchosen default is left
+ * to the Model so it never narrows the ranking alone.
+ */
+function sentSize(
+  flags: { aspect?: string; resolution?: string },
+  size: { aspect: AspectRatio; resolution: Resolution }
+): { aspect?: AspectRatio; resolution?: Resolution } {
   return {
-    task: plan.task,
-    model: plan.model,
-    tier: plan.tier,
-    chosenBy: plan.chosenBy,
+    ...((hasText(flags.aspect) || size.aspect !== "1:1") && {
+      aspect: size.aspect,
+    }),
+    ...((hasText(flags.resolution) || size.resolution !== "2K") && {
+      resolution: size.resolution,
+    }),
   };
-}
-
-/** Local reference images as the SDK takes them. */
-async function referenceSources(paths: readonly string[]): Promise<string[]> {
-  return await Promise.all(paths.map(async (path) => await imageSource(path)));
 }
 
 /**
  * The generate input a Series call sends. The Look and Mood go to the SDK,
  * which appends their clauses to the prompt and lets a Look choose its Model.
- * The aspect is sent only when chosen, so it never narrows the ranking alone.
  */
 function seriesInput(options: {
-  aspect: AspectRatio;
-  aspectChosen: boolean;
   count: number;
   creative?: CreativeDirection;
   model?: string;
   prompt: string;
   references: readonly string[];
-  resolution: Resolution;
-  resolutionChosen?: boolean;
+  size: { aspect?: AspectRatio; resolution?: Resolution };
   tier?: Tier;
 }): TaskInput {
   return {
     prompt: options.prompt,
-    ...(options.aspectChosen && { aspect: options.aspect }),
-    ...((options.resolutionChosen === true || options.resolution !== "2K") && {
-      resolution: options.resolution,
-    }),
+    ...options.size,
     ...(options.tier !== undefined && { tier: options.tier }),
     ...(options.count > 1 && { count: options.count }),
     ...(options.references.length > 0 && { references: options.references }),
@@ -184,20 +173,6 @@ function seriesInput(options: {
     ...(hasText(options.creative?.look) && { look: options.creative.look }),
     ...(hasText(options.creative?.mood) && { mood: options.creative.mood }),
   };
-}
-
-const DATA_URL_REGEX = /^data:[^;,]+;base64,(.*)$/s;
-
-/** Write one returned file: a download, or the bytes of a data URL as PNG. */
-async function saveFile(file: TaskFile, path: string): Promise<string> {
-  const match = DATA_URL_REGEX.exec(file.url);
-  if (match?.[1] === undefined) {
-    return await downloadImage(file.url, path);
-  }
-  const { dir, name } = parse(path);
-  const pngPath = join(dir, `${name}.png`);
-  await writeFile(pngPath, Buffer.from(match[1], "base64"));
-  return pngPath;
 }
 
 /** Run a Series generation, exiting with the mapped error when it fails. */
@@ -569,14 +544,12 @@ async function cmdGenerate(
     const dryRun = opts.dryRun === true;
     const client = motifClient(appConfig);
     const input = seriesInput({
-      aspect,
-      aspectChosen: hasText(opts.aspect) || aspect !== "1:1",
       count: numImages,
       creative,
       model: opts.model,
       prompt: basePrompt,
-      references: await referenceSources(refPaths),
-      resolution,
+      references: await imageSources(refPaths),
+      size: sentSize(opts, { aspect, resolution }),
     });
     const planned = client.plan("generate", input, { dryRun });
     if (planned.isErr()) {
@@ -596,7 +569,7 @@ async function cmdGenerate(
         scenePrompt: sanitized,
         enrichedScenePrompt: requestPrompt,
         stylePrompt: config.stylePrompt,
-        ...taskFields(plan),
+        ...identityFields(plan),
         aspect,
         resolution,
         numImages,
@@ -645,74 +618,34 @@ async function cmdGenerate(
 
     spinner?.succeed("Generated!");
 
-    // Build paths and save all images in parallel
-    const paths = result.files.map((_, i) =>
-      numImages > 1 ? indexedOutputPath(outputPath, i) : outputPath
-    );
-    const actualPaths = await Promise.all(
-      result.files.map(
-        async (file, i) =>
-          // biome-ignore lint/style/noNonNullAssertion: index guaranteed within map bounds
-          await saveFile(file, paths[i]!)
-      )
-    );
-    const costPerImage =
-      result.cost.usd === null || result.files.length === 0
-        ? null
-        : result.cost.usd / result.files.length;
-
-    // Collect metadata and build history records
-    const savedImages: {
-      path: string;
-      width?: number;
-      height?: number;
-      size: string;
-    }[] = [];
-    const generations: Generation[] = [];
-    const now = new Date().toISOString();
-
-    for (const path of actualPaths) {
-      const dims = await getImageDimensions(path);
-      const size = getFileSize(path);
-
-      savedImages.push({
-        height: dims?.height,
-        path: resolve(path),
-        size,
-        width: dims?.width,
-      });
-
-      if (!isStructured(emitOpts.format)) {
-        console.log(
-          chalk.green(`✓ Saved: ${path}`) +
-            chalk.dim(
-              ` (${dims ? `${dims.width}x${dims.height}` : "?"}, ${size})`
-            )
-        );
-      }
-
-      generations.push({
+    const saved = await saveGeneratedImages(
+      result.files,
+      outputPath,
+      numImages,
+      {
         aspect,
-        cost: costPerImage,
-        id: generateId(),
-        ...(hasText(creative?.look) && { look: creative.look }),
+        costPerImage:
+          result.cost.usd === null || result.files.length === 0
+            ? null
+            : result.cost.usd / result.files.length,
+        look: creative?.look,
         model: result.model,
-        ...(hasText(creative?.mood) && { mood: creative.mood }),
-        output: resolve(path),
+        mood: creative?.mood,
         prompt: result.prompt ?? fullPrompt,
         resolution,
-        timestamp: now,
-      });
+      }
+    );
+    if (!isStructured(emitOpts.format)) {
+      for (const image of saved.images) {
+        console.log(savedLine(image));
+      }
     }
-
-    // Batch write to global history
-    await addGenerations(generations);
 
     // Record in series history
     await recordOutput(slug, {
       aspect,
       cost: result.cost.usd,
-      filename: basename(actualPaths[0] ?? outputFilename),
+      filename: basename(saved.images[0]?.path ?? outputFilename),
       model: result.model,
       prompt: result.prompt ?? fullPrompt,
       refsUsed: refTags ?? config.refs.map((r) => r.tag),
@@ -728,10 +661,15 @@ async function cmdGenerate(
           prompt: result.prompt ?? fullPrompt,
           scenePrompt: sanitized,
           enrichedScenePrompt: requestPrompt,
-          ...taskFields(result),
+          ...identityFields(result),
           aspect,
           resolution,
-          images: savedImages,
+          images: saved.images.map(({ height, path, size, width }) => ({
+            height,
+            path,
+            size,
+            width,
+          })),
           cost: result.cost.usd,
           ...(creativeResult && {
             creative: creativeResult.creative,
@@ -742,9 +680,7 @@ async function cmdGenerate(
       );
     }
 
-    if (appConfig.openAfterGenerate && opts.noOpen !== true && savedImages[0]) {
-      openImage(savedImages[0].path);
-    }
+    openAfterRun(appConfig, saved.images[0]?.path, opts.noOpen);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
   }
@@ -818,37 +754,36 @@ async function cmdRun(
     const dryRun = opts.dryRun === true;
     const client = motifClient(appConfig);
 
-    const baseScenePrompts = buildSeriesRunScenes(sanitizedTheme, count);
-    const enrichedScenes = baseScenePrompts.map((baseScenePrompt) =>
-      creative
-        ? validateOption(emitOpts.format, () =>
-            enrichPrompt({ creative, prompt: baseScenePrompt })
-          )
-        : undefined
-    );
-    const scenePrompts = baseScenePrompts.map(
-      (baseScenePrompt, index) =>
-        enrichedScenes[index]?.prompt ?? baseScenePrompt
-    );
     // The style and the scene; the SDK appends the Look and Mood.
-    const basePrompts = baseScenePrompts.map((scenePrompt) =>
-      stylePrompt ? `${stylePrompt}. ${scenePrompt}` : scenePrompt
+    const withStyle = (prompt: string) =>
+      stylePrompt ? `${stylePrompt}. ${prompt}` : prompt;
+    const scenes = buildSeriesRunScenes(sanitizedTheme, count).map(
+      (baseScene) => {
+        const enriched = creative
+          ? validateOption(emitOpts.format, () =>
+              enrichPrompt({ creative, prompt: baseScene })
+            )
+          : undefined;
+        const scene = enriched?.prompt ?? baseScene;
+        return {
+          baseScene,
+          clauses: enriched?.creative.clauses,
+          full: withStyle(scene),
+          request: withStyle(baseScene),
+          scene,
+        };
+      }
     );
-    const fullPrompts = scenePrompts.map((scenePrompt) =>
-      stylePrompt ? `${stylePrompt}. ${scenePrompt}` : scenePrompt
-    );
-    const references = await referenceSources(refPaths);
+    const references = await imageSources(refPaths);
+    const size = sentSize(opts, { aspect, resolution });
     const sceneInput = (index: number, model?: string, extra: string[] = []) =>
       seriesInput({
-        aspect,
-        aspectChosen: hasText(opts.aspect) || aspect !== "1:1",
         count: 1,
         creative,
         model,
-        prompt: basePrompts[index] ?? sanitizedTheme,
+        prompt: scenes[index]?.request ?? sanitizedTheme,
         references: [...references, ...extra],
-        resolution,
-        resolutionChosen: hasText(opts.resolution),
+        size,
         tier,
       });
 
@@ -871,7 +806,7 @@ async function cmdRun(
           count,
           dryRun: true,
           estimatedCost,
-          ...taskFields(plan),
+          ...identityFields(plan),
           aspect,
           resolution,
           series: existingSeries?.slug ?? null,
@@ -882,16 +817,16 @@ async function cmdRun(
           usesAnchorReference: canUseAnchorReference,
           ...(creative && {
             creative: {
-              clauses: enrichedScenes.find(Boolean)?.creative.clauses ?? [],
+              clauses: scenes[0]?.clauses ?? [],
               selected: creative,
             },
           }),
-          scenes: scenePrompts.map((scenePrompt, index) => ({
-            baseScenePrompt: baseScenePrompts[index],
-            enrichedScenePrompt: scenePrompt,
+          scenes: scenes.map(({ baseScene, full, scene }, index) => ({
+            baseScenePrompt: baseScene,
+            enrichedScenePrompt: scene,
             index: index + 1,
-            prompt: fullPrompts[index],
-            scenePrompt,
+            prompt: full,
+            scenePrompt: scene,
           })),
           valid: true,
         },
@@ -921,21 +856,19 @@ async function cmdRun(
       ? null
       : ora(`Generating ${count} image series...`).start();
     const savedImages: {
+      height?: number;
       path: string;
       scenePrompt: string;
-      width?: number;
-      height?: number;
       size: string;
+      width?: number;
     }[] = [];
-    const now = new Date().toISOString();
     let anchorPath: string | undefined;
     let totalCost: number | null = 0;
     let lastResult: TaskOutput | undefined;
 
-    for (let i = 0; i < count; i++) {
+    for (const [i, scene] of scenes.entries()) {
       const outputNum = String(config.outputs.length + i + 1).padStart(3, "0");
       const filename = `${outputNum}-${slugify(sanitizedTheme.slice(0, 40))}-${String(i + 1).padStart(2, "0")}.png`;
-      const outputPath = `${outputDir}/${filename}`;
       const anchor =
         hasText(anchorPath) && canUseAnchorReference
           ? [await imageSource(anchorPath)]
@@ -950,43 +883,45 @@ async function cmdRun(
       if (!file) {
         throw new Error("Series run returned no images");
       }
-      const actualOutputPath = await saveFile(file, outputPath);
-      anchorPath ??= actualOutputPath;
+      // Recorded scene by scene: a later scene that fails must not lose the
+      // ones already paid for.
+      const prompt = result.prompt ?? scene.full;
+      const saved = await saveGeneratedImages(
+        [file],
+        `${outputDir}/${filename}`,
+        1,
+        {
+          aspect,
+          costPerImage: result.cost.usd,
+          look: creative?.look,
+          model: result.model,
+          mood: creative?.mood,
+          prompt,
+          resolution,
+        }
+      );
+      const [image] = saved.images;
+      if (image === undefined) {
+        throw new Error("Series run saved no images");
+      }
+      anchorPath ??= image.path;
       totalCost =
         totalCost === null || result.cost.usd === null
           ? null
           : totalCost + result.cost.usd;
-      const dims = await getImageDimensions(actualOutputPath);
-      const size = getFileSize(actualOutputPath);
       savedImages.push({
-        height: dims?.height,
-        path: resolve(actualOutputPath),
-        scenePrompt: scenePrompts[i] ?? sanitizedTheme,
-        size,
-        width: dims?.width,
+        height: image.height,
+        path: image.path,
+        scenePrompt: scene.scene,
+        size: image.size,
+        width: image.width,
       });
-      // Recorded scene by scene: a later scene that fails must not lose the
-      // ones already paid for.
-      await addGenerations([
-        {
-          aspect,
-          cost: result.cost.usd,
-          id: generateId(),
-          ...(hasText(creative?.look) && { look: creative.look }),
-          model: result.model,
-          ...(hasText(creative?.mood) && { mood: creative.mood }),
-          output: resolve(actualOutputPath),
-          prompt: result.prompt ?? fullPrompts[i] ?? sanitizedTheme,
-          resolution,
-          timestamp: now,
-        },
-      ]);
       await recordOutput(config.slug, {
         aspect,
         cost: result.cost.usd,
-        filename: basename(actualOutputPath),
+        filename: basename(image.path),
         model: result.model,
-        prompt: result.prompt ?? fullPrompts[i] ?? sanitizedTheme,
+        prompt,
         refsUsed: [
           ...(refTags ?? config.refs.map((ref) => ref.tag)),
           ...(anchor.length > 0 ? ["series-anchor"] : []),
@@ -1007,7 +942,7 @@ async function cmdRun(
           count,
           dryRun: false,
           images: savedImages,
-          ...taskFields(lastResult ?? plan),
+          ...identityFields(lastResult ?? plan),
           resolution,
           series: config.slug,
           stylePrompt,
@@ -1017,9 +952,7 @@ async function cmdRun(
       );
     }
 
-    if (appConfig.openAfterGenerate && opts.noOpen !== true && savedImages[0]) {
-      openImage(savedImages[0].path);
-    }
+    openAfterRun(appConfig, savedImages[0]?.path, opts.noOpen);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
   }
