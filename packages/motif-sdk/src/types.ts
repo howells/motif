@@ -1,4 +1,5 @@
 import type { CreativeDirection } from "./creative";
+import type { FalToolPrice } from "./tool-types";
 
 /** ─── Model Types ─────────────────────────────────────────────── */
 
@@ -118,6 +119,20 @@ export interface ModelConfig {
   maxReferenceImages?: number;
   name: string;
   pricing: string;
+  /** Upscale factor fal applies when none is sent. */
+  defaultScale?: number;
+  /** Makes audio unless `params: { generate_audio: false }`; priced with it. */
+  generatesAudio?: true;
+  /** Keys of the fal response that hold files, where the Model does not return `images`. */
+  outputKeys?: readonly string[];
+  /** Typed rate for a Model priced outside `pricePerImageUsd`. */
+  price?: FalToolPrice;
+  /** Body key for the upscale factor. */
+  scaleField?: "scale_factor" | "upscale_factor";
+  /** Body key the start frame goes under, on a video Model. */
+  startFrameField?: "image_url" | "start_image_url";
+  /** Takes a prompt that steers the result. */
+  supportsPrompt?: true;
   /** Null means token-metered with no per-image estimate. */
   pricePerImageUsd?: number | null;
   /** How this model accepts dimensions (default: "aspect_ratio") */

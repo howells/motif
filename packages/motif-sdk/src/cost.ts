@@ -68,17 +68,3 @@ export function estimateCost(
   }
   return configuredPrice * numImages;
 }
-
-/** Estimate cost for video generation */
-export function estimateVideoCost(
-  durationSeconds = 5,
-  generateAudio = true,
-  model = "kling"
-): number {
-  if (model === "kling-turbo") {
-    // Kling v3 Turbo Pro has no audio option: $0.14 a second.
-    return 0.14 * durationSeconds;
-  }
-  const perSecond = generateAudio ? 0.168 : 0.112;
-  return perSecond * durationSeconds;
-}

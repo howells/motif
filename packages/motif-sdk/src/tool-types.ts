@@ -67,6 +67,11 @@ export type FalToolPrice =
       halfWithModel?: string;
       tiers: readonly { upTo?: number; usd: number }[];
     }
+  /**
+   * Per second of output video, the body's `duration`. `audioUsd` is the rate
+   * while the body's `generate_audio` is not false, for a Model that makes audio.
+   */
+  | { kind: "output-second"; usd: number; audioUsd?: number }
   /** `usd` for every started `frames` frames of source video. */
   | { kind: "frames"; frames: number; usd: number }
   /**

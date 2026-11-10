@@ -8,6 +8,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { MotifError } from "./errors";
+import { dataUrlImageSize } from "./source-size";
 import type { TaskInput, TaskPlan } from "./task-client";
 import type { TaskId } from "./tasks";
 import type { ResolvedCost } from "./tool-cost";
@@ -134,4 +135,11 @@ export function isCustomSize(value: unknown): value is CustomImageSize {
     typeof value.width === "number" &&
     typeof value.height === "number"
   );
+}
+
+/** The source's pixel size: read from a data URL, else the caller's `sourceSize`. */
+export function sourceSizeOf(input: TaskInput): CustomImageSize | undefined {
+  const fromData =
+    input.image === undefined ? undefined : dataUrlImageSize(input.image);
+  return fromData ?? input.sourceSize;
 }

@@ -191,6 +191,20 @@ function videoSecondPrice(
   return rate * video.seconds;
 }
 
+/** Per second of the output video the body asks for. */
+function outputSecondPrice(
+  price: Extract<FalToolPrice, { kind: "output-second" }>,
+  body: Readonly<Record<string, unknown>>
+): number | null {
+  const seconds = Number(body.duration);
+  if (!Number.isFinite(seconds)) {
+    return null;
+  }
+  const rate =
+    body.generate_audio === false ? price.usd : (price.audioUsd ?? price.usd);
+  return rate * seconds;
+}
+
 /** Frames of a source video: counted from its header, else its seconds at its frame rate. */
 function framesOf(video: SourceVideo | undefined): number | undefined {
   if (video?.frames !== undefined) {
@@ -259,6 +273,9 @@ export function projectedToolCost(
         "projected"
       );
     }
+    case "output-second": {
+      return resolvedCost(outputSecondPrice(price, body), "projected");
+    }
     case "frames": {
       const frames = framesOf(source.video);
       return resolvedCost(
@@ -326,6 +343,7 @@ export function measuredToolCost(
     }
     case "second":
     case "video-second":
+    case "output-second":
     case "frames":
     case "token":
     case "metered": {

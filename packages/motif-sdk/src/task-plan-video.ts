@@ -1,27 +1,27 @@
 /**
  * Request bodies for video Models: Kling v3 Pro and Kling v3 Turbo Pro, which
- * take the start frame under different keys and bill by the second.
+ * take the start frame under different keys and bill by the second. What each
+ * takes and charges is on its `MODELS` entry.
  */
 
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { estimateVideoCost } from "./cost";
-import type { MotifError } from "./errors";
-import { MODELS } from "./models";
+import { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
-import {
-  cannotCarry,
-  invalidOption,
-  mergeParams,
-  projected,
-  refuseOthers,
-  UNKNOWN_COST,
-} from "./task-plan-shared";
+import { invalidOption, mergeParams, refuseOthers } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import type { TaskId } from "./tasks";
+import { projectedToolCost } from "./tool-cost";
+import type { ModelConfig } from "./types";
 
 const DEFAULT_VIDEO_SECONDS = 5;
+
+const VIDEO_FIELDS: ReadonlySet<CarriedField> = new Set([
+  "duration",
+  "image",
+  "prompt",
+]);
 
 /** Kling v3 Pro and Turbo Pro take `duration` as "3" to "15" seconds. */
 const VIDEO_DURATIONS: ReadonlySet<string> = new Set(
@@ -44,48 +44,30 @@ function checkVideoDuration(
 
 export function videoPlan(
   task: TaskId,
-  model: "kling" | "kling-turbo",
+  model: string,
+  config: ModelConfig,
   input: TaskInput
 ): Result<PlanBody, MotifError> {
-  const config = MODELS[model];
-  if (config === undefined) {
-    return err(cannotCarry("model", model, task));
+  const { price, startFrameField } = config;
+  if (price === undefined || startFrameField === undefined) {
+    throw new MotifError(`${model} has no start frame field or price`, 0);
   }
-  const refused = refuseOthers(
-    input,
-    new Set<CarriedField>(
-      model === "kling-turbo"
-        ? ["duration", "image", "prompt"]
-        : ["duration", "image", "negativePrompt", "prompt"]
-    ),
-    model,
-    task
-  );
+  const refused = refuseOthers(input, VIDEO_FIELDS, model, task);
   if (refused !== undefined) {
     return err(refused);
   }
-  if (model === "kling-turbo") {
-    return turboVideoPlan(task, config.endpoint, input);
-  }
-  const owned = new Set(["prompt", "start_image_url"]);
+  const owned = new Set([startFrameField, "prompt"]);
   if (input.duration !== undefined) {
     owned.add("duration");
   }
-  if (input.negativePrompt !== undefined) {
-    owned.add("negative_prompt");
-  }
-  // generate_audio stays on by default, as the CLI's video path had it, and
-  // is priced that way; `params: { generate_audio: false }` turns it off.
+  // A Model that makes audio has it on by default, as the CLI's video path had
+  // it, and is priced that way; `params: { generate_audio: false }` turns it off.
   const merged = mergeParams(
     {
       duration: String(input.duration ?? DEFAULT_VIDEO_SECONDS),
-      generate_audio: true,
+      ...(config.generatesAudio === true && { generate_audio: true }),
       prompt: input.prompt ?? "",
-      start_image_url: input.image,
-      ...(input.negativePrompt !== undefined &&
-        input.negativePrompt !== "" && {
-          negative_prompt: input.negativePrompt,
-        }),
+      [startFrameField]: input.image,
     },
     input.params,
     owned
@@ -98,58 +80,12 @@ export function videoPlan(
   if (badDuration !== undefined) {
     return err(badDuration);
   }
-  const seconds = Number(body.duration);
   return ok({
     body,
-    cost: Number.isFinite(seconds)
-      ? projected(estimateVideoCost(seconds, body.generate_audio !== false))
-      : UNKNOWN_COST,
+    cost: projectedToolCost(price, body),
     endpoint: config.endpoint,
     prompt: input.prompt,
     provider: "fal",
-    queued: true,
-  });
-}
-
-/**
- * Kling v3 Turbo Pro takes the start frame as `image_url` and has no audio,
- * negative prompt or end frame.
- */
-function turboVideoPlan(
-  task: TaskId,
-  endpoint: string,
-  input: TaskInput
-): Result<PlanBody, MotifError> {
-  const owned = new Set(["image_url", "prompt"]);
-  if (input.duration !== undefined) {
-    owned.add("duration");
-  }
-  const merged = mergeParams(
-    {
-      duration: String(input.duration ?? DEFAULT_VIDEO_SECONDS),
-      image_url: input.image,
-      prompt: input.prompt ?? "",
-    },
-    input.params,
-    owned
-  );
-  if (merged.isErr()) {
-    return err(merged.error);
-  }
-  const body = merged.value;
-  const badDuration = checkVideoDuration(body, "kling-turbo", task);
-  if (badDuration !== undefined) {
-    return err(badDuration);
-  }
-  const seconds = Number(body.duration);
-  return ok({
-    body,
-    cost: Number.isFinite(seconds)
-      ? projected(estimateVideoCost(seconds, false, "kling-turbo"))
-      : UNKNOWN_COST,
-    endpoint,
-    prompt: input.prompt,
-    provider: "fal",
-    queued: true,
+    queued: config.useQueue === true,
   });
 }

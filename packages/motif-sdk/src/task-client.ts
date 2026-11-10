@@ -22,6 +22,7 @@ import type { FalConnection } from "./fal-http";
 import { isRecord, queueAppPath } from "./fal-parse";
 import { awaitQueuedRequest, runRequest, runRequestQueued } from "./fal-run";
 import type { FalRequestResult } from "./fal-run";
+import { MODELS } from "./models";
 import type { ChosenBy, TaskEnvironment } from "./resolve";
 import {
   collectUrls,
@@ -266,13 +267,7 @@ function outputKeysFor(
       ? [RIGGED_MESH_KEY, ...keys.filter((key) => key !== RIGGED_MESH_KEY)]
       : keys;
   }
-  if (model === "kling" || model === "kling-turbo") {
-    return ["video"];
-  }
-  if (model === "clarity" || model === "crystal") {
-    return ["image"];
-  }
-  return ["images"];
+  return MODELS[model]?.outputKeys ?? ["images"];
 }
 
 /** Width and height of every returned file that carries them. */

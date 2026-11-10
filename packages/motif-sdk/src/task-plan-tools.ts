@@ -10,7 +10,6 @@ import type { Result } from "neverthrow";
 import { exactImageSize, FAL_PRESET_SIZES } from "./aspects";
 import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
-import { dataUrlImageSize } from "./source-size";
 import type { TaskInput } from "./task-client";
 import {
   cannotCarry,
@@ -19,6 +18,7 @@ import {
   isPresent,
   mergeParams,
   refuseOthers,
+  sourceSizeOf,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { TASKS } from "./tasks";
@@ -184,13 +184,6 @@ function sourceFacts(input: TaskInput): SourceFacts {
     ...(image !== undefined && { image }),
     ...(input.sourceVideo !== undefined && { video: input.sourceVideo }),
   };
-}
-
-/** The source's pixel size: read from a data URL, else the caller's `sourceSize`. */
-function sourceSizeOf(input: TaskInput): CustomImageSize | undefined {
-  const fromData =
-    input.image === undefined ? undefined : dataUrlImageSize(input.image);
-  return fromData ?? input.sourceSize;
 }
 
 /**

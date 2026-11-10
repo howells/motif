@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { estimateCost } from "../src/cost";
 import { GENERATION_MODELS, MODELS } from "../src/models";
+import { projectedToolCost } from "../src/tool-cost";
 
 function price(model: string): number {
   const value = MODELS[model]?.pricePerImageUsd;
@@ -47,5 +48,30 @@ describe("estimateCost refusals", () => {
     for (const id of GENERATION_MODELS) {
       expect(() => estimateCost(id)).not.toThrow();
     }
+  });
+});
+
+describe("output-second price", () => {
+  const kling = { audioUsd: 0.168, kind: "output-second", usd: 0.112 } as const;
+
+  it("charges the audio rate unless generate_audio is false", () => {
+    expect(projectedToolCost(kling, { duration: "5" }).usd).toBeCloseTo(0.84);
+    expect(
+      projectedToolCost(kling, { duration: "5", generate_audio: false }).usd
+    ).toBeCloseTo(0.56);
+  });
+
+  it("charges the one rate of a Model with no audio switch", () => {
+    expect(
+      projectedToolCost({ kind: "output-second", usd: 0.14 }, { duration: "5" })
+        .usd
+    ).toBeCloseTo(0.7);
+  });
+
+  it("is unknown without a numeric duration", () => {
+    expect(projectedToolCost(kling, { duration: "soon" })).toStrictEqual({
+      basis: "unknown",
+      usd: null,
+    });
   });
 });

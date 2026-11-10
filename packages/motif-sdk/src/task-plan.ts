@@ -21,7 +21,6 @@ import { buildGenerateBody } from "./generate";
 import { MODELS } from "./models";
 import { NO_MODEL_AVAILABLE, resolveTask } from "./resolve";
 import type { TaskRequest, TaskResolved } from "./resolve";
-import { dataUrlImageSize } from "./source-size";
 import type { PlanOptions, TaskInput, TaskPlan } from "./task-client";
 import {
   checkParamsImageSize,
@@ -33,11 +32,11 @@ import {
   INVALID_OPTION,
   invalidOption,
   mergeParams,
-  projected,
   refuseOthers,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { toolPlan } from "./task-plan-tools";
+import { upscalerPlan } from "./task-plan-upscale";
 import { videoPlan } from "./task-plan-video";
 import { isTaskId, TASKS } from "./tasks";
 import type { RankedModel, TaskDefinition, TaskId } from "./tasks";
@@ -49,12 +48,6 @@ export interface PlanContext {
   falKey?: string;
   pins?: Readonly<Partial<Record<TaskId, string>>>;
 }
-
-const FLAT_PRICE_REGEX = /^\$(\d+(?:\.\d+)?)$/;
-const MEGAPIXEL_PRICE_REGEX = /^\$(\d+(?:\.\d+)?)\/MP$/;
-
-/** Clarity's own default factor, from fal's schema. */
-const CLARITY_DEFAULT_SCALE = 2;
 
 function creativeOf(input: TaskInput): CreativeDirection | undefined {
   if (input.look === undefined && input.mood === undefined) {
@@ -271,11 +264,11 @@ function planBody(
   if (config?.type === "generation") {
     return generationPlan(task, model, config, input);
   }
-  if (model === "clarity" || model === "crystal") {
-    return upscalerPlan(task, model, input);
+  if (config?.type === "utility") {
+    return upscalerPlan(task, model, config, input);
   }
-  if (model === "kling" || model === "kling-turbo") {
-    return videoPlan(task, model, input);
+  if (config?.type === "video") {
+    return videoPlan(task, model, config, input);
   }
   return err(
     invalidOption(`No request builder for Model ${model} on ${task}.`, {
@@ -475,84 +468,5 @@ function generationPlan(
       config.useQueue === true ||
       input.onProgress !== undefined ||
       input.onSubmitted !== undefined,
-  });
-}
-
-// ─── Upscalers ─────────────────────────────────────────────────────────
-
-function flatPrice(pricing: string): number | null {
-  const match = FLAT_PRICE_REGEX.exec(pricing.trim());
-  return match === null ? null : Number(match[1]);
-}
-
-/**
- * An upscaler's price: flat, or per megapixel of output, which is the source's
- * megapixels times the factor squared. Unknown without the source's size.
- */
-function upscalerCost(
-  pricing: string,
-  input: TaskInput,
-  scale: number
-): number | null {
-  const perMegapixel = MEGAPIXEL_PRICE_REGEX.exec(pricing.trim());
-  if (perMegapixel === null) {
-    return flatPrice(pricing);
-  }
-  const size =
-    (input.image === undefined ? undefined : dataUrlImageSize(input.image)) ??
-    input.sourceSize;
-  return size === undefined
-    ? null
-    : (Number(perMegapixel[1]) * size.width * size.height * scale * scale) /
-        1_000_000;
-}
-
-function upscalerPlan(
-  task: TaskId,
-  model: "clarity" | "crystal",
-  input: TaskInput
-): Result<PlanBody, MotifError> {
-  const config = MODELS[model];
-  if (config === undefined) {
-    return err(cannotCarry("model", model, task));
-  }
-  const allowed = new Set<CarriedField>(
-    model === "clarity"
-      ? ["image", "negativePrompt", "prompt", "scale"]
-      : ["image", "scale"]
-  );
-  const refused = refuseOthers(input, allowed, model, task);
-  if (refused !== undefined) {
-    return err(refused);
-  }
-  const body: Record<string, unknown> = { image_url: input.image };
-  if (input.scale !== undefined) {
-    body[model === "crystal" ? "scale_factor" : "upscale_factor"] = input.scale;
-  }
-  if (input.prompt !== undefined && input.prompt !== "") {
-    body.prompt = input.prompt;
-  }
-  if (input.negativePrompt !== undefined && input.negativePrompt !== "") {
-    body.negative_prompt = input.negativePrompt;
-  }
-  const merged = mergeParams(body, input.params, new Set(Object.keys(body)));
-  if (merged.isErr()) {
-    return err(merged.error);
-  }
-  return ok({
-    body: merged.value,
-    cost: projected(
-      upscalerCost(
-        config.pricing,
-        input,
-        typeof merged.value.upscale_factor === "number"
-          ? merged.value.upscale_factor
-          : CLARITY_DEFAULT_SCALE
-      )
-    ),
-    endpoint: config.endpoint,
-    prompt: input.prompt,
-    provider: "fal",
-    queued: false,
   });
 }
