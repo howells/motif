@@ -1,0 +1,32 @@
+vectorize - recraft-vectorize bare => recraft-vectorize fal-ai/recraft/vectorize queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt=undefined body={"image_url":"https://example.com/source.png"}
+vectorize - recraft-vectorize prompted => ERR INVALID_OPTION recraft-vectorize cannot take prompt for vectorize. {"field":"prompt","model":"recraft-vectorize","task":"vectorize"}
+vectorize - recraft-vectorize no-source => ERR INVALID_OPTION vectorize needs a source image. {"field":"image","task":"vectorize"}
+vectorize - recraft-vectorize queued => recraft-vectorize fal-ai/recraft/vectorize queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt=undefined body={"image_url":"https://example.com/source.png"}
+vectorize - recraft-vectorize mood => ERR INVALID_OPTION recraft-vectorize cannot take prompt for vectorize. {"field":"prompt","model":"recraft-vectorize","task":"vectorize"}
+vectorize - recraft-vectorize mask => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do mask. {"blockedBy":"mask","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize transparent => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do transparency. {"blockedBy":"transparency","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize 1K => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do resolution. {"blockedBy":"resolution","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize 4K => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do resolution. {"blockedBy":"resolution","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize ref1 => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize ref2 => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize aspect => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do aspect. {"blockedBy":"aspect","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize rich => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do count. {"blockedBy":"count","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg bare => image2svg fal-ai/image2svg queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"image_url":"https://example.com/source.png"}
+vectorize - image2svg prompted => ERR INVALID_OPTION image2svg cannot take prompt for vectorize. {"field":"prompt","model":"image2svg","task":"vectorize"}
+vectorize - image2svg no-source => ERR INVALID_OPTION vectorize needs a source image. {"field":"image","task":"vectorize"}
+vectorize - image2svg queued => image2svg fal-ai/image2svg queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"image_url":"https://example.com/source.png"}
+vectorize - image2svg mood => ERR INVALID_OPTION image2svg cannot take prompt for vectorize. {"field":"prompt","model":"image2svg","task":"vectorize"}
+vectorize - image2svg mask => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do mask. {"blockedBy":"mask","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg transparent => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do transparency. {"blockedBy":"transparency","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg 1K => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do resolution. {"blockedBy":"resolution","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg 4K => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do resolution. {"blockedBy":"resolution","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg ref1 => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg ref2 => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg aspect => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do aspect. {"blockedBy":"aspect","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg rich => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do count. {"blockedBy":"count","task":"vectorize","unblockedBy":["option"]}
+vectorize - ranked fast => ERR INVALID_OPTION image2svg cannot take prompt for vectorize. {"field":"prompt","model":"image2svg","task":"vectorize"}
+vectorize - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for vectorize can do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}
+vectorize - ranked balanced => ERR INVALID_OPTION recraft-vectorize cannot take prompt for vectorize. {"field":"prompt","model":"recraft-vectorize","task":"vectorize"}
+vectorize - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for vectorize can do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}
+vectorize - ranked quality => ERR INVALID_OPTION recraft-vectorize cannot take prompt for vectorize. {"field":"prompt","model":"recraft-vectorize","task":"vectorize"}
+vectorize - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for vectorize can do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}

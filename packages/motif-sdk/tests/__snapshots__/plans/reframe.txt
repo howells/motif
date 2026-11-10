@@ -1,0 +1,70 @@
+reframe - ideogram-reframe bare => ideogram-reframe fal-ai/ideogram/v3/reframe queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt=undefined body={"image_size":{"height":864,"width":1536},"image_url":"https://example.com/source.png"}
+reframe - ideogram-reframe prompted => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ideogram-reframe no-source => ERR INVALID_OPTION reframe needs a source image. {"field":"image","task":"reframe"}
+reframe - ideogram-reframe queued => ideogram-reframe fal-ai/ideogram/v3/reframe queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt=undefined body={"image_size":{"height":864,"width":1536},"image_url":"https://example.com/source.png"}
+reframe - ideogram-reframe mood => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ideogram-reframe mask => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
+reframe - ideogram-reframe transparent => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
+reframe - ideogram-reframe 1K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ideogram-reframe 4K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ideogram-reframe ref1 => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - ideogram-reframe ref2 => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - ideogram-reframe aspect => ideogram-reframe fal-ai/ideogram/v3/reframe queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt=undefined body={"image_size":{"height":1024,"width":1536},"image_url":"https://example.com/source.png"}
+reframe - ideogram-reframe rich => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do negativePrompt. {"blockedBy":"negativePrompt","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand bare => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt=undefined body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png"}
+reframe - bria-expand prompted => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - bria-expand no-source => ERR INVALID_OPTION reframe needs a source image. {"field":"image","task":"reframe"}
+reframe - bria-expand queued => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt=undefined body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png"}
+reframe - bria-expand mood => ERR INVALID_OPTION bria-expand cannot take mood for reframe. {"field":"mood","model":"bria-expand","task":"reframe"}
+reframe - bria-expand mask => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand transparent => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand 1K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - bria-expand 4K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[4096,2304],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - bria-expand ref1 => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand ref2 => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand aspect => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt=undefined body={"aspect_ratio":"3:2","canvas_size":[1536,1024],"image_url":"https://example.com/source.png"}
+reframe - bria-expand rich => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do count. {"blockedBy":"count","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint bare => flux-outpaint fal-ai/flux-2-pro/outpaint queued=false by=model tier=balanced mode=margin cost={"basis":"projected","usd":0.045} prompt=undefined body={"expand_bottom":8,"expand_left":16,"expand_right":16,"expand_top":8,"image_url":"https://example.com/source.png"}
+reframe margin flux-outpaint prompted => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
+reframe margin flux-outpaint no-source => ERR INVALID_OPTION reframe needs a source image. {"field":"image","task":"reframe"}
+reframe margin flux-outpaint queued => flux-outpaint fal-ai/flux-2-pro/outpaint queued=false by=model tier=balanced mode=margin cost={"basis":"projected","usd":0.045} prompt=undefined body={"expand_bottom":8,"expand_left":16,"expand_right":16,"expand_top":8,"image_url":"https://example.com/source.png"}
+reframe margin flux-outpaint mood => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
+reframe margin flux-outpaint mask => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint transparent => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint 1K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint 4K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint ref1 => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint ref2 => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint aspect => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe margin flux-outpaint rich => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do count. {"blockedBy":"count","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize bare => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt=undefined body={"image_url":"https://example.com/source.png","target_sizes":["800x600"]}
+reframe sizes smart-resize prompted => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe","target_sizes":["800x600"]}
+reframe sizes smart-resize no-source => ERR INVALID_OPTION reframe needs a source image. {"field":"image","task":"reframe"}
+reframe sizes smart-resize queued => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt=undefined body={"image_url":"https://example.com/source.png","target_sizes":["800x600"]}
+reframe sizes smart-resize mood => ERR INVALID_OPTION smart-resize cannot take mood for reframe. {"field":"mood","model":"smart-resize","task":"reframe"}
+reframe sizes smart-resize mask => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do mask. {"blockedBy":"mask","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize transparent => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize 1K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize 4K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize ref1 => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize ref2 => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize aspect => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe sizes smart-resize rich => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do count. {"blockedBy":"count","task":"reframe","unblockedBy":["option"]}
+reframe - ranked fast => bria-expand fal-ai/bria/expand queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for reframe can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - ranked balanced => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for reframe can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - ranked quality => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for reframe can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked fast => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
+reframe margin ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked balanced => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
+reframe margin ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked quality => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
+reframe margin ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked fast => smart-resize fal-ai/smart-resize queued=true by=ranking tier=fast mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe","target_sizes":["800x600"]}
+reframe sizes ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked balanced => smart-resize fal-ai/smart-resize queued=true by=ranking tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe","target_sizes":["800x600"]}
+reframe sizes ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked quality => smart-resize fal-ai/smart-resize queued=true by=ranking tier=quality mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe","target_sizes":["800x600"]}
+reframe sizes ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}

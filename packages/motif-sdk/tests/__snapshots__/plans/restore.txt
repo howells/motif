@@ -1,0 +1,133 @@
+restore - topaz-restore bare => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore - topaz-restore prompted => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - topaz-restore no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore - topaz-restore queued => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore - topaz-restore mood => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - topaz-restore mask => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore transparent => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore 1K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore 4K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore ref1 => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore ref2 => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore aspect => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore rich => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor bare => ddcolor fal-ai/ddcolor queued=false by=model tier=balanced mode=colour cost={"basis":"projected","usd":0.0008} prompt=undefined body={"image_url":"https://example.com/source.png"}
+restore colour ddcolor prompted => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
+restore colour ddcolor no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore colour ddcolor queued => ddcolor fal-ai/ddcolor queued=false by=model tier=balanced mode=colour cost={"basis":"projected","usd":0.0008} prompt=undefined body={"image_url":"https://example.com/source.png"}
+restore colour ddcolor mood => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
+restore colour ddcolor mask => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor transparent => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor 1K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor 4K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor ref1 => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor ref2 => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor aspect => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor rich => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore dark control-light bare => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png"}
+restore dark control-light prompted => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark control-light no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore dark control-light queued => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png"}
+restore dark control-light mood => ERR INVALID_OPTION control-light cannot take mood for restore. {"field":"mood","model":"control-light","task":"restore"}
+restore dark control-light mask => ERR NO_MODEL_AVAILABLE control-light (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore dark control-light transparent => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore dark control-light 1K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore dark control-light 4K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore dark control-light ref1 => ERR NO_MODEL_AVAILABLE control-light (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore dark control-light ref2 => ERR NO_MODEL_AVAILABLE control-light (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore dark control-light aspect => ERR NO_MODEL_AVAILABLE control-light (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore dark control-light rich => ERR NO_MODEL_AVAILABLE control-light (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise bare => topaz-denoise topaz/denoise/image queued=true by=model tier=balanced mode=noise cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore noise topaz-denoise prompted => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise topaz-denoise no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore noise topaz-denoise queued => topaz-denoise topaz/denoise/image queued=true by=model tier=balanced mode=noise cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore noise topaz-denoise mood => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise topaz-denoise mask => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise transparent => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise 1K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise 4K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise ref1 => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise ref2 => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise aspect => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise rich => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore bare => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=scratches cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore scratches topaz-restore prompted => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches topaz-restore no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore scratches topaz-restore queued => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=scratches cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore scratches topaz-restore mood => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches topaz-restore mask => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore transparent => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore 1K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore 4K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore ref1 => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore ref2 => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore aspect => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore rich => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen bare => topaz-sharpen topaz/sharpen/image queued=true by=model tier=balanced mode=softness cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore softness topaz-sharpen prompted => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness topaz-sharpen no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore softness topaz-sharpen queued => topaz-sharpen topaz/sharpen/image queued=true by=model tier=balanced mode=softness cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore softness topaz-sharpen mood => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness topaz-sharpen mask => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen transparent => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen 1K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen 4K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen ref1 => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen ref2 => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen aspect => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen rich => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust bare => topaz-adjust topaz/adjust/image queued=true by=model tier=balanced mode=tone cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore tone topaz-adjust prompted => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone topaz-adjust no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
+restore tone topaz-adjust queued => topaz-adjust topaz/adjust/image queued=true by=model tier=balanced mode=tone cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore tone topaz-adjust mood => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone topaz-adjust mask => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust transparent => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust 1K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust 4K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust ref1 => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust ref2 => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust aspect => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust rich => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
+restore - ranked fast => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore - ranked balanced => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore - ranked quality => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore colour ranked fast => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
+restore colour ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore colour can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore colour ranked balanced => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
+restore colour ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore colour can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore colour ranked quality => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
+restore colour ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore colour can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore dark ranked fast => control-light fal-ai/control-light queued=false by=ranking tier=fast mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore dark can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore dark ranked balanced => control-light fal-ai/control-light queued=false by=ranking tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore dark can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore dark ranked quality => control-light fal-ai/control-light queued=false by=ranking tier=quality mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore dark can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore noise ranked fast => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore noise can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore noise ranked balanced => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore noise can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore noise ranked quality => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore noise can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore scratches ranked fast => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore scratches can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore scratches ranked balanced => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore scratches can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore scratches ranked quality => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore scratches can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore softness ranked fast => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore softness can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore softness ranked balanced => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore softness can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore softness ranked quality => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore softness can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore tone ranked fast => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore tone can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore tone ranked balanced => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore tone can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore tone ranked quality => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore tone can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}

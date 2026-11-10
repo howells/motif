@@ -1,0 +1,114 @@
+ask - moondream-query bare => ERR INVALID_OPTION moondream-query needs prompt for ask. {"field":"prompt","model":"moondream-query","task":"ask"}
+ask - moondream-query prompted => moondream-query fal-ai/moondream3-preview/query queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.0020448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask - moondream-query no-source => ERR INVALID_OPTION ask needs a source image. {"field":"image","task":"ask"}
+ask - moondream-query queued => ERR INVALID_OPTION moondream-query needs prompt for ask. {"field":"prompt","model":"moondream-query","task":"ask"}
+ask - moondream-query mood => ERR INVALID_OPTION moondream-query cannot take mood for ask. {"field":"mood","model":"moondream-query","task":"ask"}
+ask - moondream-query mask => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do mask. {"blockedBy":"mask","task":"ask","unblockedBy":["option"]}
+ask - moondream-query transparent => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do transparency. {"blockedBy":"transparency","task":"ask","unblockedBy":["option"]}
+ask - moondream-query 1K => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask - moondream-query 4K => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask - moondream-query ref1 => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask - moondream-query ref2 => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask - moondream-query aspect => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do aspect. {"blockedBy":"aspect","task":"ask","unblockedBy":["option"]}
+ask - moondream-query rich => ERR NO_MODEL_AVAILABLE moondream-query (model) cannot do count. {"blockedBy":"count","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption bare => moondream-caption fal-ai/moondream3-preview/caption queued=false by=model tier=balanced mode=caption cost={"basis":"projected","usd":0.0009948} prompt=undefined body={"image_url":"https://example.com/source.png"}
+ask caption moondream-caption prompted => ERR INVALID_OPTION moondream-caption cannot take prompt for ask. {"field":"prompt","model":"moondream-caption","task":"ask"}
+ask caption moondream-caption no-source => ERR INVALID_OPTION ask needs a source image. {"field":"image","task":"ask"}
+ask caption moondream-caption queued => moondream-caption fal-ai/moondream3-preview/caption queued=false by=model tier=balanced mode=caption cost={"basis":"projected","usd":0.0009948} prompt=undefined body={"image_url":"https://example.com/source.png"}
+ask caption moondream-caption mood => ERR INVALID_OPTION moondream-caption cannot take prompt for ask. {"field":"prompt","model":"moondream-caption","task":"ask"}
+ask caption moondream-caption mask => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do mask. {"blockedBy":"mask","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption transparent => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do transparency. {"blockedBy":"transparency","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption 1K => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption 4K => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption ref1 => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption ref2 => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption aspect => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do aspect. {"blockedBy":"aspect","task":"ask","unblockedBy":["option"]}
+ask caption moondream-caption rich => ERR NO_MODEL_AVAILABLE moondream-caption (model) cannot do count. {"blockedBy":"count","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect bare => ERR INVALID_OPTION moondream-detect needs prompt for ask. {"field":"prompt","model":"moondream-detect","task":"ask"}
+ask detect moondream-detect prompted => moondream-detect fal-ai/moondream3-preview/detect queued=false by=model tier=balanced mode=detect cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask detect moondream-detect no-source => ERR INVALID_OPTION ask needs a source image. {"field":"image","task":"ask"}
+ask detect moondream-detect queued => ERR INVALID_OPTION moondream-detect needs prompt for ask. {"field":"prompt","model":"moondream-detect","task":"ask"}
+ask detect moondream-detect mood => ERR INVALID_OPTION moondream-detect cannot take mood for ask. {"field":"mood","model":"moondream-detect","task":"ask"}
+ask detect moondream-detect mask => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do mask. {"blockedBy":"mask","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect transparent => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do transparency. {"blockedBy":"transparency","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect 1K => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect 4K => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect ref1 => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect ref2 => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect aspect => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do aspect. {"blockedBy":"aspect","task":"ask","unblockedBy":["option"]}
+ask detect moondream-detect rich => ERR NO_MODEL_AVAILABLE moondream-detect (model) cannot do count. {"blockedBy":"count","task":"ask","unblockedBy":["option"]}
+ask point moondream-point bare => ERR INVALID_OPTION moondream-point needs prompt for ask. {"field":"prompt","model":"moondream-point","task":"ask"}
+ask point moondream-point prompted => moondream-point fal-ai/moondream3-preview/point queued=false by=model tier=balanced mode=point cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask point moondream-point no-source => ERR INVALID_OPTION ask needs a source image. {"field":"image","task":"ask"}
+ask point moondream-point queued => ERR INVALID_OPTION moondream-point needs prompt for ask. {"field":"prompt","model":"moondream-point","task":"ask"}
+ask point moondream-point mood => ERR INVALID_OPTION moondream-point cannot take mood for ask. {"field":"mood","model":"moondream-point","task":"ask"}
+ask point moondream-point mask => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do mask. {"blockedBy":"mask","task":"ask","unblockedBy":["option"]}
+ask point moondream-point transparent => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do transparency. {"blockedBy":"transparency","task":"ask","unblockedBy":["option"]}
+ask point moondream-point 1K => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask point moondream-point 4K => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask point moondream-point ref1 => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask point moondream-point ref2 => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask point moondream-point aspect => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do aspect. {"blockedBy":"aspect","task":"ask","unblockedBy":["option"]}
+ask point moondream-point rich => ERR NO_MODEL_AVAILABLE moondream-point (model) cannot do count. {"blockedBy":"count","task":"ask","unblockedBy":["option"]}
+ask read got-ocr bare => got-ocr fal-ai/got-ocr/v2 queued=true by=model tier=balanced mode=read cost={"basis":"projected","usd":0.05} prompt=undefined body={"input_image_urls":["https://example.com/source.png"]}
+ask read got-ocr prompted => ERR INVALID_OPTION got-ocr cannot take prompt for ask. {"field":"prompt","model":"got-ocr","task":"ask"}
+ask read got-ocr no-source => ERR INVALID_OPTION ask needs a source image. {"field":"image","task":"ask"}
+ask read got-ocr queued => got-ocr fal-ai/got-ocr/v2 queued=true by=model tier=balanced mode=read cost={"basis":"projected","usd":0.05} prompt=undefined body={"input_image_urls":["https://example.com/source.png"]}
+ask read got-ocr mood => ERR INVALID_OPTION got-ocr cannot take prompt for ask. {"field":"prompt","model":"got-ocr","task":"ask"}
+ask read got-ocr mask => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do mask. {"blockedBy":"mask","task":"ask","unblockedBy":["option"]}
+ask read got-ocr transparent => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do transparency. {"blockedBy":"transparency","task":"ask","unblockedBy":["option"]}
+ask read got-ocr 1K => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask read got-ocr 4K => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask read got-ocr ref1 => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask read got-ocr ref2 => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask read got-ocr aspect => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do aspect. {"blockedBy":"aspect","task":"ask","unblockedBy":["option"]}
+ask read got-ocr rich => ERR NO_MODEL_AVAILABLE got-ocr (model) cannot do count. {"blockedBy":"count","task":"ask","unblockedBy":["option"]}
+ask safe nsfw bare => nsfw fal-ai/x-ailab/nsfw queued=false by=model tier=balanced mode=safe cost={"basis":"projected","usd":0.001} prompt=undefined body={"image_urls":["https://example.com/source.png"]}
+ask safe nsfw prompted => ERR INVALID_OPTION nsfw cannot take prompt for ask. {"field":"prompt","model":"nsfw","task":"ask"}
+ask safe nsfw no-source => ERR INVALID_OPTION ask needs a source image. {"field":"image","task":"ask"}
+ask safe nsfw queued => nsfw fal-ai/x-ailab/nsfw queued=false by=model tier=balanced mode=safe cost={"basis":"projected","usd":0.001} prompt=undefined body={"image_urls":["https://example.com/source.png"]}
+ask safe nsfw mood => ERR INVALID_OPTION nsfw cannot take prompt for ask. {"field":"prompt","model":"nsfw","task":"ask"}
+ask safe nsfw mask => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do mask. {"blockedBy":"mask","task":"ask","unblockedBy":["option"]}
+ask safe nsfw transparent => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do transparency. {"blockedBy":"transparency","task":"ask","unblockedBy":["option"]}
+ask safe nsfw 1K => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask safe nsfw 4K => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do resolution. {"blockedBy":"resolution","task":"ask","unblockedBy":["option"]}
+ask safe nsfw ref1 => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask safe nsfw ref2 => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask safe nsfw aspect => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do aspect. {"blockedBy":"aspect","task":"ask","unblockedBy":["option"]}
+ask safe nsfw rich => ERR NO_MODEL_AVAILABLE nsfw (model) cannot do count. {"blockedBy":"count","task":"ask","unblockedBy":["option"]}
+ask - ranked fast => moondream-query fal-ai/moondream3-preview/query queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.0020448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for ask can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask - ranked balanced => moondream-query fal-ai/moondream3-preview/query queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.0020448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for ask can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask - ranked quality => moondream-query fal-ai/moondream3-preview/query queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.0020448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for ask can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask caption ranked fast => ERR INVALID_OPTION moondream-caption cannot take prompt for ask. {"field":"prompt","model":"moondream-caption","task":"ask"}
+ask caption ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for ask caption can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask caption ranked balanced => ERR INVALID_OPTION moondream-caption cannot take prompt for ask. {"field":"prompt","model":"moondream-caption","task":"ask"}
+ask caption ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for ask caption can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask caption ranked quality => ERR INVALID_OPTION moondream-caption cannot take prompt for ask. {"field":"prompt","model":"moondream-caption","task":"ask"}
+ask caption ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for ask caption can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask detect ranked fast => moondream-detect fal-ai/moondream3-preview/detect queued=false by=ranking tier=fast mode=detect cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask detect ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for ask detect can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask detect ranked balanced => moondream-detect fal-ai/moondream3-preview/detect queued=false by=ranking tier=balanced mode=detect cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask detect ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for ask detect can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask detect ranked quality => moondream-detect fal-ai/moondream3-preview/detect queued=false by=ranking tier=quality mode=detect cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask detect ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for ask detect can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask point ranked fast => moondream-point fal-ai/moondream3-preview/point queued=false by=ranking tier=fast mode=point cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask point ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for ask point can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask point ranked balanced => moondream-point fal-ai/moondream3-preview/point queued=false by=ranking tier=balanced mode=point cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask point ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for ask point can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask point ranked quality => moondream-point fal-ai/moondream3-preview/point queued=false by=ranking tier=quality mode=point cost={"basis":"projected","usd":0.0006448} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+ask point ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for ask point can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask read ranked fast => ERR INVALID_OPTION got-ocr cannot take prompt for ask. {"field":"prompt","model":"got-ocr","task":"ask"}
+ask read ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for ask read can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask read ranked balanced => ERR INVALID_OPTION got-ocr cannot take prompt for ask. {"field":"prompt","model":"got-ocr","task":"ask"}
+ask read ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for ask read can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask read ranked quality => ERR INVALID_OPTION got-ocr cannot take prompt for ask. {"field":"prompt","model":"got-ocr","task":"ask"}
+ask read ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for ask read can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask safe ranked fast => ERR INVALID_OPTION nsfw cannot take prompt for ask. {"field":"prompt","model":"nsfw","task":"ask"}
+ask safe ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for ask safe can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask safe ranked balanced => ERR INVALID_OPTION nsfw cannot take prompt for ask. {"field":"prompt","model":"nsfw","task":"ask"}
+ask safe ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for ask safe can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}
+ask safe ranked quality => ERR INVALID_OPTION nsfw cannot take prompt for ask. {"field":"prompt","model":"nsfw","task":"ask"}
+ask safe ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for ask safe can do references. {"blockedBy":"references","task":"ask","unblockedBy":["option"]}

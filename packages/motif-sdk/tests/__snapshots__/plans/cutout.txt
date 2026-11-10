@@ -1,0 +1,84 @@
+cutout - bria-rmbg bare => bria-rmbg fal-ai/bria/background/remove queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.018} prompt=undefined body={"image_url":"https://example.com/source.png"}
+cutout - bria-rmbg prompted => ERR INVALID_OPTION bria-rmbg cannot take prompt for cutout. {"field":"prompt","model":"bria-rmbg","task":"cutout"}
+cutout - bria-rmbg no-source => ERR INVALID_OPTION cutout needs a source image. {"field":"image","task":"cutout"}
+cutout - bria-rmbg queued => bria-rmbg fal-ai/bria/background/remove queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.018} prompt=undefined body={"image_url":"https://example.com/source.png"}
+cutout - bria-rmbg mood => ERR INVALID_OPTION bria-rmbg cannot take prompt for cutout. {"field":"prompt","model":"bria-rmbg","task":"cutout"}
+cutout - bria-rmbg mask => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do mask. {"blockedBy":"mask","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg transparent => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do transparency. {"blockedBy":"transparency","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg 1K => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg 4K => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg ref1 => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg ref2 => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg aspect => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do aspect. {"blockedBy":"aspect","task":"cutout","unblockedBy":["option"]}
+cutout - bria-rmbg rich => ERR NO_MODEL_AVAILABLE bria-rmbg (model) cannot do count. {"blockedBy":"count","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet bare => birefnet fal-ai/birefnet/v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png","model":"General Use (Light)","operating_resolution":"1024x1024","output_format":"png","refine_foreground":true}
+cutout - birefnet prompted => ERR INVALID_OPTION birefnet cannot take prompt for cutout. {"field":"prompt","model":"birefnet","task":"cutout"}
+cutout - birefnet no-source => ERR INVALID_OPTION cutout needs a source image. {"field":"image","task":"cutout"}
+cutout - birefnet queued => birefnet fal-ai/birefnet/v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png","model":"General Use (Light)","operating_resolution":"1024x1024","output_format":"png","refine_foreground":true}
+cutout - birefnet mood => ERR INVALID_OPTION birefnet cannot take prompt for cutout. {"field":"prompt","model":"birefnet","task":"cutout"}
+cutout - birefnet mask => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do mask. {"blockedBy":"mask","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet transparent => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do transparency. {"blockedBy":"transparency","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet 1K => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet 4K => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet ref1 => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet ref2 => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet aspect => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do aspect. {"blockedBy":"aspect","task":"cutout","unblockedBy":["option"]}
+cutout - birefnet rich => ERR NO_MODEL_AVAILABLE birefnet (model) cannot do count. {"blockedBy":"count","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 bare => ben-v2 fal-ai/ben/v2/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.020000000000000004} prompt=undefined body={"image_url":"https://example.com/source.png"}
+cutout - ben-v2 prompted => ERR INVALID_OPTION ben-v2 cannot take prompt for cutout. {"field":"prompt","model":"ben-v2","task":"cutout"}
+cutout - ben-v2 no-source => ERR INVALID_OPTION cutout needs a source image. {"field":"image","task":"cutout"}
+cutout - ben-v2 queued => ben-v2 fal-ai/ben/v2/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.020000000000000004} prompt=undefined body={"image_url":"https://example.com/source.png"}
+cutout - ben-v2 mood => ERR INVALID_OPTION ben-v2 cannot take prompt for cutout. {"field":"prompt","model":"ben-v2","task":"cutout"}
+cutout - ben-v2 mask => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do mask. {"blockedBy":"mask","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 transparent => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do transparency. {"blockedBy":"transparency","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 1K => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 4K => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 ref1 => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 ref2 => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 aspect => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do aspect. {"blockedBy":"aspect","task":"cutout","unblockedBy":["option"]}
+cutout - ben-v2 rich => ERR NO_MODEL_AVAILABLE ben-v2 (model) cannot do count. {"blockedBy":"count","task":"cutout","unblockedBy":["option"]}
+cutout - rembg bare => rembg fal-ai/imageutils/rembg queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"crop_to_bbox":false,"image_url":"https://example.com/source.png"}
+cutout - rembg prompted => ERR INVALID_OPTION rembg cannot take prompt for cutout. {"field":"prompt","model":"rembg","task":"cutout"}
+cutout - rembg no-source => ERR INVALID_OPTION cutout needs a source image. {"field":"image","task":"cutout"}
+cutout - rembg queued => rembg fal-ai/imageutils/rembg queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"crop_to_bbox":false,"image_url":"https://example.com/source.png"}
+cutout - rembg mood => ERR INVALID_OPTION rembg cannot take prompt for cutout. {"field":"prompt","model":"rembg","task":"cutout"}
+cutout - rembg mask => ERR NO_MODEL_AVAILABLE rembg (model) cannot do mask. {"blockedBy":"mask","task":"cutout","unblockedBy":["option"]}
+cutout - rembg transparent => ERR NO_MODEL_AVAILABLE rembg (model) cannot do transparency. {"blockedBy":"transparency","task":"cutout","unblockedBy":["option"]}
+cutout - rembg 1K => ERR NO_MODEL_AVAILABLE rembg (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - rembg 4K => ERR NO_MODEL_AVAILABLE rembg (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - rembg ref1 => ERR NO_MODEL_AVAILABLE rembg (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - rembg ref2 => ERR NO_MODEL_AVAILABLE rembg (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - rembg aspect => ERR NO_MODEL_AVAILABLE rembg (model) cannot do aspect. {"blockedBy":"aspect","task":"cutout","unblockedBy":["option"]}
+cutout - rembg rich => ERR NO_MODEL_AVAILABLE rembg (model) cannot do count. {"blockedBy":"count","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 bare => bria-video-rmbg-v3 bria/video/background-removal/v3 queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.2} prompt=undefined body={"background_color":"Black","output_container_and_codec":"webm_vp9","preserve_audio":true,"video_url":"https://example.com/source.mp4"}
+cutout - bria-video-rmbg-v3 prompted => ERR INVALID_OPTION bria-video-rmbg-v3 cannot take prompt for cutout. {"field":"prompt","model":"bria-video-rmbg-v3","task":"cutout"}
+cutout - bria-video-rmbg-v3 no-source => ERR INVALID_OPTION cutout needs a source image. {"field":"image","task":"cutout"}
+cutout - bria-video-rmbg-v3 queued => bria-video-rmbg-v3 bria/video/background-removal/v3 queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.2} prompt=undefined body={"background_color":"Black","output_container_and_codec":"webm_vp9","preserve_audio":true,"video_url":"https://example.com/source.mp4"}
+cutout - bria-video-rmbg-v3 mood => ERR INVALID_OPTION bria-video-rmbg-v3 cannot take prompt for cutout. {"field":"prompt","model":"bria-video-rmbg-v3","task":"cutout"}
+cutout - bria-video-rmbg-v3 mask => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do mask. {"blockedBy":"mask","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 transparent => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do transparency. {"blockedBy":"transparency","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 1K => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 4K => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 ref1 => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 ref2 => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 aspect => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do aspect. {"blockedBy":"aspect","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg-v3 rich => ERR NO_MODEL_AVAILABLE bria-video-rmbg-v3 (model) cannot do count. {"blockedBy":"count","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg bare => bria-video-rmbg bria/video/background-removal queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.56} prompt=undefined body={"background_color":"Black","output_container_and_codec":"webm_vp9","preserve_audio":true,"video_url":"https://example.com/source.mp4"}
+cutout - bria-video-rmbg prompted => ERR INVALID_OPTION bria-video-rmbg cannot take prompt for cutout. {"field":"prompt","model":"bria-video-rmbg","task":"cutout"}
+cutout - bria-video-rmbg no-source => ERR INVALID_OPTION cutout needs a source image. {"field":"image","task":"cutout"}
+cutout - bria-video-rmbg queued => bria-video-rmbg bria/video/background-removal queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.56} prompt=undefined body={"background_color":"Black","output_container_and_codec":"webm_vp9","preserve_audio":true,"video_url":"https://example.com/source.mp4"}
+cutout - bria-video-rmbg mood => ERR INVALID_OPTION bria-video-rmbg cannot take prompt for cutout. {"field":"prompt","model":"bria-video-rmbg","task":"cutout"}
+cutout - bria-video-rmbg mask => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do mask. {"blockedBy":"mask","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg transparent => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do transparency. {"blockedBy":"transparency","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg 1K => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg 4K => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do resolution. {"blockedBy":"resolution","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg ref1 => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg ref2 => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg aspect => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do aspect. {"blockedBy":"aspect","task":"cutout","unblockedBy":["option"]}
+cutout - bria-video-rmbg rich => ERR NO_MODEL_AVAILABLE bria-video-rmbg (model) cannot do count. {"blockedBy":"count","task":"cutout","unblockedBy":["option"]}
+cutout - ranked fast => ERR INVALID_OPTION rembg cannot take prompt for cutout. {"field":"prompt","model":"rembg","task":"cutout"}
+cutout - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for cutout can do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - ranked balanced => ERR INVALID_OPTION birefnet cannot take prompt for cutout. {"field":"prompt","model":"birefnet","task":"cutout"}
+cutout - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for cutout can do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}
+cutout - ranked quality => ERR INVALID_OPTION bria-rmbg cannot take prompt for cutout. {"field":"prompt","model":"bria-rmbg","task":"cutout"}
+cutout - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for cutout can do references. {"blockedBy":"references","task":"cutout","unblockedBy":["option"]}

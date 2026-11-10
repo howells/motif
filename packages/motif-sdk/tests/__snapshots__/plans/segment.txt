@@ -1,0 +1,109 @@
+segment - sam3-1-image bare => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-1-image prompted => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
+segment - sam3-1-image no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment - sam3-1-image queued => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-1-image mood => ERR INVALID_OPTION sam3-1-image cannot take mood for segment. {"field":"mood","model":"sam3-1-image","task":"segment"}
+segment - sam3-1-image mask => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image transparent => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image 1K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image 4K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image ref1 => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image ref2 => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image aspect => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image rich => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment - sam3-image bare => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-image prompted => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
+segment - sam3-image no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment - sam3-image queued => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-image mood => ERR INVALID_OPTION sam3-image cannot take mood for segment. {"field":"mood","model":"sam3-image","task":"segment"}
+segment - sam3-image mask => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment - sam3-image transparent => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-image 1K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-image 4K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-image ref1 => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-image ref2 => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-image aspect => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment - sam3-image rich => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video bare => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="person" body={"apply_mask":true,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment - sam3-1-video prompted => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="the shoe" body={"apply_mask":true,"prompt":"the shoe","video_url":"https://example.com/source.mp4"}
+segment - sam3-1-video no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment - sam3-1-video queued => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="person" body={"apply_mask":true,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment - sam3-1-video mood => ERR INVALID_OPTION sam3-1-video cannot take mood for segment. {"field":"mood","model":"sam3-1-video","task":"segment"}
+segment - sam3-1-video mask => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video transparent => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video 1K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video 4K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video ref1 => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video ref2 => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video aspect => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video rich => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment - sam3-video bare => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
+segment - sam3-video prompted => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="the shoe" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"the shoe","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
+segment - sam3-video no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment - sam3-video queued => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
+segment - sam3-video mood => ERR INVALID_OPTION sam3-video cannot take mood for segment. {"field":"mood","model":"sam3-video","task":"segment"}
+segment - sam3-video mask => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment - sam3-video transparent => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-video 1K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-video 4K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment - sam3-video ref1 => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-video ref2 => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-video aspect => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment - sam3-video rich => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto bare => sam2-auto fal-ai/sam2/auto-segment queued=true by=model tier=balanced mode=auto cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png","min_mask_region_area":100,"output_format":"png","points_per_side":32,"pred_iou_thresh":0.88,"stability_score_thresh":0.95}
+segment auto sam2-auto prompted => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
+segment auto sam2-auto no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment auto sam2-auto queued => sam2-auto fal-ai/sam2/auto-segment queued=true by=model tier=balanced mode=auto cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png","min_mask_region_area":100,"output_format":"png","points_per_side":32,"pred_iou_thresh":0.88,"stability_score_thresh":0.95}
+segment auto sam2-auto mood => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
+segment auto sam2-auto mask => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto transparent => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto 1K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto 4K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto ref1 => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto ref2 => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto aspect => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto rich => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle bare => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3}
+segment rle sam3-image-rle prompted => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"prompt":"the shoe"}
+segment rle sam3-image-rle no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment rle sam3-image-rle queued => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3}
+segment rle sam3-image-rle mood => ERR INVALID_OPTION sam3-image-rle cannot take mood for segment. {"field":"mood","model":"sam3-image-rle","task":"segment"}
+segment rle sam3-image-rle mask => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle transparent => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle 1K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle 4K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle ref1 => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle ref2 => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle aspect => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle rich => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle bare => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment rle sam3-video-rle prompted => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="the shoe" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"the shoe","video_url":"https://example.com/source.mp4"}
+segment rle sam3-video-rle no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
+segment rle sam3-video-rle queued => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment rle sam3-video-rle mood => ERR INVALID_OPTION sam3-video-rle cannot take mood for segment. {"field":"mood","model":"sam3-video-rle","task":"segment"}
+segment rle sam3-video-rle mask => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle transparent => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle 1K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle 4K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle ref1 => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle ref2 => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle aspect => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle rich => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
+segment - ranked fast => sam3-image fal-ai/sam-3/image queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
+segment - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for segment can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - ranked balanced => sam3-image fal-ai/sam-3/image queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
+segment - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for segment can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - ranked quality => sam3-1-image fal-ai/sam-3-1/image queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.01} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
+segment - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for segment can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment auto ranked fast => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
+segment auto ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for segment auto can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment auto ranked balanced => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
+segment auto ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for segment auto can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment auto ranked quality => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
+segment auto ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for segment auto can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle ranked fast => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=ranking tier=fast mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"prompt":"the shoe"}
+segment rle ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for segment rle can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle ranked balanced => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=ranking tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"prompt":"the shoe"}
+segment rle ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for segment rle can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle ranked quality => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=ranking tier=quality mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"prompt":"the shoe"}
+segment rle ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for segment rle can do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}

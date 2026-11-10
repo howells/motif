@@ -1,0 +1,38 @@
+tile - ideogram-tiling bare => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling prompted => ideogram-tiling ideogram/v4/tiling queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"prompt":"the shoe"}
+tile - ideogram-tiling no-source => ideogram-tiling ideogram/v4/tiling queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"prompt":"the shoe"}
+tile - ideogram-tiling queued => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling mood => ERR INVALID_OPTION ideogram-tiling cannot take mood for tile. {"field":"mood","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling mask => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do mask. {"blockedBy":"mask","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling transparent => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling 1K => ERR INVALID_OPTION ideogram-tiling cannot take resolution for tile. {"field":"resolution","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling 4K => ERR INVALID_OPTION ideogram-tiling cannot take resolution for tile. {"field":"resolution","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling ref1 => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling ref2 => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling aspect => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling rich => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do negativePrompt. {"blockedBy":"negativePrompt","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless bare => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.008} prompt=undefined body={"image_url":"https://example.com/source.png"}
+tile upscale seedvr-seamless prompted => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
+tile upscale seedvr-seamless no-source => ERR INVALID_OPTION tile needs a source image. {"field":"image","task":"tile"}
+tile upscale seedvr-seamless queued => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.008} prompt=undefined body={"image_url":"https://example.com/source.png"}
+tile upscale seedvr-seamless mood => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
+tile upscale seedvr-seamless mask => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do mask. {"blockedBy":"mask","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless transparent => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless 1K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless 4K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless ref1 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless ref2 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless aspect => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless rich => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
+tile - ranked fast => ideogram-tiling ideogram/v4/tiling queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"prompt":"the shoe"}
+tile - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for tile can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile - ranked balanced => ideogram-tiling ideogram/v4/tiling queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"prompt":"the shoe"}
+tile - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for tile can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile - ranked quality => ideogram-tiling ideogram/v4/tiling queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"prompt":"the shoe"}
+tile - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for tile can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile upscale ranked fast => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
+tile upscale ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for tile upscale can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile upscale ranked balanced => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
+tile upscale ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for tile upscale can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
+tile upscale ranked quality => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
+tile upscale ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for tile upscale can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}

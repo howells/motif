@@ -1,0 +1,223 @@
+map - marigold-depth bare => marigold-depth fal-ai/imageutils/marigold-depth queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"ensemble_size":10,"image_url":"https://example.com/source.png","num_inference_steps":10}
+map - marigold-depth prompted => ERR INVALID_OPTION marigold-depth cannot take prompt for map. {"field":"prompt","model":"marigold-depth","task":"map"}
+map - marigold-depth no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map - marigold-depth queued => marigold-depth fal-ai/imageutils/marigold-depth queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"ensemble_size":10,"image_url":"https://example.com/source.png","num_inference_steps":10}
+map - marigold-depth mood => ERR INVALID_OPTION marigold-depth cannot take prompt for map. {"field":"prompt","model":"marigold-depth","task":"map"}
+map - marigold-depth mask => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map - marigold-depth transparent => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map - marigold-depth 1K => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map - marigold-depth 4K => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map - marigold-depth ref1 => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - marigold-depth ref2 => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - marigold-depth aspect => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map - marigold-depth rich => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map - depth-anything bare => depth-anything fal-ai/image-preprocessors/depth-anything/v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map - depth-anything prompted => ERR INVALID_OPTION depth-anything cannot take prompt for map. {"field":"prompt","model":"depth-anything","task":"map"}
+map - depth-anything no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map - depth-anything queued => depth-anything fal-ai/image-preprocessors/depth-anything/v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map - depth-anything mood => ERR INVALID_OPTION depth-anything cannot take prompt for map. {"field":"prompt","model":"depth-anything","task":"map"}
+map - depth-anything mask => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map - depth-anything transparent => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map - depth-anything 1K => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map - depth-anything 4K => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map - depth-anything ref1 => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - depth-anything ref2 => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - depth-anything aspect => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map - depth-anything rich => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map - midas-depth bare => midas-depth fal-ai/imageutils/depth queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"a":6.283185307179586,"bg_th":0.1,"image_url":"https://example.com/source.png"}
+map - midas-depth prompted => ERR INVALID_OPTION midas-depth cannot take prompt for map. {"field":"prompt","model":"midas-depth","task":"map"}
+map - midas-depth no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map - midas-depth queued => midas-depth fal-ai/imageutils/depth queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"a":6.283185307179586,"bg_th":0.1,"image_url":"https://example.com/source.png"}
+map - midas-depth mood => ERR INVALID_OPTION midas-depth cannot take prompt for map. {"field":"prompt","model":"midas-depth","task":"map"}
+map - midas-depth mask => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map - midas-depth transparent => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map - midas-depth 1K => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map - midas-depth 4K => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map - midas-depth ref1 => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - midas-depth ref2 => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - midas-depth aspect => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map - midas-depth rich => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map edges teed bare => teed fal-ai/image-preprocessors/teed queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map edges teed prompted => ERR INVALID_OPTION teed cannot take prompt for map. {"field":"prompt","model":"teed","task":"map"}
+map edges teed no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map edges teed queued => teed fal-ai/image-preprocessors/teed queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map edges teed mood => ERR INVALID_OPTION teed cannot take prompt for map. {"field":"prompt","model":"teed","task":"map"}
+map edges teed mask => ERR NO_MODEL_AVAILABLE teed (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map edges teed transparent => ERR NO_MODEL_AVAILABLE teed (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map edges teed 1K => ERR NO_MODEL_AVAILABLE teed (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map edges teed 4K => ERR NO_MODEL_AVAILABLE teed (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map edges teed ref1 => ERR NO_MODEL_AVAILABLE teed (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges teed ref2 => ERR NO_MODEL_AVAILABLE teed (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges teed aspect => ERR NO_MODEL_AVAILABLE teed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map edges teed rich => ERR NO_MODEL_AVAILABLE teed (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map edges hed bare => hed fal-ai/image-preprocessors/hed queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map edges hed prompted => ERR INVALID_OPTION hed cannot take prompt for map. {"field":"prompt","model":"hed","task":"map"}
+map edges hed no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map edges hed queued => hed fal-ai/image-preprocessors/hed queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map edges hed mood => ERR INVALID_OPTION hed cannot take prompt for map. {"field":"prompt","model":"hed","task":"map"}
+map edges hed mask => ERR NO_MODEL_AVAILABLE hed (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map edges hed transparent => ERR NO_MODEL_AVAILABLE hed (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map edges hed 1K => ERR NO_MODEL_AVAILABLE hed (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map edges hed 4K => ERR NO_MODEL_AVAILABLE hed (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map edges hed ref1 => ERR NO_MODEL_AVAILABLE hed (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges hed ref2 => ERR NO_MODEL_AVAILABLE hed (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges hed aspect => ERR NO_MODEL_AVAILABLE hed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map edges hed rich => ERR NO_MODEL_AVAILABLE hed (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map edges pidi bare => pidi fal-ai/image-preprocessors/pidi queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map edges pidi prompted => ERR INVALID_OPTION pidi cannot take prompt for map. {"field":"prompt","model":"pidi","task":"map"}
+map edges pidi no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map edges pidi queued => pidi fal-ai/image-preprocessors/pidi queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map edges pidi mood => ERR INVALID_OPTION pidi cannot take prompt for map. {"field":"prompt","model":"pidi","task":"map"}
+map edges pidi mask => ERR NO_MODEL_AVAILABLE pidi (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map edges pidi transparent => ERR NO_MODEL_AVAILABLE pidi (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map edges pidi 1K => ERR NO_MODEL_AVAILABLE pidi (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map edges pidi 4K => ERR NO_MODEL_AVAILABLE pidi (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map edges pidi ref1 => ERR NO_MODEL_AVAILABLE pidi (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges pidi ref2 => ERR NO_MODEL_AVAILABLE pidi (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges pidi aspect => ERR NO_MODEL_AVAILABLE pidi (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map edges pidi rich => ERR NO_MODEL_AVAILABLE pidi (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map lineart lineart bare => lineart fal-ai/image-preprocessors/lineart queued=false by=model tier=balanced mode=lineart cost={"basis":"projected","usd":0} prompt=undefined body={"coarse":false,"image_url":"https://example.com/source.png"}
+map lineart lineart prompted => ERR INVALID_OPTION lineart cannot take prompt for map. {"field":"prompt","model":"lineart","task":"map"}
+map lineart lineart no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map lineart lineart queued => lineart fal-ai/image-preprocessors/lineart queued=false by=model tier=balanced mode=lineart cost={"basis":"projected","usd":0} prompt=undefined body={"coarse":false,"image_url":"https://example.com/source.png"}
+map lineart lineart mood => ERR INVALID_OPTION lineart cannot take prompt for map. {"field":"prompt","model":"lineart","task":"map"}
+map lineart lineart mask => ERR NO_MODEL_AVAILABLE lineart (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map lineart lineart transparent => ERR NO_MODEL_AVAILABLE lineart (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map lineart lineart 1K => ERR NO_MODEL_AVAILABLE lineart (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map lineart lineart 4K => ERR NO_MODEL_AVAILABLE lineart (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map lineart lineart ref1 => ERR NO_MODEL_AVAILABLE lineart (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lineart lineart ref2 => ERR NO_MODEL_AVAILABLE lineart (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lineart lineart aspect => ERR NO_MODEL_AVAILABLE lineart (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map lineart lineart rich => ERR NO_MODEL_AVAILABLE lineart (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map lines mlsd bare => mlsd fal-ai/image-preprocessors/mlsd queued=false by=model tier=balanced mode=lines cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map lines mlsd prompted => ERR INVALID_OPTION mlsd cannot take prompt for map. {"field":"prompt","model":"mlsd","task":"map"}
+map lines mlsd no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map lines mlsd queued => mlsd fal-ai/image-preprocessors/mlsd queued=false by=model tier=balanced mode=lines cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map lines mlsd mood => ERR INVALID_OPTION mlsd cannot take prompt for map. {"field":"prompt","model":"mlsd","task":"map"}
+map lines mlsd mask => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map lines mlsd transparent => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map lines mlsd 1K => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map lines mlsd 4K => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map lines mlsd ref1 => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lines mlsd ref2 => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lines mlsd aspect => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map lines mlsd rich => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map metric zoe-depth bare => zoe-depth fal-ai/image-preprocessors/zoe queued=false by=model tier=balanced mode=metric cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map metric zoe-depth prompted => ERR INVALID_OPTION zoe-depth cannot take prompt for map. {"field":"prompt","model":"zoe-depth","task":"map"}
+map metric zoe-depth no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map metric zoe-depth queued => zoe-depth fal-ai/image-preprocessors/zoe queued=false by=model tier=balanced mode=metric cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map metric zoe-depth mood => ERR INVALID_OPTION zoe-depth cannot take prompt for map. {"field":"prompt","model":"zoe-depth","task":"map"}
+map metric zoe-depth mask => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map metric zoe-depth transparent => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map metric zoe-depth 1K => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map metric zoe-depth 4K => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map metric zoe-depth ref1 => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map metric zoe-depth ref2 => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map metric zoe-depth aspect => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map metric zoe-depth rich => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor bare => midas-preprocessor fal-ai/image-preprocessors/midas queued=false by=model tier=balanced mode=normals cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map normals midas-preprocessor prompted => ERR INVALID_OPTION midas-preprocessor cannot take prompt for map. {"field":"prompt","model":"midas-preprocessor","task":"map"}
+map normals midas-preprocessor no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map normals midas-preprocessor queued => midas-preprocessor fal-ai/image-preprocessors/midas queued=false by=model tier=balanced mode=normals cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map normals midas-preprocessor mood => ERR INVALID_OPTION midas-preprocessor cannot take prompt for map. {"field":"prompt","model":"midas-preprocessor","task":"map"}
+map normals midas-preprocessor mask => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor transparent => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor 1K => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor 4K => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor ref1 => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor ref2 => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor aspect => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor rich => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map pose dwpose bare => dwpose fal-ai/dwpose queued=false by=model tier=balanced mode=pose cost={"basis":"unknown","usd":null} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map pose dwpose prompted => ERR INVALID_OPTION dwpose cannot take prompt for map. {"field":"prompt","model":"dwpose","task":"map"}
+map pose dwpose no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map pose dwpose queued => dwpose fal-ai/dwpose queued=false by=model tier=balanced mode=pose cost={"basis":"unknown","usd":null} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map pose dwpose mood => ERR INVALID_OPTION dwpose cannot take prompt for map. {"field":"prompt","model":"dwpose","task":"map"}
+map pose dwpose mask => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map pose dwpose transparent => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map pose dwpose 1K => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map pose dwpose 4K => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map pose dwpose ref1 => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map pose dwpose ref2 => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map pose dwpose aspect => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map pose dwpose rich => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map scribble scribble bare => scribble fal-ai/image-preprocessors/scribble queued=false by=model tier=balanced mode=scribble cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map scribble scribble prompted => ERR INVALID_OPTION scribble cannot take prompt for map. {"field":"prompt","model":"scribble","task":"map"}
+map scribble scribble no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map scribble scribble queued => scribble fal-ai/image-preprocessors/scribble queued=false by=model tier=balanced mode=scribble cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map scribble scribble mood => ERR INVALID_OPTION scribble cannot take prompt for map. {"field":"prompt","model":"scribble","task":"map"}
+map scribble scribble mask => ERR NO_MODEL_AVAILABLE scribble (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map scribble scribble transparent => ERR NO_MODEL_AVAILABLE scribble (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map scribble scribble 1K => ERR NO_MODEL_AVAILABLE scribble (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map scribble scribble 4K => ERR NO_MODEL_AVAILABLE scribble (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map scribble scribble ref1 => ERR NO_MODEL_AVAILABLE scribble (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map scribble scribble ref2 => ERR NO_MODEL_AVAILABLE scribble (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map scribble scribble aspect => ERR NO_MODEL_AVAILABLE scribble (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map scribble scribble rich => ERR NO_MODEL_AVAILABLE scribble (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor bare => sam-preprocessor fal-ai/image-preprocessors/sam queued=false by=model tier=balanced mode=segments cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map segments sam-preprocessor prompted => ERR INVALID_OPTION sam-preprocessor cannot take prompt for map. {"field":"prompt","model":"sam-preprocessor","task":"map"}
+map segments sam-preprocessor no-source => ERR INVALID_OPTION map needs a source image. {"field":"image","task":"map"}
+map segments sam-preprocessor queued => sam-preprocessor fal-ai/image-preprocessors/sam queued=false by=model tier=balanced mode=segments cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
+map segments sam-preprocessor mood => ERR INVALID_OPTION sam-preprocessor cannot take prompt for map. {"field":"prompt","model":"sam-preprocessor","task":"map"}
+map segments sam-preprocessor mask => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do mask. {"blockedBy":"mask","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor transparent => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do transparency. {"blockedBy":"transparency","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor 1K => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor 4K => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do resolution. {"blockedBy":"resolution","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor ref1 => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor ref2 => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor aspect => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor rich => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
+map - ranked fast => ERR INVALID_OPTION midas-depth cannot take prompt for map. {"field":"prompt","model":"midas-depth","task":"map"}
+map - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - ranked balanced => ERR INVALID_OPTION depth-anything cannot take prompt for map. {"field":"prompt","model":"depth-anything","task":"map"}
+map - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map - ranked quality => ERR INVALID_OPTION marigold-depth cannot take prompt for map. {"field":"prompt","model":"marigold-depth","task":"map"}
+map - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges ranked fast => ERR INVALID_OPTION pidi cannot take prompt for map. {"field":"prompt","model":"pidi","task":"map"}
+map edges ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map edges can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges ranked balanced => ERR INVALID_OPTION hed cannot take prompt for map. {"field":"prompt","model":"hed","task":"map"}
+map edges ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map edges can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map edges ranked quality => ERR INVALID_OPTION teed cannot take prompt for map. {"field":"prompt","model":"teed","task":"map"}
+map edges ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map edges can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lineart ranked fast => ERR INVALID_OPTION lineart cannot take prompt for map. {"field":"prompt","model":"lineart","task":"map"}
+map lineart ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map lineart can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lineart ranked balanced => ERR INVALID_OPTION lineart cannot take prompt for map. {"field":"prompt","model":"lineart","task":"map"}
+map lineart ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map lineart can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lineart ranked quality => ERR INVALID_OPTION lineart cannot take prompt for map. {"field":"prompt","model":"lineart","task":"map"}
+map lineart ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map lineart can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lines ranked fast => ERR INVALID_OPTION mlsd cannot take prompt for map. {"field":"prompt","model":"mlsd","task":"map"}
+map lines ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map lines can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lines ranked balanced => ERR INVALID_OPTION mlsd cannot take prompt for map. {"field":"prompt","model":"mlsd","task":"map"}
+map lines ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map lines can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map lines ranked quality => ERR INVALID_OPTION mlsd cannot take prompt for map. {"field":"prompt","model":"mlsd","task":"map"}
+map lines ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map lines can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map metric ranked fast => ERR INVALID_OPTION zoe-depth cannot take prompt for map. {"field":"prompt","model":"zoe-depth","task":"map"}
+map metric ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map metric can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map metric ranked balanced => ERR INVALID_OPTION zoe-depth cannot take prompt for map. {"field":"prompt","model":"zoe-depth","task":"map"}
+map metric ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map metric can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map metric ranked quality => ERR INVALID_OPTION zoe-depth cannot take prompt for map. {"field":"prompt","model":"zoe-depth","task":"map"}
+map metric ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map metric can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map normals ranked fast => ERR INVALID_OPTION midas-preprocessor cannot take prompt for map. {"field":"prompt","model":"midas-preprocessor","task":"map"}
+map normals ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map normals can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map normals ranked balanced => ERR INVALID_OPTION midas-preprocessor cannot take prompt for map. {"field":"prompt","model":"midas-preprocessor","task":"map"}
+map normals ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map normals can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map normals ranked quality => ERR INVALID_OPTION midas-preprocessor cannot take prompt for map. {"field":"prompt","model":"midas-preprocessor","task":"map"}
+map normals ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map normals can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map pose ranked fast => ERR INVALID_OPTION dwpose cannot take prompt for map. {"field":"prompt","model":"dwpose","task":"map"}
+map pose ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map pose can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map pose ranked balanced => ERR INVALID_OPTION dwpose cannot take prompt for map. {"field":"prompt","model":"dwpose","task":"map"}
+map pose ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map pose can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map pose ranked quality => ERR INVALID_OPTION dwpose cannot take prompt for map. {"field":"prompt","model":"dwpose","task":"map"}
+map pose ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map pose can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map scribble ranked fast => ERR INVALID_OPTION scribble cannot take prompt for map. {"field":"prompt","model":"scribble","task":"map"}
+map scribble ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map scribble can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map scribble ranked balanced => ERR INVALID_OPTION scribble cannot take prompt for map. {"field":"prompt","model":"scribble","task":"map"}
+map scribble ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map scribble can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map scribble ranked quality => ERR INVALID_OPTION scribble cannot take prompt for map. {"field":"prompt","model":"scribble","task":"map"}
+map scribble ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map scribble can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map segments ranked fast => ERR INVALID_OPTION sam-preprocessor cannot take prompt for map. {"field":"prompt","model":"sam-preprocessor","task":"map"}
+map segments ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for map segments can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map segments ranked balanced => ERR INVALID_OPTION sam-preprocessor cannot take prompt for map. {"field":"prompt","model":"sam-preprocessor","task":"map"}
+map segments ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for map segments can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}
+map segments ranked quality => ERR INVALID_OPTION sam-preprocessor cannot take prompt for map. {"field":"prompt","model":"sam-preprocessor","task":"map"}
+map segments ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for map segments can do references. {"blockedBy":"references","task":"map","unblockedBy":["option"]}

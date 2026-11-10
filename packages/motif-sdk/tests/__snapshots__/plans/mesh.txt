@@ -1,0 +1,83 @@
+mesh - meshy-v7 bare => meshy-v7 meshy/v7/image-to-3d queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":1.2} prompt=undefined body={"image_url":"https://example.com/source.png"}
+mesh - meshy-v7 prompted => ERR INVALID_OPTION meshy-v7 cannot take prompt for mesh. {"field":"prompt","model":"meshy-v7","task":"mesh"}
+mesh - meshy-v7 no-source => ERR INVALID_OPTION mesh needs a source image. {"field":"image","task":"mesh"}
+mesh - meshy-v7 queued => meshy-v7 meshy/v7/image-to-3d queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":1.2} prompt=undefined body={"image_url":"https://example.com/source.png"}
+mesh - meshy-v7 mood => ERR INVALID_OPTION meshy-v7 cannot take prompt for mesh. {"field":"prompt","model":"meshy-v7","task":"mesh"}
+mesh - meshy-v7 mask => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do mask. {"blockedBy":"mask","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 transparent => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do transparency. {"blockedBy":"transparency","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 1K => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 4K => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 ref1 => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 ref2 => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 aspect => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do aspect. {"blockedBy":"aspect","task":"mesh","unblockedBy":["option"]}
+mesh - meshy-v7 rich => ERR NO_MODEL_AVAILABLE meshy-v7 (model) cannot do count. {"blockedBy":"count","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 bare => hunyuan3d-v3 fal-ai/hunyuan3d-v3/image-to-3d queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.375} prompt=undefined body={"input_image_url":"https://example.com/source.png"}
+mesh - hunyuan3d-v3 prompted => ERR INVALID_OPTION hunyuan3d-v3 cannot take prompt for mesh. {"field":"prompt","model":"hunyuan3d-v3","task":"mesh"}
+mesh - hunyuan3d-v3 no-source => ERR INVALID_OPTION mesh needs a source image. {"field":"image","task":"mesh"}
+mesh - hunyuan3d-v3 queued => hunyuan3d-v3 fal-ai/hunyuan3d-v3/image-to-3d queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.375} prompt=undefined body={"input_image_url":"https://example.com/source.png"}
+mesh - hunyuan3d-v3 mood => ERR INVALID_OPTION hunyuan3d-v3 cannot take prompt for mesh. {"field":"prompt","model":"hunyuan3d-v3","task":"mesh"}
+mesh - hunyuan3d-v3 mask => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do mask. {"blockedBy":"mask","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 transparent => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do transparency. {"blockedBy":"transparency","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 1K => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 4K => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 ref1 => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 ref2 => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 aspect => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do aspect. {"blockedBy":"aspect","task":"mesh","unblockedBy":["option"]}
+mesh - hunyuan3d-v3 rich => ERR NO_MODEL_AVAILABLE hunyuan3d-v3 (model) cannot do count. {"blockedBy":"count","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 bare => trellis-2 fal-ai/trellis-2 queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.3} prompt=undefined body={"image_url":"https://example.com/source.png"}
+mesh - trellis-2 prompted => ERR INVALID_OPTION trellis-2 cannot take prompt for mesh. {"field":"prompt","model":"trellis-2","task":"mesh"}
+mesh - trellis-2 no-source => ERR INVALID_OPTION mesh needs a source image. {"field":"image","task":"mesh"}
+mesh - trellis-2 queued => trellis-2 fal-ai/trellis-2 queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.3} prompt=undefined body={"image_url":"https://example.com/source.png"}
+mesh - trellis-2 mood => ERR INVALID_OPTION trellis-2 cannot take prompt for mesh. {"field":"prompt","model":"trellis-2","task":"mesh"}
+mesh - trellis-2 mask => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do mask. {"blockedBy":"mask","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 transparent => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do transparency. {"blockedBy":"transparency","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 1K => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 4K => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 ref1 => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 ref2 => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 aspect => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do aspect. {"blockedBy":"aspect","task":"mesh","unblockedBy":["option"]}
+mesh - trellis-2 rich => ERR NO_MODEL_AVAILABLE trellis-2 (model) cannot do count. {"blockedBy":"count","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body bare => sam3-3d-body fal-ai/sam-3/3d-body queued=true by=model tier=balanced mode=body cost={"basis":"unknown","usd":null} prompt=undefined body={"export_meshes":true,"image_url":"https://example.com/source.png","include_3d_keypoints":true,"include_mhr_params":true}
+mesh body sam3-3d-body prompted => ERR INVALID_OPTION sam3-3d-body cannot take prompt for mesh. {"field":"prompt","model":"sam3-3d-body","task":"mesh"}
+mesh body sam3-3d-body no-source => ERR INVALID_OPTION mesh needs a source image. {"field":"image","task":"mesh"}
+mesh body sam3-3d-body queued => sam3-3d-body fal-ai/sam-3/3d-body queued=true by=model tier=balanced mode=body cost={"basis":"unknown","usd":null} prompt=undefined body={"export_meshes":true,"image_url":"https://example.com/source.png","include_3d_keypoints":true,"include_mhr_params":true}
+mesh body sam3-3d-body mood => ERR INVALID_OPTION sam3-3d-body cannot take prompt for mesh. {"field":"prompt","model":"sam3-3d-body","task":"mesh"}
+mesh body sam3-3d-body mask => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do mask. {"blockedBy":"mask","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body transparent => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do transparency. {"blockedBy":"transparency","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body 1K => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body 4K => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body ref1 => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body ref2 => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body aspect => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do aspect. {"blockedBy":"aspect","task":"mesh","unblockedBy":["option"]}
+mesh body sam3-3d-body rich => ERR NO_MODEL_AVAILABLE sam3-3d-body (model) cannot do count. {"blockedBy":"count","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects bare => ERR INVALID_OPTION sam3-3d-objects needs a prompt naming the objects for mesh. {"field":"prompt","model":"sam3-3d-objects","task":"mesh"}
+mesh objects sam3-3d-objects prompted => sam3-3d-objects fal-ai/sam-3/3d-objects queued=true by=model tier=balanced mode=objects cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+mesh objects sam3-3d-objects no-source => ERR INVALID_OPTION mesh needs a source image. {"field":"image","task":"mesh"}
+mesh objects sam3-3d-objects queued => ERR INVALID_OPTION sam3-3d-objects needs a prompt naming the objects for mesh. {"field":"prompt","model":"sam3-3d-objects","task":"mesh"}
+mesh objects sam3-3d-objects mood => ERR INVALID_OPTION sam3-3d-objects cannot take mood for mesh. {"field":"mood","model":"sam3-3d-objects","task":"mesh"}
+mesh objects sam3-3d-objects mask => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do mask. {"blockedBy":"mask","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects transparent => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do transparency. {"blockedBy":"transparency","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects 1K => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects 4K => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do resolution. {"blockedBy":"resolution","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects ref1 => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects ref2 => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects aspect => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do aspect. {"blockedBy":"aspect","task":"mesh","unblockedBy":["option"]}
+mesh objects sam3-3d-objects rich => ERR NO_MODEL_AVAILABLE sam3-3d-objects (model) cannot do count. {"blockedBy":"count","task":"mesh","unblockedBy":["option"]}
+mesh - ranked fast => ERR INVALID_OPTION trellis-2 cannot take prompt for mesh. {"field":"prompt","model":"trellis-2","task":"mesh"}
+mesh - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for mesh can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - ranked balanced => ERR INVALID_OPTION trellis-2 cannot take prompt for mesh. {"field":"prompt","model":"trellis-2","task":"mesh"}
+mesh - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for mesh can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh - ranked quality => ERR INVALID_OPTION meshy-v7 cannot take prompt for mesh. {"field":"prompt","model":"meshy-v7","task":"mesh"}
+mesh - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for mesh can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh body ranked fast => ERR INVALID_OPTION sam3-3d-body cannot take prompt for mesh. {"field":"prompt","model":"sam3-3d-body","task":"mesh"}
+mesh body ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for mesh body can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh body ranked balanced => ERR INVALID_OPTION sam3-3d-body cannot take prompt for mesh. {"field":"prompt","model":"sam3-3d-body","task":"mesh"}
+mesh body ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for mesh body can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh body ranked quality => ERR INVALID_OPTION sam3-3d-body cannot take prompt for mesh. {"field":"prompt","model":"sam3-3d-body","task":"mesh"}
+mesh body ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for mesh body can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh objects ranked fast => sam3-3d-objects fal-ai/sam-3/3d-objects queued=true by=ranking tier=fast mode=objects cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+mesh objects ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for mesh objects can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh objects ranked balanced => sam3-3d-objects fal-ai/sam-3/3d-objects queued=true by=ranking tier=balanced mode=objects cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+mesh objects ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for mesh objects can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}
+mesh objects ranked quality => sam3-3d-objects fal-ai/sam-3/3d-objects queued=true by=ranking tier=quality mode=objects cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+mesh objects ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for mesh objects can do references. {"blockedBy":"references","task":"mesh","unblockedBy":["option"]}

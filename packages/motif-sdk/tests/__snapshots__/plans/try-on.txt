@@ -1,0 +1,19 @@
+try-on - virtual-try-on bare => virtual-try-on google/virtual-try-on queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.075} prompt=undefined body={"person_image_url":"https://example.com/source.png","product_image_url":"https://example.com/reference.png"}
+try-on - virtual-try-on prompted => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on no-source => ERR INVALID_OPTION try-on needs a source image. {"field":"image","task":"try-on"}
+try-on - virtual-try-on queued => virtual-try-on google/virtual-try-on queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.075} prompt=undefined body={"person_image_url":"https://example.com/source.png","product_image_url":"https://example.com/reference.png"}
+try-on - virtual-try-on mood => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on mask => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do mask. {"blockedBy":"mask","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on transparent => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do transparency. {"blockedBy":"transparency","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on 1K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do resolution. {"blockedBy":"resolution","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on 4K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do resolution. {"blockedBy":"resolution","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on ref1 => virtual-try-on google/virtual-try-on queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.075} prompt=undefined body={"person_image_url":"https://example.com/source.png","product_image_url":"https://example.com/reference.png"}
+try-on - virtual-try-on ref2 => ERR INVALID_OPTION try-on takes exactly one reference image. {"field":"references","task":"try-on"}
+try-on - virtual-try-on aspect => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on rich => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do seed. {"blockedBy":"seed","task":"try-on","unblockedBy":["option"]}
+try-on - ranked fast => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - ranked fast refs => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - ranked balanced => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - ranked balanced refs => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - ranked quality => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
+try-on - ranked quality refs => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}

@@ -1,0 +1,32 @@
+animate - kling bare => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt=undefined body={"duration":"5","generate_audio":true,"prompt":"","start_image_url":"https://example.com/source.png"}
+animate - kling prompted => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt="the shoe" body={"duration":"5","generate_audio":true,"prompt":"the shoe","start_image_url":"https://example.com/source.png"}
+animate - kling no-source => ERR INVALID_OPTION animate needs a source image. {"field":"image","task":"animate"}
+animate - kling queued => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt=undefined body={"duration":"5","generate_audio":true,"prompt":"","start_image_url":"https://example.com/source.png"}
+animate - kling mood => ERR INVALID_OPTION kling cannot take mood for animate. {"field":"mood","model":"kling","task":"animate"}
+animate - kling mask => ERR NO_MODEL_AVAILABLE kling (model) cannot do mask. {"blockedBy":"mask","task":"animate","unblockedBy":["option"]}
+animate - kling transparent => ERR NO_MODEL_AVAILABLE kling (model) cannot do transparency. {"blockedBy":"transparency","task":"animate","unblockedBy":["option"]}
+animate - kling 1K => ERR NO_MODEL_AVAILABLE kling (model) cannot do resolution. {"blockedBy":"resolution","task":"animate","unblockedBy":["option"]}
+animate - kling 4K => ERR NO_MODEL_AVAILABLE kling (model) cannot do resolution. {"blockedBy":"resolution","task":"animate","unblockedBy":["option"]}
+animate - kling ref1 => ERR NO_MODEL_AVAILABLE kling (model) cannot do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
+animate - kling ref2 => ERR NO_MODEL_AVAILABLE kling (model) cannot do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
+animate - kling aspect => ERR NO_MODEL_AVAILABLE kling (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
+animate - kling rich => ERR NO_MODEL_AVAILABLE kling (model) cannot do count. {"blockedBy":"count","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo bare => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt=undefined body={"duration":"5","image_url":"https://example.com/source.png","prompt":""}
+animate - kling-turbo prompted => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt="the shoe" body={"duration":"5","image_url":"https://example.com/source.png","prompt":"the shoe"}
+animate - kling-turbo no-source => ERR INVALID_OPTION animate needs a source image. {"field":"image","task":"animate"}
+animate - kling-turbo queued => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt=undefined body={"duration":"5","image_url":"https://example.com/source.png","prompt":""}
+animate - kling-turbo mood => ERR INVALID_OPTION kling-turbo cannot take mood for animate. {"field":"mood","model":"kling-turbo","task":"animate"}
+animate - kling-turbo mask => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do mask. {"blockedBy":"mask","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo transparent => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do transparency. {"blockedBy":"transparency","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo 1K => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do resolution. {"blockedBy":"resolution","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo 4K => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do resolution. {"blockedBy":"resolution","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo ref1 => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo ref2 => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo aspect => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo rich => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do count. {"blockedBy":"count","task":"animate","unblockedBy":["option"]}
+animate - ranked fast => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt="the shoe" body={"duration":"5","image_url":"https://example.com/source.png","prompt":"the shoe"}
+animate - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for animate can do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
+animate - ranked balanced => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt="the shoe" body={"duration":"5","generate_audio":true,"prompt":"the shoe","start_image_url":"https://example.com/source.png"}
+animate - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for animate can do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
+animate - ranked quality => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt="the shoe" body={"duration":"5","generate_audio":true,"prompt":"the shoe","start_image_url":"https://example.com/source.png"}
+animate - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for animate can do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}
