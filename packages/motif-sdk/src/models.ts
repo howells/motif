@@ -59,6 +59,8 @@ export const MODELS: Record<string, ModelConfig> = {
     autoEditSize: true,
     // fal OpenAPI schema for openai/gpt-image-2.6/flare/text-to-image, 2026-11-10: num_images up to 10.
     maxCount: 10,
+    // fal OpenAPI schema for openai/gpt-image-2.6/flare/text-to-image, 2026-11-10: num_images must be 1 for SVG output.
+    singleImageFormats: ["svg"],
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportedOutputFormats: ["jpeg", "png", "webp", "gif", "svg"],

@@ -80,7 +80,7 @@ Images come back as PNG unless you ask for another format with `--output-format 
 
 ### GIF, SVG and markup
 
-`--output-format gif` asks for an animated GIF and `--output-format svg` for a vector image. Only Sunburst and Flare make them, so Motif chooses one of those. SVG works from text only, not with `-e`. A GIF's frames and the length of each frame are Model-only fields: `frame_count` (2 to 64, default 9) and `frame_duration_ms` (20 to 2000, default 200).
+`--output-format gif` asks for an animated GIF and `--output-format svg` for a vector image. Only Sunburst and Flare make them, so Motif chooses one of those. SVG works from text only, not with `-e`, and makes one image per request on both, so `-n 2` with SVG is refused. A GIF's frames and the length of each frame are Model-only fields: `frame_count` (2 to 64, default 9) and `frame_duration_ms` (20 to 2000, default 200).
 
 ```bash
 motif "a candle flame flickering, seamless loop" --output-format gif -m sunburst --param frame_count=12 --dry-run

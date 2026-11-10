@@ -63,7 +63,7 @@ vary - flare count 0 => ERR INVALID_OPTION count must be a whole number of at le
 vary - flare count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
 vary - flare count 5 => flare openai/gpt-image-2.6/flare/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
 vary - flare count 11 => ERR NO_MODEL_AVAILABLE flare (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","limit":10,"task":"vary","unblockedBy":["option"]}
-vary - flare count 2 svg => ERR NO_MODEL_AVAILABLE flare (model) cannot return svg from an edit; it returns jpeg, png, webp, gif. {"accepts":["jpeg","png","webp","gif"],"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - flare count 2 svg => ERR NO_MODEL_AVAILABLE flare (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"vary","unblockedBy":["option"]}
 vary - flare params num_images 11 => ERR INVALID_OPTION params.num_images is the count option: pass count (-n) instead, so the request and the files it returns agree. {"field":"params","key":"num_images"}
 vary - flare seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - flare seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}

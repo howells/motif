@@ -370,9 +370,9 @@ describe("images per request fal's schema allows", () => {
     }
   );
 
-  it("makes one image of SVG on Sunburst", () => {
+  it.each(["sunburst", "flare"])("makes one image of SVG on %s", (model) => {
     const text = {
-      model: "sunburst",
+      model,
       outputFormat: "svg",
       prompt: "a chair",
     } as const;
