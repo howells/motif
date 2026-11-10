@@ -1,6 +1,7 @@
 import { Box, Text, useApp, useInput } from "ink";
 import { useState } from "react";
 
+import { loadConfig, loadHistory, saveConfig } from "../utils/config";
 import type { History, MotifConfig, TotalCost } from "../utils/config";
 import { formatTotal } from "../utils/cost";
 import { hasText } from "../utils/text";
@@ -13,11 +14,14 @@ import { SettingsScreen } from "./screens/settings";
 export type Screen = "home" | "generate" | "gallery" | "settings" | "edit";
 
 interface AppProps {
+  /** The config in effect when Studio starts. */
   config: MotifConfig;
+  /** The saved history when Studio starts. */
   history: History;
-  onConfigChange: (config: Partial<MotifConfig>) => Promise<void>;
-  onHistoryChange: () => Promise<void>;
 }
+
+const toError = (error: unknown): Error =>
+  error instanceof Error ? error : new Error(String(error));
 
 /**
  * Running spend across the three windows.
@@ -39,13 +43,19 @@ function SpendFooter({ totals }: { totals: TotalCost }) {
   );
 }
 
+/**
+ * Studio. It owns the config and the history: Settings writes through
+ * `saveConfig` and the new config is read back, so a saved key reaches the
+ * screens straight away, and a finished run reloads the history for the spend
+ * footer and the gallery.
+ */
 export function App({
-  config,
-  history,
-  onConfigChange,
-  onHistoryChange,
+  config: initialConfig,
+  history: initialHistory,
 }: AppProps) {
   const { exit } = useApp();
+  const [config, setConfig] = useState(initialConfig);
+  const [history, setHistory] = useState(initialHistory);
   const [screen, setScreen] = useState<Screen>("home");
   const [error, setError] = useState<string | null>(null);
   const [editFromGenerate, setEditFromGenerate] = useState(false);
@@ -66,6 +76,28 @@ export function App({
     }, 5000);
   };
 
+  const saveSettings = async (edits: Partial<MotifConfig>) => {
+    try {
+      if (Object.keys(edits).length > 0) {
+        await saveConfig(edits);
+      }
+      setConfig(await loadConfig());
+      setScreen("home");
+    } catch (error) {
+      handleError(toError(error));
+    }
+  };
+
+  // A run just finished: the callers cannot await, so a failed reload is shown
+  // in the error banner instead of being dropped.
+  const reloadHistory = () => {
+    loadHistory()
+      .then(setHistory)
+      .catch((error: unknown) => {
+        handleError(toError(error));
+      });
+  };
+
   const renderScreen = () => {
     switch (screen) {
       case "home": {
@@ -79,9 +111,7 @@ export function App({
               setScreen("home");
             }}
             onComplete={(nextScreen?: Screen) => {
-              // Fire-and-forget history reload; the screen transition below does
-              // not depend on it and this callback cannot be async.
-              void onHistoryChange();
+              reloadHistory();
               if (nextScreen === "edit") {
                 setEditFromGenerate(true);
               }
@@ -101,9 +131,7 @@ export function App({
             }}
             onComplete={() => {
               setEditFromGenerate(false);
-              // Fire-and-forget history reload; screen transition does not depend
-              // on it and this callback cannot be async.
-              void onHistoryChange();
+              reloadHistory();
               setScreen("home");
             }}
             onError={handleError}
@@ -128,16 +156,7 @@ export function App({
             onBack={() => {
               setScreen("home");
             }}
-            onSave={async (newConfig) => {
-              try {
-                await onConfigChange(newConfig);
-                setScreen("home");
-              } catch (error) {
-                handleError(
-                  error instanceof Error ? error : new Error(String(error))
-                );
-              }
-            }}
+            onSave={saveSettings}
           />
         );
       }

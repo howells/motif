@@ -96,12 +96,7 @@ function refuseTaskWord(positionals: string[], format: OutputFormat): void {
 
 // -- Main entry --
 
-export async function runCli(
-  args: string[],
-  preloadedConfig?: Awaited<ReturnType<typeof loadConfig>>
-): Promise<void> {
-  const config = preloadedConfig ?? (await loadConfig());
-
+export async function runCli(args: string[]): Promise<void> {
   const program = new Command()
     .name("motif")
     // The command list rides in the description so it prints straight after
@@ -304,7 +299,13 @@ export async function runCli(
       );
       exitForErrorCode("EMPTY_PROMPT");
     }
-    await generateImage(sanitized, options, stdinData, config, emitOpts);
+    await generateImage(
+      sanitized,
+      options,
+      stdinData,
+      await loadConfig(),
+      emitOpts
+    );
     return;
   }
 

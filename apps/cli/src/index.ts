@@ -6,14 +6,11 @@ import { runSeries } from "./commands/series";
 import { runSheet } from "./commands/sheet";
 import { isVerbName, runVerbs } from "./commands/verbs";
 import { App } from "./studio/app";
-import { loadConfig, loadHistory, saveConfig } from "./utils/config";
-import type { MotifConfig } from "./utils/config";
+import { loadConfig, loadHistory } from "./utils/config";
 import { formatForParseErrors, handleError } from "./utils/errors";
 import { CorruptFileError } from "./utils/stored-json";
 
 async function main() {
-  const config = await loadConfig();
-
   const args = process.argv.slice(2);
 
   // Route to series subcommand
@@ -42,40 +39,14 @@ async function main() {
 
   // `motif generate "prompt"` is `motif "prompt"`.
   const cliArgs = args[0] === "generate" ? args.slice(1) : args;
-  await runCli(["node", "motif", ...cliArgs], config);
+  await runCli(["node", "motif", ...cliArgs]);
 }
 
 async function launchStudio() {
-  let config = await loadConfig();
-  let history = await loadHistory();
-
-  const handleConfigChange = async (newConfig: Partial<MotifConfig>) => {
-    await saveConfig(newConfig);
-    config = { ...config, ...newConfig };
-  };
-
-  const handleHistoryChange = async () => {
-    history = await loadHistory();
-    // Re-render with new history
-    rerender(
-      React.createElement(App, {
-        config,
-        history,
-        onConfigChange: handleConfigChange,
-        onHistoryChange: handleHistoryChange,
-      })
-    );
-  };
-
-  const { rerender, waitUntilExit } = render(
-    React.createElement(App, {
-      config,
-      history,
-      onConfigChange: handleConfigChange,
-      onHistoryChange: handleHistoryChange,
-    })
+  const [config, history] = await Promise.all([loadConfig(), loadHistory()]);
+  const { waitUntilExit } = render(
+    React.createElement(App, { config, history })
   );
-
   await waitUntilExit();
 }
 

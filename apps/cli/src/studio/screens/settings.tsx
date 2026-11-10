@@ -36,17 +36,19 @@ function readSetting(config: MotifConfig, key: SettingKey): unknown {
 }
 
 function writeSetting(
-  config: MotifConfig,
+  edits: Partial<MotifConfig>,
   key: SettingKey,
   value: unknown
-): MotifConfig {
-  return { ...config, [key]: value };
+): Partial<MotifConfig> {
+  return { ...edits, [key]: value };
 }
 
 interface SettingsScreenProps {
+  /** The config in effect: global values with the project's `.motifrc` over them. */
   config: MotifConfig;
   onBack: () => void;
-  onSave: (config: Partial<MotifConfig>) => Promise<void>;
+  /** Receives only the settings the user changed, never the merged config. */
+  onSave: (edits: Partial<MotifConfig>) => Promise<void>;
 }
 
 export function SettingsScreen({
@@ -57,7 +59,8 @@ export function SettingsScreen({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState("");
-  const [localConfig, setLocalConfig] = useState<MotifConfig>({ ...config });
+  const [edits, setEdits] = useState<Partial<MotifConfig>>({});
+  const shown: MotifConfig = { ...config, ...edits };
 
   // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
   const currentSetting = SETTINGS[selectedIndex]!;
@@ -89,21 +92,25 @@ export function SettingsScreen({
       const setting = SETTINGS[selectedIndex]!;
       if (setting.type === "toggle") {
         // Toggle boolean value
-        setLocalConfig((c) =>
-          writeSetting(c, setting.key, readSetting(c, setting.key) !== true)
+        setEdits((e) =>
+          writeSetting(
+            e,
+            setting.key,
+            readSetting({ ...config, ...e }, setting.key) !== true
+          )
         );
       } else if (setting.type === "text") {
-        const raw = readSetting(localConfig, setting.key);
+        const raw = readSetting(shown, setting.key);
         setEditValue(typeof raw === "string" ? raw : "");
         setEditing(true);
       } else if (setting.type === "select" && setting.options) {
         // Cycle through options
-        const rawValue = readSetting(localConfig, setting.key);
+        const rawValue = readSetting(shown, setting.key);
         const currentValue = typeof rawValue === "string" ? rawValue : "";
         const currentIdx = setting.options.indexOf(currentValue);
         const nextIdx = (currentIdx + 1) % setting.options.length;
-        setLocalConfig((c) =>
-          writeSetting(c, setting.key, setting.options?.[nextIdx])
+        setEdits((e) =>
+          writeSetting(e, setting.key, setting.options?.[nextIdx])
         );
       }
     }
@@ -112,17 +119,17 @@ export function SettingsScreen({
       // Save settings — useInput handlers cannot be async, so the promise is
       // not awaited here; the parent's onSave catches failures and surfaces
       // them through the shared error banner.
-      void onSave(localConfig);
+      void onSave(edits);
     }
   });
 
   const handleTextSubmit = (value: string) => {
-    setLocalConfig((c) => writeSetting(c, currentSetting.key, value));
+    setEdits((e) => writeSetting(e, currentSetting.key, value));
     setEditing(false);
   };
 
   const formatValue = (setting: SettingItem): string => {
-    const value = readSetting(localConfig, setting.key);
+    const value = readSetting(shown, setting.key);
     if (setting.type === "toggle") {
       return value === true ? "Yes" : "No";
     }
