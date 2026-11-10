@@ -58,11 +58,11 @@ function requestInit(prepared: PreparedFalRequest): FalRequestInit {
 
 /**
  * An error from a job fal accepted, with the id and queue path a caller needs
- * to resume it. Its message says the job may still be billed.
+ * to resume it (`MotifClient.resume`). Its message says the job may still be billed.
  */
 function acceptedJobError(error: MotifError, job: QueuedJob): MotifError {
   return new MotifError(
-    `${error.message} (fal accepted request ${job.requestId}; it may still finish and be billed, so resume it instead of submitting again)`,
+    `${error.message} (fal accepted request ${job.requestId}; it may still finish and be billed, so do not submit it again)`,
     error.status,
     error.code,
     job.requestId,

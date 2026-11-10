@@ -32,6 +32,8 @@ console.log(result.value.model, result.value.files[0]?.url, result.value.cost);
 
 Every Task function returns `Result<TaskOutput, MotifError>` from `neverthrow` and does not throw for fal request failures; check `isErr()` / `isOk()`.
 
+Failures stay in the Result, including a fal response that is not the JSON it should be (`INVALID_RESPONSE`). A request that can bill, the synchronous run and the queue submission, is attempted once and never retried: if fal gives no clear answer (a connection error, a timeout or a 5xx), the error is `SUBMISSION_UNCERTAIN` and says fal may have accepted and may bill for it, so check fal's dashboard before submitting again. Status polls, result fetches and storage calls cannot bill and are retried. Once fal has accepted a queued run, every failure after that carries `requestId` and `details.endpoint`; pass the id to `resume` to wait for the same job.
+
 ## Curated Models and Tiers
 
 The Task client curates 23 generation Models, with separate rankings for generation and editing. Both follow Arena, read 29 October 2026. `TASKS.generate` and `TASKS.vary` expose the current choices, Tiers and evidence in `basis` and `rankedAt`. Sunburst and Flare run GPT Image 2.6; Arena has not scored 2.6 yet, so their benchmarks are the GPT Image 2.5 scores, and each carries a `note` saying so. A generation with `references` uses the editing ranking.

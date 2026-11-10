@@ -49,7 +49,7 @@ In JSON mode, errors are written to stderr as one object:
 
 `UNKNOWN_MODEL` exits `2`: `-m` names something that isn't a Model for this Task. `details.blockedBy` is `unknown-model`, `unblockedBy` is `["model"]`, and the message lists the Models the Task accepts.
 
-`TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran.
+`TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran, and `instance` (`urn:fal:request:<id>`) names the run at fal whenever fal had accepted it. A failure after fal accepted a queued run (a poll that kept failing, a timeout) says the run may still finish and be billed: look the id up in fal's dashboard rather than running the command again. The CLI has no command that resumes a run; the SDK's `resume` does.
 
 `SUBMISSION_UNCERTAIN` exits `5` and `is_retriable` is `false`: fal did not confirm a request that can bill (a connection error, a timeout or a 5xx before any answer). fal may have accepted it and may bill for it, so Motif sends a billable request once and never resends it, and neither should you: check fal's dashboard first. Status polls and result fetches, which cannot bill, are retried.
 

@@ -37,6 +37,8 @@ console.log(result.value.model, result.value.files[0]?.url, result.value.cost);
 
 Every Task function returns a `Result` from `neverthrow` and does not throw for fal request failures. Check `isErr()` or `isOk()`.
 
+Failures stay in the Result, including a fal response that is not the JSON it should be (`INVALID_RESPONSE`). A request that can bill, the synchronous run and the queue submission, is attempted once and never retried: if fal gives no clear answer (a connection error, a timeout or a 5xx), the error is `SUBMISSION_UNCERTAIN` and says fal may have accepted and may bill for it, so check fal's dashboard before submitting again. Status polls, result fetches and storage calls cannot bill and are retried. Once fal has accepted a queued run, every failure after that carries `requestId` and `details.endpoint`; pass the id to `resume` to wait for the same job.
+
 ## Plan without calling fal
 
 `plan(task, input, { dryRun: true })` resolves the Model and returns the endpoint, body and projected cost with no network call and no key. It is the SDK's form of `--dry-run`.

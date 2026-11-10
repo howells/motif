@@ -323,7 +323,7 @@ describe("fal failures after a job is accepted", () => {
       endpoint: "fal-ai/flux-2-pro",
       requestId: "req_9",
     });
-    expect(error?.message).toMatch(/resume it/);
+    expect(error?.message).toMatch(/do not submit it again/);
   });
 
   it("carries the request id when the result body is truncated", async () => {
