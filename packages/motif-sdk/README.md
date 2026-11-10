@@ -48,7 +48,7 @@ Nano Banana 2.1 (`banana21`) supports up to 14 References and 1K/2K/4K output, w
 
 Token-billed Task plans, including Sunburst, Flare, Nano Banana 2.1, Banana Lite and MAI 2.5, report `cost: { usd: null, basis: "unknown" }`; a published representative price is not an exact total.
 
-Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"processing"`, then `"completed"` (or `"failed"`). Passing it sends the run through fal's queue, since only the queue reports state. Models without streaming report state, not a percentage.
+Pass `onProgress(status, queuePosition)` to hear fal's queue state while a run waits: `"queued"` with its place in line, then `"processing"`, then `"completed"` (or `"failed"`). Passing it sends a generation through fal's queue, since only the queue reports state; a tool that runs synchronously reports nothing. Models without streaming report state, not a percentage.
 
 Pass `onSubmitted(requestId)` to hear the request id the moment fal's queue accepts the run, before any wait. Keep it: after a restart, `motif.resume(task, input, requestId)` waits for that same job and returns its output, submitting nothing and so paying nothing twice. Passing `onSubmitted` also queues the run.
 
@@ -98,7 +98,7 @@ for await (const result of opened.value.events) {
 
 Events use `images`, `progress` or `provider` types. Images carry the same `TaskFile` URL shape as ordinary Task outputs, including data URIs. Progress fractions are normalised only when explicitly between zero and one. The raw provider payload remains available as `raw` or `data`, and SSE event/id metadata is preserved. Preview images depend on the model; an images event is not labelled preview or final, and transport EOF does not prove generation success.
 
-The handle exposes `plan`, optional `requestId` and `abort()`. Consume its events once. Abort, iterator exit and the overall deadline close local consumption; this does not guarantee cancellation of provider work or a refund. There is no queue submission, reconnection or retry. `plan()` remains a normal execution plan, so its `queued` flag describes `run()`, not `stream()`.
+The handle exposes `plan`, optional `requestId` and `abort()`. Consume its events once. Abort, iterator exit and the overall deadline close local consumption; this does not guarantee cancellation of provider work or a refund. There is no queue submission, reconnection or retry. `plan()` remains a normal execution plan, so its `queued` flag, which says whether the Model always uses fal's queue, describes `run()`, not `stream()`.
 
 For a local checkout, `node packages/motif-sdk/examples/stream.mjs` prints the resolved request without a provider call. Adding `--run` spends provider credits; it requires `FAL_KEY` and a built SDK. The runner is a repository example, not a packaged public API.
 

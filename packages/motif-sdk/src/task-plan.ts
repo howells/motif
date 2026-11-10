@@ -462,11 +462,6 @@ function generationPlan(
     prompt:
       typeof built.body.prompt === "string" ? built.body.prompt : undefined,
     provider: "fal",
-    // Asking for progress or the request id queues the request: only fal's
-    // queue reports state or hands back an id before the run finishes.
-    queued:
-      config.useQueue === true ||
-      input.onProgress !== undefined ||
-      input.onSubmitted !== undefined,
+    queued: config.useQueue === true,
   });
 }

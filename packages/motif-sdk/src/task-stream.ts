@@ -122,11 +122,12 @@ function normalise(
   return { ...metadata, type: "provider", data: raw };
 }
 
+/** The API key to stream with, or why this plan cannot stream. */
 function validateStream(
   plan: TaskPlan,
   key: string | undefined,
   options: TaskStreamOptions
-): MotifError | undefined {
+): Result<string, MotifError> {
   const model = MODELS[plan.model];
   const supported =
     model !== undefined &&
@@ -134,44 +135,47 @@ function validateStream(
       model.streaming?.generation === true) ||
       (plan.endpoint === model.editEndpoint && model.streaming?.edit === true));
   if (plan.provider !== "fal" || !supported) {
-    return new MotifError(
-      "The resolved route does not support streaming.",
-      0,
-      "STREAMING_UNSUPPORTED",
-      undefined,
-      { model: plan.model, endpoint: plan.endpoint }
+    return err(
+      new MotifError(
+        "The resolved route does not support streaming.",
+        0,
+        "STREAMING_UNSUPPORTED",
+        undefined,
+        { model: plan.model, endpoint: plan.endpoint }
+      )
     );
   }
   if (key === undefined) {
-    return new MotifError(
-      "FAL_KEY is not set.",
-      0,
-      "MISSING_API_KEY",
-      undefined,
-      {
+    return err(
+      new MotifError("FAL_KEY is not set.", 0, "MISSING_API_KEY", undefined, {
         envVar: "FAL_KEY",
-      }
+      })
     );
   }
   if (
     options.timeout !== undefined &&
     (!Number.isFinite(options.timeout) || options.timeout <= 0)
   ) {
-    return new MotifError(
-      "Stream timeout must be a positive finite number.",
-      0,
-      "INVALID_OPTION"
+    return err(
+      new MotifError(
+        "Stream timeout must be a positive finite number.",
+        0,
+        "INVALID_OPTION"
+      )
     );
   }
 
-  return undefined;
+  return ok(key);
 }
 
 function createSession(options: TaskStreamOptions) {
   const controller = new AbortController();
   let timedOut = false;
-  let requestId: string | undefined;
-  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
+  /** Set as the connection is made: the response's request id and body reader. */
+  const state: {
+    reader?: ReadableStreamDefaultReader<Uint8Array>;
+    requestId?: string;
+  } = {};
   const abort = (): void => {
     controller.abort();
   };
@@ -189,7 +193,7 @@ function createSession(options: TaskStreamOptions) {
     options.signal?.removeEventListener("abort", abort);
     controller.abort();
     try {
-      await reader?.cancel();
+      await state.reader?.cancel();
     } catch {
       /* Transport is already closed. */
     }
@@ -200,7 +204,7 @@ function createSession(options: TaskStreamOptions) {
         timedOut ? "Stream deadline exceeded." : "Stream aborted.",
         0,
         timedOut ? "TIMEOUT" : "ABORTED",
-        requestId
+        state.requestId
       );
     }
     return cause instanceof MotifError
@@ -209,7 +213,7 @@ function createSession(options: TaskStreamOptions) {
           cause instanceof Error ? cause.message : String(cause),
           0,
           "STREAM_ERROR",
-          requestId
+          state.requestId
         );
   };
   const cancellable = async <T>(operation: Promise<T>): Promise<T> => {
@@ -237,39 +241,21 @@ function createSession(options: TaskStreamOptions) {
     failure,
     cleanup,
     cancellable,
-    setRequestId(value: string | undefined) {
-      requestId = value;
-    },
-    setReader(value: ReadableStreamDefaultReader<Uint8Array>) {
-      reader = value;
-    },
+    state,
   };
 }
 
 type StreamSession = ReturnType<typeof createSession>;
 
-/** Direct inference streaming. Never submits to the queue or retries. */
-export async function streamTask(
+/** POST the stream request and take the response's body reader. */
+async function connect(
   plan: TaskPlan,
-  key: string | undefined,
+  key: string,
   fetch: FalFetch,
   ephemeral: boolean,
-  options: TaskStreamOptions
-): Promise<Result<TaskStream, MotifError>> {
-  const invalid = validateStream(plan, key, options);
-  if (invalid !== undefined) {
-    return err(invalid);
-  }
-  // Validation established the key; keep its absence explicit for the type system.
-  if (key === undefined) {
-    return err(new MotifError("FAL_KEY is not set.", 0, "MISSING_API_KEY"));
-  }
-
-  const session = createSession(options);
-  const { controller, failure, cleanup, cancellable } = session;
-  let requestId: string | undefined;
-  let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
-
+  session: StreamSession
+): Promise<Result<ReadableStreamDefaultReader<Uint8Array>, MotifError>> {
+  const { controller, failure, cleanup, cancellable, state } = session;
   try {
     if (controller.signal.aborted) {
       throw failure();
@@ -287,14 +273,13 @@ export async function streamTask(
         body: JSON.stringify(plan.body),
       })
     );
-    requestId = response.headers.get("x-fal-request-id") ?? undefined;
-    session.setRequestId(requestId);
+    state.requestId = response.headers.get("x-fal-request-id") ?? undefined;
     if (!response.ok) {
       const body = await cancellable(response.text());
       const error = falHttpError(
         response.status,
         body,
-        requestId ?? requestIdFromBody(body)
+        state.requestId ?? requestIdFromBody(body)
       );
       await cleanup();
       return err(error);
@@ -313,19 +298,41 @@ export async function streamTask(
           "Expected an SSE response body.",
           response.status,
           "INVALID_STREAM_RESPONSE",
-          requestId
+          state.requestId
         )
       );
     }
-    reader = response.body.getReader();
-    session.setReader(reader);
+    state.reader = response.body.getReader();
+    return ok(state.reader);
   } catch (error) {
     const failed = failure(error);
     await cleanup();
     return err(failed);
   }
+}
 
-  const iterator = consume(reader, session, requestId);
+/** Direct inference streaming. Never submits to the queue or retries. */
+export async function streamTask(
+  plan: TaskPlan,
+  key: string | undefined,
+  fetch: FalFetch,
+  ephemeral: boolean,
+  options: TaskStreamOptions
+): Promise<Result<TaskStream, MotifError>> {
+  const apiKey = validateStream(plan, key, options);
+  if (apiKey.isErr()) {
+    return err(apiKey.error);
+  }
+
+  const session = createSession(options);
+  const { controller, cleanup } = session;
+  const reader = await connect(plan, apiKey.value, fetch, ephemeral, session);
+  if (reader.isErr()) {
+    return err(reader.error);
+  }
+  const { requestId } = session.state;
+
+  const iterator = consume(reader.value, session);
   let claimed = false;
   const events: AsyncIterable<Result<TaskStreamEvent, MotifError>> = {
     [Symbol.asyncIterator]() {
@@ -355,17 +362,13 @@ export async function streamTask(
 }
 
 async function* consume(
-  reader: ReadableStreamDefaultReader<Uint8Array> | undefined,
-  session: StreamSession,
-  requestId: string | undefined
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  session: StreamSession
 ): AsyncGenerator<Result<TaskStreamEvent, MotifError>> {
-  const { cancellable, failure, cleanup } = session;
+  const { cancellable, failure, cleanup, state } = session;
   const decoder = new TextDecoder();
-  const frames = createFrames(requestId);
+  const frames = createFrames(state.requestId);
   try {
-    if (reader === undefined) {
-      throw new Error("Missing stream reader.");
-    }
     let finished = false;
     while (!finished) {
       const chunk = await cancellable(reader.read());

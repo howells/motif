@@ -273,7 +273,7 @@ describe("createMotif plan", () => {
     expect(plan.body.image_urls).toStrictEqual([IMAGE, reference]);
   });
 
-  it("queues a generation only when the caller asks for progress", () => {
+  it("plans queued for the Model, whatever callbacks the caller passes", () => {
     const input = { model: "banana", prompt: "a room", references: [IMAGE] };
 
     expect(planned("generate", input).queued).toBe(false);
@@ -281,10 +281,10 @@ describe("createMotif plan", () => {
       planned("generate", {
         ...input,
         onProgress: () => {
-          /* Progress is not read when planning. */
+          /* Callbacks decide the queue in run, not in plan. */
         },
       }).queued
-    ).toBe(true);
+    ).toBe(false);
   });
 
   it("sends a plain erase's prompt", () => {
@@ -1246,6 +1246,56 @@ describe("createMotif run", () => {
 
     expect(result.isOk()).toBe(true);
     expect(calls[0]?.url).not.toContain("queue.fal.run");
+  });
+
+  it("queues a generation Model when the caller asks for progress", async () => {
+    const statuses: string[] = [];
+    const { calls, fetch } = fakeFetch((call) => {
+      if (call.method === "POST") {
+        return {
+          data: {
+            request_id: "req-gen",
+            response_url:
+              "https://queue.fal.run/fal-ai/flux-2-pro/requests/req-gen",
+          },
+        };
+      }
+      if (call.url.includes("/status")) {
+        return { data: { status: "COMPLETED" } };
+      }
+      return { data: { images: [{ url: "https://fal.media/g.png" }] } };
+    });
+    const result = await client(fetch).generate({
+      model: "flux2-pro",
+      onProgress: (status) => {
+        statuses.push(status);
+      },
+      prompt: "a room",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(calls[0]?.url).toContain("queue.fal.run");
+    expect(statuses).toStrictEqual(["completed"]);
+  }, 10_000);
+
+  it("runs a synchronous tool synchronously when the caller asks for progress", async () => {
+    const statuses: string[] = [];
+    const { calls, fetch } = fakeFetch(() => ({
+      data: {
+        image: { height: 10, url: "https://fal.media/e.png", width: 10 },
+      },
+    }));
+    const result = await client(fetch).erase({
+      image: IMAGE,
+      onProgress: (status) => {
+        statuses.push(status);
+      },
+      prompt: "the car",
+    });
+
+    expect(result.isOk()).toBe(true);
+    expect(calls[0]?.url).not.toContain("queue.fal.run");
+    expect(statuses).toStrictEqual([]);
   });
 
   it("resumes a submitted run by its id without submitting again", async () => {

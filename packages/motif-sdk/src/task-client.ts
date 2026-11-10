@@ -164,6 +164,10 @@ export interface TaskPlan {
   body: Record<string, unknown>;
   /** Prompt after Look and Mood enrichment, when the Task takes one. */
   prompt?: string;
+  /**
+   * The Model always runs through fal's queue. `run` also queues a run whose
+   * caller passes `onSubmitted`, or `onProgress` on a generation Model.
+   */
   queued: boolean;
   /** Projected: before the call. */
   cost: ResolvedCost;
@@ -410,9 +414,15 @@ export function createMotif(config: MotifClientConfig = {}): MotifClient {
       endpoint: chosen.endpoint,
       headers,
     };
-    // `onSubmitted` promises the request id before any wait, which only fal's
-    // queue gives, so it queues every Model, not only those planned as queued.
-    const queued = chosen.queued || input.onSubmitted !== undefined;
+    // Only fal's queue reports state or hands back a request id before the run
+    // finishes. `onSubmitted` queues any Model; `onProgress` queues a generation
+    // Model, and a tool Model without a queue runs synchronously and reports
+    // nothing.
+    const queued =
+      chosen.queued ||
+      input.onSubmitted !== undefined ||
+      (input.onProgress !== undefined &&
+        MODELS[chosen.model]?.type === "generation");
     const result = queued
       ? await runRequestQueued(
           fal.value,
