@@ -16,6 +16,10 @@ try-on - virtual-try-on 2K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cann
 try-on - virtual-try-on 4K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do resolution. {"blockedBy":"resolution","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on ref1 => virtual-try-on google/virtual-try-on queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.075} prompt=undefined body={"person_image_url":"https://example.com/source.png","product_image_url":"https://example.com/reference.png"}
 try-on - virtual-try-on ref2 => ERR INVALID_OPTION try-on takes exactly one reference image. {"field":"references","task":"try-on"}
+try-on - virtual-try-on count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"try-on"}
+try-on - virtual-try-on count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"try-on"}
+try-on - virtual-try-on seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"try-on"}
+try-on - virtual-try-on seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"try-on"}
 try-on - virtual-try-on scale 3 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on scale -1 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on aspect => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}

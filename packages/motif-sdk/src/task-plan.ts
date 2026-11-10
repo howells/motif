@@ -241,6 +241,24 @@ function taskInputRefusal(
   task: TaskId,
   input: TaskInput
 ): MotifError | undefined {
+  if (
+    input.count !== undefined &&
+    !(Number.isInteger(input.count) && input.count >= 1)
+  ) {
+    return invalidOption(
+      `count must be a whole number of at least 1, not ${input.count}.`,
+      { field: "count", task }
+    );
+  }
+  if (
+    input.seed !== undefined &&
+    !(Number.isInteger(input.seed) && input.seed >= 0)
+  ) {
+    return invalidOption(
+      `seed must be a whole number of at least 0, not ${input.seed}.`,
+      { field: "seed", task }
+    );
+  }
   const definition: TaskDefinition = TASKS[task];
   if (definition.oneReference === true && input.references?.length !== 1) {
     return invalidOption(`${task} takes exactly one reference image.`, {
