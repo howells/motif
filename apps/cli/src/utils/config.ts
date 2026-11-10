@@ -179,17 +179,18 @@ function ensureMotifDir(): void {
 }
 
 /**
- * Write file atomically using temp-rename pattern
- * Prevents corruption if process is interrupted mid-write
+ * Write file atomically using temp-rename pattern in the file's own directory.
+ * Prevents corruption if process is interrupted mid-write. Stored JSON is
+ * private (0o600); pass `mode` for a file the user will share, such as an image.
  */
 export async function atomicWrite(
   filePath: string,
-  data: string
+  data: string | Uint8Array,
+  mode = 0o600
 ): Promise<void> {
   const tempPath = `${filePath}.${randomUUID()}.tmp`;
   try {
-    // Write to temp file with restrictive permissions
-    writeFileSync(tempPath, data, { mode: 0o600 });
+    writeFileSync(tempPath, data, { mode });
     // Atomic rename (on POSIX systems)
     renameSync(tempPath, filePath);
   } catch (error) {

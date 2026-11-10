@@ -80,7 +80,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 
 1. **Never pass fal endpoint strings as model names.** Use `gpt`, not `fal-ai/gpt-image-1.5`.
 
-2. **Keep output paths inside the repo.** Any path under the git root of the current directory is allowed (the current directory itself outside a repo). Anything else, and any `%2e` encoding, is rejected with `INVALID_OUTPUT_PATH`, whose message names the allowed root.
+2. **Keep output paths inside the repo.** Any path under the git root of the current directory is allowed (the current directory itself outside a repo). Anything else, and any `%2e` encoding, is rejected with `INVALID_OUTPUT_PATH`, whose message names the allowed root. Symlinks are resolved first, so a symlinked directory that leads out of the root is rejected too. A file is written through a temporary file renamed into place; `-o existing.png` replaces that file, but Motif never replaces a file you did not name (an `-o icon.png` that returns JPEG bytes would be saved as `icon.jpg`, and is refused if `icon.jpg` exists).
 
 3. **Never rely on the last generation in a pipeline.** Verbs fall back to it when the image is omitted and fail with `NO_PREVIOUS` when there is none; pass the path explicitly.
 

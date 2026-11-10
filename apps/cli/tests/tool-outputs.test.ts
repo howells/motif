@@ -1,10 +1,17 @@
-import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { saveFiles } from "../src/utils/output-files";
+import { derivedOutputPath, saveFiles } from "../src/utils/output-files";
 
 const PNG_1X1 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
@@ -104,5 +111,28 @@ describe(saveFiles, () => {
     expect(written.map((file) => basename(file.path))).toStrictEqual([
       "image.png",
     ]);
+  });
+});
+
+describe(derivedOutputPath, () => {
+  it("writes beside a source, but not through a symlinked directory that leaves the output root", () => {
+    testDir = realpathSync(mkdtempSync(join(tmpdir(), "motif-derived-")));
+    const outside = realpathSync(mkdtempSync(join(tmpdir(), "motif-away-")));
+    const cwd = join(testDir, "work");
+    mkdirSync(join(cwd, "real"), { recursive: true });
+    symlinkSync(outside, join(cwd, "escape"));
+    symlinkSync(join(cwd, "real"), join(cwd, "alias"));
+    const here = vi.spyOn(process, "cwd").mockReturnValue(cwd);
+    try {
+      expect(
+        derivedOutputPath(join(cwd, "alias", "in.png"), "-cutout", ".png")
+      ).toBe(join(cwd, "alias", "in-cutout.png"));
+      expect(
+        derivedOutputPath(join(cwd, "escape", "in.png"), "-cutout", ".png")
+      ).toBe(join(cwd, "in-cutout.png"));
+    } finally {
+      here.mockRestore();
+      rmSync(outside, { force: true, recursive: true });
+    }
   });
 });

@@ -6,8 +6,16 @@
  * defends against those specific failure modes.
  */
 
-import { existsSync } from "node:fs";
-import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { existsSync, readlinkSync, realpathSync } from "node:fs";
+import {
+  basename,
+  dirname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+  sep,
+} from "node:path";
 
 import { parseJsonAs } from "./json";
 
@@ -190,14 +198,57 @@ export function validateOutputPath(
   const resolved = resolve(cwd, outputPath);
   const root = outputRoot(cwd);
 
-  const rel = relative(root, resolved);
-  if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
+  if (
+    leavesRoot(root, resolved) ||
+    leavesRoot(realpathSync(root), realPathOf(resolved))
+  ) {
     throw new Error(
       `Output path must be within ${root} (the git root, or the current directory outside a repository): ${outputPath}`
     );
   }
 
   return resolved;
+}
+
+/** Whether `path` is not `root` or something under it. */
+function leavesRoot(root: string, path: string): boolean {
+  const rel = relative(root, path);
+  return rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel);
+}
+
+/**
+ * `path` with every symlink resolved, as far as it exists: the real path of
+ * the deepest existing ancestor, then the names below it that do not exist
+ * yet. A dangling symlink is followed to where it points, so it cannot hide a
+ * target outside the root.
+ */
+function realPathOf(path: string): string {
+  let existing = path;
+  const missing: string[] = [];
+  for (;;) {
+    try {
+      return join(realpathSync(existing), ...missing);
+    } catch (error) {
+      if (
+        !(error instanceof Error && "code" in error && error.code === "ENOENT")
+      ) {
+        throw error;
+      }
+    }
+    try {
+      const target = readlinkSync(existing);
+      existing = resolve(dirname(existing), target);
+      continue;
+    } catch {
+      // Not a symlink: the name does not exist, so look one level up.
+    }
+    const parent = dirname(existing);
+    if (parent === existing) {
+      return path;
+    }
+    missing.unshift(basename(existing));
+    existing = parent;
+  }
 }
 
 /**

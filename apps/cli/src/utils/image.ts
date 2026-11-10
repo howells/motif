@@ -1,9 +1,11 @@
 import { execFile } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { extname, join, parse, resolve } from "node:path";
 
 import sharp from "sharp";
+
+import { atomicWrite } from "./config";
 
 const URL_TAIL_REGEX = /[?#]/;
 const FILE_EXTENSION_REGEX = /^\.[a-z0-9]{1,8}$/i;
@@ -121,7 +123,10 @@ export function decodeDataUrl(
 
 /**
  * Write image bytes to `outputPath`, with the extension their content calls
- * for. Returns the path actually written.
+ * for, through a temporary file renamed into place. Returns the path actually
+ * written. The exact path the caller named may be replaced; a different path,
+ * reached only because the bytes are not what the name says, is never
+ * overwritten: a file the user did not name is not Motif's to replace.
  */
 export async function saveBytes(
   buffer: Buffer,
@@ -131,7 +136,12 @@ export async function saveBytes(
   const detected = detectImageExtension(buffer, contentType);
   const actualPath =
     detected === null ? outputPath : withExtension(outputPath, detected);
-  await writeFile(actualPath, buffer);
+  if (actualPath !== outputPath && existsSync(actualPath)) {
+    throw new Error(
+      `${outputPath} would be saved as ${actualPath} to match the image it holds, but ${actualPath} already exists: name the output ${actualPath}, or move that file`
+    );
+  }
+  await atomicWrite(actualPath, buffer, 0o666);
   return actualPath;
 }
 

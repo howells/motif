@@ -1,4 +1,11 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -78,6 +85,61 @@ describe("downloadImage", () => {
     expect(actualPath).toBe(join(testDir, "generated.jpg"));
     expect(existsSync(actualPath)).toBe(true);
     expect(existsSync(requestedPath)).toBe(false);
+  });
+});
+
+describe("writing a downloaded image", () => {
+  const jpegResponse = () => ({
+    arrayBuffer: async () =>
+      Buffer.from(JPEG_16X16_WITH_DENSITY, "base64").buffer,
+    headers: new Headers({ "content-type": "image/jpeg" }),
+    ok: true,
+    statusText: "OK",
+  });
+
+  it("refuses to overwrite a file the user never named when the extension is corrected", async () => {
+    testDir = mkdtempSync(join(tmpdir(), "motif-image-test-"));
+    const unnamed = join(testDir, "icon.jpg");
+    writeFileSync(unnamed, "the user's own icon.jpg");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jpegResponse())
+    );
+
+    await expect(
+      downloadImage("https://example.com/x.jpg", join(testDir, "icon.png"))
+    ).rejects.toThrow(/icon\.jpg already exists/);
+
+    expect(readFileSync(unnamed, "utf-8")).toBe("the user's own icon.jpg");
+  });
+
+  it("still overwrites the exact path the user named", async () => {
+    testDir = mkdtempSync(join(tmpdir(), "motif-image-test-"));
+    const named = join(testDir, "icon.jpg");
+    writeFileSync(named, "old");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jpegResponse())
+    );
+
+    const written = await downloadImage("https://example.com/x.jpg", named);
+
+    expect(written).toBe(named);
+    expect(readFileSync(named).subarray(0, 2)).toStrictEqual(
+      Buffer.from([0xff, 0xd8])
+    );
+  });
+
+  it("writes through a temporary file and leaves none behind", async () => {
+    testDir = mkdtempSync(join(tmpdir(), "motif-image-test-"));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => jpegResponse())
+    );
+
+    await downloadImage("https://example.com/x.jpg", join(testDir, "a.jpg"));
+
+    expect(readdirSync(testDir)).toStrictEqual(["a.jpg"]);
   });
 });
 

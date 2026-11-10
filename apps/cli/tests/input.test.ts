@@ -1,4 +1,10 @@
-import { mkdirSync, mkdtempSync, realpathSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -138,6 +144,40 @@ describe(validateOutputPath, () => {
     expect(validateOutputPath("out.png", cwd)).toBe(join(cwd, "out.png"));
     expect(() => validateOutputPath("../out.png", cwd)).toThrow(
       `Output path must be within ${cwd}`
+    );
+  });
+
+  it("refuses a path that reaches outside the root through a symlinked directory", () => {
+    const repo = fakeRepo();
+    const outside = realpathSync(mkdtempSync(join(tmpdir(), "motif-outside-")));
+    symlinkSync(outside, join(repo, "escape"));
+
+    expect(() => validateOutputPath("escape/out.png", repo)).toThrow(
+      `Output path must be within ${repo}`
+    );
+    expect(() => validateOutputPath("escape/new/dir/out.png", repo)).toThrow(
+      "Output path must be within"
+    );
+  });
+
+  it("refuses an existing file that is a symlink out of the root", () => {
+    const repo = fakeRepo();
+    const outside = realpathSync(mkdtempSync(join(tmpdir(), "motif-outside-")));
+    writeFileSync(join(outside, "target.png"), "x");
+    symlinkSync(join(outside, "target.png"), join(repo, "link.png"));
+
+    expect(() => validateOutputPath("link.png", repo)).toThrow(
+      "Output path must be within"
+    );
+  });
+
+  it("allows a symlinked directory that stays inside the root", () => {
+    const repo = fakeRepo();
+    mkdirSync(join(repo, "real"));
+    symlinkSync(join(repo, "real"), join(repo, "alias"));
+
+    expect(validateOutputPath("alias/out.png", repo)).toBe(
+      join(repo, "alias", "out.png")
     );
   });
 
