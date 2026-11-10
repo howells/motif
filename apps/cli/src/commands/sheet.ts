@@ -19,15 +19,13 @@ import { loadHistory } from "../utils/config";
 import type { Generation } from "../utils/config";
 import {
   exitNoPrevious,
-  formatForParseErrors,
   handleError,
-  routeCommanderErrors,
   validateOption,
   validateOutput,
 } from "../utils/errors";
 import { generateFilename, openImage } from "../utils/image";
 import { parseIntegerOption, validateEditPath } from "../utils/input";
-import { emit, isStructured } from "../utils/output";
+import { emit, isStructured, resolveFormat } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 
@@ -257,30 +255,25 @@ async function buildSheet(
   }
 }
 
-export async function runSheet(args: string[]): Promise<void> {
-  const format = formatForParseErrors(args);
-  const program = routeCommanderErrors(
-    new Command()
-      .name("motif sheet")
-      .description("Lay saved images out on one captioned contact sheet")
-      .argument("[files...]", "Images to include")
-      .option("--last <n>", "Use the newest n images from history")
-      .option(
-        "-o, --output <file>",
-        "Output file (.png, .jpg or .webp). Default: sheet-<timestamp>.png"
-      )
-      .option("--cols <n>", "Columns (default: roughly square)")
-      .option("--format <format>", "Output format: human, json, ndjson")
-      .option("--fields <fields>", "Comma-separated fields to include")
-      .option("--open", "Open the sheet in a viewer"),
-    format
-  );
-  program.action(async (files: string[], opts: SheetOptions) => {
-    await buildSheet(files, opts, {
-      fields: opts.fields,
-      format,
-      sanitize: true,
+export function registerSheet(program: Command): void {
+  program
+    .command("sheet")
+    .description("Lay saved images out on one captioned contact sheet")
+    .argument("[files...]", "Images to include")
+    .option("--last <n>", "Use the newest n images from history")
+    .option(
+      "-o, --output <file>",
+      "Output file (.png, .jpg or .webp). Default: sheet-<timestamp>.png"
+    )
+    .option("--cols <n>", "Columns (default: roughly square)")
+    .option("--format <format>", "Output format: human, json, ndjson")
+    .option("--fields <fields>", "Comma-separated fields to include")
+    .option("--open", "Open the sheet in a viewer")
+    .action(async (files: string[], opts: SheetOptions) => {
+      await buildSheet(files, opts, {
+        fields: opts.fields,
+        format: resolveFormat(opts.format),
+        sanitize: true,
+      });
     });
-  });
-  await program.parseAsync(["node", "motif-sheet", ...args]);
 }

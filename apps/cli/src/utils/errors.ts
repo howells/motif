@@ -270,21 +270,6 @@ function discardCommanderErrorLine(message: string): void {
 }
 
 /**
- * Route commander's own parse failures through the CLI error envelope.
- *
- * Commander defaults to a bare English line on stderr and exit `1`, which
- * breaks both halves of the agent contract: invalid input must exit `2`, and
- * every failure must be an RFC 7807 object. Commander's diagnosis ("missing
- * required argument 'prompt'") is the useful part, so it becomes the
- * envelope's `message`.
- *
- * Call this before registering subcommands — commander copies the exit
- * callback and output configuration into each subcommand as it is created.
- *
- * `refine` sees each failure first, so a caller can emit a more specific error
- * and exit; when it returns, the generic envelope goes out.
- */
-/**
  * Refuse an option whose value is another flag. Commander hands the next
  * argument to a value option whatever it is, so `ask --detect --dry-run`
  * would read `--dry-run` as the thing to detect and make a paid call.
@@ -310,25 +295,48 @@ export function refuseFlagValues(command: Command, format: OutputFormat): void {
   }
 }
 
-export function routeCommanderErrors(
-  program: Command,
+/**
+ * The exit callback that turns commander's own failures into the CLI's error
+ * envelope. `refine` sees each failure first and may emit a more specific
+ * error and exit; when it returns, the generic envelope goes out.
+ */
+export function commanderErrorRouter(
   format: OutputFormat,
   refine?: (err: CommanderError) => void
+): (err: CommanderError) => never {
+  return (err) => {
+    if (COMMANDER_SUCCESS_CODES.has(err.code)) {
+      process.exit(err.exitCode);
+    }
+    refine?.(err);
+    handleError(
+      new Error(err.message.replace(/^error: /, "")),
+      "INVALID_OPTION",
+      format
+    );
+  };
+}
+
+/**
+ * Route commander's own parse failures through the CLI error envelope.
+ *
+ * Commander defaults to a bare English line on stderr and exit `1`, which
+ * breaks both halves of the agent contract: invalid input must exit `2`, and
+ * every failure must be an RFC 7807 object. Commander's diagnosis ("missing
+ * required argument 'prompt'") is the useful part, so it becomes the
+ * envelope's `message`.
+ *
+ * Call this before registering subcommands — commander copies the exit
+ * callback and output configuration into each subcommand as it is created.
+ */
+export function routeCommanderErrors(
+  program: Command,
+  format: OutputFormat
 ): Command {
   return program
     .hook("preAction", (_program, actionCommand) => {
       refuseFlagValues(actionCommand, format);
     })
     .configureOutput({ outputError: discardCommanderErrorLine })
-    .exitOverride((err) => {
-      if (COMMANDER_SUCCESS_CODES.has(err.code)) {
-        process.exit(err.exitCode);
-      }
-      refine?.(err);
-      handleError(
-        new Error(err.message.replace(/^error: /, "")),
-        "INVALID_OPTION",
-        format
-      );
-    });
+    .exitOverride(commanderErrorRouter(format));
 }

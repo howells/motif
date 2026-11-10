@@ -23,11 +23,9 @@ import { helpTaskList, taskCorrection } from "./commands/verbs/tasks";
 import type { CliOptions, StdinPayload } from "./utils/cli-types";
 import { getLastGeneration, loadConfig } from "./utils/config";
 import {
+  commanderErrorRouter,
   exitForErrorCode,
-  formatForParseErrors,
   handleError,
-  refuseFlagValues,
-  routeCommanderErrors,
   validateOption,
 } from "./utils/errors";
 import {
@@ -39,7 +37,6 @@ import { emit, emitError, isStructured, resolveFormat } from "./utils/output";
 import type { EmitOptions, OutputFormat } from "./utils/output";
 import { addPresetOptions, PRESET_IDS } from "./utils/presets";
 import { firstText, hasText } from "./utils/text";
-import { PACKAGE_VERSION } from "./version";
 
 /** Commander collector: each `-e <file>` or `--param` adds one value. */
 function collectRepeatable(value: string, previous?: string[]): string[] {
@@ -100,15 +97,20 @@ function refuseTaskWord(positionals: string[], format: OutputFormat): void {
   exitForErrorCode("INVALID_OPTION");
 }
 
-// -- Main entry --
+// -- The generate command --
 
-export async function runCli(args: string[]): Promise<void> {
-  const program = new Command()
-    .name("motif")
-    // The command list rides in the description so it prints straight after
-    // Usage, ahead of the long options list.
-    .description(`Motif: images and video through fal\n\n${helpTaskList()}`)
-    .version(PACKAGE_VERSION)
+/** The description generate and the bare program share: the commands, by task. */
+const PROGRAM_DESCRIPTION = `Motif: images and video through fal\n\n${helpTaskList()}`;
+
+/**
+ * `motif generate`, and what `motif` runs when its first word is no other
+ * command: `motif "prompt"` is `motif generate "prompt"`. It also carries the
+ * flags that answer instead of generating (`--describe`, `--history`, `--last`).
+ */
+export function registerGenerate(program: Command, parseFormat: OutputFormat) {
+  const command = program
+    .command("generate", { isDefault: true })
+    .description(PROGRAM_DESCRIPTION)
     .argument("[prompt]", "Image generation prompt")
     // Agent-first global flags
     .option(
@@ -144,8 +146,8 @@ export async function runCli(args: string[]): Promise<void> {
     .option("-r, --resolution <res>", `Resolution (${RESOLUTIONS.join(", ")})`)
     .option("-o, --output <file>", "Output filename")
     .option("-n, --num <count>", "Number of images 1-4");
-  addPresetOptions(program, PRESET_IDS);
-  program
+  addPresetOptions(command, PRESET_IDS);
+  command
     // Output options
     .option("--transparent", "Transparent background PNG")
     .option("--mask <path>", "Mask image for an edit with -e")
@@ -171,23 +173,27 @@ export async function runCli(args: string[]): Promise<void> {
     .option("--limit <n>", "History: number of entries (default 10)")
     .option("--offset <n>", "History: skip first N entries");
 
-  // Commander's own parse failures (unknown option, missing argument) must
-  // honour the same error contract as everything else the CLI emits. Surplus
-  // positionals led by a task word, such as `motif remove "the car" x.png`,
-  // name the command that word means instead.
-  const parseFormat = formatForParseErrors(args);
-  routeCommanderErrors(program, parseFormat, (err) => {
-    if (err.code === "commander.excessArguments") {
-      refuseTaskWord(program.args, parseFormat);
-    }
+  // Surplus positionals led by a task word, such as
+  // `motif remove "the car" x.png`, name the command that word means.
+  command.exitOverride(
+    commanderErrorRouter(parseFormat, (err) => {
+      if (err.code === "commander.excessArguments") {
+        refuseTaskWord(command.args, parseFormat);
+      }
+    })
+  );
+
+  command.action(async (prompt: string | undefined, options: CliOptions) => {
+    await runGenerate(program, prompt, options);
   });
+  return command;
+}
 
-  program.parse(args);
-  refuseFlagValues(program, parseFormat);
-
-  const options = program.opts<CliOptions>();
-  const prompt = program.args[0];
-
+async function runGenerate(
+  program: Command,
+  prompt: string | undefined,
+  options: CliOptions
+): Promise<void> {
   /**
    * Whether argv alone says what to do. When it does, stdin can only add to a
    * decided action, so waiting on it forever is what made the CLI hang under
@@ -227,7 +233,7 @@ export async function runCli(args: string[]): Promise<void> {
     const cmdName =
       typeof options.describe === "string" ? options.describe : undefined;
     try {
-      runDescribe(cmdName, emitOpts);
+      runDescribe(program, cmdName, emitOpts);
     } catch (error) {
       handleError(error, "DESCRIBE_FAILED", format);
     }

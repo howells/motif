@@ -14,7 +14,7 @@ import type { TaskInput } from "@howells/motif-sdk";
 import type { Command } from "commander";
 
 import type { Generation, MotifConfig } from "../utils/config";
-import { getLastGeneration, loadHistory } from "../utils/config";
+import { getLastGeneration, loadConfig, loadHistory } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
 import { exitNoPrevious, handleError, validateOption } from "../utils/errors";
 import { generateFilename } from "../utils/image";
@@ -153,7 +153,7 @@ async function vary(
   );
 }
 
-export function registerVary(program: Command, config: MotifConfig): void {
+export function registerVary(program: Command): void {
   const command = program
     .command("vary")
     .description(TASKS.vary.summary)
@@ -171,6 +171,6 @@ export function registerVary(program: Command, config: MotifConfig): void {
       "A transparent PNG the size of the image, with arrows, circles and notes guiding the edit"
     );
   withCommonOptions(command).action(async (image: string | undefined) => {
-    await vary(image, command.opts<VaryOptions>(), config);
+    await vary(image, command.opts<VaryOptions>(), await loadConfig());
   });
 }

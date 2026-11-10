@@ -12,7 +12,6 @@
 import { TIERS } from "@howells/motif-sdk";
 import { Command } from "commander";
 
-import { formatForParseErrors, routeCommanderErrors } from "../../utils/errors";
 import { resolveFormat } from "../../utils/output";
 import type { EmitOptions } from "../../utils/output";
 import { cmdGenerate } from "./gen";
@@ -27,21 +26,15 @@ import {
 } from "./manage";
 import { cmdRun } from "./run";
 
-export async function runSeries(args: string[]): Promise<void> {
-  const program = routeCommanderErrors(
-    new Command()
-      .name("motif series")
-      .description("Manage image series for consistent styling")
-      .option(
-        "--format <format>",
-        "Output format: json, human, ndjson (default: auto-detect from TTY)"
-      )
-      .option(
-        "--fields <fields>",
-        "Comma-separated fields to include in output"
-      ),
-    formatForParseErrors(args)
-  );
+export function registerSeries(root: Command): void {
+  const program = root
+    .command("series")
+    .description("Manage image series for consistent styling")
+    .option(
+      "--format <format>",
+      "Output format: json, human, ndjson (default: auto-detect from TTY)"
+    )
+    .option("--fields <fields>", "Comma-separated fields to include in output");
   const emitOpts = (): EmitOptions => {
     const { fields, format } = program.opts<{
       fields?: string;
@@ -171,6 +164,4 @@ export async function runSeries(args: string[]): Promise<void> {
     .action(async (slug: string) => {
       await cmdDelete(slug, emitOpts());
     });
-
-  await program.parseAsync(["node", "motif-series", ...args]);
 }

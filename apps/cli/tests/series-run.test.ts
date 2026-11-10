@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * The deterministic helpers (`loadOrCreateRunSeries`, `buildSeriesRunScenes`,
  * `buildSeriesRunStylePrompt`) are exercised directly against a temp HOME.
  * The full `series run` generate loop is driven through the only exported
- * entry point (`runSeries`) with fetch stubbed and the image/download side
+ * entry point (`runProgram`) with fetch stubbed and the image/download side
  * effects mocked, so no fal request is ever made.
  */
 
@@ -184,10 +184,10 @@ describe("loadOrCreateRunSeries", () => {
   });
 });
 
-describe("runSeries full generate flow (mocked fal)", () => {
+describe("series run full generate flow (mocked fal)", () => {
   it("generates each image, reuses the first as an anchor reference, and records outputs", async () => {
     const image = await import("../src/utils/image");
-    const { runSeries } = await import("../src/commands/series");
+    const { runProgram } = await import("../src/program");
     const { loadSeries } = await import("../src/utils/series");
 
     let counter = 0;
@@ -227,7 +227,8 @@ describe("runSeries full generate flow (mocked fal)", () => {
       return true;
     });
 
-    await runSeries([
+    await runProgram([
+      "series",
       "run",
       "Brutalist Towers",
       "--count",
@@ -262,10 +263,10 @@ describe("runSeries full generate flow (mocked fal)", () => {
   });
 });
 
-describe("runSeries when a later scene fails", () => {
+describe("series run when a later scene fails", () => {
   it("keeps the scenes already generated in global history", async () => {
     const image = await import("../src/utils/image");
-    const { runSeries } = await import("../src/commands/series");
+    const { runProgram } = await import("../src/program");
     const { loadHistory } = await import("../src/utils/config");
     const { loadSeries } = await import("../src/utils/series");
 
@@ -305,7 +306,8 @@ describe("runSeries when a later scene fails", () => {
     });
 
     await expect(
-      runSeries([
+      runProgram([
+        "series",
         "run",
         "Failing Towers",
         "--count",

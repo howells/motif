@@ -173,13 +173,9 @@ export default {
       rules: {},
     },
     {
-      // Exact-file max-lines exceptions: models.ts is a metadata table (data,
-      // not logic); describe.ts is the schema, one long declaration per
-      // command.
-      files: [
-        "packages/motif-sdk/src/models.ts",
-        "apps/cli/src/commands/describe.ts",
-      ],
+      // Exact-file max-lines exception: models.ts is a metadata table (data,
+      // not logic).
+      files: ["packages/motif-sdk/src/models.ts"],
       rules: {
         "max-lines": "off",
       },

@@ -9,7 +9,7 @@ import { TASKS } from "@howells/motif-sdk";
 import { Command } from "commander";
 import type { Option } from "commander";
 
-import type { MotifConfig } from "../../utils/config";
+import { loadConfig } from "../../utils/config";
 import { handleError } from "../../utils/errors";
 import type { OutputFormat } from "../../utils/output";
 import { hasText } from "../../utils/text";
@@ -120,8 +120,7 @@ export function verbFlags(definition: VerbDefinition): readonly Option[] {
 
 export function registerTaskVerb(
   program: Command,
-  definition: VerbDefinition,
-  config: MotifConfig
+  definition: VerbDefinition
 ): void {
   const takesTwo = definition.usage.split(" ").length > 1;
   let command = program
@@ -142,6 +141,7 @@ export function registerTaskVerb(
   }
   command = definition.options?.(command) ?? command;
   withCommonOptions(command).action(async (...received: unknown[]) => {
+    const config = await loadConfig();
     const args = received
       .slice(0, takesTwo ? 2 : 1)
       .map((value) => (typeof value === "string" ? value : undefined));
