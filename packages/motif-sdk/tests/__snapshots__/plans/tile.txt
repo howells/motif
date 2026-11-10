@@ -24,6 +24,7 @@ tile - ideogram-tiling box outside => ERR INVALID_OPTION ideogram-tiling cannot 
 tile - ideogram-tiling scale 3 => ERR INVALID_OPTION ideogram-tiling cannot take scale for tile. {"field":"scale","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling scale -1 => ERR INVALID_OPTION ideogram-tiling cannot take scale for tile. {"field":"scale","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling aspect => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling aspect 21:9 => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling aspect auto => ERR INVALID_OPTION ideogram-tiling cannot take aspect for tile. {"field":"aspect","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling rich => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do negativePrompt. {"blockedBy":"negativePrompt","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless bare => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.008} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -52,6 +53,7 @@ tile upscale seedvr-seamless box outside => ERR INVALID_OPTION seedvr-seamless c
 tile upscale seedvr-seamless scale 3 => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.018000000000000002} prompt=undefined body={"image_url":"https://example.com/source.png","upscale_factor":3}
 tile upscale seedvr-seamless scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless aspect => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless aspect 21:9 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless aspect auto => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless rich => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
 tile - ranked fast => ideogram-tiling ideogram/v4/tiling queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"prompt":"the shoe"}

@@ -312,15 +312,15 @@ function withinLimits(
     return (request.references ?? 0) <= profile.maxReferences;
   }
   if (capability === "aspect") {
-    return accepts(profile.aspects, request.aspect);
+    return listed(profile.aspects, request.aspect);
   }
   if (capability === "resolution") {
-    return accepts(profile.resolutions, request.resolution);
+    return listed(profile.resolutions, request.resolution);
   }
   if (capability === "outputFormat") {
     const editing =
       (request.references ?? 0) > 0 || request.source !== undefined;
-    return accepts(
+    return listed(
       editing ? profile.outputFormats?.edit : profile.outputFormats?.text,
       request.outputFormat
     );
@@ -328,7 +328,7 @@ function withinLimits(
   return true;
 }
 
-function accepts(
+function listed(
   allowed: readonly string[] | undefined,
   value: string | undefined
 ): boolean {
@@ -342,6 +342,8 @@ type Check =
   | {
       readonly ok: false;
       readonly blockedBy: Capability | "key";
+      /** The values the Model takes, when it refused an aspect or resolution. */
+      readonly accepts?: readonly string[];
       readonly missingKey?: string;
       /** The Model needs this input and the request did not supply it. */
       readonly missingInput?: true;
@@ -365,11 +367,13 @@ function check(
     }
   }
   for (const capability of needed) {
-    if (
-      !profile.capabilities.has(capability) ||
-      !withinLimits(profile, capability, request)
-    ) {
+    if (!profile.capabilities.has(capability)) {
       return { blockedBy: capability, ok: false };
+    }
+    if (!withinLimits(profile, capability, request)) {
+      const accepts =
+        capability === "aspect" ? profile.aspects : profile.resolutions;
+      return { accepts, blockedBy: capability, ok: false };
     }
   }
   return { ok: true };
@@ -387,8 +391,15 @@ function describeBlock(
   blockedBy: Blocker,
   request: TaskRequest,
   missingKey?: string,
-  missingInput?: true
+  missingInput?: true,
+  accepts?: readonly string[]
 ): string {
+  if (
+    accepts !== undefined &&
+    (blockedBy === "aspect" || blockedBy === "resolution")
+  ) {
+    return `cannot do ${blockedBy} ${request[blockedBy] ?? ""}; it takes ${accepts.join(", ")}`;
+  }
   if (blockedBy === "outputFormat" && request.outputFormat !== undefined) {
     const editing =
       (request.references ?? 0) > 0 || request.source !== undefined;
@@ -529,7 +540,7 @@ function resolveFixed(
     task,
     result.blockedBy,
     unblockers,
-    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput)}.`,
+    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput, result.accepts)}.`,
     result.missingKey
   );
 }

@@ -24,6 +24,7 @@ map - marigold-depth box outside => ERR INVALID_OPTION marigold-depth cannot tak
 map - marigold-depth scale 3 => ERR INVALID_OPTION marigold-depth cannot take scale for map. {"field":"scale","model":"marigold-depth","task":"map"}
 map - marigold-depth scale -1 => ERR INVALID_OPTION marigold-depth cannot take scale for map. {"field":"scale","model":"marigold-depth","task":"map"}
 map - marigold-depth aspect => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map - marigold-depth aspect 21:9 => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map - marigold-depth aspect auto => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map - marigold-depth rich => ERR NO_MODEL_AVAILABLE marigold-depth (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map - depth-anything bare => depth-anything fal-ai/image-preprocessors/depth-anything/v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -52,6 +53,7 @@ map - depth-anything box outside => ERR INVALID_OPTION depth-anything cannot tak
 map - depth-anything scale 3 => ERR INVALID_OPTION depth-anything cannot take scale for map. {"field":"scale","model":"depth-anything","task":"map"}
 map - depth-anything scale -1 => ERR INVALID_OPTION depth-anything cannot take scale for map. {"field":"scale","model":"depth-anything","task":"map"}
 map - depth-anything aspect => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map - depth-anything aspect 21:9 => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map - depth-anything aspect auto => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map - depth-anything rich => ERR NO_MODEL_AVAILABLE depth-anything (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map - midas-depth bare => midas-depth fal-ai/imageutils/depth queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"a":6.283185307179586,"bg_th":0.1,"image_url":"https://example.com/source.png"}
@@ -80,6 +82,7 @@ map - midas-depth box outside => ERR INVALID_OPTION midas-depth cannot take prom
 map - midas-depth scale 3 => ERR INVALID_OPTION midas-depth cannot take scale for map. {"field":"scale","model":"midas-depth","task":"map"}
 map - midas-depth scale -1 => ERR INVALID_OPTION midas-depth cannot take scale for map. {"field":"scale","model":"midas-depth","task":"map"}
 map - midas-depth aspect => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map - midas-depth aspect 21:9 => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map - midas-depth aspect auto => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map - midas-depth rich => ERR NO_MODEL_AVAILABLE midas-depth (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map edges teed bare => teed fal-ai/image-preprocessors/teed queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -108,6 +111,7 @@ map edges teed box outside => ERR INVALID_OPTION teed cannot take prompt for map
 map edges teed scale 3 => ERR INVALID_OPTION teed cannot take scale for map. {"field":"scale","model":"teed","task":"map"}
 map edges teed scale -1 => ERR INVALID_OPTION teed cannot take scale for map. {"field":"scale","model":"teed","task":"map"}
 map edges teed aspect => ERR NO_MODEL_AVAILABLE teed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map edges teed aspect 21:9 => ERR NO_MODEL_AVAILABLE teed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map edges teed aspect auto => ERR NO_MODEL_AVAILABLE teed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map edges teed rich => ERR NO_MODEL_AVAILABLE teed (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map edges hed bare => hed fal-ai/image-preprocessors/hed queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -136,6 +140,7 @@ map edges hed box outside => ERR INVALID_OPTION hed cannot take prompt for map. 
 map edges hed scale 3 => ERR INVALID_OPTION hed cannot take scale for map. {"field":"scale","model":"hed","task":"map"}
 map edges hed scale -1 => ERR INVALID_OPTION hed cannot take scale for map. {"field":"scale","model":"hed","task":"map"}
 map edges hed aspect => ERR NO_MODEL_AVAILABLE hed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map edges hed aspect 21:9 => ERR NO_MODEL_AVAILABLE hed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map edges hed aspect auto => ERR NO_MODEL_AVAILABLE hed (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map edges hed rich => ERR NO_MODEL_AVAILABLE hed (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map edges pidi bare => pidi fal-ai/image-preprocessors/pidi queued=false by=model tier=balanced mode=edges cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -164,6 +169,7 @@ map edges pidi box outside => ERR INVALID_OPTION pidi cannot take prompt for map
 map edges pidi scale 3 => ERR INVALID_OPTION pidi cannot take scale for map. {"field":"scale","model":"pidi","task":"map"}
 map edges pidi scale -1 => ERR INVALID_OPTION pidi cannot take scale for map. {"field":"scale","model":"pidi","task":"map"}
 map edges pidi aspect => ERR NO_MODEL_AVAILABLE pidi (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map edges pidi aspect 21:9 => ERR NO_MODEL_AVAILABLE pidi (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map edges pidi aspect auto => ERR NO_MODEL_AVAILABLE pidi (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map edges pidi rich => ERR NO_MODEL_AVAILABLE pidi (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map lineart lineart bare => lineart fal-ai/image-preprocessors/lineart queued=false by=model tier=balanced mode=lineart cost={"basis":"projected","usd":0} prompt=undefined body={"coarse":false,"image_url":"https://example.com/source.png"}
@@ -192,6 +198,7 @@ map lineart lineart box outside => ERR INVALID_OPTION lineart cannot take prompt
 map lineart lineart scale 3 => ERR INVALID_OPTION lineart cannot take scale for map. {"field":"scale","model":"lineart","task":"map"}
 map lineart lineart scale -1 => ERR INVALID_OPTION lineart cannot take scale for map. {"field":"scale","model":"lineart","task":"map"}
 map lineart lineart aspect => ERR NO_MODEL_AVAILABLE lineart (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map lineart lineart aspect 21:9 => ERR NO_MODEL_AVAILABLE lineart (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map lineart lineart aspect auto => ERR NO_MODEL_AVAILABLE lineart (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map lineart lineart rich => ERR NO_MODEL_AVAILABLE lineart (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map lines mlsd bare => mlsd fal-ai/image-preprocessors/mlsd queued=false by=model tier=balanced mode=lines cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -220,6 +227,7 @@ map lines mlsd box outside => ERR INVALID_OPTION mlsd cannot take prompt for map
 map lines mlsd scale 3 => ERR INVALID_OPTION mlsd cannot take scale for map. {"field":"scale","model":"mlsd","task":"map"}
 map lines mlsd scale -1 => ERR INVALID_OPTION mlsd cannot take scale for map. {"field":"scale","model":"mlsd","task":"map"}
 map lines mlsd aspect => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map lines mlsd aspect 21:9 => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map lines mlsd aspect auto => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map lines mlsd rich => ERR NO_MODEL_AVAILABLE mlsd (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map metric zoe-depth bare => zoe-depth fal-ai/image-preprocessors/zoe queued=false by=model tier=balanced mode=metric cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -248,6 +256,7 @@ map metric zoe-depth box outside => ERR INVALID_OPTION zoe-depth cannot take pro
 map metric zoe-depth scale 3 => ERR INVALID_OPTION zoe-depth cannot take scale for map. {"field":"scale","model":"zoe-depth","task":"map"}
 map metric zoe-depth scale -1 => ERR INVALID_OPTION zoe-depth cannot take scale for map. {"field":"scale","model":"zoe-depth","task":"map"}
 map metric zoe-depth aspect => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map metric zoe-depth aspect 21:9 => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map metric zoe-depth aspect auto => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map metric zoe-depth rich => ERR NO_MODEL_AVAILABLE zoe-depth (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map normals midas-preprocessor bare => midas-preprocessor fal-ai/image-preprocessors/midas queued=false by=model tier=balanced mode=normals cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -276,6 +285,7 @@ map normals midas-preprocessor box outside => ERR INVALID_OPTION midas-preproces
 map normals midas-preprocessor scale 3 => ERR INVALID_OPTION midas-preprocessor cannot take scale for map. {"field":"scale","model":"midas-preprocessor","task":"map"}
 map normals midas-preprocessor scale -1 => ERR INVALID_OPTION midas-preprocessor cannot take scale for map. {"field":"scale","model":"midas-preprocessor","task":"map"}
 map normals midas-preprocessor aspect => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map normals midas-preprocessor aspect 21:9 => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map normals midas-preprocessor aspect auto => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map normals midas-preprocessor rich => ERR NO_MODEL_AVAILABLE midas-preprocessor (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map pose dwpose bare => dwpose fal-ai/dwpose queued=false by=model tier=balanced mode=pose cost={"basis":"unknown","usd":null} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -304,6 +314,7 @@ map pose dwpose box outside => ERR INVALID_OPTION dwpose cannot take prompt for 
 map pose dwpose scale 3 => ERR INVALID_OPTION dwpose cannot take scale for map. {"field":"scale","model":"dwpose","task":"map"}
 map pose dwpose scale -1 => ERR INVALID_OPTION dwpose cannot take scale for map. {"field":"scale","model":"dwpose","task":"map"}
 map pose dwpose aspect => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map pose dwpose aspect 21:9 => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map pose dwpose aspect auto => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map pose dwpose rich => ERR NO_MODEL_AVAILABLE dwpose (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map scribble scribble bare => scribble fal-ai/image-preprocessors/scribble queued=false by=model tier=balanced mode=scribble cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -332,6 +343,7 @@ map scribble scribble box outside => ERR INVALID_OPTION scribble cannot take pro
 map scribble scribble scale 3 => ERR INVALID_OPTION scribble cannot take scale for map. {"field":"scale","model":"scribble","task":"map"}
 map scribble scribble scale -1 => ERR INVALID_OPTION scribble cannot take scale for map. {"field":"scale","model":"scribble","task":"map"}
 map scribble scribble aspect => ERR NO_MODEL_AVAILABLE scribble (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map scribble scribble aspect 21:9 => ERR NO_MODEL_AVAILABLE scribble (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map scribble scribble aspect auto => ERR NO_MODEL_AVAILABLE scribble (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map scribble scribble rich => ERR NO_MODEL_AVAILABLE scribble (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map segments sam-preprocessor bare => sam-preprocessor fal-ai/image-preprocessors/sam queued=false by=model tier=balanced mode=segments cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -360,6 +372,7 @@ map segments sam-preprocessor box outside => ERR INVALID_OPTION sam-preprocessor
 map segments sam-preprocessor scale 3 => ERR INVALID_OPTION sam-preprocessor cannot take scale for map. {"field":"scale","model":"sam-preprocessor","task":"map"}
 map segments sam-preprocessor scale -1 => ERR INVALID_OPTION sam-preprocessor cannot take scale for map. {"field":"scale","model":"sam-preprocessor","task":"map"}
 map segments sam-preprocessor aspect => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
+map segments sam-preprocessor aspect 21:9 => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map segments sam-preprocessor aspect auto => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do aspect. {"blockedBy":"aspect","task":"map","unblockedBy":["option"]}
 map segments sam-preprocessor rich => ERR NO_MODEL_AVAILABLE sam-preprocessor (model) cannot do count. {"blockedBy":"count","task":"map","unblockedBy":["option"]}
 map - ranked fast => ERR INVALID_OPTION midas-depth cannot take prompt for map. {"field":"prompt","model":"midas-depth","task":"map"}

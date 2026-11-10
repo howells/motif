@@ -159,6 +159,9 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.133,
     pricing: "$0.133",
     sizeMode: "gpt_size",
+    // Its three fixed sizes are 1:1, 3:2 and 2:3; any other ratio would be
+    // rounded to one of them.
+    supportedAspects: ["auto", "1:1", "3:2", "2:3"],
     supportsAspect: false,
     supportsBackground: true,
     streaming: { generation: true, edit: true },

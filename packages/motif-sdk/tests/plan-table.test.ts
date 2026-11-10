@@ -129,6 +129,7 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ["scale 3", (input) => ({ ...input, scale: 3 })],
   ["scale -1", (input) => ({ ...input, scale: -1 })],
   ["aspect", (input) => ({ ...input, aspect: "3:2" })],
+  ["aspect 21:9", (input) => ({ ...input, aspect: "21:9" })],
   ["aspect auto", (input) => ({ ...input, aspect: "auto" })],
   [
     "rich",

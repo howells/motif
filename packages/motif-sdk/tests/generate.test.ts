@@ -136,7 +136,7 @@ describe(buildGenerateBody, () => {
 
   it("normalizes GPT Image 1.5 text generation controls", () => {
     const { endpoint, body } = buildGenerateBody({
-      aspect: "16:9",
+      aspect: "3:2",
       background: "transparent",
       model: "gpt",
       outputFormat: "png",
@@ -155,6 +155,12 @@ describe(buildGenerateBody, () => {
       quality: "medium",
       sync_mode: true,
     });
+  });
+
+  it("refuses an aspect GPT Image 1.5's three sizes cannot hold, rather than rounding it", () => {
+    expect(() =>
+      buildGenerateBody({ aspect: "21:9", model: "gpt", prompt: "a banner" })
+    ).toThrow("GPT Image 1.5 aspect must be one of auto, 1:1, 3:2, 2:3");
   });
 
   it("rejects transparent output on a model with no background parameter", () => {

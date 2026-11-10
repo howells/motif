@@ -24,6 +24,7 @@ relight - iclight-v2 box outside => ERR INVALID_OPTION iclight-v2 cannot take bo
 relight - iclight-v2 scale 3 => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 scale -1 => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 aspect => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
+relight - iclight-v2 aspect 21:9 => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 aspect auto => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 rich => ERR INVALID_OPTION iclight-v2 cannot take scale for relight. {"field":"scale","model":"iclight-v2","task":"relight"}
 relight even lighting-restoration bare => lighting-restoration fal-ai/qwen-image-edit-plus-lora-gallery/lighting-restoration queued=false by=model tier=balanced mode=even cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"]}
@@ -52,6 +53,7 @@ relight even lighting-restoration box outside => ERR INVALID_OPTION lighting-res
 relight even lighting-restoration scale 3 => ERR INVALID_OPTION lighting-restoration cannot take scale for relight. {"field":"scale","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration scale -1 => ERR INVALID_OPTION lighting-restoration cannot take scale for relight. {"field":"scale","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration aspect => lighting-restoration fal-ai/qwen-image-edit-plus-lora-gallery/lighting-restoration queued=false by=model tier=balanced mode=even cost={"basis":"projected","usd":0.05505024000000001} prompt=undefined body={"image_size":{"height":1024,"width":1536},"image_urls":["https://example.com/source.png"]}
+relight even lighting-restoration aspect 21:9 => lighting-restoration fal-ai/qwen-image-edit-plus-lora-gallery/lighting-restoration queued=false by=model tier=balanced mode=even cost={"basis":"projected","usd":0.03179904} prompt=undefined body={"image_size":{"height":624,"width":1456},"image_urls":["https://example.com/source.png"]}
 relight even lighting-restoration aspect auto => ERR INVALID_OPTION lighting-restoration cannot take aspect for relight. {"field":"aspect","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration rich => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight flat remove-lighting bare => remove-lighting fal-ai/qwen-image-edit-plus-lora-gallery/remove-lighting queued=false by=model tier=balanced mode=flat cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"]}
@@ -80,6 +82,7 @@ relight flat remove-lighting box outside => ERR INVALID_OPTION remove-lighting c
 relight flat remove-lighting scale 3 => ERR INVALID_OPTION remove-lighting cannot take scale for relight. {"field":"scale","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting scale -1 => ERR INVALID_OPTION remove-lighting cannot take scale for relight. {"field":"scale","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting aspect => remove-lighting fal-ai/qwen-image-edit-plus-lora-gallery/remove-lighting queued=false by=model tier=balanced mode=flat cost={"basis":"projected","usd":0.05505024000000001} prompt=undefined body={"image_size":{"height":1024,"width":1536},"image_urls":["https://example.com/source.png"]}
+relight flat remove-lighting aspect 21:9 => remove-lighting fal-ai/qwen-image-edit-plus-lora-gallery/remove-lighting queued=false by=model tier=balanced mode=flat cost={"basis":"projected","usd":0.03179904} prompt=undefined body={"image_size":{"height":624,"width":1456},"image_urls":["https://example.com/source.png"]}
 relight flat remove-lighting aspect auto => ERR INVALID_OPTION remove-lighting cannot take aspect for relight. {"field":"aspect","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting rich => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight - ranked fast => iclight-v2 fal-ai/iclight-v2 queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.08000000000000002} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
