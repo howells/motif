@@ -20,6 +20,7 @@ tile - ideogram-tiling count 0 => ERR INVALID_OPTION count must be a whole numbe
 tile - ideogram-tiling count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"tile"}
 tile - ideogram-tiling seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"tile"}
 tile - ideogram-tiling seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"tile"}
+tile - ideogram-tiling box outside => ERR INVALID_OPTION ideogram-tiling cannot take boxes for tile. {"field":"boxes","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling scale 3 => ERR INVALID_OPTION ideogram-tiling cannot take scale for tile. {"field":"scale","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling scale -1 => ERR INVALID_OPTION ideogram-tiling cannot take scale for tile. {"field":"scale","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling aspect => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
@@ -47,6 +48,7 @@ tile upscale seedvr-seamless count 0 => ERR INVALID_OPTION count must be a whole
 tile upscale seedvr-seamless count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"tile"}
 tile upscale seedvr-seamless seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"tile"}
 tile upscale seedvr-seamless seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"tile"}
+tile upscale seedvr-seamless box outside => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless scale 3 => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.018000000000000002} prompt=undefined body={"image_url":"https://example.com/source.png","upscale_factor":3}
 tile upscale seedvr-seamless scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless aspect => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}

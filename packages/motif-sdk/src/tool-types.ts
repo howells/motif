@@ -169,6 +169,11 @@ export interface FalToolConfig {
    */
   referenceField?: "product_image_url" | "style_image_url";
   /**
+   * Segments nothing useful without a prompt or a box: fal falls back to a
+   * sample prompt ("wheel", "person"), so the request must name its target.
+   */
+  needsTarget?: true;
+  /**
    * fal falls back to a sample prompt when none is sent, so the request must
    * carry one. Says what it must name, e.g. "a prompt naming the objects".
    */

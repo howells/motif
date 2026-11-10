@@ -196,6 +196,7 @@ export const STRUCTURE_TOOLS = {
     inputField: "image_url",
     inputKind: "image",
     name: "SAM 3.1 Image",
+    needsTarget: true,
     outputKeys: ["image", "masks", "metadata", "scores", "boxes"],
     price: { kind: "call", usd: 0.01 },
     pricing: "$0.01/request",
@@ -206,7 +207,6 @@ export const STRUCTURE_TOOLS = {
     category: "segmentation",
     defaultOptions: {
       apply_mask: true,
-      prompt: "person",
     },
     description:
       "SAM 3.1 video segmentation with Object Multiplex tracking for multiple objects.",
@@ -214,6 +214,7 @@ export const STRUCTURE_TOOLS = {
     inputField: "video_url",
     inputKind: "video",
     name: "SAM 3.1 Video",
+    needsTarget: true,
     outputKeys: ["video", "boundingbox_frames_zip"],
     price: { frames: 16, kind: "frames", usd: 0.01 },
     pricing: "$0.01/16 frames of video input",
@@ -233,6 +234,7 @@ export const STRUCTURE_TOOLS = {
     inputField: "image_url",
     inputKind: "image",
     name: "SAM 3 Image",
+    needsTarget: true,
     outputKeys: ["image", "masks", "metadata", "scores", "boxes"],
     price: { kind: "call", usd: 0.005 },
     pricing: "$0.005/request",
@@ -250,6 +252,7 @@ export const STRUCTURE_TOOLS = {
     inputField: "image_url",
     inputKind: "image",
     name: "SAM 3 Image RLE",
+    needsTarget: true,
     outputKeys: ["rle", "scores", "boxes", "metadata"],
     price: { kind: "call", usd: 0.005 },
     pricing: "$0.005/request",
@@ -261,7 +264,6 @@ export const STRUCTURE_TOOLS = {
     defaultOptions: {
       apply_mask: true,
       detection_threshold: 0.5,
-      prompt: "person",
       video_output_type: "X264 (.mp4)",
     },
     description: "Segment and track prompted objects across video frames.",
@@ -269,6 +271,7 @@ export const STRUCTURE_TOOLS = {
     inputField: "video_url",
     inputKind: "video",
     name: "SAM 3 Video",
+    needsTarget: true,
     outputKeys: ["video", "boundingbox_frames_zip"],
     price: { frames: 16, kind: "frames", usd: 0.005 },
     pricing: "$0.005/16 frames of video input",
@@ -281,7 +284,6 @@ export const STRUCTURE_TOOLS = {
     defaultOptions: {
       apply_mask: true,
       detection_threshold: 0.5,
-      prompt: "person",
     },
     description: "Track prompted video objects and return RLE mask data.",
     endpoint: "fal-ai/sam-3/video-rle",
@@ -290,6 +292,7 @@ export const STRUCTURE_TOOLS = {
     name: "SAM 3 Video RLE",
     // fal's video-rle endpoint no longer returns RLE data: its Output schema is
     // now identical to sam3-video's, so this entry differs only by endpoint.
+    needsTarget: true,
     outputKeys: ["video", "boundingbox_frames_zip"],
     price: { frames: 16, kind: "frames", usd: 0.005 },
     pricing: "$0.005/16 frames of video",

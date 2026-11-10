@@ -7,34 +7,31 @@
 import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
-import { exactImageSize, FAL_PRESET_SIZES } from "./aspects";
+import { exactImageSize } from "./aspects";
 import { OPAQUE_OUTPUT_FORMATS } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
+import { boxPrompts } from "./task-plan-boxes";
+import { projectedOutputs, sourceFacts } from "./task-plan-projection";
 import {
   cannotCarry,
   invalidOption,
-  isCustomSize,
   isPresent,
   mergeParams,
   refuseOthers,
   scaleRefusal,
-  sourceSizeOf,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import { TASKS } from "./tasks";
 import type { TaskDefinition, TaskId } from "./tasks";
 import { projectedToolCost } from "./tool-cost";
-import type { OutputDimensions, SourceFacts } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
 import type { FalToolParameter } from "./tool-parameters.generated";
 import type { FalToolConfig } from "./tool-types";
 import { buildFalToolRequest, FAL_TOOLS } from "./tools";
 import type { FalToolId } from "./tools";
-import type { AspectRatio, CustomImageSize, ImageOutputFormat } from "./types";
-
-type Box = NonNullable<TaskInput["boxes"]>[number];
+import type { AspectRatio, ImageOutputFormat } from "./types";
 
 /** The TaskInput field that supplies each fal key a tool may require. */
 export const FIELD_FOR_KEY: Readonly<Record<string, CarriedField>> = {
@@ -85,205 +82,6 @@ function outputFormatOption(
       `${model} cannot return ${format} for ${task}; it takes ${takes.join(", ")}.`,
       { accepts: takes, field: "outputFormat", model, task }
     )
-  );
-}
-
-function isWholePixelBox({ height, width, x, y }: Box): boolean {
-  return (
-    [x, y, width, height].every(Number.isInteger) &&
-    x >= 0 &&
-    y >= 0 &&
-    width > 0 &&
-    height > 0
-  );
-}
-
-/** A body value, else the endpoint's own default for that key. */
-function valueOrFallback(
-  parameters: readonly FalToolParameter[],
-  body: Readonly<Record<string, unknown>>,
-  key: string
-): unknown {
-  return (
-    body[key] ?? parameters.find((parameter) => parameter.key === key)?.fallback
-  );
-}
-
-/**
- * How many times a tool multiplies the source's width and height, when that is
- * known before the run. Undefined for a tool sized by a target resolution.
- */
-function outputScale(
-  model: FalToolId,
-  parameters: readonly FalToolParameter[],
-  body: Readonly<Record<string, unknown>>
-): number | undefined {
-  const { fixedScale }: FalToolConfig = FAL_TOOLS[model];
-  if (fixedScale !== undefined) {
-    return fixedScale;
-  }
-  const mode = valueOrFallback(parameters, body, "upscale_mode");
-  if (mode !== undefined && mode !== "factor") {
-    return undefined;
-  }
-  if (!parameters.some((parameter) => parameter.key === "upscale_factor")) {
-    const sizedByTarget = parameters.some(
-      (parameter) => parameter.key === "target_resolution"
-    );
-    return sizedByTarget ? undefined : 1;
-  }
-  const factor = Number(valueOrFallback(parameters, body, "upscale_factor"));
-  // Patina Extract takes 0 for no upscale.
-  return Number.isFinite(factor) && factor >= 1 ? factor : 1;
-}
-
-/** Outputs a run returns: one per `maps` entry for a PBR tool, else `num_images`. */
-function outputCount(
-  model: FalToolId,
-  parameters: readonly FalToolParameter[],
-  body: Readonly<Record<string, unknown>>
-): number {
-  const images = typeof body.num_images === "number" ? body.num_images : 1;
-  const { price }: FalToolConfig = FAL_TOOLS[model];
-  if (price.kind !== "maps") {
-    return images;
-  }
-  const maps = valueOrFallback(parameters, body, "maps");
-  return images * (Array.isArray(maps) ? maps.length : 1);
-}
-
-/**
- * The size of each output a per-megapixel tool will bill, when it is known
- * before the run: the body's `image_size`, the source's size for a tool that
- * returns images at their source size, scaled by a known upscale factor, and
- * grown by any outpainting margin. Empty when it can't be known.
- */
-function projectedOutputs(
-  model: FalToolId,
-  input: TaskInput,
-  body: Readonly<Record<string, unknown>>
-): OutputDimensions[] {
-  const parameters = FAL_TOOL_PARAMETERS[model] ?? [];
-  const scale = outputScale(model, parameters, body);
-  const size = outputSize(parameters, input, body.image_size);
-  if (scale === undefined || size === undefined) {
-    return [];
-  }
-  const margin = (key: string): number =>
-    typeof body[key] === "number" ? body[key] : 0;
-  const output = {
-    height:
-      (size.height + margin("expand_top") + margin("expand_bottom")) * scale,
-    width:
-      (size.width + margin("expand_left") + margin("expand_right")) * scale,
-  };
-  return Array.from(
-    { length: outputCount(model, parameters, body) },
-    () => output
-  );
-}
-
-function outputSize(
-  parameters: readonly FalToolParameter[],
-  input: TaskInput,
-  imageSize: unknown
-): CustomImageSize | undefined {
-  if (typeof imageSize === "string") {
-    return FAL_PRESET_SIZES[imageSize];
-  }
-  if (isCustomSize(imageSize)) {
-    return imageSize;
-  }
-  if (imageSize === undefined) {
-    const fallback = parameters.find(
-      (parameter) => parameter.key === "image_size"
-    )?.fallback;
-    // A tool whose image_size falls back to a preset returns the preset's size.
-    if (fallback === undefined) {
-      return sourceSizeOf(input);
-    }
-    return typeof fallback === "string"
-      ? FAL_PRESET_SIZES[fallback]
-      : undefined;
-  }
-  return undefined;
-}
-
-/** What the plan knows of the source, for prices that read it. */
-function sourceFacts(input: TaskInput): SourceFacts {
-  const image = sourceSizeOf(input);
-  return {
-    ...(image !== undefined && { image }),
-    ...(input.sourceVideo !== undefined && { video: input.sourceVideo }),
-  };
-}
-
-/**
- * `box_prompts` in the tool's own unit. `boxes` are always whole pixels of the
- * source; a tool that takes fractions gets them divided by the source size.
- */
-function boxPrompts(
-  task: TaskId,
-  model: FalToolId,
-  input: TaskInput,
-  boxes: readonly Box[]
-): Result<Record<string, number>[], MotifError> {
-  if (!boxes.every(isWholePixelBox)) {
-    return err(
-      invalidOption("boxes are whole pixels of the source image.", {
-        field: "boxes",
-        model,
-        task,
-      })
-    );
-  }
-  const corners = boxes.map(({ height, width, x, y }) => ({
-    x_max: x + width,
-    x_min: x,
-    y_max: y + height,
-    y_min: y,
-  }));
-  const { fractionBoxes }: FalToolConfig = FAL_TOOLS[model];
-  if (fractionBoxes !== true) {
-    return ok(corners);
-  }
-  if (boxes.length !== 1) {
-    return err(
-      invalidOption(`${model} takes exactly one box.`, {
-        field: "boxes",
-        model,
-        task,
-      })
-    );
-  }
-  const size = sourceSizeOf(input);
-  if (size === undefined) {
-    return err(
-      invalidOption(
-        `${model} needs the source image's size to place a box: pass a data URL or sourceSize.`,
-        { field: "sourceSize", model, task }
-      )
-    );
-  }
-  const outside = corners.some(
-    (box) => box.x_max > size.width || box.y_max > size.height
-  );
-  if (outside) {
-    return err(
-      invalidOption("A box reaches outside the source image.", {
-        field: "boxes",
-        model,
-        task,
-      })
-    );
-  }
-  return ok(
-    corners.map((box) => ({
-      x_max: box.x_max / size.width,
-      x_min: box.x_min / size.width,
-      y_max: box.y_max / size.height,
-      y_min: box.y_min / size.height,
-    }))
   );
 }
 
@@ -636,7 +434,22 @@ export function toolPlan(
   if (missing !== undefined) {
     return err(missing);
   }
-  const { requiredPrompt }: FalToolConfig = tool;
+  const { needsTarget, requiredPrompt }: FalToolConfig = tool;
+  const pointed = ["box_prompts", "point_prompts"].some(
+    (key) => Array.isArray(body[key]) && body[key].length > 0
+  );
+  if (
+    needsTarget === true &&
+    (typeof body.prompt !== "string" || body.prompt === "") &&
+    !pointed
+  ) {
+    return err(
+      invalidOption(
+        `${model} needs a prompt naming what to segment, or boxes, for ${task}.`,
+        { field: "prompt", model, task }
+      )
+    );
+  }
   if (
     requiredPrompt !== undefined &&
     (typeof body.prompt !== "string" || body.prompt === "")

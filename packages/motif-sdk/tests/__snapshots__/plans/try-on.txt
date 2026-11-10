@@ -20,6 +20,7 @@ try-on - virtual-try-on count 0 => ERR INVALID_OPTION count must be a whole numb
 try-on - virtual-try-on count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"try-on"}
 try-on - virtual-try-on seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"try-on"}
 try-on - virtual-try-on seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"try-on"}
+try-on - virtual-try-on box outside => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on scale 3 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on scale -1 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on aspect => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}

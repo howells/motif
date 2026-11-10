@@ -117,6 +117,15 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ["count 1.5", (input) => ({ ...input, count: 1.5, prompt: "the shoe" })],
   ["seed 1.5", (input) => ({ ...input, prompt: "the shoe", seed: 1.5 })],
   ["seed -1", (input) => ({ ...input, prompt: "the shoe", seed: -1 })],
+  [
+    "box outside",
+    ({ image, ...input }) => ({
+      ...input,
+      boxes: [{ height: 100, width: 100, x: 5000, y: 20 }],
+      image,
+      prompt: "the shoe",
+    }),
+  ],
   ["scale 3", (input) => ({ ...input, scale: 3 })],
   ["scale -1", (input) => ({ ...input, scale: -1 })],
   ["aspect", (input) => ({ ...input, aspect: "3:2" })],

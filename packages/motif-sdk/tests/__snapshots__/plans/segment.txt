@@ -1,15 +1,15 @@
-segment - sam3-1-image bare => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-1-image bare => ERR INVALID_OPTION sam3-1-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image prompted => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
 segment - sam3-1-image no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
-segment - sam3-1-image queued => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-1-image queued => ERR INVALID_OPTION sam3-1-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image mood => ERR INVALID_OPTION sam3-1-image cannot take mood for segment. {"field":"mood","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image mask => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image transparent => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image transparent png => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
-segment - sam3-1-image jpeg => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"jpeg"}
-segment - sam3-1-image png => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
-segment - sam3-1-image webp => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"webp"}
+segment - sam3-1-image jpeg => ERR INVALID_OPTION sam3-1-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-image","task":"segment"}
+segment - sam3-1-image png => ERR INVALID_OPTION sam3-1-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-image","task":"segment"}
+segment - sam3-1-image webp => ERR INVALID_OPTION sam3-1-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image gif => ERR INVALID_OPTION sam3-1-image cannot return gif for segment; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image 1K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image 2K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -20,23 +20,24 @@ segment - sam3-1-image count 0 => ERR INVALID_OPTION count must be a whole numbe
 segment - sam3-1-image count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment - sam3-1-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment - sam3-1-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment - sam3-1-image box outside => ERR INVALID_OPTION A box reaches outside the source. {"field":"boxes","model":"sam3-1-image","size":{"height":800,"width":1000},"task":"segment"}
 segment - sam3-1-image scale 3 => ERR INVALID_OPTION sam3-1-image cannot take scale for segment. {"field":"scale","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image scale -1 => ERR INVALID_OPTION sam3-1-image cannot take scale for segment. {"field":"scale","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image aspect => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image aspect auto => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image rich => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
-segment - sam3-image bare => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-image bare => ERR INVALID_OPTION sam3-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image","task":"segment"}
 segment - sam3-image prompted => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
 segment - sam3-image no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
-segment - sam3-image queued => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
+segment - sam3-image queued => ERR INVALID_OPTION sam3-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image","task":"segment"}
 segment - sam3-image mood => ERR INVALID_OPTION sam3-image cannot take mood for segment. {"field":"mood","model":"sam3-image","task":"segment"}
 segment - sam3-image mask => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-image transparent => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
 segment - sam3-image transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
 segment - sam3-image transparent png => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
-segment - sam3-image jpeg => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"jpeg"}
-segment - sam3-image png => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
-segment - sam3-image webp => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"webp"}
+segment - sam3-image jpeg => ERR INVALID_OPTION sam3-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image","task":"segment"}
+segment - sam3-image png => ERR INVALID_OPTION sam3-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image","task":"segment"}
+segment - sam3-image webp => ERR INVALID_OPTION sam3-image needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image","task":"segment"}
 segment - sam3-image gif => ERR INVALID_OPTION sam3-image cannot return gif for segment; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"sam3-image","task":"segment"}
 segment - sam3-image 1K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-image 2K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -47,15 +48,16 @@ segment - sam3-image count 0 => ERR INVALID_OPTION count must be a whole number 
 segment - sam3-image count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment - sam3-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment - sam3-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment - sam3-image box outside => ERR INVALID_OPTION A box reaches outside the source. {"field":"boxes","model":"sam3-image","size":{"height":800,"width":1000},"task":"segment"}
 segment - sam3-image scale 3 => ERR INVALID_OPTION sam3-image cannot take scale for segment. {"field":"scale","model":"sam3-image","task":"segment"}
 segment - sam3-image scale -1 => ERR INVALID_OPTION sam3-image cannot take scale for segment. {"field":"scale","model":"sam3-image","task":"segment"}
 segment - sam3-image aspect => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-image aspect auto => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-image rich => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
-segment - sam3-1-video bare => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="person" body={"apply_mask":true,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment - sam3-1-video bare => ERR INVALID_OPTION sam3-1-video needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video prompted => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="the shoe" body={"apply_mask":true,"prompt":"the shoe","video_url":"https://example.com/source.mp4"}
 segment - sam3-1-video no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
-segment - sam3-1-video queued => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="person" body={"apply_mask":true,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment - sam3-1-video queued => ERR INVALID_OPTION sam3-1-video needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video mood => ERR INVALID_OPTION sam3-1-video cannot take mood for segment. {"field":"mood","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video mask => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video transparent => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
@@ -74,15 +76,16 @@ segment - sam3-1-video count 0 => ERR INVALID_OPTION count must be a whole numbe
 segment - sam3-1-video count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment - sam3-1-video seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment - sam3-1-video seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment - sam3-1-video box outside => ERR INVALID_OPTION A box reaches outside the source. {"field":"boxes","model":"sam3-1-video","size":{"height":720,"width":1280},"task":"segment"}
 segment - sam3-1-video scale 3 => ERR INVALID_OPTION sam3-1-video cannot take scale for segment. {"field":"scale","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video scale -1 => ERR INVALID_OPTION sam3-1-video cannot take scale for segment. {"field":"scale","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video aspect => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video aspect auto => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video rich => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
-segment - sam3-video bare => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
+segment - sam3-video bare => ERR INVALID_OPTION sam3-video needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-video","task":"segment"}
 segment - sam3-video prompted => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="the shoe" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"the shoe","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
 segment - sam3-video no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
-segment - sam3-video queued => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
+segment - sam3-video queued => ERR INVALID_OPTION sam3-video needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-video","task":"segment"}
 segment - sam3-video mood => ERR INVALID_OPTION sam3-video cannot take mood for segment. {"field":"mood","model":"sam3-video","task":"segment"}
 segment - sam3-video mask => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-video transparent => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
@@ -101,6 +104,7 @@ segment - sam3-video count 0 => ERR INVALID_OPTION count must be a whole number 
 segment - sam3-video count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment - sam3-video seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment - sam3-video seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment - sam3-video box outside => ERR INVALID_OPTION A box reaches outside the source. {"field":"boxes","model":"sam3-video","size":{"height":720,"width":1280},"task":"segment"}
 segment - sam3-video scale 3 => ERR INVALID_OPTION sam3-video cannot take scale for segment. {"field":"scale","model":"sam3-video","task":"segment"}
 segment - sam3-video scale -1 => ERR INVALID_OPTION sam3-video cannot take scale for segment. {"field":"scale","model":"sam3-video","task":"segment"}
 segment - sam3-video aspect => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
@@ -128,23 +132,24 @@ segment auto sam2-auto count 0 => ERR INVALID_OPTION count must be a whole numbe
 segment auto sam2-auto count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment auto sam2-auto seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment auto sam2-auto seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment auto sam2-auto box outside => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
 segment auto sam2-auto scale 3 => ERR INVALID_OPTION sam2-auto cannot take scale for segment. {"field":"scale","model":"sam2-auto","task":"segment"}
 segment auto sam2-auto scale -1 => ERR INVALID_OPTION sam2-auto cannot take scale for segment. {"field":"scale","model":"sam2-auto","task":"segment"}
 segment auto sam2-auto aspect => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto aspect auto => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto rich => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
-segment rle sam3-image-rle bare => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3}
+segment rle sam3-image-rle bare => ERR INVALID_OPTION sam3-image-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle prompted => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"prompt":"the shoe"}
 segment rle sam3-image-rle no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
-segment rle sam3-image-rle queued => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3}
+segment rle sam3-image-rle queued => ERR INVALID_OPTION sam3-image-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle mood => ERR INVALID_OPTION sam3-image-rle cannot take mood for segment. {"field":"mood","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle mask => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle transparent => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle transparent png => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
-segment rle sam3-image-rle jpeg => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"jpeg"}
-segment rle sam3-image-rle png => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
-segment rle sam3-image-rle webp => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"webp"}
+segment rle sam3-image-rle jpeg => ERR INVALID_OPTION sam3-image-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image-rle","task":"segment"}
+segment rle sam3-image-rle png => ERR INVALID_OPTION sam3-image-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image-rle","task":"segment"}
+segment rle sam3-image-rle webp => ERR INVALID_OPTION sam3-image-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle gif => ERR INVALID_OPTION sam3-image-rle cannot return gif for segment; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle 1K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle 2K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -155,15 +160,16 @@ segment rle sam3-image-rle count 0 => ERR INVALID_OPTION count must be a whole n
 segment rle sam3-image-rle count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment rle sam3-image-rle seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment rle sam3-image-rle seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment rle sam3-image-rle box outside => ERR INVALID_OPTION A box reaches outside the source. {"field":"boxes","model":"sam3-image-rle","size":{"height":800,"width":1000},"task":"segment"}
 segment rle sam3-image-rle scale 3 => ERR INVALID_OPTION sam3-image-rle cannot take scale for segment. {"field":"scale","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle scale -1 => ERR INVALID_OPTION sam3-image-rle cannot take scale for segment. {"field":"scale","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle aspect => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle aspect auto => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle rich => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
-segment rle sam3-video-rle bare => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment rle sam3-video-rle bare => ERR INVALID_OPTION sam3-video-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle prompted => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="the shoe" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"the shoe","video_url":"https://example.com/source.mp4"}
 segment rle sam3-video-rle no-source => ERR INVALID_OPTION segment needs a source image. {"field":"image","task":"segment"}
-segment rle sam3-video-rle queued => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_url":"https://example.com/source.mp4"}
+segment rle sam3-video-rle queued => ERR INVALID_OPTION sam3-video-rle needs a prompt naming what to segment, or boxes, for segment. {"field":"prompt","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle mood => ERR INVALID_OPTION sam3-video-rle cannot take mood for segment. {"field":"mood","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle mask => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle transparent => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
@@ -182,6 +188,7 @@ segment rle sam3-video-rle count 0 => ERR INVALID_OPTION count must be a whole n
 segment rle sam3-video-rle count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"segment"}
 segment rle sam3-video-rle seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"segment"}
 segment rle sam3-video-rle seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"segment"}
+segment rle sam3-video-rle box outside => ERR INVALID_OPTION A box reaches outside the source. {"field":"boxes","model":"sam3-video-rle","size":{"height":720,"width":1280},"task":"segment"}
 segment rle sam3-video-rle scale 3 => ERR INVALID_OPTION sam3-video-rle cannot take scale for segment. {"field":"scale","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle scale -1 => ERR INVALID_OPTION sam3-video-rle cannot take scale for segment. {"field":"scale","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle aspect => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}

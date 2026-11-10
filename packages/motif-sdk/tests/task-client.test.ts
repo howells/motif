@@ -183,6 +183,7 @@ describe("createMotif plan", () => {
       reframe: { aspect: "16:9" },
       relight: { prompt: "warm evening light" },
       restyle: { references: [REFERENCE] },
+      segment: { prompt: "the chair" },
       tile: { prompt: "terracotta tiles" },
       "try-on": { references: [REFERENCE] },
     };
