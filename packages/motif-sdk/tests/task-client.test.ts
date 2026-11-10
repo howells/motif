@@ -562,6 +562,72 @@ describe("createMotif plan", () => {
     expect(plan.body).toStrictEqual({ image_url: IMAGE, upscale_factor: 2 });
   });
 
+  it("returns PNG when no format is asked for, whatever the endpoint's own default", () => {
+    // Topaz Image and Flux Outpaint default to jpeg at the endpoint.
+    const topaz = planned("upscale", { image: IMAGE, model: "topaz-image" });
+    expect(topaz.body.output_format).toBe("png");
+    const outpaint = planned("reframe", {
+      image: IMAGE,
+      margin: { bottom: 10, left: 10, right: 10, top: 10 },
+      model: "flux-outpaint",
+      mode: "margin",
+    });
+    expect(outpaint.body.output_format).toBe("png");
+    // seedvr-upscale spells it by its own enum; a generation Model by Motif's.
+    expect(
+      planned("upscale", { image: IMAGE, model: "seedvr-upscale" }).body
+        .output_format
+    ).toBe("png");
+    expect(
+      planned("generate", { model: "flux2-pro", prompt: "x" }).body
+        .output_format
+    ).toBe("png");
+    expect(
+      planned("generate", { model: "gpt", prompt: "x", transparent: true }).body
+        .output_format
+    ).toBe("png");
+  });
+
+  it("leaves a Model with no format parameter, or a fixed format, alone", () => {
+    expect(
+      planned("cutout", { image: IMAGE, model: "rembg" }).body
+    ).not.toHaveProperty("output_format");
+    expect(
+      planned("generate", { model: "seedream5", prompt: "x" }).body
+    ).not.toHaveProperty("output_format");
+    expect(
+      planned("generate", {
+        model: "ideogram3-transparent",
+        prompt: "x",
+        transparent: true,
+      }).body
+    ).not.toHaveProperty("output_format");
+  });
+
+  it("lets a format asked for, or params.output_format, replace the PNG default", () => {
+    expect(
+      planned("upscale", {
+        image: IMAGE,
+        model: "topaz-image",
+        outputFormat: "jpeg",
+      }).body.output_format
+    ).toBe("jpeg");
+    expect(
+      planned("upscale", {
+        image: IMAGE,
+        model: "topaz-image",
+        params: { output_format: "jpeg" },
+      }).body.output_format
+    ).toBe("jpeg");
+    expect(
+      planned("generate", {
+        model: "flux2-pro",
+        params: { output_format: "jpeg" },
+        prompt: "x",
+      }).body.output_format
+    ).toBe("jpeg");
+  });
+
   it("sends restore's colour mode to DDColor", () => {
     const plan = planned("restore", { image: IMAGE, mode: "colour" });
 
@@ -580,7 +646,11 @@ describe("createMotif plan", () => {
     expect(plan.model).toBe("iclight-v2");
     expect(plan.endpoint).toBe("fal-ai/iclight-v2");
     expect(plan.prompt).toMatch(/^A kitchen table\. \S/);
-    expect(plan.body).toStrictEqual({ image_url: IMAGE, prompt: plan.prompt });
+    expect(plan.body).toStrictEqual({
+      image_url: IMAGE,
+      output_format: "png",
+      prompt: plan.prompt,
+    });
   });
 
   it("relights to a mood alone, and takes a mask to IC-Light", () => {
@@ -592,6 +662,7 @@ describe("createMotif plan", () => {
     expect(plan.body).toStrictEqual({
       image_url: IMAGE,
       mask_image_url: mask,
+      output_format: "png",
       prompt: plan.prompt,
     });
   });
@@ -603,6 +674,7 @@ describe("createMotif plan", () => {
     expect(plan.endpoint).toBe("fal-ai/telestyle-v2");
     expect(plan.body).toStrictEqual({
       content_image_url: IMAGE,
+      output_format: "png",
       style_image_url: REFERENCE,
     });
   });
@@ -611,7 +683,10 @@ describe("createMotif plan", () => {
     const plan = planned("tile", { prompt: "terracotta tiles" });
 
     expect(plan.model).toBe("ideogram-tiling");
-    expect(plan.body).toStrictEqual({ prompt: "terracotta tiles" });
+    expect(plan.body).toStrictEqual({
+      output_format: "png",
+      prompt: "terracotta tiles",
+    });
   });
 
   it("ranks past a Model that can't take the resolution asked for", () => {
@@ -636,7 +711,7 @@ describe("createMotif plan", () => {
 
     expect(plan.model).toBe("control-light");
     expect(plan.endpoint).toBe("fal-ai/control-light");
-    expect(plan.body).toStrictEqual({ image_url: IMAGE });
+    expect(plan.body).toStrictEqual({ image_url: IMAGE, output_format: "png" });
   });
 
   it("prices a per-image call by num_images, projected and measured", () => {
@@ -732,6 +807,7 @@ describe("createMotif plan", () => {
     expect(plan.body).toStrictEqual({
       aspect_ratio: "3:2",
       num_images: 1,
+      output_format: "png",
       prompt: "a red chair",
     });
 
@@ -791,6 +867,7 @@ describe("createMotif plan", () => {
     expect(plan.body).toStrictEqual({
       aspect_ratio: "1:1",
       num_images: 1,
+      output_format: "png",
       prompt: "a red chair",
     });
     expect(plan.cost).toStrictEqual({ basis: "unknown", usd: null });
@@ -819,6 +896,7 @@ describe("createMotif plan", () => {
     expect(plan.body).toStrictEqual({
       aspect_ratio: "1:1",
       num_images: 1,
+      output_format: "png",
       prompt: "a red chair",
       resolution: "2k",
     });

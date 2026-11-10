@@ -1,7 +1,7 @@
-material - patina bare => patina fal-ai/patina queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png"}
+material - patina bare => patina fal-ai/patina queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
 material - patina prompted => ERR INVALID_OPTION patina cannot take prompt for material. {"field":"prompt","model":"patina","task":"material"}
 material - patina no-source => ERR INVALID_OPTION material needs a source image. {"field":"image","task":"material"}
-material - patina queued => patina fal-ai/patina queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png"}
+material - patina queued => patina fal-ai/patina queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
 material - patina mood => ERR INVALID_OPTION patina cannot take prompt for material. {"field":"prompt","model":"patina","task":"material"}
 material - patina mask => ERR NO_MODEL_AVAILABLE patina (model) cannot do mask. {"blockedBy":"mask","task":"material","unblockedBy":["option"]}
 material - patina transparent => ERR NO_MODEL_AVAILABLE patina (model) cannot do transparency. {"blockedBy":"transparency","task":"material","unblockedBy":["option"]}
@@ -33,7 +33,7 @@ material - patina aspect 21:9 => ERR NO_MODEL_AVAILABLE patina (model) cannot do
 material - patina aspect auto => ERR NO_MODEL_AVAILABLE patina (model) cannot do aspect. {"blockedBy":"aspect","task":"material","unblockedBy":["option"]}
 material - patina rich => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
 material extract patina-extract bare => ERR INVALID_OPTION patina-extract needs prompt for material. {"field":"prompt","model":"patina-extract","task":"material"}
-material extract patina-extract prompted => patina-extract fal-ai/patina/material/extract queued=true by=model tier=balanced mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+material extract patina-extract prompted => patina-extract fal-ai/patina/material/extract queued=true by=model tier=balanced mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 material extract patina-extract no-source => ERR INVALID_OPTION material needs a source image. {"field":"image","task":"material"}
 material extract patina-extract queued => ERR INVALID_OPTION patina-extract needs prompt for material. {"field":"prompt","model":"patina-extract","task":"material"}
 material extract patina-extract mood => ERR INVALID_OPTION patina-extract cannot take mood for material. {"field":"mood","model":"patina-extract","task":"material"}
@@ -72,9 +72,9 @@ material - ranked balanced => ERR INVALID_OPTION patina cannot take prompt for m
 material - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for material can do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
 material - ranked quality => ERR INVALID_OPTION patina cannot take prompt for material. {"field":"prompt","model":"patina","task":"material"}
 material - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for material can do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
-material extract ranked fast => patina-extract fal-ai/patina/material/extract queued=true by=ranking tier=fast mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+material extract ranked fast => patina-extract fal-ai/patina/material/extract queued=true by=ranking tier=fast mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 material extract ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for material extract can do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
-material extract ranked balanced => patina-extract fal-ai/patina/material/extract queued=true by=ranking tier=balanced mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+material extract ranked balanced => patina-extract fal-ai/patina/material/extract queued=true by=ranking tier=balanced mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 material extract ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for material extract can do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
-material extract ranked quality => patina-extract fal-ai/patina/material/extract queued=true by=ranking tier=quality mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+material extract ranked quality => patina-extract fal-ai/patina/material/extract queued=true by=ranking tier=quality mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 material extract ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for material extract can do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}

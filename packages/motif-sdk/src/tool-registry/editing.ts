@@ -223,9 +223,6 @@ export const EDITING_TOOLS = {
   },
   "text-removal": {
     category: "erase",
-    defaultOptions: {
-      output_format: "png",
-    },
     description:
       "Remove all rendered text from an image, rebuilding what sat behind it.",
     endpoint: "fal-ai/image-editing/text-removal",

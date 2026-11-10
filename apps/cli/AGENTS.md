@@ -111,6 +111,8 @@ motif auto-detects the output context:
 | Piped / redirected         | `json` (one JSON object)    | `--format human`  |
 | Streaming large results    | n/a                         | `--format ndjson` |
 
+**Image format.** Every Model that takes a format returns PNG unless you ask for another: `--output-format jpeg|webp` (gif and svg on generate), or an `-o` ending `.jpg`, `.jpeg` or `.webp`. Convert afterwards when you need something else. A Model with no format setting returns what its endpoint returns, and an `-o` extension it cannot make (say `.jpg` on a Model with no format setting) fails with `INVALID_OPTION` rather than saving a different format under that name.
+
 **The output path is in a different place per family.** Field masks are top-level only, so this matters:
 
 | Family                 | Where the path is | jq                        |

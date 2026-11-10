@@ -260,7 +260,10 @@ export const TASK_VERBS: readonly VerbDefinition[] = [
     },
     modes: [],
     options: (command) =>
-      command.option("--output-format <format>", "jpeg, png or webp"),
+      command.option(
+        "--output-format <format>",
+        "jpeg, png or webp (default: png)"
+      ),
     promptFirst: never,
     sourceKind: "image-or-video",
     task: "cutout",

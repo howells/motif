@@ -11,10 +11,15 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 
-import { createMotif, getFalKeyFromEnv } from "@howells/motif-sdk";
+import {
+  createMotif,
+  err,
+  getFalKeyFromEnv,
+  INVALID_OPTION,
+  MotifError,
+} from "@howells/motif-sdk";
 import type {
   MotifClient,
-  MotifError,
   Result,
   TaskId,
   TaskInput,
@@ -105,11 +110,16 @@ const IMAGE_FORMAT_BY_EXTENSION: Readonly<
   ".webp": "webp",
 };
 
+/** Extensions that name a format other than the PNG every Model returns by default. */
+const NON_DEFAULT_FORMATS: ReadonlySet<string> = new Set(["jpeg", "webp"]);
+
 /**
  * Plan a Task, asking for the image format an output path's extension names
- * when the caller named none. The format is only kept when the Model the plain
- * request resolves to takes it: an output filename must never change which
- * Model runs. Returns the input to run alongside its plan.
+ * when the caller named none. An output filename must never change which Model
+ * runs, so the format is only kept when the Model the plain request resolves
+ * to takes it. A `.jpg` or `.webp` that Model cannot be asked for is refused,
+ * because the file would otherwise be saved in whatever format it returns,
+ * under a different extension. Returns the input to run alongside its plan.
  */
 export function planForOutput(
   client: MotifClient,
@@ -126,7 +136,8 @@ export function planForOutput(
   if (
     base.isErr() ||
     format === undefined ||
-    input.outputFormat !== undefined
+    input.outputFormat !== undefined ||
+    input.params?.output_format !== undefined
   ) {
     return base.map((plan) => ({ input, plan }));
   }
@@ -134,6 +145,17 @@ export function planForOutput(
   const formatted = client.plan(task, withFormat, { dryRun });
   if (formatted.isOk() && formatted.value.model === base.value.model) {
     return formatted.map((plan) => ({ input: withFormat, plan }));
+  }
+  if (NON_DEFAULT_FORMATS.has(format)) {
+    return err(
+      new MotifError(
+        `${base.value.model} takes no output format, so ${outputPath} would be saved in whatever format it returns, under a different extension. Name the file .png and convert afterwards, or pick a Model that makes ${format}.`,
+        0,
+        INVALID_OPTION,
+        undefined,
+        { field: "output", format, model: base.value.model, task }
+      )
+    );
   }
   return base.map((plan) => ({ input, plan }));
 }

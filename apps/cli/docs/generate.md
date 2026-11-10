@@ -70,6 +70,10 @@ motif "an editorial portrait" -m flux2-flex --param num_inference_steps=40 --dry
 motif "a ceramic vase in window light" -m flare --param quality=xhigh --dry-run
 ```
 
+### Output format
+
+Images come back as PNG unless you ask for another format with `--output-format jpeg|webp`, or by ending `-o` in `.jpg`, `.jpeg` or `.webp`. Convert afterwards if you need something else. A Model with no format setting of its own returns what its endpoint returns.
+
 ### GIF, SVG and markup
 
 `--output-format gif` asks for an animated GIF and `--output-format svg` for a vector image. Only Sunburst and Flare make them, so Motif chooses one of those. SVG works from text only, not with `-e`. A GIF's frames and the length of each frame are Model-only fields: `frame_count` (2 to 64, default 9) and `frame_duration_ms` (20 to 2000, default 200).

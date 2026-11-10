@@ -8,7 +8,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { exactImageSize } from "./aspects";
-import { OPAQUE_OUTPUT_FORMATS } from "./capabilities";
+import { DEFAULT_OUTPUT_FORMAT, OPAQUE_OUTPUT_FORMATS } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
@@ -57,33 +57,62 @@ function enumValues(parameter: FalToolParameter | undefined): string[] {
 }
 
 /**
- * What a tool's `output_format` takes for a Motif format, or the refusal.
- * Motif says `jpeg`; an endpoint whose enum says `jpg` gets that. An endpoint
- * whose record gives no enum takes the format as given.
+ * A Motif format in the spelling a tool's `output_format` takes, or undefined
+ * when its enum lacks it. Motif says `jpeg`; an endpoint whose enum says `jpg`
+ * gets that. An endpoint whose record gives no enum takes the format as given.
  */
+function spellFormat(
+  parameter: FalToolParameter | undefined,
+  format: ImageOutputFormat
+): string | undefined {
+  const accepted = enumValues(parameter);
+  if (accepted.length === 0) {
+    return format;
+  }
+  return [format, ...(format === "jpeg" ? ["jpg"] : [])].find((value) =>
+    accepted.includes(value)
+  );
+}
+
+/** What a tool's `output_format` takes for a Motif format, or the refusal. */
 function outputFormatOption(
   task: TaskId,
   model: FalToolId,
   parameter: FalToolParameter | undefined,
   format: ImageOutputFormat
 ): Result<string, MotifError> {
-  const accepted = enumValues(parameter);
-  if (accepted.length === 0) {
-    return ok(format);
-  }
-  const sent = [format, ...(format === "jpeg" ? ["jpg"] : [])].find((value) =>
-    accepted.includes(value)
-  );
+  const sent = spellFormat(parameter, format);
   if (sent !== undefined) {
     return ok(sent);
   }
-  const takes = accepted.map((value) => (value === "jpg" ? "jpeg" : value));
+  const takes = enumValues(parameter).map((value) =>
+    value === "jpg" ? "jpeg" : value
+  );
   return err(
     invalidOption(
       `${model} cannot return ${format} for ${task}; it takes ${takes.join(", ")}.`,
       { accepts: takes, field: "outputFormat", model, task }
     )
   );
+}
+
+/**
+ * The PNG every tool with an `output_format` returns when none is asked for,
+ * in the spelling its enum takes. A tool with no such parameter, or whose enum
+ * has no PNG, gets nothing. `params.output_format` replaces it.
+ */
+function defaultFormatOption(
+  model: FalToolId,
+  input: TaskInput
+): Record<string, string> {
+  const parameter = (FAL_TOOL_PARAMETERS[model] ?? []).find(
+    ({ key }) => key === "output_format"
+  );
+  if (parameter === undefined || input.outputFormat !== undefined) {
+    return {};
+  }
+  const sent = spellFormat(parameter, DEFAULT_OUTPUT_FORMAT);
+  return sent === undefined ? {} : { output_format: sent };
 }
 
 interface MappedOptions {
@@ -419,6 +448,10 @@ export function toolPlan(
     return err(merged.error);
   }
   const { defaultOptions }: FalToolConfig = tool;
+  const defaulted = {
+    ...defaultFormatOption(model, input),
+    ...merged.value,
+  };
   // planTask has already refused a missing Source the Model needs.
   const badParam =
     input.params === undefined
@@ -435,12 +468,12 @@ export function toolPlan(
   const { body, endpoint } =
     media === undefined
       ? {
-          body: { ...defaultOptions, ...merged.value },
+          body: { ...defaultOptions, ...defaulted },
           endpoint: tool.endpoint,
         }
       : buildFalToolRequest({
           input: media,
-          options: merged.value,
+          options: defaulted,
           tool: model,
         });
   const missing = missingRequired(task, model, body);

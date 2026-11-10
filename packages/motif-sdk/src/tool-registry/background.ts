@@ -25,7 +25,6 @@ export const BACKGROUND_TOOLS = {
     defaultOptions: {
       model: "General Use (Light)",
       operating_resolution: "1024x1024",
-      output_format: "png",
       refine_foreground: true,
     },
     description:
@@ -139,9 +138,6 @@ export const BACKGROUND_TOOLS = {
   },
   "seedvr-upscale": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description: "Diffusion image restoration and upscaling with SeedVR.",
     endpoint: "fal-ai/seedvr/upscale/image",
     inputField: "image_url",
@@ -156,9 +152,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-adjust": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description: "Topaz exposure, white balance, and colour adjustment.",
     endpoint: "topaz/adjust/image",
     inputField: "image_url",
@@ -173,9 +166,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-creative": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description:
       "Topaz Bloom upscaling, which reimagines detail rather than preserving it.",
     endpoint: "topaz/upscale/image/creative",
@@ -191,9 +181,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-denoise": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description: "Topaz noise reduction at source resolution.",
     endpoint: "topaz/denoise/image",
     inputField: "image_url",
@@ -209,9 +196,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-generative": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description:
       "Topaz Wonder upscaling, which synthesises plausible detail as it enlarges.",
     endpoint: "topaz/upscale/image/generative",
@@ -230,7 +214,6 @@ export const BACKGROUND_TOOLS = {
     category: "upscale",
     defaultOptions: {
       model: "Standard V2",
-      output_format: "jpeg",
       upscale_factor: 2,
     },
     description: "Professional Topaz image enhancement and upscaling.",
@@ -248,9 +231,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-precision": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description:
       "Topaz upscaling that preserves the original detail rather than inventing it.",
     endpoint: "topaz/upscale/image/precision",
@@ -266,9 +246,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-restore": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description:
       "Topaz restoration of damaged or degraded photographs at source resolution.",
     endpoint: "topaz/restore/image",
@@ -285,9 +262,6 @@ export const BACKGROUND_TOOLS = {
   },
   "topaz-sharpen": {
     category: "restoration",
-    defaultOptions: {
-      output_format: "png",
-    },
     description: "Topaz deblurring and sharpening at source resolution.",
     endpoint: "topaz/sharpen/image",
     inputField: "image_url",

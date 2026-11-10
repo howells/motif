@@ -159,7 +159,7 @@ export async function runCli(args: string[]): Promise<void> {
     .option("--negative <text>", "Negative prompt: what not to include")
     .option(
       "--output-format <format>",
-      "Output format: jpeg, png, webp, gif, svg"
+      "Image format: jpeg, png, webp, gif, svg (default: png; convert afterwards, or ask for another here)"
     )
     // Creative direction
     .option("--look <id>", "House look id, e.g. editorial")

@@ -46,7 +46,7 @@ motif erase poster.png --text --dry-run
 
 Instead: cutting one named thing out of a scene, such as the chair in a room (segment), or taking an object out and filling the gap (erase).
 
-Flags: `--output-format jpeg|png|webp`. A video source picks a video Model.
+Flags: `--output-format jpeg|png|webp` (PNG by default). A video source picks a video Model.
 
 ```bash
 motif cutout product.jpg -o product-cutout.png --dry-run

@@ -747,7 +747,6 @@ describe(buildFalToolRequest, () => {
       apply_mask: false,
       image_url: "https://example.com/input.png",
       max_masks: 5,
-      output_format: "png",
       prompt: "shoe",
     });
   });

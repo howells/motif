@@ -21,6 +21,10 @@ motif "amber bottles and a brass dish on a walnut shelf" --format json
 motif erase "the parked car" street.jpg --dry-run --fields cost,costBasis,output
 ```
 
+## Image format
+
+Images come back as PNG unless you ask for another format with `--output-format jpeg|webp` or an `-o` ending `.jpg` or `.webp`. Convert afterwards for anything else.
+
 ## Errors and exit codes
 
 The exit code and the error object always agree, so branch on the code.

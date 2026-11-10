@@ -164,7 +164,6 @@ export const STRUCTURE_TOOLS = {
     category: "segmentation",
     defaultOptions: {
       min_mask_region_area: 100,
-      output_format: "png",
       points_per_side: 32,
       pred_iou_thresh: 0.88,
       stability_score_thresh: 0.95,
@@ -188,7 +187,6 @@ export const STRUCTURE_TOOLS = {
     defaultOptions: {
       apply_mask: true,
       max_masks: 3,
-      output_format: "png",
     },
     description:
       "Segment image objects with text, point, or box prompts. SAM 3.1 adds Object Multiplex for faster multi-object tracking.",
@@ -227,7 +225,6 @@ export const STRUCTURE_TOOLS = {
     defaultOptions: {
       apply_mask: true,
       max_masks: 3,
-      output_format: "png",
     },
     description: "Segment image objects with text, point, or box prompts.",
     endpoint: "fal-ai/sam-3/image",

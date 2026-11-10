@@ -274,6 +274,52 @@ describe("Task verbs: sources and output names", () => {
     );
   });
 
+  it("asks for PNG by default, and names the dry-run output .png", async () => {
+    const home = tempHome();
+    const result = await runMotifIn(home, [
+      "restyle",
+      join(home, "in.png"),
+      "--like",
+      join(home, "in.png"),
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+
+    const payload = parseJson(result.stdout);
+    expect(asRecord(payload.request).output_format).toBe("png");
+    expect(String(payload.output).endsWith("-restyle.png")).toBe(true);
+  });
+
+  it("takes the format an -o extension names, and refuses one the Model cannot make", async () => {
+    const home = tempHome();
+    const asked = await runMotifIn(home, [
+      "tile",
+      "oak",
+      "-o",
+      "oak.jpg",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(asRecord(parseJson(asked.stdout).request).output_format).toBe(
+      "jpeg"
+    );
+
+    const refused = await runMotifIn(home, [
+      "erase",
+      "the car",
+      join(home, "in.png"),
+      "-o",
+      "out.jpg",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
+    expect(refused.code).toBe(2);
+    expect(parseJson(refused.stderr).code).toBe("INVALID_OPTION");
+  });
+
   it("reports no output for a Task that writes no file", async () => {
     const home = tempHome();
     const result = await runMotifIn(home, [

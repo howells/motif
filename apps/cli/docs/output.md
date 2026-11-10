@@ -49,7 +49,7 @@ motif --history --limit 20 --fields model,cost
 
 ## Output format from -o
 
-An `-o` path ending in `.png`, `.jpg`, `.jpeg` or `.webp` asks the Model for that format when it supports one, so the saved file's bytes match its extension. Files that can only be one type (`.svg`, `.glb`, `.mp4`) take that extension.
+Images are PNG unless you ask for another format with `--output-format` or an `-o` ending `.jpg`, `.jpeg` or `.webp`; convert afterwards if you need another. An `-o` path ending in `.jpg`, `.jpeg` or `.webp` asks the Model for that format, so the saved file's bytes match its extension; a Model that cannot make it fails with `INVALID_OPTION` instead of saving another format under that name. Files that can only be one type (`.svg`, `.glb`, `.mp4`) take that extension.
 
 ## Pagination
 

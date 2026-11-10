@@ -8,7 +8,11 @@ import {
   ImageSizeBoundsError,
   RESOLUTION_LONG_EDGE,
 } from "./aspects";
-import { outputFormatsOf, UnsupportedOptionError } from "./capabilities";
+import {
+  DEFAULT_OUTPUT_FORMAT,
+  outputFormatsOf,
+  UnsupportedOptionError,
+} from "./capabilities";
 import type { ModelOption } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import { MODELS } from "./models";
@@ -499,9 +503,14 @@ export function buildGenerateBody(options: GenerateOptions): {
   }
 
   // ── Output format ──────────────────────────────────────────────────
-  // A transparent image with no format asked for is a PNG.
-  const format = outputFormat ?? (transparent === true ? "png" : undefined);
-  if (format && config.supportsOutputFormat === true) {
+  // No format asked for is a PNG (the one default, transparent or not), sent
+  // only where the endpoint takes a format and can make a PNG.
+  const format = outputFormat ?? DEFAULT_OUTPUT_FORMAT;
+  if (
+    config.supportsOutputFormat === true &&
+    (outputFormat !== undefined ||
+      outputFormatsOf(config, hasEditImages).includes(format))
+  ) {
     const formats = outputFormatsOf(config, hasEditImages);
     if (!formats.includes(format)) {
       throw new Error(

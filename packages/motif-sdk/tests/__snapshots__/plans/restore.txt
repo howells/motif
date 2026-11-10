@@ -66,10 +66,10 @@ restore colour ddcolor aspect => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot d
 restore colour ddcolor aspect 21:9 => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor aspect auto => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do aspect. {"blockedBy":"aspect","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor rich => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do count. {"blockedBy":"count","task":"restore","unblockedBy":["option"]}
-restore dark control-light bare => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png"}
-restore dark control-light prompted => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark control-light bare => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore dark control-light prompted => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 restore dark control-light no-source => ERR INVALID_OPTION restore needs a source image. {"field":"image","task":"restore"}
-restore dark control-light queued => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png"}
+restore dark control-light queued => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
 restore dark control-light mood => ERR INVALID_OPTION control-light cannot take mood for restore. {"field":"mood","model":"control-light","task":"restore"}
 restore dark control-light mask => ERR NO_MODEL_AVAILABLE control-light (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore dark control-light transparent => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
@@ -248,11 +248,11 @@ restore colour ranked balanced => ERR INVALID_OPTION ddcolor cannot take prompt 
 restore colour ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore colour can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
 restore colour ranked quality => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
 restore colour ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore colour can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
-restore dark ranked fast => control-light fal-ai/control-light queued=false by=ranking tier=fast mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark ranked fast => control-light fal-ai/control-light queued=false by=ranking tier=fast mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 restore dark ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore dark can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
-restore dark ranked balanced => control-light fal-ai/control-light queued=false by=ranking tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark ranked balanced => control-light fal-ai/control-light queued=false by=ranking tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 restore dark ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore dark can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
-restore dark ranked quality => control-light fal-ai/control-light queued=false by=ranking tier=quality mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
+restore dark ranked quality => control-light fal-ai/control-light queued=false by=ranking tier=quality mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 restore dark ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore dark can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
 restore noise ranked fast => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
 restore noise ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for restore noise can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}

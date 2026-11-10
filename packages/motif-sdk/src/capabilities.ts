@@ -16,6 +16,9 @@ const DEFAULT_OUTPUT_FORMATS: readonly ImageOutputFormat[] = [
   "webp",
 ];
 
+/** The format every Model that can make one returns when none is asked for. */
+export const DEFAULT_OUTPUT_FORMAT = "png" satisfies ImageOutputFormat;
+
 /** Formats with no alpha channel, so a transparent image cannot be kept in them. */
 export const OPAQUE_OUTPUT_FORMATS: readonly ImageOutputFormat[] = ["jpeg"];
 
