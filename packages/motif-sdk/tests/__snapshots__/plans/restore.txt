@@ -7,8 +7,10 @@ restore - topaz-restore mask => ERR NO_MODEL_AVAILABLE topaz-restore (model) can
 restore - topaz-restore transparent => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore transparent png => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
-restore - topaz-restore jpeg => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
-restore - topaz-restore png => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - topaz-restore jpeg => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore - topaz-restore png => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore - topaz-restore webp => ERR INVALID_OPTION topaz-restore cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
+restore - topaz-restore gif => ERR INVALID_OPTION topaz-restore cannot return gif for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
 restore - topaz-restore 1K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore 2K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore 4K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -27,6 +29,8 @@ restore colour ddcolor transparent jpeg => ERR NO_MODEL_AVAILABLE ddcolor (model
 restore colour ddcolor transparent png => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor jpeg => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor png => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor webp => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot return webp from an edit. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor gif => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot return gif from an edit. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor 1K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor 2K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor 4K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -43,8 +47,10 @@ restore dark control-light mask => ERR NO_MODEL_AVAILABLE control-light (model) 
 restore dark control-light transparent => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore dark control-light transparent jpeg => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore dark control-light transparent png => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
-restore dark control-light jpeg => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
-restore dark control-light png => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
+restore dark control-light jpeg => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore dark control-light png => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore dark control-light webp => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"webp"}
+restore dark control-light gif => ERR INVALID_OPTION control-light cannot return gif for restore; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"control-light","task":"restore"}
 restore dark control-light 1K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore dark control-light 2K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore dark control-light 4K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -61,8 +67,10 @@ restore noise topaz-denoise mask => ERR NO_MODEL_AVAILABLE topaz-denoise (model)
 restore noise topaz-denoise transparent => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise transparent png => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
-restore noise topaz-denoise jpeg => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
-restore noise topaz-denoise png => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise topaz-denoise jpeg => topaz-denoise topaz/denoise/image queued=true by=model tier=balanced mode=noise cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore noise topaz-denoise png => topaz-denoise topaz/denoise/image queued=true by=model tier=balanced mode=noise cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore noise topaz-denoise webp => ERR INVALID_OPTION topaz-denoise cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-denoise","task":"restore"}
+restore noise topaz-denoise gif => ERR INVALID_OPTION topaz-denoise cannot return gif for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-denoise","task":"restore"}
 restore noise topaz-denoise 1K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise 2K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise 4K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -79,8 +87,10 @@ restore scratches topaz-restore mask => ERR NO_MODEL_AVAILABLE topaz-restore (mo
 restore scratches topaz-restore transparent => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore transparent png => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
-restore scratches topaz-restore jpeg => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
-restore scratches topaz-restore png => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches topaz-restore jpeg => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=scratches cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore scratches topaz-restore png => topaz-restore topaz/restore/image queued=true by=model tier=balanced mode=scratches cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore scratches topaz-restore webp => ERR INVALID_OPTION topaz-restore cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
+restore scratches topaz-restore gif => ERR INVALID_OPTION topaz-restore cannot return gif for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
 restore scratches topaz-restore 1K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore 2K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore 4K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -97,8 +107,10 @@ restore softness topaz-sharpen mask => ERR NO_MODEL_AVAILABLE topaz-sharpen (mod
 restore softness topaz-sharpen transparent => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen transparent png => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
-restore softness topaz-sharpen jpeg => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
-restore softness topaz-sharpen png => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness topaz-sharpen jpeg => topaz-sharpen topaz/sharpen/image queued=true by=model tier=balanced mode=softness cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore softness topaz-sharpen png => topaz-sharpen topaz/sharpen/image queued=true by=model tier=balanced mode=softness cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore softness topaz-sharpen webp => ERR INVALID_OPTION topaz-sharpen cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-sharpen","task":"restore"}
+restore softness topaz-sharpen gif => ERR INVALID_OPTION topaz-sharpen cannot return gif for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-sharpen","task":"restore"}
 restore softness topaz-sharpen 1K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen 2K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen 4K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -115,8 +127,10 @@ restore tone topaz-adjust mask => ERR NO_MODEL_AVAILABLE topaz-adjust (model) ca
 restore tone topaz-adjust transparent => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust transparent png => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
-restore tone topaz-adjust jpeg => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
-restore tone topaz-adjust png => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone topaz-adjust jpeg => topaz-adjust topaz/adjust/image queued=true by=model tier=balanced mode=tone cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore tone topaz-adjust png => topaz-adjust topaz/adjust/image queued=true by=model tier=balanced mode=tone cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+restore tone topaz-adjust webp => ERR INVALID_OPTION topaz-adjust cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-adjust","task":"restore"}
+restore tone topaz-adjust gif => ERR INVALID_OPTION topaz-adjust cannot return gif for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-adjust","task":"restore"}
 restore tone topaz-adjust 1K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust 2K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust 4K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -166,3 +180,31 @@ restore tone ranked balanced => ERR INVALID_OPTION topaz-adjust cannot take prom
 restore tone ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for restore tone can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
 restore tone ranked quality => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
 restore tone ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for restore tone can do references. {"blockedBy":"references","task":"restore","unblockedBy":["option"]}
+restore - ranked fast fmt jpeg => topaz-restore topaz/restore/image queued=true by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore - ranked quality fmt jpeg => topaz-restore topaz/restore/image queued=true by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore - ranked fast fmt webp => ERR INVALID_OPTION topaz-restore cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
+restore - ranked quality fmt webp => ERR INVALID_OPTION topaz-restore cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
+restore colour ranked fast fmt jpeg => ERR NO_MODEL_AVAILABLE No Model for restore colour can do outputFormat. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore colour ranked quality fmt jpeg => ERR NO_MODEL_AVAILABLE No Model for restore colour can do outputFormat. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore colour ranked fast fmt webp => ERR NO_MODEL_AVAILABLE No Model for restore colour can do outputFormat. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore colour ranked quality fmt webp => ERR NO_MODEL_AVAILABLE No Model for restore colour can do outputFormat. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore dark ranked fast fmt jpeg => control-light fal-ai/control-light queued=false by=ranking tier=fast mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore dark ranked quality fmt jpeg => control-light fal-ai/control-light queued=false by=ranking tier=quality mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore dark ranked fast fmt webp => control-light fal-ai/control-light queued=false by=ranking tier=fast mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"webp"}
+restore dark ranked quality fmt webp => control-light fal-ai/control-light queued=false by=ranking tier=quality mode=dark cost={"basis":"projected","usd":0.024} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"webp"}
+restore noise ranked fast fmt jpeg => topaz-denoise topaz/denoise/image queued=true by=ranking tier=fast mode=noise cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore noise ranked quality fmt jpeg => topaz-denoise topaz/denoise/image queued=true by=ranking tier=quality mode=noise cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore noise ranked fast fmt webp => ERR INVALID_OPTION topaz-denoise cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-denoise","task":"restore"}
+restore noise ranked quality fmt webp => ERR INVALID_OPTION topaz-denoise cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-denoise","task":"restore"}
+restore scratches ranked fast fmt jpeg => topaz-restore topaz/restore/image queued=true by=ranking tier=fast mode=scratches cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore scratches ranked quality fmt jpeg => topaz-restore topaz/restore/image queued=true by=ranking tier=quality mode=scratches cost={"basis":"projected","usd":0.48} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore scratches ranked fast fmt webp => ERR INVALID_OPTION topaz-restore cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
+restore scratches ranked quality fmt webp => ERR INVALID_OPTION topaz-restore cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-restore","task":"restore"}
+restore softness ranked fast fmt jpeg => topaz-sharpen topaz/sharpen/image queued=true by=ranking tier=fast mode=softness cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore softness ranked quality fmt jpeg => topaz-sharpen topaz/sharpen/image queued=true by=ranking tier=quality mode=softness cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore softness ranked fast fmt webp => ERR INVALID_OPTION topaz-sharpen cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-sharpen","task":"restore"}
+restore softness ranked quality fmt webp => ERR INVALID_OPTION topaz-sharpen cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-sharpen","task":"restore"}
+restore tone ranked fast fmt jpeg => topaz-adjust topaz/adjust/image queued=true by=ranking tier=fast mode=tone cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore tone ranked quality fmt jpeg => topaz-adjust topaz/adjust/image queued=true by=ranking tier=quality mode=tone cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+restore tone ranked fast fmt webp => ERR INVALID_OPTION topaz-adjust cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-adjust","task":"restore"}
+restore tone ranked quality fmt webp => ERR INVALID_OPTION topaz-adjust cannot return webp for restore; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"topaz-adjust","task":"restore"}

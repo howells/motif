@@ -7,8 +7,10 @@ relight - iclight-v2 mask => iclight-v2 fal-ai/iclight-v2 queued=false by=model 
 relight - iclight-v2 transparent => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 transparent jpeg => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 transparent png => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
-relight - iclight-v2 jpeg => iclight-v2 fal-ai/iclight-v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08000000000000002} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
-relight - iclight-v2 png => iclight-v2 fal-ai/iclight-v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08000000000000002} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
+relight - iclight-v2 jpeg => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
+relight - iclight-v2 png => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
+relight - iclight-v2 webp => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
+relight - iclight-v2 gif => ERR INVALID_OPTION relight needs a prompt describing the light, or a mood. {"field":"prompt","task":"relight"}
 relight - iclight-v2 1K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
 relight - iclight-v2 2K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
 relight - iclight-v2 4K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
@@ -25,8 +27,10 @@ relight even lighting-restoration mask => ERR NO_MODEL_AVAILABLE lighting-restor
 relight even lighting-restoration transparent => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
 relight even lighting-restoration transparent jpeg => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
 relight even lighting-restoration transparent png => ERR NO_MODEL_AVAILABLE lighting-restoration (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
-relight even lighting-restoration jpeg => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
-relight even lighting-restoration png => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
+relight even lighting-restoration jpeg => lighting-restoration fal-ai/qwen-image-edit-plus-lora-gallery/lighting-restoration queued=false by=model tier=balanced mode=even cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"],"output_format":"jpeg"}
+relight even lighting-restoration png => lighting-restoration fal-ai/qwen-image-edit-plus-lora-gallery/lighting-restoration queued=false by=model tier=balanced mode=even cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"],"output_format":"png"}
+relight even lighting-restoration webp => lighting-restoration fal-ai/qwen-image-edit-plus-lora-gallery/lighting-restoration queued=false by=model tier=balanced mode=even cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"],"output_format":"webp"}
+relight even lighting-restoration gif => ERR INVALID_OPTION lighting-restoration cannot return gif for relight; it takes png, jpeg, webp. {"accepts":["png","jpeg","webp"],"field":"outputFormat","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration 1K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration 2K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even lighting-restoration 4K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
@@ -43,8 +47,10 @@ relight flat remove-lighting mask => ERR NO_MODEL_AVAILABLE remove-lighting (mod
 relight flat remove-lighting transparent => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
 relight flat remove-lighting transparent jpeg => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
 relight flat remove-lighting transparent png => ERR NO_MODEL_AVAILABLE remove-lighting (model) cannot do transparency. {"blockedBy":"transparency","task":"relight","unblockedBy":["option"]}
-relight flat remove-lighting jpeg => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
-relight flat remove-lighting png => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
+relight flat remove-lighting jpeg => remove-lighting fal-ai/qwen-image-edit-plus-lora-gallery/remove-lighting queued=false by=model tier=balanced mode=flat cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"],"output_format":"jpeg"}
+relight flat remove-lighting png => remove-lighting fal-ai/qwen-image-edit-plus-lora-gallery/remove-lighting queued=false by=model tier=balanced mode=flat cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"],"output_format":"png"}
+relight flat remove-lighting webp => remove-lighting fal-ai/qwen-image-edit-plus-lora-gallery/remove-lighting queued=false by=model tier=balanced mode=flat cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"image_urls":["https://example.com/source.png"],"output_format":"webp"}
+relight flat remove-lighting gif => ERR INVALID_OPTION remove-lighting cannot return gif for relight; it takes png, jpeg, webp. {"accepts":["png","jpeg","webp"],"field":"outputFormat","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting 1K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting 2K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat remove-lighting 4K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
@@ -74,6 +80,10 @@ relight - ranked fast aspect 21:9 => iclight-v2 fal-ai/iclight-v2 queued=false b
 relight - ranked quality aspect 21:9 => iclight-v2 fal-ai/iclight-v2 queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.0908544} prompt="the shoe" body={"image_size":{"height":624,"width":1456},"image_url":"https://example.com/source.png","prompt":"the shoe"}
 relight - ranked fast aspect 8:1 => iclight-v2 fal-ai/iclight-v2 queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.029491200000000002} prompt="the shoe" body={"image_size":{"height":192,"width":1536},"image_url":"https://example.com/source.png","prompt":"the shoe"}
 relight - ranked quality aspect 8:1 => iclight-v2 fal-ai/iclight-v2 queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.029491200000000002} prompt="the shoe" body={"image_size":{"height":192,"width":1536},"image_url":"https://example.com/source.png","prompt":"the shoe"}
+relight - ranked fast fmt jpeg => iclight-v2 fal-ai/iclight-v2 queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.08000000000000002} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
+relight - ranked quality fmt jpeg => iclight-v2 fal-ai/iclight-v2 queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.08000000000000002} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
+relight - ranked fast fmt webp => ERR INVALID_OPTION iclight-v2 cannot return webp for relight; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"iclight-v2","task":"relight"}
+relight - ranked quality fmt webp => ERR INVALID_OPTION iclight-v2 cannot return webp for relight; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"iclight-v2","task":"relight"}
 relight - ranked fast res 1K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
 relight - ranked quality res 1K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
 relight - ranked fast res 2K => ERR INVALID_OPTION iclight-v2 cannot take resolution for relight. {"field":"resolution","model":"iclight-v2","task":"relight"}
@@ -82,6 +92,10 @@ relight even ranked fast aspect 21:9 => ERR INVALID_OPTION lighting-restoration 
 relight even ranked quality aspect 21:9 => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even ranked fast aspect 8:1 => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even ranked quality aspect 8:1 => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
+relight even ranked fast fmt jpeg => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
+relight even ranked quality fmt jpeg => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
+relight even ranked fast fmt webp => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
+relight even ranked quality fmt webp => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even ranked fast res 1K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even ranked quality res 1K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
 relight even ranked fast res 2K => ERR INVALID_OPTION lighting-restoration cannot take prompt for relight. {"field":"prompt","model":"lighting-restoration","task":"relight"}
@@ -90,6 +104,10 @@ relight flat ranked fast aspect 21:9 => ERR INVALID_OPTION remove-lighting canno
 relight flat ranked quality aspect 21:9 => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat ranked fast aspect 8:1 => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat ranked quality aspect 8:1 => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
+relight flat ranked fast fmt jpeg => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
+relight flat ranked quality fmt jpeg => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
+relight flat ranked fast fmt webp => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
+relight flat ranked quality fmt webp => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat ranked fast res 1K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat ranked quality res 1K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}
 relight flat ranked fast res 2K => ERR INVALID_OPTION remove-lighting cannot take prompt for relight. {"field":"prompt","model":"remove-lighting","task":"relight"}

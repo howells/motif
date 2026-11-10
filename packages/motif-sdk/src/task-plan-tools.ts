@@ -8,6 +8,7 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { exactImageSize, FAL_PRESET_SIZES } from "./aspects";
+import { OPAQUE_OUTPUT_FORMATS } from "./capabilities";
 import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
@@ -30,7 +31,7 @@ import type { FalToolParameter } from "./tool-parameters.generated";
 import type { FalToolConfig } from "./tool-types";
 import { buildFalToolRequest, FAL_TOOLS } from "./tools";
 import type { FalToolId } from "./tools";
-import type { AspectRatio, CustomImageSize } from "./types";
+import type { AspectRatio, CustomImageSize, ImageOutputFormat } from "./types";
 
 type Box = NonNullable<TaskInput["boxes"]>[number];
 
@@ -54,6 +55,36 @@ const ENUM_TYPE_REGEX = /^enum\((.*)\)$/;
 function enumValues(parameter: FalToolParameter | undefined): string[] {
   const match = ENUM_TYPE_REGEX.exec(parameter?.type ?? "");
   return match?.[1] === undefined ? [] : match[1].split("|");
+}
+
+/**
+ * What a tool's `output_format` takes for a Motif format, or the refusal.
+ * Motif says `jpeg`; an endpoint whose enum says `jpg` gets that. An endpoint
+ * whose record gives no enum takes the format as given.
+ */
+function outputFormatOption(
+  task: TaskId,
+  model: FalToolId,
+  parameter: FalToolParameter | undefined,
+  format: ImageOutputFormat
+): Result<string, MotifError> {
+  const accepted = enumValues(parameter);
+  if (accepted.length === 0) {
+    return ok(format);
+  }
+  const sent = [format, ...(format === "jpeg" ? ["jpg"] : [])].find((value) =>
+    accepted.includes(value)
+  );
+  if (sent !== undefined) {
+    return ok(sent);
+  }
+  const takes = accepted.map((value) => (value === "jpg" ? "jpeg" : value));
+  return err(
+    invalidOption(
+      `${model} cannot return ${format} for ${task}; it takes ${takes.join(", ")}.`,
+      { accepts: takes, field: "outputFormat", model, task }
+    )
+  );
 }
 
 function isWholePixelBox({ height, width, x, y }: Box): boolean {
@@ -320,6 +351,8 @@ function toolOptions(
       parameter,
     ])
   );
+  const { keepsAlpha, maskField, referenceField }: FalToolConfig =
+    FAL_TOOLS[model];
   const mediaField = FAL_TOOLS[model].inputKind === "video" ? "video" : "image";
   const options: Record<string, unknown> = {};
 
@@ -328,7 +361,6 @@ function toolOptions(
     ["negativePrompt", "negative_prompt", input.negativePrompt],
     ["seed", "seed", input.seed],
     ["count", "num_images", input.count],
-    ["outputFormat", "output_format", input.outputFormat],
     ["scale", "upscale_factor", input.scale],
     // Only a rig asked for is carried; rig: false is every Model's default.
     ["rig", "enable_rigging", input.rig === true ? true : undefined],
@@ -348,6 +380,34 @@ function toolOptions(
     options[key] = value;
   }
 
+  if (input.outputFormat !== undefined) {
+    if (!parameters.has("output_format")) {
+      return err(cannotCarry("outputFormat", model, task));
+    }
+    if (
+      keepsAlpha === true &&
+      input.transparent === true &&
+      OPAQUE_OUTPUT_FORMATS.includes(input.outputFormat)
+    ) {
+      return err(
+        invalidOption(
+          `${model} keeps transparency, which ${input.outputFormat} cannot hold.`,
+          { field: "outputFormat", model, task, transparent: true }
+        )
+      );
+    }
+    const format = outputFormatOption(
+      task,
+      model,
+      parameters.get("output_format"),
+      input.outputFormat
+    );
+    if (format.isErr()) {
+      return err(format.error);
+    }
+    options.output_format = format.value;
+  }
+
   if (isPresent(input, "mood")) {
     const definition: TaskDefinition = TASKS[task];
     if (definition.takesMood !== true || !parameters.has("prompt")) {
@@ -356,8 +416,6 @@ function toolOptions(
     options.prompt = moodPrompt(input);
   }
 
-  const { keepsAlpha, maskField, referenceField }: FalToolConfig =
-    FAL_TOOLS[model];
   if (referenceField !== undefined && isPresent(input, "references")) {
     options[referenceField] = input.references?.[0];
   }

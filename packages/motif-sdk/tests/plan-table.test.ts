@@ -101,8 +101,10 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
     "transparent png",
     (input) => ({ ...input, outputFormat: "png", transparent: true }),
   ],
-  ["jpeg", (input) => ({ ...input, outputFormat: "jpeg", prompt: "the shoe" })],
-  ["png", (input) => ({ ...input, outputFormat: "png", prompt: "the shoe" })],
+  ["jpeg", (input) => ({ ...input, outputFormat: "jpeg" })],
+  ["png", (input) => ({ ...input, outputFormat: "png" })],
+  ["webp", (input) => ({ ...input, outputFormat: "webp" })],
+  ["gif", (input) => ({ ...input, outputFormat: "gif" })],
   ["1K", (input) => ({ ...input, prompt: "the shoe", resolution: "1K" })],
   ["2K", (input) => ({ ...input, prompt: "the shoe", resolution: "2K" })],
   ["4K", (input) => ({ ...input, prompt: "the shoe", resolution: "4K" })],
@@ -130,6 +132,8 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
 const RANKED_OPTIONS: readonly {
   extra: Partial<TaskInput>;
   label: string;
+  /** Plain tool Tasks take no prompt, so a format variant leaves it out. */
+  promptless?: readonly TaskId[];
   tasks: readonly TaskId[];
 }[] = [
   {
@@ -141,6 +145,18 @@ const RANKED_OPTIONS: readonly {
     extra: { aspect: "8:1" },
     label: "aspect 8:1",
     tasks: ["generate", "layers", "relight", "reframe", "vary"],
+  },
+  {
+    extra: { outputFormat: "jpeg" },
+    label: "fmt jpeg",
+    promptless: ["cutout", "restore", "upscale"],
+    tasks: ["cutout", "relight", "restore", "upscale"],
+  },
+  {
+    extra: { outputFormat: "webp" },
+    label: "fmt webp",
+    promptless: ["cutout", "restore", "upscale"],
+    tasks: ["cutout", "relight", "restore", "upscale"],
   },
   {
     extra: { resolution: "1K" },
@@ -220,7 +236,7 @@ function table(task: TaskId): string {
       continue;
     }
     const { model: _model, ...base } = minimal(task, first);
-    for (const { extra, label, tasks } of RANKED_OPTIONS) {
+    for (const { extra, label, promptless, tasks } of RANKED_OPTIONS) {
       if (!tasks.includes(task)) {
         continue;
       }
@@ -229,7 +245,8 @@ function table(task: TaskId): string {
           line(task, `ranked ${tier} ${label}`, {
             ...base,
             ...extra,
-            prompt: "the shoe",
+            prompt:
+              promptless?.includes(task) === true ? undefined : "the shoe",
             tier,
           })
         );

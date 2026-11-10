@@ -9,6 +9,8 @@ reframe - ideogram-reframe transparent jpeg => ERR NO_MODEL_AVAILABLE ideogram-r
 reframe - ideogram-reframe transparent png => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe - ideogram-reframe jpeg => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
 reframe - ideogram-reframe png => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
+reframe - ideogram-reframe webp => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot return webp from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
+reframe - ideogram-reframe gif => ERR NO_MODEL_AVAILABLE ideogram-reframe (model) cannot return gif from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
 reframe - ideogram-reframe 1K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
 reframe - ideogram-reframe 2K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
 reframe - ideogram-reframe 4K => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
@@ -27,6 +29,8 @@ reframe - bria-expand transparent jpeg => ERR NO_MODEL_AVAILABLE bria-expand (mo
 reframe - bria-expand transparent png => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe - bria-expand jpeg => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
 reframe - bria-expand png => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand webp => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot return webp from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
+reframe - bria-expand gif => ERR NO_MODEL_AVAILABLE bria-expand (model) cannot return gif from an edit. {"blockedBy":"outputFormat","task":"reframe","unblockedBy":["option"]}
 reframe - bria-expand 1K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - bria-expand 2K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[2048,1152],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - bria-expand 4K => bria-expand fal-ai/bria/expand queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[4096,2304],"image_url":"https://example.com/source.png","prompt":"the shoe"}
@@ -43,8 +47,10 @@ reframe margin flux-outpaint mask => ERR NO_MODEL_AVAILABLE flux-outpaint (model
 reframe margin flux-outpaint transparent => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint transparent jpeg => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint transparent png => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
-reframe margin flux-outpaint jpeg => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
-reframe margin flux-outpaint png => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
+reframe margin flux-outpaint jpeg => flux-outpaint fal-ai/flux-2-pro/outpaint queued=false by=model tier=balanced mode=margin cost={"basis":"projected","usd":0.045} prompt=undefined body={"expand_bottom":8,"expand_left":16,"expand_right":16,"expand_top":8,"image_url":"https://example.com/source.png","output_format":"jpeg"}
+reframe margin flux-outpaint png => flux-outpaint fal-ai/flux-2-pro/outpaint queued=false by=model tier=balanced mode=margin cost={"basis":"projected","usd":0.045} prompt=undefined body={"expand_bottom":8,"expand_left":16,"expand_right":16,"expand_top":8,"image_url":"https://example.com/source.png","output_format":"png"}
+reframe margin flux-outpaint webp => ERR INVALID_OPTION flux-outpaint cannot return webp for reframe; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"flux-outpaint","task":"reframe"}
+reframe margin flux-outpaint gif => ERR INVALID_OPTION flux-outpaint cannot return gif for reframe; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"flux-outpaint","task":"reframe"}
 reframe margin flux-outpaint 1K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint 2K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe margin flux-outpaint 4K => ERR NO_MODEL_AVAILABLE flux-outpaint (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
@@ -61,8 +67,10 @@ reframe sizes smart-resize mask => ERR NO_MODEL_AVAILABLE smart-resize (model) c
 reframe sizes smart-resize transparent => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize transparent jpeg => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize transparent png => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do transparency. {"blockedBy":"transparency","task":"reframe","unblockedBy":["option"]}
-reframe sizes smart-resize jpeg => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe","target_sizes":["800x600"]}
-reframe sizes smart-resize png => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe","target_sizes":["800x600"]}
+reframe sizes smart-resize jpeg => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg","target_sizes":["800x600"]}
+reframe sizes smart-resize png => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png","target_sizes":["800x600"]}
+reframe sizes smart-resize webp => smart-resize fal-ai/smart-resize queued=true by=model tier=balanced mode=sizes cost={"basis":"projected","usd":0.2} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"webp","target_sizes":["800x600"]}
+reframe sizes smart-resize gif => ERR INVALID_OPTION smart-resize cannot return gif for reframe; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"smart-resize","task":"reframe"}
 reframe sizes smart-resize 1K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize 2K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
 reframe sizes smart-resize 4K => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}

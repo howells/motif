@@ -7,8 +7,10 @@ restyle - telestyle-v2 mask => ERR NO_MODEL_AVAILABLE telestyle-v2 (model) canno
 restyle - telestyle-v2 transparent => ERR NO_MODEL_AVAILABLE telestyle-v2 (model) cannot do transparency. {"blockedBy":"transparency","task":"restyle","unblockedBy":["option"]}
 restyle - telestyle-v2 transparent jpeg => ERR NO_MODEL_AVAILABLE telestyle-v2 (model) cannot do transparency. {"blockedBy":"transparency","task":"restyle","unblockedBy":["option"]}
 restyle - telestyle-v2 transparent png => ERR NO_MODEL_AVAILABLE telestyle-v2 (model) cannot do transparency. {"blockedBy":"transparency","task":"restyle","unblockedBy":["option"]}
-restyle - telestyle-v2 jpeg => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
-restyle - telestyle-v2 png => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
+restyle - telestyle-v2 jpeg => telestyle-v2 fal-ai/telestyle-v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"content_image_url":"https://example.com/source.png","output_format":"jpeg","style_image_url":"https://example.com/reference.png"}
+restyle - telestyle-v2 png => telestyle-v2 fal-ai/telestyle-v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.028000000000000004} prompt=undefined body={"content_image_url":"https://example.com/source.png","output_format":"png","style_image_url":"https://example.com/reference.png"}
+restyle - telestyle-v2 webp => ERR INVALID_OPTION telestyle-v2 cannot return webp for restyle; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"telestyle-v2","task":"restyle"}
+restyle - telestyle-v2 gif => ERR INVALID_OPTION telestyle-v2 cannot return gif for restyle; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"telestyle-v2","task":"restyle"}
 restyle - telestyle-v2 1K => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
 restyle - telestyle-v2 2K => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
 restyle - telestyle-v2 4K => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
