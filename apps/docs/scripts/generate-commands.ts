@@ -107,7 +107,7 @@ function readHelp(args: readonly string[], cwd: string, home: string): Help {
 const COMMON = new Set([
   "--fields",
   "--format",
-  "--no-open",
+  "--open",
   "--param",
   "--seed",
   "-m, --model",

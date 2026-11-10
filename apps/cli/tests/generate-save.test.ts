@@ -74,7 +74,6 @@ const config: MotifConfig = {
   apiKey: "test-key",
   defaultAspect: "1:1",
   defaultResolution: "2K",
-  openAfterGenerate: true,
   tasks: { generate: { model: "banana" } },
 };
 
@@ -104,7 +103,7 @@ describe("generateImage save flow", () => {
 
     await generateImage(
       "a red circle on white",
-      { output: "generated.png" },
+      { open: true, output: "generated.png" },
       null,
       config,
       { format: "json", sanitize: true }

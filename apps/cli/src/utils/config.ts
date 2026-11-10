@@ -34,7 +34,6 @@ export interface MotifConfig {
   apiKey?: string;
   defaultAspect: AspectRatio;
   defaultResolution: Resolution;
-  openAfterGenerate: boolean;
   tasks?: Partial<Record<TaskId, TaskPin>>;
 }
 
@@ -89,7 +88,6 @@ export interface History {
 const DEFAULT_CONFIG: MotifConfig = {
   defaultAspect: "1:1",
   defaultResolution: "2K",
-  openAfterGenerate: true,
 };
 
 /** The Model pinned per Task, for `resolveTask`'s environment. */
@@ -128,7 +126,6 @@ function configProblem(value: unknown): string | undefined {
     optionalFieldProblem(value, "apiKey", "string") ??
     optionalFieldProblem(value, "defaultAspect", "string") ??
     optionalFieldProblem(value, "defaultResolution", "string") ??
-    optionalFieldProblem(value, "openAfterGenerate", "boolean") ??
     optionalFieldProblem(value, "tasks", "object")
   );
 }

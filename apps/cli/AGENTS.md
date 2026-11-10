@@ -17,7 +17,7 @@ motif --describe erase --format json
 motif "a sunset over mountains" --og --dry-run --format json
 
 # Generate with JSON output (auto-detected when piped)
-motif "a sunset over mountains" --og --no-open | jq .
+motif "a sunset over mountains" --og | jq .
 
 # A Task verb at a higher Tier
 motif erase "the parked car" street.png --tier quality --dry-run --format json
@@ -74,9 +74,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 
 3. **Let Motif choose the Model.** Use `--tier` to trade cost for quality. Name a Model with `-m` only when a job needs that one, taking the id from that Task's `models` in `motif --describe tasks --format json` (best-ranked first); prices are in the [cost reference](docs/costs.md). Model-only request fields go through `--param key=value`, which needs `-m`.
 
-4. **Always use `--no-open`** in automated pipelines. The default opens results in a viewer, which will interrupt the agent.
-
-5. **Treat `cost: null` as unknown, not free.** `costBasis: "unknown"` means the price depends on what the call returns (tokens, megapixels, seconds, layers).
+4. **Treat `cost: null` as unknown, not free.** `costBasis: "unknown"` means the price depends on what the call returns (tokens, megapixels, seconds, layers).
 
 **NEVER do these things:**
 
@@ -243,7 +241,7 @@ An unknown id fails before any fal request with a structured `INVALID_OPTION` er
 
 ## Task Verbs
 
-Every Task has a verb. Each takes an optional trailing image path and falls back to the last generation, and each supports `--tier`, `-m`, `--param`, `--seed`, `--dry-run`, `-o/--output`, `--format`, `--fields` and `--no-open`. A mode is a flag such as `--text` or `--pose`, one per call. `-o` ending in `/` writes every file the Model returned into that directory; anything else writes the primary file only.
+Every Task has a verb. Each takes an optional trailing image path and falls back to the last generation, and each supports `--tier`, `-m`, `--param`, `--seed`, `--dry-run`, `-o/--output`, `--format`, `--fields` and `--open` (show the result in a viewer; nothing opens without it). A mode is a flag such as `--text` or `--pose`, one per call. `-o` ending in `/` writes every file the Model returned into that directory; anything else writes the primary file only.
 
 ```bash
 motif segment "the chair" room.png --dry-run --format json   # --rle for compact JSON masks, --auto for every region
@@ -266,8 +264,8 @@ motif animate "the camera pushes in" still.png --dry-run     # video costs 5-10x
 `motif sheet` lays images out on one PNG, JPEG or WebP: each cell is the image fitted into a 512 px square (aspect kept) on a warm off-white ground, with a caption underneath. Captions come from history, matched by output path: model, look and mood when used, and cost (`cost unknown` when it isn't known). With no history match the caption is the filename. `generate`, `series gen` and `series run` record `look` and `mood` on history entries for this.
 
 ```bash
-motif sheet a.png b.png c.png -o sheet.png --no-open --format json
-motif sheet --last 6 --cols 3 --no-open --format json --fields path,count
+motif sheet a.png b.png c.png -o sheet.png --format json
+motif sheet --last 6 --cols 3 --format json --fields path,count
 ```
 
 Pass files or `--last <n>` (the newest n history images still on disk, oldest first), not both. `--cols` defaults to roughly square. `-o` follows the same output-path rules as `generate` and defaults to `sheet-<timestamp>.png`. JSON output is `{command, path, count, cols, width, height}`. Unreadable images fail with `INVALID_IMAGE_PATH`, and an empty history with `NO_PREVIOUS`.

@@ -43,12 +43,12 @@ Let Motif choose the Model and set the trade-off with `--tier fast|balanced|qual
 ## Run
 
 ```bash
-motif "a ceramic desk lamp on an oak desk" --tier balanced --dry-run --no-open --format json --fields model,cost,costBasis
-motif erase "the cable" lamp.png --dry-run --no-open --format json --fields model,cost,costBasis
-motif series run "brutalist architecture" --count 6 --dry-run --no-open --format json
+motif "a ceramic desk lamp on an oak desk" --tier balanced --dry-run --format json --fields model,cost,costBasis
+motif erase "the cable" lamp.png --dry-run --format json --fields model,cost,costBasis
+motif series run "brutalist architecture" --count 6 --dry-run --format json
 ```
 
-- Use `--no-open --format json` and pick fields with `--fields`; don't parse human output.
+- Use `--format json` and pick fields with `--fields`; don't parse human output.
 - Save outputs inside the repository's Git root (or the current directory outside one), at a new path so the source survives. An output ending in `/` saves every returned file; any other path saves the primary file.
 - Generation and variation return `images[].path`. Other tasks return `path` for the primary file and `files[].path` for every file written; `ask` returns data and no file. A dry run reports `output`, where the file would go, not a file that exists.
 

@@ -77,7 +77,6 @@ describe("config layers", () => {
       {
         defaultAspect: "1:1",
         defaultResolution: "2K",
-        openAfterGenerate: true,
         tasks: {
           cutout: { model: "bria-rmbg" },
           upscale: { model: "crystal" },

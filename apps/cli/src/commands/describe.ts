@@ -170,9 +170,9 @@ function generateSchema() {
           type: "string",
         },
         ...TASK_INPUT_PROPERTIES,
-        noOpen: {
+        open: {
           default: false,
-          description: "Don't open image in viewer after generation",
+          description: "Open the image in a viewer after generation",
           type: "boolean",
         },
         numImages: {
@@ -398,9 +398,9 @@ function sheetSchema() {
           minimum: 1,
           type: "integer",
         },
-        noOpen: {
+        open: {
           default: false,
-          description: "Don't open the sheet afterwards",
+          description: "Open the sheet in a viewer",
           type: "boolean",
         },
         output: {
@@ -424,8 +424,8 @@ function sheetSchema() {
     },
     supports_dry_run: false,
     usage: [
-      "motif sheet a.png b.png c.png -o sheet.png --no-open --format json",
-      "motif sheet --last 6 --cols 3 --no-open --format json --fields path,count",
+      "motif sheet a.png b.png c.png -o sheet.png --format json",
+      "motif sheet --last 6 --cols 3 --format json --fields path,count",
     ],
   };
 }
@@ -484,7 +484,7 @@ function seriesSchema() {
           enum: taskModelIds("generate"),
           type: "string",
         },
-        noOpen: { default: false, type: "boolean" },
+        open: { default: false, type: "boolean" },
         prompt: {
           description: "Scene prompt: the second argument of series gen.",
           type: "string",
@@ -618,7 +618,7 @@ function taskVerbSchema(
           },
         }),
         ...flags,
-        noOpen: { default: false, type: "boolean" },
+        open: { default: false, type: "boolean" },
         output: {
           description:
             "Output file (within the git root, or CWD outside a repo), or a directory ending in / to receive every file.",
@@ -787,7 +787,7 @@ function fullSchema() {
         "Comma-separated field names to include in output. Omit for all fields.",
       "--format <json|human|ndjson>":
         "Output format. Default: human (TTY) or json (piped).",
-      "--no-open": "Don't open image in viewer after generation.",
+      "--open": "Open the result in a viewer. Nothing opens without it.",
     },
     input_modes: {
       combined: "Stdin JSON for base config, flags override specific fields.",

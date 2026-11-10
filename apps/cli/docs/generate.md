@@ -119,7 +119,7 @@ Flag values override stdin values for the same field. The schema:
   "transparent": false,
   "preset": "cover | square | landscape | portrait | story | reel | feed | og | wallpaper | wide | ultra",
   "creative": { "look": "editorial", "mood": "overcast" },
-  "noOpen": true
+  "open": false
 }
 ```
 

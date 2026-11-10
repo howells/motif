@@ -149,9 +149,7 @@ describe("config", () => {
     const { saveConfig } = await import("../src/utils/config");
     const path = writeStored("config.json", '{"apiKey": "secret",');
 
-    await expect(saveConfig({ openAfterGenerate: false })).rejects.toThrow(
-      path
-    );
+    await expect(saveConfig({ defaultResolution: "4K" })).rejects.toThrow(path);
     expect(readFileSync(path, "utf-8")).toBe('{"apiKey": "secret",');
   });
 
@@ -159,12 +157,19 @@ describe("config", () => {
     const { saveConfig } = await import("../src/utils/config");
     const path = writeStored("config.json", '{"apiKey":"secret"}');
 
-    await saveConfig({ openAfterGenerate: false });
+    await saveConfig({ defaultResolution: "4K" });
 
     expect(parseJson(readFileSync(path, "utf-8"))).toStrictEqual({
       apiKey: "secret",
-      openAfterGenerate: false,
+      defaultResolution: "4K",
     });
+  });
+
+  it("loads a config that still holds the removed openAfterGenerate key", async () => {
+    const { loadConfig } = await import("../src/utils/config");
+    writeStored("config.json", '{"apiKey":"secret","openAfterGenerate":false}');
+
+    await expect(loadConfig()).resolves.toMatchObject({ apiKey: "secret" });
   });
 
   it("refuses a config with a wrongly typed field when loading", async () => {

@@ -34,7 +34,7 @@ One verb per Task. `motif --describe tasks --format json` maps task words to ver
 - `motif animate "prompt" [image]` - turn an image into a video.
 - `motif sheet <images...>`, `motif series run "theme"`, `motif series <subcommand>`, `motif studio` - contact sheets, themed sets, reusable styles, the terminal app. Series generations and Studio use the Task rankings; local contact sheets make no Model call.
 
-Rules for agents: `--dry-run` first, `--no-open` and `--fields` in a pipeline, parse JSON not human output. Let Motif choose the Model; `--tier` trades cost for quality and `-m <model>` overrides the choice, with `--param key=value` for Model-only fields. `cost: null` means an unknown total, not free.
+Rules for agents: `--dry-run` first, `--fields` in a pipeline (nothing opens in a viewer unless you pass `--open`), parse JSON not human output. Let Motif choose the Model; `--tier` trades cost for quality and `-m <model>` overrides the choice, with `--param key=value` for Model-only fields. `cost: null` means an unknown total, not free.
 
 ## Current image curation
 

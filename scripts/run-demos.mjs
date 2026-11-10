@@ -178,7 +178,7 @@ function argvFor(demo, { dry }) {
   if (!demo.json) {
     argv.push("-o", outputFor(demo));
   }
-  return [...argv, "--format", "json", "--no-open"];
+  return [...argv, "--format", "json"];
 }
 
 /** A run's cost as the CLI prints it, or "metered" when fal bills it after the run. */
@@ -198,7 +198,7 @@ function price(demos) {
   if (missing.length > 0) {
     console.log("Sources to generate first:");
     for (const source of missing) {
-      const result = lastJson(cli([...sourceArgv(source), "--dry-run", "--format", "json", "--no-open"], { dry: true }));
+      const result = lastJson(cli([...sourceArgv(source), "--dry-run", "--format", "json"], { dry: true }));
       if (!result || result.error) {
         console.log(`  ! source ${source.id}: ${result?.message ?? "dry run failed"}`);
         continue;
@@ -232,7 +232,7 @@ function generateSources(demos) {
     const result = lastJson(cli([
       ...sourceArgv(source),
       "-o", join("docs/tools/examples", `source-${source.id}.png`),
-      "--format", "json", "--no-open", "--fields", "cost",
+      "--format", "json", "--fields", "cost",
     ]));
     if (!result || result.error) {
       console.log(`  ! source ${source.id}: ${result?.message ?? "failed"}`);

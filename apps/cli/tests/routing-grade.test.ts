@@ -44,7 +44,7 @@ describe(extractInvocation, () => {
   });
 
   it("strips a prompt mark and joins continuations", () => {
-    const answer = sh("$ motif sheet a.png b.png \\\n  c.png d.png --no-open");
+    const answer = sh("$ motif sheet a.png b.png \\\n  c.png d.png --cols 2");
     expect(shellWords(extractInvocation(answer) ?? "")).toStrictEqual([
       "motif",
       "sheet",
@@ -52,7 +52,8 @@ describe(extractInvocation, () => {
       "b.png",
       "c.png",
       "d.png",
-      "--no-open",
+      "--cols",
+      "2",
     ]);
   });
 

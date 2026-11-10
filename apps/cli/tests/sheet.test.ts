@@ -150,15 +150,7 @@ describe("motif sheet", () => {
     const b = await fixture("b.png", 16, 24);
     const out = join(outputs, "sheet.png");
 
-    const result = await runSheet([
-      a,
-      b,
-      "-o",
-      out,
-      "--no-open",
-      "--format",
-      "json",
-    ]);
+    const result = await runSheet([a, b, "-o", out, "--format", "json"]);
 
     expect(result.code).toBe(0);
     const payload: unknown = JSON.parse(result.stdout.trim());

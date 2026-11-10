@@ -33,15 +33,15 @@ A dry run has no `path`. It reports `output`, where the file would go. Each entr
 
 ```bash
 # Several images, paths only
-motif "sunset over mountains" --tier fast -n 4 --no-open --fields images | jq -r '.images[].path'
+motif "sunset over mountains" --tier fast -n 4 --fields images | jq -r '.images[].path'
 
 # generate, then upscale
-IMG=$(motif "a cat" --no-open --fields images | jq -r '.images[0].path')
-motif upscale "$IMG" --no-open --fields path,size
+IMG=$(motif "a cat" --fields images | jq -r '.images[0].path')
+motif upscale "$IMG" --fields path,size
 
 # verb, then verb
-ERASED=$(motif erase "the parked car" street.png -o erased.jpg --no-open --fields path | jq -r .path)
-motif reframe "$ERASED" --story -o story.png --no-open --fields path
+ERASED=$(motif erase "the parked car" street.png -o erased.jpg --fields path | jq -r .path)
+motif reframe "$ERASED" --story -o story.png --fields path
 
 # Recent spend
 motif --history --limit 20 --fields model,cost

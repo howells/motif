@@ -144,8 +144,8 @@ async function startStudio(configOverride: Record<string, unknown> = {}) {
   };
 }
 
-/** Home to Settings, then down to the "Open After Generate" toggle. */
-const OPEN_SETTINGS_TOGGLE = [DOWN, DOWN, DOWN, ENTER, DOWN, DOWN];
+/** Home to Settings, then down to "Default Resolution". */
+const OPEN_SETTINGS_RESOLUTION = [DOWN, DOWN, DOWN, ENTER, DOWN];
 
 describe("Studio settings", () => {
   it("saves only the edited key, not the project-local values merged into the config", async () => {
@@ -153,28 +153,28 @@ describe("Studio settings", () => {
     writeFileSync(path, '{"apiKey":"global-key-12345678"}');
     const studio = await startStudio({ apiKey: "project-local-key-9999" });
 
-    await studio.press(...OPEN_SETTINGS_TOGGLE, ENTER, "s");
+    await studio.press(...OPEN_SETTINGS_RESOLUTION, ENTER, "s");
     await waitFor("the save to reach the file", () =>
-      readFileSync(path, "utf-8").includes("openAfterGenerate")
+      readFileSync(path, "utf-8").includes("defaultResolution")
     );
     studio.stop();
 
     expect(JSON.parse(readFileSync(path, "utf-8"))).toStrictEqual({
       apiKey: "global-key-12345678",
-      openAfterGenerate: false,
+      defaultResolution: "4K",
     });
   });
 
   it("gives the screens the saved config without a restart", async () => {
     const studio = await startStudio();
 
-    await studio.press(...OPEN_SETTINGS_TOGGLE, ENTER, "s");
+    await studio.press(...OPEN_SETTINGS_RESOLUTION, ENTER, "s");
     await studio.waitForFrame("the Home screen after saving", (frame) =>
       frame.includes("Make an image from a prompt")
     );
     await studio.press(DOWN, DOWN, DOWN, ENTER);
     await studio.waitForFrame("Settings showing the saved value", (frame) =>
-      /Open After Generate\s+No/.test(frame)
+      /Default Resolution\s+4K/.test(frame)
     );
     studio.stop();
   });
@@ -184,7 +184,7 @@ describe("Studio settings", () => {
     const studio = await startStudio();
     writeFileSync(path, "{broken");
 
-    await studio.press(...OPEN_SETTINGS_TOGGLE, ENTER, "s");
+    await studio.press(...OPEN_SETTINGS_RESOLUTION, ENTER, "s");
     await studio.waitForFrame("the error banner", (frame) =>
       frame.includes("not valid JSON")
     );

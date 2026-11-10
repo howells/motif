@@ -23,7 +23,7 @@ export type VerbOptions = Record<string, unknown> & {
   fields?: string;
   format?: string;
   model?: string;
-  /** Commander's `--no-open` negation: false when the caller passed it. */
+  /** `--open`: show the result in a viewer. */
   open?: boolean;
   output?: string;
   param?: string[];
@@ -57,7 +57,7 @@ export function withCommonOptions(command: Command): Command {
       "Output format: json, human, ndjson (default: auto-detect from TTY)"
     )
     .option("--fields <fields>", "Comma-separated fields to include in output")
-    .option("--no-open", "Don't open the result in a viewer");
+    .option("--open", "Open the result in a viewer");
 }
 
 export function verbEmitOptions(options: VerbOptions): EmitOptions {

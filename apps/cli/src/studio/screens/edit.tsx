@@ -393,9 +393,7 @@ export function EditScreen({
         size,
       });
 
-      if (config.openAfterGenerate) {
-        openImage(fullPath);
-      }
+      openImage(fullPath);
 
       setStep("done");
     } catch (error) {

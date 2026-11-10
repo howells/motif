@@ -11,7 +11,7 @@ One verb per Task: its usage, modes, flags and what to use instead. Part of the 
 - `-m <model>` runs that Model instead. `--param key=value` (repeatable) sends a Model-only request field and needs `-m`.
 - A **mode** is a flag such as `--text` or `--pose`. One mode per call; two is `INVALID_OPTION`.
 - The trailing image is optional and falls back to the last generation. Pass it explicitly in a pipeline.
-- `--dry-run` resolves the Model, builds the request and prices it without a key or a call. `--seed`, `-o`, `--format`, `--fields` and `--no-open` work everywhere.
+- `--dry-run` resolves the Model, builds the request and prices it without a key or a call. `--seed`, `-o`, `--format`, `--fields` and `--open` work everywhere.
 - `-o` ending in `/` writes every file the Model returned into that directory, named by output key or label (`basecolor.jpg`, `masks.png`). Anything else writes the primary file only.
 - JSON output carries `task`, `model`, `tier`, `chosenBy` (`ranking`, `model`, `look` or `pin`), `cost` and `costBasis` (`measured`, `projected` or `unknown`), then `path`, `width`, `height`, `size` and `files` when files were written, plus any data the Model returned (`answer`, `boxes`, `scores`). A dry run has `output` and `request` instead of `path`.
 - `cost: null` with `costBasis: "unknown"` means the price depends on something only the call knows (tokens, output megapixels, seconds, map or layer count). It is not free.
@@ -313,8 +313,8 @@ motif animate "the camera slowly pushes in" still.png --tier fast --dry-run
 `sheet`, `series`, `studio`, `--history`, `--last` and `--describe` choose no Model.
 
 ```bash
-motif sheet a.png b.png c.png -o sheet.png --no-open
-motif sheet --last 6 --cols 3 --no-open --format json
+motif sheet a.png b.png c.png -o sheet.png
+motif sheet --last 6 --cols 3 --format json
 ```
 
 `sheet` lays images out on one captioned PNG, JPEG or WebP, captioned from history (model, look, mood, cost). Series are in [series](series.md).

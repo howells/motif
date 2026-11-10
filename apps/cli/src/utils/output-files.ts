@@ -10,7 +10,6 @@ import { join, resolve } from "node:path";
 
 import type { TaskFile } from "@howells/motif-sdk";
 
-import type { MotifConfig } from "./config";
 import {
   decodeDataUrl,
   downloadImage,
@@ -26,13 +25,9 @@ import { validateOutputPath } from "./input";
 /** Extensions `derivedOutputPath` strips before appending its suffix. */
 const SOURCE_EXT_REGEX = /\.(png|jpg|jpeg|webp|mp4|mov|m4v|webm)$/i;
 
-/** Open the first file of a run in the viewer, unless config or the caller says not to. */
-export function openAfterRun(
-  config: MotifConfig,
-  path: string | undefined,
-  noOpen = false
-): void {
-  if (path !== undefined && config.openAfterGenerate && !noOpen) {
+/** Open the first file of a run in the viewer, only when the caller passed `--open`. */
+export function openAfterRun(path: string | undefined, open?: boolean): void {
+  if (path !== undefined && open === true) {
     openImage(path);
   }
 }

@@ -15,7 +15,7 @@ import chalk from "chalk";
 import { Command } from "commander";
 import sharp from "sharp";
 
-import { loadConfig, loadHistory } from "../utils/config";
+import { loadHistory } from "../utils/config";
 import type { Generation } from "../utils/config";
 import {
   exitNoPrevious,
@@ -252,8 +252,7 @@ async function buildSheet(
     );
   }
 
-  const config = await loadConfig();
-  if (config.openAfterGenerate && opts.open !== false) {
+  if (opts.open === true) {
     openImage(outputPath);
   }
 }
@@ -273,7 +272,7 @@ export async function runSheet(args: string[]): Promise<void> {
       .option("--cols <n>", "Columns (default: roughly square)")
       .option("--format <format>", "Output format: human, json, ndjson")
       .option("--fields <fields>", "Comma-separated fields to include")
-      .option("--no-open", "Don't open the sheet afterwards"),
+      .option("--open", "Open the sheet in a viewer"),
     format
   );
   program.action(async (files: string[], opts: SheetOptions) => {

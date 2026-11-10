@@ -66,20 +66,20 @@ beneath, laid flat on a white plaster surface, overhead light"
 
 steps() {
   cat <<STEPS
-motif "$P_APOTHECARY" -m banana -a 16:9 -r 2K --no-open -o $OUT/source-apothecary.jpg
-motif "$P_INTERIOR" -m banana -a 16:9 -r 2K --no-open -o $OUT/source-interior.jpg
-motif "$P_LABEL" -m banana -a 16:9 -r 2K --no-open -o $OUT/source-label.jpg
-motif "$P_LINEN" -m banana -a 1:1 -r 2K --no-open -o $OUT/source-linen.jpg
-motif "$P_VESSEL" -m banana -a 1:1 -r 2K --no-open -o $OUT/source-vessel.jpg
-motif segment "the white ceramic bowl" $OUT/source-apothecary.jpg --no-open -o $OUT/segment/
-motif erase "the small amber bottle on the right of the group" $OUT/source-apothecary.jpg --no-open -o $OUT/out-erased.jpg
-motif erase "the small amber bottle on the right of the group" $OUT/source-apothecary.jpg --tier quality --no-open -o $OUT/out-erased-finegrain.jpg
-motif map $OUT/source-interior.jpg --no-open -o $OUT/out-depth.jpg
-motif map $OUT/source-vessel.jpg --lineart --no-open -o $OUT/out-lineart.jpg
-motif cutout $OUT/source-vessel.jpg --tier quality --no-open -o $OUT/out-nobg.png
-motif restore $OUT/source-vessel.jpg --no-open -o $OUT/verb-enhanced.jpg
-motif layers $OUT/source-label.jpg --text --no-open -o $OUT/layers/
-motif material $OUT/source-linen.jpg --no-open -o $OUT/pbr/
+motif "$P_APOTHECARY" -m banana -a 16:9 -r 2K -o $OUT/source-apothecary.jpg
+motif "$P_INTERIOR" -m banana -a 16:9 -r 2K -o $OUT/source-interior.jpg
+motif "$P_LABEL" -m banana -a 16:9 -r 2K -o $OUT/source-label.jpg
+motif "$P_LINEN" -m banana -a 1:1 -r 2K -o $OUT/source-linen.jpg
+motif "$P_VESSEL" -m banana -a 1:1 -r 2K -o $OUT/source-vessel.jpg
+motif segment "the white ceramic bowl" $OUT/source-apothecary.jpg -o $OUT/segment/
+motif erase "the small amber bottle on the right of the group" $OUT/source-apothecary.jpg -o $OUT/out-erased.jpg
+motif erase "the small amber bottle on the right of the group" $OUT/source-apothecary.jpg --tier quality -o $OUT/out-erased-finegrain.jpg
+motif map $OUT/source-interior.jpg -o $OUT/out-depth.jpg
+motif map $OUT/source-vessel.jpg --lineart -o $OUT/out-lineart.jpg
+motif cutout $OUT/source-vessel.jpg --tier quality -o $OUT/out-nobg.png
+motif restore $OUT/source-vessel.jpg -o $OUT/verb-enhanced.jpg
+motif layers $OUT/source-label.jpg --text -o $OUT/layers/
+motif material $OUT/source-linen.jpg -o $OUT/pbr/
 STEPS
 }
 

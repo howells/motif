@@ -488,7 +488,7 @@ async function cmdGenerate(
     look?: string;
     model?: string;
     mood?: string | false;
-    noOpen?: boolean;
+    open?: boolean;
     num?: string;
     output?: string;
     refs?: string;
@@ -680,7 +680,7 @@ async function cmdGenerate(
       );
     }
 
-    openAfterRun(appConfig, saved.images[0]?.path, opts.noOpen);
+    openAfterRun(saved.images[0]?.path, opts.open);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
   }
@@ -695,7 +695,7 @@ async function cmdRun(
     look?: string;
     model?: string;
     mood?: string | false;
-    noOpen?: boolean;
+    open?: boolean;
     refs?: string;
     resolution?: string;
     series?: string;
@@ -952,7 +952,7 @@ async function cmdRun(
       );
     }
 
-    openAfterRun(appConfig, savedImages[0]?.path, opts.noOpen);
+    openAfterRun(savedImages[0]?.path, opts.open);
   } catch (error) {
     handleError(error, "SERIES_GENERATE_FAILED", emitOpts.format);
   }
@@ -1134,7 +1134,7 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("--look <id>", "House look id, e.g. editorial")
     .option("--mood <id>", "Light mood id, e.g. overcast")
     .option("--no-mood", "Drop any mood, including the series' pinned one")
-    .option("--no-open", "Don't open after generation")
+    .option("--open", "Open the result in a viewer")
     .option("--dry-run", "Validate without API call")
     .action(
       async (
@@ -1163,7 +1163,7 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("--look <id>", "House look id, e.g. editorial")
     .option("--mood <id>", "Light mood id, e.g. overcast")
     .option("--no-mood", "Drop any mood, including the series' pinned one")
-    .option("--no-open", "Don't open after generation")
+    .option("--open", "Open the result in a viewer")
     .option("--dry-run", "Validate and plan without API call")
     .action(async (theme: string, opts: Parameters<typeof cmdRun>[1]) => {
       await cmdRun(theme, opts, emitOpts());

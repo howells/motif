@@ -480,9 +480,7 @@ export function GenerateScreen({
         size,
       });
 
-      if (config.openAfterGenerate) {
-        openImage(fullPath);
-      }
+      openImage(fullPath);
 
       setSelectedIndex(0);
       setStep("done");

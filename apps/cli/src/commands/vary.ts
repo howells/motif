@@ -140,7 +140,7 @@ async function vary(
       explicitOutput: hasText(options.output),
       extra: { source: path, varyModel: reusable ? "reused" : "resolved" },
       input,
-      noOpen: options.open === false,
+      open: options.open === true,
       numImages,
       outputPath,
       resolution: generation?.resolution ?? "1K",

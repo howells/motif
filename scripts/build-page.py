@@ -78,7 +78,7 @@ def projected(demos):
     """Each plate's projected price, from a dry run of its own command."""
     prices = {}
     for demo in demos:
-        result = motif(demo_argv(demo) + ["--dry-run", "--format", "json", "--no-open"])
+        result = motif(demo_argv(demo) + ["--dry-run", "--format", "json"])
         if result.get("error"):
             sys.exit(f"{demo['plate']}: dry run failed: {result.get('message')}")
         prices[demo["plate"]] = result.get("cost")

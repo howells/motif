@@ -100,7 +100,7 @@ export interface GenerationRun {
   editPaths?: string[];
   warnings: readonly PromptWarning[];
   ephemeral: boolean;
-  noOpen: boolean;
+  open: boolean;
   dryRun: boolean;
   transparent: boolean;
   /** Fields added to every JSON result, e.g. vary's `varyModel`. */
@@ -254,7 +254,7 @@ export async function runGeneration(
     if (!isStructured(emitOpts.format)) {
       await printSaved(saved);
     }
-    openAfterRun(config, saved.images[0]?.path, run.noOpen);
+    openAfterRun(saved.images[0]?.path, run.open);
 
     const { payloadDeleteError, payloadsDeleted } = run.ephemeral
       ? await deleteEphemeralPayloads(client, output.requestId, emitOpts.format)
@@ -435,7 +435,7 @@ export async function generateImage(
       ephemeral,
       explicitOutput: hasText(rawOutput),
       input,
-      noOpen: options.noOpen === true || stdinData?.noOpen === true,
+      open: options.open === true || stdinData?.open === true,
       numImages,
       outputPath,
       resolution,

@@ -105,7 +105,7 @@ export interface TaskRunInput {
   /** An output file, or a directory ending in `/` for every file. */
   output?: string;
   dryRun?: boolean;
-  noOpen?: boolean;
+  open?: boolean;
 }
 
 export interface ResolvedSource {
@@ -452,7 +452,7 @@ export async function runTask(
         console.log(body);
       }
     }
-    openAfterRun(config, primary?.path, input.noOpen);
+    openAfterRun(primary?.path, input.open);
   } catch (error) {
     spinner?.fail(`${spec.verb} failed`);
     exitTaskFailed(

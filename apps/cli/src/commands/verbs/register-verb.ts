@@ -200,7 +200,7 @@ export function registerTaskVerb(
       },
       {
         dryRun: options.dryRun === true,
-        noOpen: options.open === false,
+        open: options.open === true,
         output: options.output,
         source,
       },

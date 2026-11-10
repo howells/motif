@@ -11,7 +11,7 @@ interface SettingItem {
   key: SettingKey;
   label: string;
   options?: readonly string[];
-  type: "select" | "toggle" | "text";
+  type: "select" | "text";
 }
 
 const SETTINGS: SettingItem[] = [
@@ -27,7 +27,6 @@ const SETTINGS: SettingItem[] = [
     options: RESOLUTIONS,
     type: "select",
   },
-  { key: "openAfterGenerate", label: "Open After Generate", type: "toggle" },
   { key: "apiKey", label: "API Key", type: "text" },
 ];
 
@@ -90,16 +89,7 @@ export function SettingsScreen({
     if (key.return) {
       // biome-ignore lint/style/noNonNullAssertion: index guaranteed within bounds
       const setting = SETTINGS[selectedIndex]!;
-      if (setting.type === "toggle") {
-        // Toggle boolean value
-        setEdits((e) =>
-          writeSetting(
-            e,
-            setting.key,
-            readSetting({ ...config, ...e }, setting.key) !== true
-          )
-        );
-      } else if (setting.type === "text") {
+      if (setting.type === "text") {
         const raw = readSetting(shown, setting.key);
         setEditValue(typeof raw === "string" ? raw : "");
         setEditing(true);
@@ -130,9 +120,6 @@ export function SettingsScreen({
 
   const formatValue = (setting: SettingItem): string => {
     const value = readSetting(shown, setting.key);
-    if (setting.type === "toggle") {
-      return value === true ? "Yes" : "No";
-    }
     if (typeof value !== "string" || value === "") {
       return "Not set";
     }
@@ -178,7 +165,7 @@ export function SettingsScreen({
       <Box flexDirection="column" marginTop={2}>
         <Text dimColor>────────────────────────────</Text>
         <Box marginTop={1}>
-          <Text dimColor>enter toggle/edit │ s save │ esc cancel</Text>
+          <Text dimColor>enter edit │ s save │ esc cancel</Text>
         </Box>
       </Box>
     </Box>

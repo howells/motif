@@ -26,8 +26,8 @@ export interface CliOptions {
   /** A mood id, or `false` from `--no-mood`. */
   mood?: string | false;
   negative?: string;
-  noOpen?: boolean;
   num?: string;
+  open?: boolean;
   offset?: string;
   output?: string;
   outputFormat?: string;
@@ -54,9 +54,9 @@ export interface StdinPayload {
   maskImageUrl?: string;
   model?: string;
   negativePrompt?: string;
-  noOpen?: boolean;
   numImages?: number;
   offset?: number;
+  open?: boolean;
   output?: string;
   outputFormat?: string;
   preset?: string;

@@ -131,7 +131,7 @@ describe("generate", () => {
     const dir = project();
     const run = await motif(
       dir,
-      ["a cat", "-o", "cat.png", "-n", "2", "--no-open", "--format", "json"],
+      ["a cat", "-o", "cat.png", "-n", "2", "--format", "json"],
       { images: [REMOTE_PNG, REMOTE_PNG] }
     );
 
@@ -163,7 +163,7 @@ describe("generate", () => {
 
   it("prints a saved line and the session total in human output", async () => {
     const dir = project();
-    const run = await motif(dir, ["a cat", "--no-open", "--format", "human"], {
+    const run = await motif(dir, ["a cat", "--format", "human"], {
       images: [REMOTE_PNG],
     });
 
@@ -177,7 +177,7 @@ describe("generate", () => {
     const dir = project();
     const run = await motif(
       dir,
-      ["a cat", "-o", "cat.png", "--no-open", "--format", "json"],
+      ["a cat", "-o", "cat.png", "--format", "json"],
       { images: [INLINE_PNG] }
     );
 
@@ -199,7 +199,7 @@ describe("generate", () => {
         "dawn",
         "-o",
         "edit.png",
-        "--no-open",
+
         "--format",
         "json",
       ],
@@ -220,7 +220,7 @@ describe("vary", () => {
     const dir = project();
     const run = await motif(
       dir,
-      ["vary", "in.png", "-o", "v.png", "--no-open", "--format", "json"],
+      ["vary", "in.png", "-o", "v.png", "--format", "json"],
       { images: [REMOTE_PNG] }
     );
 
@@ -239,7 +239,7 @@ describe("vary", () => {
 
   it("fails with NO_PREVIOUS when there is no history and no image", async () => {
     const dir = project();
-    const run = await motif(dir, ["vary", "--no-open", "--format", "json"], {});
+    const run = await motif(dir, ["vary", "--format", "json"], {});
 
     expect(run.code).toBe(4);
     expect(json(run.stderr)).toMatchObject({ code: "NO_PREVIOUS" });
@@ -249,11 +249,9 @@ describe("vary", () => {
 describe("Task verbs", () => {
   it("writes beside the source, records one history entry and reports the file", async () => {
     const dir = project();
-    const run = await motif(
-      dir,
-      ["cutout", "in.png", "--no-open", "--format", "json"],
-      { image: REMOTE_PNG }
-    );
+    const run = await motif(dir, ["cutout", "in.png", "--format", "json"], {
+      image: REMOTE_PNG,
+    });
 
     expect(run.code).toBe(0);
     const payload = json(run.stdout);
@@ -279,11 +277,9 @@ describe("Task verbs", () => {
 
   it("prints the saved line in human output", async () => {
     const dir = project();
-    const run = await motif(
-      dir,
-      ["cutout", "in.png", "--no-open", "--format", "human"],
-      { image: REMOTE_PNG }
-    );
+    const run = await motif(dir, ["cutout", "in.png", "--format", "human"], {
+      image: REMOTE_PNG,
+    });
 
     expect(run.code).toBe(0);
     expect(SAVED_LINE.exec(run.stdout)?.[1]).toBe(join(dir, "in-cutout.png"));
@@ -293,10 +289,10 @@ describe("Task verbs", () => {
     const dir = project();
     await motif(
       dir,
-      ["a cat", "-a", "16:9", "-o", "cat.png", "--no-open", "--format", "json"],
+      ["a cat", "-a", "16:9", "-o", "cat.png", "--format", "json"],
       { images: [REMOTE_PNG] }
     );
-    const run = await motif(dir, ["cutout", "--no-open", "--format", "json"], {
+    const run = await motif(dir, ["cutout", "--format", "json"], {
       image: REMOTE_PNG,
     });
 
@@ -310,7 +306,7 @@ describe("Task verbs", () => {
 
   it("fails with NO_PREVIOUS when there is no source and no history", async () => {
     const dir = project();
-    const run = await motif(dir, ["cutout", "--no-open", "--format", "json"], {
+    const run = await motif(dir, ["cutout", "--format", "json"], {
       image: REMOTE_PNG,
     });
 
@@ -320,11 +316,9 @@ describe("Task verbs", () => {
 
   it("writes an output that arrives as inline data", async () => {
     const dir = project();
-    const run = await motif(
-      dir,
-      ["cutout", "in.png", "--no-open", "--format", "json"],
-      { image: INLINE_PNG }
-    );
+    const run = await motif(dir, ["cutout", "in.png", "--format", "json"], {
+      image: INLINE_PNG,
+    });
 
     expect(run.code).toBe(0);
     expect(readFileSync(join(dir, "in-cutout.png"))).toStrictEqual(PNG_1X1);
@@ -337,7 +331,7 @@ describe("series gen", () => {
     await motif(dir, ["series", "create", "Wax", "--format", "json"], {});
     const run = await motif(
       dir,
-      ["series", "gen", "wax", "a candle", "--no-open", "--format", "json"],
+      ["series", "gen", "wax", "a candle", "--format", "json"],
       { images: [REMOTE_PNG] }
     );
 
@@ -365,7 +359,7 @@ describe("series gen", () => {
     await motif(dir, ["series", "create", "Wax", "--format", "json"], {});
     const run = await motif(
       dir,
-      ["series", "gen", "wax", "a candle", "--no-open", "--format", "human"],
+      ["series", "gen", "wax", "a candle", "--format", "human"],
       { images: [REMOTE_PNG] }
     );
 
@@ -395,7 +389,7 @@ describe("series run", () => {
     const dir = project();
     const run = await motif(
       dir,
-      ["series", "run", "Towers", "-c", "2", "--no-open", "--format", "json"],
+      ["series", "run", "Towers", "-c", "2", "--format", "json"],
       { images: [REMOTE_PNG] }
     );
 
@@ -446,10 +440,88 @@ async function requestsFor(dir: string, args: string[]) {
 async function motifWithLog(dir: string, args: string[], log: string) {
   process.env.FAKE_FAL_LOG = log;
   try {
-    return await motif(dir, [...args, "--no-open", "--format", "json"], {
+    return await motif(dir, [...args, "--format", "json"], {
       images: [REMOTE_PNG],
     });
   } finally {
     delete process.env.FAKE_FAL_LOG;
   }
 }
+
+/** What the stand-in viewer (tests/no-viewer/open) was asked to open. */
+const OPENED_LOG = join(CLI_ROOT, "tests/no-viewer/opened.log");
+
+function opened(): string[] {
+  return existsSync(OPENED_LOG)
+    ? readFileSync(OPENED_LOG, "utf-8").split("\n").filter(Boolean)
+    : [];
+}
+
+const OPENING_RUNS: [string, string[], Record<string, unknown>][] = [
+  ["generate", ["a cat", "-o", "cat.png"], { images: [REMOTE_PNG] }],
+  ["vary", ["vary", "in.png", "-o", "v.png"], { images: [REMOTE_PNG] }],
+  ["a Task verb", ["cutout", "in.png", "-o", "c.png"], { image: REMOTE_PNG }],
+  [
+    "series run",
+    ["series", "run", "Towers", "-c", "2"],
+    { images: [REMOTE_PNG] },
+  ],
+];
+
+describe("opening results", () => {
+  it.each(OPENING_RUNS)(
+    "%s opens nothing without --open and the first file with it",
+    async (_name, args, result) => {
+      const dir = project();
+      rmSync(OPENED_LOG, { force: true });
+      const quiet = await motif(dir, [...args, "--format", "json"], result);
+      expect(quiet.code).toBe(0);
+      expect(opened()).toStrictEqual([]);
+
+      const loud = await motif(
+        dir,
+        [...args, "--open", "--format", "json"],
+        result
+      );
+      expect(loud.code).toBe(0);
+      expect(opened()).toHaveLength(1);
+      expect(opened()[0]).toContain(dir);
+    }
+  );
+
+  it("series gen opens only with --open", async () => {
+    const dir = project();
+    await motif(dir, ["series", "create", "Wax", "--format", "json"], {});
+    const args = ["series", "gen", "wax", "a candle", "--format", "json"];
+    rmSync(OPENED_LOG, { force: true });
+
+    await motif(dir, args, { images: [REMOTE_PNG] });
+    expect(opened()).toStrictEqual([]);
+    await motif(dir, [...args, "--open"], { images: [REMOTE_PNG] });
+    expect(opened()).toHaveLength(1);
+  });
+
+  it("sheet opens only with --open", async () => {
+    const dir = project();
+    const args = ["sheet", "in.png", "-o", "s.png", "--format", "json"];
+    rmSync(OPENED_LOG, { force: true });
+
+    await motif(dir, args, {});
+    expect(opened()).toStrictEqual([]);
+    await motif(dir, [...args, "--open"], {});
+    expect(opened()).toHaveLength(1);
+  });
+
+  it("refuses --no-open as an unknown option", async () => {
+    const dir = project();
+    const run = await motif(
+      dir,
+      ["a cat", "--no-open", "--dry-run", "--format", "json"],
+      {}
+    );
+
+    expect(run.code).toBe(2);
+    expect(json(run.stderr)).toMatchObject({ code: "INVALID_OPTION" });
+    expect(run.stderr).toContain("--no-open");
+  });
+});

@@ -154,7 +154,7 @@ export async function runCli(args: string[]): Promise<void> {
       "Markup for an edit with -e: a transparent PNG of arrows, circles and notes"
     )
     .option("--last", "Show last generation info")
-    .option("--no-open", "Don't open image after generation")
+    .option("--open", "Open the result in a viewer")
     .option("--seed <n>", "Reproducible generation seed")
     .option("--negative <text>", "Negative prompt: what not to include")
     .option(
