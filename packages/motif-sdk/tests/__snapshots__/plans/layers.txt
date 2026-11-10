@@ -16,6 +16,8 @@ layers - seedream-layerize 2K => ERR INVALID_OPTION seedream-layerize cannot tak
 layers - seedream-layerize 4K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize ref1 => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize ref2 => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
+layers - seedream-layerize scale 3 => ERR INVALID_OPTION seedream-layerize cannot take scale for layers. {"field":"scale","model":"seedream-layerize","task":"layers"}
+layers - seedream-layerize scale -1 => ERR INVALID_OPTION seedream-layerize cannot take scale for layers. {"field":"scale","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize aspect => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt=undefined body={"image_size":{"height":1024,"width":1536},"image_url":"https://example.com/source.png"}
 layers - seedream-layerize rich => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do count. {"blockedBy":"count","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered bare => qwen-layered fal-ai/qwen-image-layered queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -36,6 +38,8 @@ layers - qwen-layered 2K => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot d
 layers - qwen-layered 4K => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered ref1 => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered ref2 => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
+layers - qwen-layered scale 3 => ERR INVALID_OPTION qwen-layered cannot take scale for layers. {"field":"scale","model":"qwen-layered","task":"layers"}
+layers - qwen-layered scale -1 => ERR INVALID_OPTION qwen-layered cannot take scale for layers. {"field":"scale","model":"qwen-layered","task":"layers"}
 layers - qwen-layered aspect => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered rich => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do count. {"blockedBy":"count","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text bare => ideogram-layerize-text fal-ai/ideogram/v3/layerize-text queued=true by=model tier=balanced mode=text cost={"basis":"projected","usd":0.09} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -56,6 +60,8 @@ layers text ideogram-layerize-text 2K => ERR NO_MODEL_AVAILABLE ideogram-layeriz
 layers text ideogram-layerize-text 4K => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text ref1 => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text ref2 => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
+layers text ideogram-layerize-text scale 3 => ERR INVALID_OPTION ideogram-layerize-text cannot take scale for layers. {"field":"scale","model":"ideogram-layerize-text","task":"layers"}
+layers text ideogram-layerize-text scale -1 => ERR INVALID_OPTION ideogram-layerize-text cannot take scale for layers. {"field":"scale","model":"ideogram-layerize-text","task":"layers"}
 layers text ideogram-layerize-text aspect => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text rich => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do count. {"blockedBy":"count","task":"layers","unblockedBy":["option"]}
 layers - ranked fast => qwen-layered fal-ai/qwen-image-layered queued=true by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}

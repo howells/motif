@@ -74,6 +74,33 @@ export function cannotCarry(
   });
 }
 
+/**
+ * A scale that no endpoint takes (zero, negative, not a number) or that the
+ * endpoint's record lists no such value for. `accepted` is the record's enum,
+ * absent where the record says only `number`: no limit is invented for those.
+ */
+export function scaleRefusal(
+  task: TaskId,
+  model: string,
+  scale: number,
+  accepted: readonly number[] = []
+): MotifError | undefined {
+  if (!Number.isFinite(scale) || scale <= 0) {
+    return invalidOption(`scale must be a positive number, not ${scale}.`, {
+      field: "scale",
+      model,
+      task,
+    });
+  }
+  if (accepted.length > 0 && !accepted.includes(scale)) {
+    return invalidOption(
+      `${model} cannot take scale ${scale} for ${task}; it takes ${accepted.join(", ")}.`,
+      { accepts: accepted, field: "scale", model, task }
+    );
+  }
+  return undefined;
+}
+
 export function isPresent(input: TaskInput, field: CarriedField): boolean {
   const value = input[field];
   if (Array.isArray(value)) {

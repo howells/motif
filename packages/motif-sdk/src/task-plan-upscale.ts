@@ -8,7 +8,12 @@ import type { Result } from "neverthrow";
 
 import { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
-import { mergeParams, refuseOthers, sourceSizeOf } from "./task-plan-shared";
+import {
+  mergeParams,
+  refuseOthers,
+  scaleRefusal,
+  sourceSizeOf,
+} from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
 import type { TaskId } from "./tasks";
 import { projectedToolCost } from "./tool-cost";
@@ -35,6 +40,10 @@ export function upscalerPlan(
   }
   const body: Record<string, unknown> = { image_url: input.image };
   if (input.scale !== undefined) {
+    const badScale = scaleRefusal(task, model, input.scale);
+    if (badScale !== undefined) {
+      return err(badScale);
+    }
     body[scaleField] = input.scale;
   }
   if (input.prompt !== undefined && input.prompt !== "") {

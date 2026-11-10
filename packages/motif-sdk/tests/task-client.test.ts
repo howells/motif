@@ -932,6 +932,24 @@ describe("createMotif refusals", () => {
     });
   });
 
+  it("refuses a scale outside the endpoint's enum, and a scale no endpoint takes", () => {
+    const extract = refused("material", {
+      image: IMAGE,
+      mode: "extract",
+      prompt: "the rug",
+      scale: 3,
+    });
+    const negative = refused("upscale", { image: IMAGE, scale: -1 });
+
+    expect(extract.details).toStrictEqual({
+      accepts: [2, 4],
+      field: "scale",
+      model: "patina-extract",
+      task: "material",
+    });
+    expect(negative.details).toMatchObject({ field: "scale", task: "upscale" });
+  });
+
   it("refuses a request missing a parameter fal requires", () => {
     const error = refused("erase", { image: IMAGE });
 

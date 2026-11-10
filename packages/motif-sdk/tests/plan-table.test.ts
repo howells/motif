@@ -113,6 +113,8 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
     "ref2",
     (input) => ({ ...input, references: [OTHER_IMAGE, IMAGE], prompt: "x" }),
   ],
+  ["scale 3", (input) => ({ ...input, scale: 3 })],
+  ["scale -1", (input) => ({ ...input, scale: -1 })],
   ["aspect", (input) => ({ ...input, aspect: "3:2" })],
   [
     "rich",

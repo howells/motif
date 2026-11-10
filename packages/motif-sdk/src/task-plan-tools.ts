@@ -19,6 +19,7 @@ import {
   isPresent,
   mergeParams,
   refuseOthers,
+  scaleRefusal,
   sourceSizeOf,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
@@ -378,6 +379,16 @@ function toolOptions(
       return err(cannotCarry(field, model, task));
     }
     options[key] = value;
+  }
+
+  if (input.scale !== undefined) {
+    const accepted = enumValues(parameters.get("upscale_factor"))
+      .map(Number)
+      .filter((value) => value > 0);
+    const badScale = scaleRefusal(task, model, input.scale, accepted);
+    if (badScale !== undefined) {
+      return err(badScale);
+    }
   }
 
   if (input.outputFormat !== undefined) {

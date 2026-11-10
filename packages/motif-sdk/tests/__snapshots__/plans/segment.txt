@@ -16,6 +16,8 @@ segment - sam3-1-image 2K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot 
 segment - sam3-1-image 4K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image ref1 => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image ref2 => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image scale 3 => ERR INVALID_OPTION sam3-1-image cannot take scale for segment. {"field":"scale","model":"sam3-1-image","task":"segment"}
+segment - sam3-1-image scale -1 => ERR INVALID_OPTION sam3-1-image cannot take scale for segment. {"field":"scale","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image aspect => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image rich => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment - sam3-image bare => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png"}
@@ -36,6 +38,8 @@ segment - sam3-image 2K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do r
 segment - sam3-image 4K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-image ref1 => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment - sam3-image ref2 => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-image scale 3 => ERR INVALID_OPTION sam3-image cannot take scale for segment. {"field":"scale","model":"sam3-image","task":"segment"}
+segment - sam3-image scale -1 => ERR INVALID_OPTION sam3-image cannot take scale for segment. {"field":"scale","model":"sam3-image","task":"segment"}
 segment - sam3-image aspect => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-image rich => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video bare => sam3-1-video fal-ai/sam-3-1/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06} prompt="person" body={"apply_mask":true,"prompt":"person","video_url":"https://example.com/source.mp4"}
@@ -56,6 +60,8 @@ segment - sam3-1-video 2K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot 
 segment - sam3-1-video 4K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video ref1 => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video ref2 => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video scale 3 => ERR INVALID_OPTION sam3-1-video cannot take scale for segment. {"field":"scale","model":"sam3-1-video","task":"segment"}
+segment - sam3-1-video scale -1 => ERR INVALID_OPTION sam3-1-video cannot take scale for segment. {"field":"scale","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video aspect => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video rich => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment - sam3-video bare => sam3-video fal-ai/sam-3/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_output_type":"X264 (.mp4)","video_url":"https://example.com/source.mp4"}
@@ -76,6 +82,8 @@ segment - sam3-video 2K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do r
 segment - sam3-video 4K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-video ref1 => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment - sam3-video ref2 => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment - sam3-video scale 3 => ERR INVALID_OPTION sam3-video cannot take scale for segment. {"field":"scale","model":"sam3-video","task":"segment"}
+segment - sam3-video scale -1 => ERR INVALID_OPTION sam3-video cannot take scale for segment. {"field":"scale","model":"sam3-video","task":"segment"}
 segment - sam3-video aspect => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment - sam3-video rich => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto bare => sam2-auto fal-ai/sam2/auto-segment queued=true by=model tier=balanced mode=auto cost={"basis":"projected","usd":0} prompt=undefined body={"image_url":"https://example.com/source.png","min_mask_region_area":100,"output_format":"png","points_per_side":32,"pred_iou_thresh":0.88,"stability_score_thresh":0.95}
@@ -96,6 +104,8 @@ segment auto sam2-auto 2K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do 
 segment auto sam2-auto 4K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto ref1 => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto ref2 => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto scale 3 => ERR INVALID_OPTION sam2-auto cannot take scale for segment. {"field":"scale","model":"sam2-auto","task":"segment"}
+segment auto sam2-auto scale -1 => ERR INVALID_OPTION sam2-auto cannot take scale for segment. {"field":"scale","model":"sam2-auto","task":"segment"}
 segment auto sam2-auto aspect => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto rich => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle bare => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt=undefined body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3}
@@ -116,6 +126,8 @@ segment rle sam3-image-rle 2K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) c
 segment rle sam3-image-rle 4K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle ref1 => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle ref2 => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle scale 3 => ERR INVALID_OPTION sam3-image-rle cannot take scale for segment. {"field":"scale","model":"sam3-image-rle","task":"segment"}
+segment rle sam3-image-rle scale -1 => ERR INVALID_OPTION sam3-image-rle cannot take scale for segment. {"field":"scale","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle aspect => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle rich => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle bare => sam3-video-rle fal-ai/sam-3/video-rle queued=true by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.03} prompt="person" body={"apply_mask":true,"detection_threshold":0.5,"prompt":"person","video_url":"https://example.com/source.mp4"}
@@ -136,6 +148,8 @@ segment rle sam3-video-rle 2K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) c
 segment rle sam3-video-rle 4K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle ref1 => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle ref2 => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do references. {"blockedBy":"references","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle scale 3 => ERR INVALID_OPTION sam3-video-rle cannot take scale for segment. {"field":"scale","model":"sam3-video-rle","task":"segment"}
+segment rle sam3-video-rle scale -1 => ERR INVALID_OPTION sam3-video-rle cannot take scale for segment. {"field":"scale","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle aspect => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do aspect. {"blockedBy":"aspect","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle rich => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do count. {"blockedBy":"count","task":"segment","unblockedBy":["option"]}
 segment - ranked fast => sam3-image fal-ai/sam-3/image queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}

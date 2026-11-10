@@ -16,6 +16,8 @@ upscale - topaz-precision 2K => ERR NO_MODEL_AVAILABLE topaz-precision (model) c
 upscale - topaz-precision 4K => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-precision ref1 => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-precision ref2 => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-precision scale 3 => topaz-precision topaz/upscale/image/precision queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png","upscale_factor":3}
+upscale - topaz-precision scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"topaz-precision","task":"upscale"}
 upscale - topaz-precision aspect => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-precision rich => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image bare => topaz-image fal-ai/topaz/upscale/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","model":"Standard V2","output_format":"jpeg","upscale_factor":2}
@@ -36,6 +38,8 @@ upscale - topaz-image 2K => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do
 upscale - topaz-image 4K => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image ref1 => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image ref2 => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-image scale 3 => topaz-image fal-ai/topaz/upscale/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","model":"Standard V2","output_format":"jpeg","upscale_factor":3}
+upscale - topaz-image scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"topaz-image","task":"upscale"}
 upscale - topaz-image aspect => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image rich => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - clarity bare => clarity fal-ai/clarity-upscaler queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.096} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -56,6 +60,8 @@ upscale - clarity 2K => ERR NO_MODEL_AVAILABLE clarity (model) cannot do resolut
 upscale - clarity 4K => ERR NO_MODEL_AVAILABLE clarity (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - clarity ref1 => ERR NO_MODEL_AVAILABLE clarity (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - clarity ref2 => ERR NO_MODEL_AVAILABLE clarity (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - clarity scale 3 => clarity fal-ai/clarity-upscaler queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.216} prompt=undefined body={"image_url":"https://example.com/source.png","upscale_factor":3}
+upscale - clarity scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"clarity","task":"upscale"}
 upscale - clarity aspect => ERR INVALID_OPTION clarity cannot take aspect for upscale. {"field":"aspect","model":"clarity","task":"upscale"}
 upscale - clarity rich => ERR NO_MODEL_AVAILABLE clarity (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale bare => seedvr-upscale fal-ai/seedvr/upscale/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.0032} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
@@ -76,6 +82,8 @@ upscale - seedvr-upscale 2K => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) can
 upscale - seedvr-upscale 4K => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale ref1 => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale ref2 => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - seedvr-upscale scale 3 => seedvr-upscale fal-ai/seedvr/upscale/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.007200000000000001} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png","upscale_factor":3}
+upscale - seedvr-upscale scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"seedvr-upscale","task":"upscale"}
 upscale - seedvr-upscale aspect => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale rich => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - crystal bare => crystal clarityai/crystal-upscaler queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.02} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -96,6 +104,8 @@ upscale - crystal 2K => ERR NO_MODEL_AVAILABLE crystal (model) cannot do resolut
 upscale - crystal 4K => ERR NO_MODEL_AVAILABLE crystal (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - crystal ref1 => ERR NO_MODEL_AVAILABLE crystal (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - crystal ref2 => ERR NO_MODEL_AVAILABLE crystal (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - crystal scale 3 => crystal clarityai/crystal-upscaler queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.02} prompt=undefined body={"image_url":"https://example.com/source.png","scale_factor":3}
+upscale - crystal scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"crystal","task":"upscale"}
 upscale - crystal aspect => ERR INVALID_OPTION crystal cannot take aspect for upscale. {"field":"aspect","model":"crystal","task":"upscale"}
 upscale - crystal rich => ERR NO_MODEL_AVAILABLE crystal (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent bare => topaz-transparent topaz/upscale/image/transparent queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png"}
@@ -116,6 +126,8 @@ upscale - topaz-transparent 2K => ERR NO_MODEL_AVAILABLE topaz-transparent (mode
 upscale - topaz-transparent 4K => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent ref1 => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent ref2 => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-transparent scale 3 => ERR INVALID_OPTION topaz-transparent cannot take scale for upscale. {"field":"scale","model":"topaz-transparent","task":"upscale"}
+upscale - topaz-transparent scale -1 => ERR INVALID_OPTION topaz-transparent cannot take scale for upscale. {"field":"scale","model":"topaz-transparent","task":"upscale"}
 upscale - topaz-transparent aspect => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent rich => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video bare => topaz-video fal-ai/topaz/upscale/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.32} prompt=undefined body={"model":"Proteus","upscale_factor":2,"video_url":"https://example.com/source.mp4"}
@@ -136,6 +148,8 @@ upscale - topaz-video 2K => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do
 upscale - topaz-video 4K => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video ref1 => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video ref2 => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-video scale 3 => topaz-video fal-ai/topaz/upscale/video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.32} prompt=undefined body={"model":"Proteus","upscale_factor":3,"video_url":"https://example.com/source.mp4"}
+upscale - topaz-video scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"topaz-video","task":"upscale"}
 upscale - topaz-video aspect => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video rich => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative bare => topaz-creative topaz/upscale/image/creative queued=true by=model tier=balanced mode=creative cost={"basis":"projected","usd":0.16} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
@@ -156,6 +170,8 @@ upscale creative topaz-creative 2K => ERR NO_MODEL_AVAILABLE topaz-creative (mod
 upscale creative topaz-creative 4K => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative ref1 => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative ref2 => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale creative topaz-creative scale 3 => topaz-creative topaz/upscale/image/creative queued=true by=model tier=balanced mode=creative cost={"basis":"projected","usd":0.32} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png","upscale_factor":3}
+upscale creative topaz-creative scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"topaz-creative","task":"upscale"}
 upscale creative topaz-creative aspect => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative rich => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative bare => topaz-generative topaz/upscale/image/generative queued=true by=model tier=balanced mode=generative cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
@@ -176,6 +192,8 @@ upscale generative topaz-generative 2K => ERR NO_MODEL_AVAILABLE topaz-generativ
 upscale generative topaz-generative 4K => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative ref1 => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative ref2 => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
+upscale generative topaz-generative scale 3 => topaz-generative topaz/upscale/image/generative queued=true by=model tier=balanced mode=generative cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png","upscale_factor":3}
+upscale generative topaz-generative scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"topaz-generative","task":"upscale"}
 upscale generative topaz-generative aspect => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative rich => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
 upscale - ranked fast => clarity fal-ai/clarity-upscaler queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.096} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
