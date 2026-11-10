@@ -1,0 +1,6 @@
+#!/bin/sh
+# Stands in for the system viewer during tests, so no run can open a window.
+# The CLI runs its opener with only PATH in the environment, so the record of
+# what was asked for goes in a file beside this script: tests read opened.log.
+printf '%s\n' "$*" >> "$(dirname "$0")/opened.log"
+exit 0

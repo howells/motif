@@ -5,6 +5,8 @@ export default defineConfig({
     environment: "node",
     globals: true,
     include: ["tests/**/*.test.ts"],
+    // Puts do-nothing `open` and `xdg-open` first on PATH: no test opens a viewer.
+    setupFiles: ["tests/setup-no-viewer.ts"],
     // Nearly every test here spawns the real CLI as a subprocess, so the work
     // is process startup rather than computation and the cost tracks how busy
     // the machine is. Vitest's 5s default is a developer-laptop budget: it held
