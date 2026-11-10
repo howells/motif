@@ -18,6 +18,10 @@ tile - ideogram-tiling ref1 => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) ca
 tile - ideogram-tiling ref2 => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
 tile - ideogram-tiling count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"tile"}
 tile - ideogram-tiling count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"tile"}
+tile - ideogram-tiling count 5 => ideogram-tiling ideogram/v4/tiling queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.31457280000000004} prompt="the shoe" body={"num_images":5,"output_format":"png","prompt":"the shoe"}
+tile - ideogram-tiling count 11 => ideogram-tiling ideogram/v4/tiling queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.6920601599999999} prompt="the shoe" body={"num_images":11,"output_format":"png","prompt":"the shoe"}
+tile - ideogram-tiling count 2 svg => ERR INVALID_OPTION ideogram-tiling cannot return svg for tile; it takes jpeg, png. {"accepts":["jpeg","png"],"field":"outputFormat","model":"ideogram-tiling","task":"tile"}
+tile - ideogram-tiling params num_images 11 => ERR INVALID_OPTION ideogram-tiling needs prompt for tile. {"field":"prompt","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"tile"}
 tile - ideogram-tiling seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"tile"}
 tile - ideogram-tiling box outside => ERR INVALID_OPTION ideogram-tiling cannot take boxes for tile. {"field":"boxes","model":"ideogram-tiling","task":"tile"}
@@ -57,6 +61,10 @@ tile upscale seedvr-seamless ref1 => ERR NO_MODEL_AVAILABLE seedvr-seamless (mod
 tile upscale seedvr-seamless ref2 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"tile"}
 tile upscale seedvr-seamless count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"tile"}
+tile upscale seedvr-seamless count 5 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless count 11 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless count 2 svg => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless params num_images 11 => ERR INVALID_OPTION params.num_images is not a parameter of seedvr-seamless. It takes: enable_safety_checker, noise_scale, output_format, seed, target_resolution, upscale_factor, upscale_mode. {"accepts":["enable_safety_checker","noise_scale","output_format","seed","target_resolution","upscale_factor","upscale_mode"],"field":"params","key":"num_images","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"tile"}
 tile upscale seedvr-seamless seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"tile"}
 tile upscale seedvr-seamless box outside => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}

@@ -6,6 +6,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildGenerateBody } from "../src/generate";
+import { GENERATION_MODELS, MODELS } from "../src/models";
 import { resolveTask } from "../src/resolve";
 import type { TaskEnvironment } from "../src/resolve";
 import { createMotif } from "../src/task-client";
@@ -284,6 +285,107 @@ describe("upscale factors fal's schema takes", () => {
     );
     expect(refused("upscale", { image: IMAGE, scale: 201 }).code).toBe(
       "INVALID_OPTION"
+    );
+  });
+});
+
+describe("images per request fal's schema allows", () => {
+  const COUNTS = {
+    banana: 4,
+    banana2: 4,
+    "banana2-lite": 4,
+    banana21: 4,
+    flare: 10,
+    "flux2-turbo": 4,
+    gpt: 4,
+    "grok-image": 4,
+    "grok-image-2": 10,
+    "grok-image-quality": 4,
+    "ideogram3-transparent": 8,
+    ideogram4: 4,
+    "mai-image-2.5": 4,
+    "mai-image-2.5-pro": 4,
+    "muse-image": 10,
+    qwen3: 6,
+    seedream5: 6,
+    "seedream5-lite": 6,
+    sunburst: 10,
+  } as const;
+
+  it("states a maximum exactly where a Model takes a count", () => {
+    for (const id of GENERATION_MODELS) {
+      const config = MODELS[id];
+      expect(config?.maxCount, id).toBe(
+        config?.supportsNumImages === true ? Reflect.get(COUNTS, id) : undefined
+      );
+    }
+  });
+
+  it.each(Object.entries(COUNTS))(
+    "%s makes %i and refuses one more",
+    (model, max) => {
+      const input: TaskInput = {
+        model,
+        prompt: "a chair",
+        transparent: model === "ideogram3-transparent" ? true : undefined,
+      };
+      expect(
+        planned("generate", { ...input, count: max }).body.num_images
+      ).toBe(max);
+      const error = refused("generate", { ...input, count: max + 1 });
+      expect(error.message).toContain(`at most ${max}`);
+    }
+  );
+
+  it("refuses a count above the maximum sent in params", () => {
+    const error = refused("generate", {
+      model: "gpt",
+      params: { num_images: 5 },
+      prompt: "a chair",
+    });
+    expect(error.message).toContain("at most 4");
+  });
+
+  it.each(["flux2-pro", "flux2-flex", "recraft41", "krea3"])(
+    "%s takes no count at all",
+    (model) => {
+      expect(
+        refused("generate", { count: 2, model, prompt: "a chair" }).code
+      ).toBe("NO_MODEL_AVAILABLE");
+      expect(
+        refused("generate", {
+          model,
+          params: { num_images: 2 },
+          prompt: "a chair",
+        }).code
+      ).toBe("INVALID_OPTION");
+    }
+  );
+
+  it("makes one image of SVG on Sunburst", () => {
+    const text = {
+      model: "sunburst",
+      outputFormat: "svg",
+      prompt: "a chair",
+    } as const;
+    expect(planned("generate", { ...text, count: 1 }).body.num_images).toBe(1);
+    expect(refused("generate", { ...text, count: 2 }).message).toContain(
+      "at most 1"
+    );
+    expect(
+      refused("generate", { ...text, params: { num_images: 2 } }).message
+    ).toContain("at most 1");
+  });
+
+  it("ranks past a Model that cannot make the count", () => {
+    const at = (count: number, tier: "balanced" | "fast" | "quality") =>
+      planned("generate", { count, prompt: "a chair", tier }).model;
+    expect(at(4, "balanced")).not.toBe("");
+    expect(at(5, "fast")).toBe("seedream5-lite");
+    expect(at(5, "balanced")).toBe("grok-image-2");
+    expect(at(7, "fast")).toBe("grok-image-2");
+    expect(refused("generate", { count: 11, prompt: "a chair" }).code).toBe(
+      "NO_MODEL_AVAILABLE"
     );
   });
 });

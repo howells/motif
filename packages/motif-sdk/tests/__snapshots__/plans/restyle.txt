@@ -18,6 +18,10 @@ restyle - telestyle-v2 ref1 => telestyle-v2 fal-ai/telestyle-v2 queued=false by=
 restyle - telestyle-v2 ref2 => ERR INVALID_OPTION restyle takes exactly one reference image. {"field":"references","task":"restyle"}
 restyle - telestyle-v2 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"restyle"}
 restyle - telestyle-v2 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"restyle"}
+restyle - telestyle-v2 count 5 => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
+restyle - telestyle-v2 count 11 => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
+restyle - telestyle-v2 count 2 svg => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}
+restyle - telestyle-v2 params num_images 11 => telestyle-v2 fal-ai/telestyle-v2 queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.30800000000000005} prompt=undefined body={"content_image_url":"https://example.com/source.png","num_images":11,"output_format":"png","style_image_url":"https://example.com/reference.png"}
 restyle - telestyle-v2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"restyle"}
 restyle - telestyle-v2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"restyle"}
 restyle - telestyle-v2 box outside => ERR INVALID_OPTION telestyle-v2 cannot take prompt for restyle. {"field":"prompt","model":"telestyle-v2","task":"restyle"}

@@ -10,6 +10,7 @@ import {
   RESOLUTION_LONG_EDGE,
 } from "./aspects";
 import {
+  countRefusal,
   DEFAULT_OUTPUT_FORMAT,
   outputFormatsOf,
   UnsupportedOptionError,
@@ -216,6 +217,13 @@ function validateGenerateOptions(
     !config.supportsNumImages
   ) {
     unsupported(config, "numImages");
+  }
+  const tooMany =
+    options.numImages === undefined
+      ? undefined
+      : countRefusal(config, options.numImages, options.outputFormat);
+  if (tooMany !== undefined) {
+    throw new Error(tooMany);
   }
   // A transparent-only endpoint has no `background` parameter, but asking it
   // for a transparent background is asking for what it always returns.

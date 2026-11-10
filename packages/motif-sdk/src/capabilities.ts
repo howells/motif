@@ -38,6 +38,42 @@ export function outputFormatsOf(
   return editing ? (config.supportedEditOutputFormats ?? formats) : formats;
 }
 
+interface CountLimits {
+  readonly maxCount?: number;
+  readonly name: string;
+  readonly singleImageFormats?: readonly string[];
+}
+
+/**
+ * The most images one request may ask for: 1 for an output format that makes
+ * one, else the Model's maximum. Absent where no maximum is known.
+ */
+export function countLimit(
+  limits: CountLimits,
+  format?: string
+): number | undefined {
+  const single =
+    format !== undefined &&
+    limits.singleImageFormats?.some((candidate) => candidate === format) ===
+      true;
+  return single ? 1 : limits.maxCount;
+}
+
+/** Why a request for `count` images is too many for the Model, if it is. */
+export function countRefusal(
+  limits: CountLimits,
+  count: number,
+  format?: string
+): string | undefined {
+  const limit = countLimit(limits, format);
+  if (limit === undefined || count <= limit) {
+    return undefined;
+  }
+  const noun = limit === 1 ? "image" : "images";
+  const as = limit === 1 && limits.maxCount !== 1 ? ` as ${format}` : "";
+  return `${limits.name} makes at most ${limit} ${noun} per request${as}, not ${count}.`;
+}
+
 type Capability = (config: ModelConfig) => boolean;
 
 /** Generation options a model can refuse, with the registry test for each. */

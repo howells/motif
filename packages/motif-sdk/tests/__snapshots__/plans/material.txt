@@ -18,6 +18,10 @@ material - patina ref1 => ERR NO_MODEL_AVAILABLE patina (model) cannot do refere
 material - patina ref2 => ERR NO_MODEL_AVAILABLE patina (model) cannot do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
 material - patina count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"material"}
 material - patina count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"material"}
+material - patina count 5 => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
+material - patina count 11 => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
+material - patina count 2 svg => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
+material - patina params num_images 11 => ERR INVALID_OPTION params.num_images is not a parameter of patina. It takes: enable_safety_checker, maps, output_format, seed. {"accepts":["enable_safety_checker","maps","output_format","seed"],"field":"params","key":"num_images","model":"patina","task":"material"}
 material - patina seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"material"}
 material - patina seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"material"}
 material - patina box outside => ERR INVALID_OPTION patina cannot take prompt for material. {"field":"prompt","model":"patina","task":"material"}
@@ -57,6 +61,10 @@ material extract patina-extract ref1 => ERR NO_MODEL_AVAILABLE patina-extract (m
 material extract patina-extract ref2 => ERR NO_MODEL_AVAILABLE patina-extract (model) cannot do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
 material extract patina-extract count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"material"}
 material extract patina-extract count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"material"}
+material extract patina-extract count 5 => patina-extract fal-ai/patina/material/extract queued=true by=model tier=balanced mode=extract cost={"basis":"projected","usd":0.38311552000000004} prompt="the shoe" body={"image_url":"https://example.com/source.png","num_images":5,"output_format":"png","prompt":"the shoe"}
+material extract patina-extract count 11 => patina-extract fal-ai/patina/material/extract queued=true by=model tier=balanced mode=extract cost={"basis":"projected","usd":0.69768832} prompt="the shoe" body={"image_url":"https://example.com/source.png","num_images":11,"output_format":"png","prompt":"the shoe"}
+material extract patina-extract count 2 svg => ERR INVALID_OPTION patina-extract cannot return svg for material; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"patina-extract","task":"material"}
+material extract patina-extract params num_images 11 => ERR INVALID_OPTION patina-extract needs prompt for material. {"field":"prompt","model":"patina-extract","task":"material"}
 material extract patina-extract seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"material"}
 material extract patina-extract seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"material"}
 material extract patina-extract box outside => ERR INVALID_OPTION patina-extract cannot take boxes for material. {"field":"boxes","model":"patina-extract","task":"material"}

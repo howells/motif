@@ -17,6 +17,7 @@ import {
   requestedSize,
 } from "./aspects";
 import {
+  countRefusal,
   OPAQUE_OUTPUT_FORMATS,
   outputFormatsOf,
   UnsupportedOptionError,
@@ -526,6 +527,16 @@ function generationPlan(
   );
   if (merged.isErr()) {
     return err(merged.error);
+  }
+  const tooMany = countRefusal(
+    config,
+    typeof merged.value.num_images === "number" ? merged.value.num_images : 1,
+    typeof merged.value.output_format === "string"
+      ? merged.value.output_format
+      : undefined
+  );
+  if (tooMany !== undefined) {
+    return err(invalidOption(tooMany, { field: "count", model, task }));
   }
   const badParam =
     input.params === undefined

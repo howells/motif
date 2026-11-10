@@ -18,6 +18,10 @@ generate - sunburst ref1 => sunburst openai/gpt-image-2.6/sunburst/edit queued=t
 generate - sunburst ref2 => sunburst openai/gpt-image-2.6/sunburst/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"image_size":"auto","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","quality":"max"}
 generate - sunburst count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - sunburst count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - sunburst count 5 => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
+generate - sunburst count 11 => ERR NO_MODEL_AVAILABLE sunburst (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - sunburst count 2 svg => ERR NO_MODEL_AVAILABLE sunburst (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - sunburst params num_images 11 => ERR INVALID_OPTION GPT Image 2.6 Sunburst makes at most 10 images per request, not 11. {"field":"count","model":"sunburst","task":"generate"}
 generate - sunburst seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - sunburst seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - sunburst box outside => ERR INVALID_OPTION sunburst cannot take boxes for generate. {"field":"boxes","model":"sunburst","task":"generate"}
@@ -57,6 +61,10 @@ generate - flare ref1 => flare openai/gpt-image-2.6/flare/edit queued=true by=mo
 generate - flare ref2 => flare openai/gpt-image-2.6/flare/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"image_size":"auto","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","quality":"max"}
 generate - flare count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - flare count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - flare count 5 => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
+generate - flare count 11 => ERR NO_MODEL_AVAILABLE flare (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flare count 2 svg => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":2,"output_format":"svg","prompt":"the shoe","quality":"max"}
+generate - flare params num_images 11 => ERR INVALID_OPTION GPT Image 2.6 Flare makes at most 10 images per request, not 11. {"field":"count","model":"flare","task":"generate"}
 generate - flare seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flare seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flare box outside => ERR INVALID_OPTION flare cannot take boxes for generate. {"field":"boxes","model":"flare","task":"generate"}
@@ -96,6 +104,10 @@ generate - seedream5 ref1 => seedream5 bytedance/seedream/v5/pro/edit queued=fal
 generate - seedream5 ref2 => seedream5 bytedance/seedream/v5/pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="x" body={"image_size":"square_hd","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"prompt":"x"}
 generate - seedream5 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - seedream5 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - seedream5 count 5 => seedream5 bytedance/seedream/v5/pro/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.3375} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"prompt":"the shoe"}
+generate - seedream5 count 11 => ERR NO_MODEL_AVAILABLE seedream5 (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - seedream5 count 2 svg => ERR NO_MODEL_AVAILABLE seedream5 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - seedream5 params num_images 11 => ERR INVALID_OPTION Seedream 5.0 Pro makes at most 6 images per request, not 11. {"field":"count","model":"seedream5","task":"generate"}
 generate - seedream5 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - seedream5 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - seedream5 box outside => ERR INVALID_OPTION seedream5 cannot take boxes for generate. {"field":"boxes","model":"seedream5","task":"generate"}
@@ -135,6 +147,10 @@ generate - gpt ref1 => gpt fal-ai/gpt-image-1.5/edit queued=false by=model tier=
 generate - gpt ref2 => gpt fal-ai/gpt-image-1.5/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.133} prompt="x" body={"image_size":"auto","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","quality":"high"}
 generate - gpt count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - gpt count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - gpt count 5 => ERR NO_MODEL_AVAILABLE gpt (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - gpt count 11 => ERR NO_MODEL_AVAILABLE gpt (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - gpt count 2 svg => ERR NO_MODEL_AVAILABLE gpt (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - gpt params num_images 11 => ERR INVALID_OPTION GPT Image 1.5 makes at most 4 images per request, not 11. {"field":"count","model":"gpt","task":"generate"}
 generate - gpt seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - gpt seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - gpt box outside => ERR INVALID_OPTION gpt cannot take boxes for generate. {"field":"boxes","model":"gpt","task":"generate"}
@@ -174,6 +190,10 @@ generate - mai-image-2.5-pro ref1 => mai-image-2.5-pro microsoft/mai-image-2.5-p
 generate - mai-image-2.5-pro ref2 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot do references. {"blockedBy":"references","task":"generate","unblockedBy":["option"]}
 generate - mai-image-2.5-pro count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - mai-image-2.5-pro count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - mai-image-2.5-pro count 5 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - mai-image-2.5-pro count 11 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - mai-image-2.5-pro count 2 svg => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - mai-image-2.5-pro params num_images 11 => ERR INVALID_OPTION MAI Image 2.5 Pro makes at most 4 images per request, not 11. {"field":"count","model":"mai-image-2.5-pro","task":"generate"}
 generate - mai-image-2.5-pro seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - mai-image-2.5-pro seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - mai-image-2.5-pro box outside => ERR INVALID_OPTION mai-image-2.5-pro cannot take boxes for generate. {"field":"boxes","model":"mai-image-2.5-pro","task":"generate"}
@@ -213,6 +233,10 @@ generate - banana21 ref1 => banana21 google/nano-banana-2.1/edit queued=false by
 generate - banana21 ref2 => banana21 google/nano-banana-2.1/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"aspect_ratio":"auto","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2K"}
 generate - banana21 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - banana21 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - banana21 count 5 => ERR NO_MODEL_AVAILABLE banana21 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana21 count 11 => ERR NO_MODEL_AVAILABLE banana21 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana21 count 2 svg => ERR NO_MODEL_AVAILABLE banana21 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - banana21 params num_images 11 => ERR INVALID_OPTION Nano Banana 2.1 makes at most 4 images per request, not 11. {"field":"count","model":"banana21","task":"generate"}
 generate - banana21 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana21 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana21 box outside => ERR INVALID_OPTION banana21 cannot take boxes for generate. {"field":"boxes","model":"banana21","task":"generate"}
@@ -252,6 +276,10 @@ generate - grok-image-2 ref1 => grok-image-2 xai/grok-imagine-image/v2.0/edit qu
 generate - grok-image-2 ref2 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.1} prompt="x" body={"aspect_ratio":"1:1","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2k"}
 generate - grok-image-2 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - grok-image-2 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - grok-image-2 count 5 => grok-image-2 xai/grok-imagine-image/v2.0/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.4} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":5,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+generate - grok-image-2 count 11 => ERR NO_MODEL_AVAILABLE grok-image-2 (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - grok-image-2 count 2 svg => ERR NO_MODEL_AVAILABLE grok-image-2 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - grok-image-2 params num_images 11 => ERR INVALID_OPTION Grok Imagine Image 2.0 makes at most 10 images per request, not 11. {"field":"count","model":"grok-image-2","task":"generate"}
 generate - grok-image-2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - grok-image-2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - grok-image-2 box outside => ERR INVALID_OPTION grok-image-2 cannot take boxes for generate. {"field":"boxes","model":"grok-image-2","task":"generate"}
@@ -291,6 +319,10 @@ generate - muse-image ref1 => muse-image meta/muse-image/edit queued=false by=mo
 generate - muse-image ref2 => muse-image meta/muse-image/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="x" body={"aspect_ratio":"1:1","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x"}
 generate - muse-image count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - muse-image count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - muse-image count 5 => muse-image meta/muse-image/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":5,"output_format":"png","prompt":"the shoe"}
+generate - muse-image count 11 => ERR NO_MODEL_AVAILABLE muse-image (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - muse-image count 2 svg => ERR NO_MODEL_AVAILABLE muse-image (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - muse-image params num_images 11 => ERR INVALID_OPTION Meta Muse Image makes at most 10 images per request, not 11. {"field":"count","model":"muse-image","task":"generate"}
 generate - muse-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - muse-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - muse-image box outside => ERR INVALID_OPTION muse-image cannot take boxes for generate. {"field":"boxes","model":"muse-image","task":"generate"}
@@ -330,6 +362,10 @@ generate - banana2 ref1 => banana2 fal-ai/nano-banana-2/edit queued=false by=mod
 generate - banana2 ref2 => banana2 fal-ai/nano-banana-2/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.12} prompt="x" body={"aspect_ratio":"1:1","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2K"}
 generate - banana2 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - banana2 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - banana2 count 5 => ERR NO_MODEL_AVAILABLE banana2 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana2 count 11 => ERR NO_MODEL_AVAILABLE banana2 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana2 count 2 svg => ERR NO_MODEL_AVAILABLE banana2 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - banana2 params num_images 11 => ERR INVALID_OPTION Nano Banana 2 makes at most 4 images per request, not 11. {"field":"count","model":"banana2","task":"generate"}
 generate - banana2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana2 box outside => ERR INVALID_OPTION banana2 cannot take boxes for generate. {"field":"boxes","model":"banana2","task":"generate"}
@@ -369,6 +405,10 @@ generate - qwen3 ref1 => qwen3 alibaba/qwen-image-3/edit queued=false by=model t
 generate - qwen3 ref2 => qwen3 alibaba/qwen-image-3/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="x" body={"image_size":"square_hd","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x"}
 generate - qwen3 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - qwen3 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - qwen3 count 5 => qwen3 alibaba/qwen-image-3/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"output_format":"png","prompt":"the shoe"}
+generate - qwen3 count 11 => ERR NO_MODEL_AVAILABLE qwen3 (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - qwen3 count 2 svg => ERR NO_MODEL_AVAILABLE qwen3 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - qwen3 params num_images 11 => ERR INVALID_OPTION Qwen Image 3 makes at most 6 images per request, not 11. {"field":"count","model":"qwen3","task":"generate"}
 generate - qwen3 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - qwen3 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - qwen3 box outside => ERR INVALID_OPTION qwen3 cannot take boxes for generate. {"field":"boxes","model":"qwen3","task":"generate"}
@@ -408,6 +448,10 @@ generate - mai-image-2.5 ref1 => mai-image-2.5 microsoft/mai-image-2.5/edit queu
 generate - mai-image-2.5 ref2 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot do references. {"blockedBy":"references","task":"generate","unblockedBy":["option"]}
 generate - mai-image-2.5 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - mai-image-2.5 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - mai-image-2.5 count 5 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - mai-image-2.5 count 11 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - mai-image-2.5 count 2 svg => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - mai-image-2.5 params num_images 11 => ERR INVALID_OPTION MAI Image 2.5 makes at most 4 images per request, not 11. {"field":"count","model":"mai-image-2.5","task":"generate"}
 generate - mai-image-2.5 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - mai-image-2.5 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - mai-image-2.5 box outside => ERR INVALID_OPTION mai-image-2.5 cannot take boxes for generate. {"field":"boxes","model":"mai-image-2.5","task":"generate"}
@@ -447,6 +491,10 @@ generate - banana ref1 => banana fal-ai/nano-banana-pro/edit queued=false by=mod
 generate - banana ref2 => banana fal-ai/nano-banana-pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.15} prompt="x" body={"aspect_ratio":"auto","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2K"}
 generate - banana count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - banana count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - banana count 5 => ERR NO_MODEL_AVAILABLE banana (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana count 11 => ERR NO_MODEL_AVAILABLE banana (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana count 2 svg => ERR NO_MODEL_AVAILABLE banana (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - banana params num_images 11 => ERR INVALID_OPTION Nano Banana Pro makes at most 4 images per request, not 11. {"field":"count","model":"banana","task":"generate"}
 generate - banana seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana box outside => ERR INVALID_OPTION banana cannot take boxes for generate. {"field":"boxes","model":"banana","task":"generate"}
@@ -486,6 +534,10 @@ generate - ideogram4 ref1 => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot do 
 generate - ideogram4 ref2 => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot do references. {"blockedBy":"references","task":"generate","unblockedBy":["option"]}
 generate - ideogram4 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - ideogram4 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - ideogram4 count 5 => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - ideogram4 count 11 => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - ideogram4 count 2 svg => ERR NO_MODEL_AVAILABLE ideogram4 (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - ideogram4 params num_images 11 => ERR INVALID_OPTION Ideogram V4 makes at most 4 images per request, not 11. {"field":"count","model":"ideogram4","task":"generate"}
 generate - ideogram4 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - ideogram4 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - ideogram4 box outside => ERR INVALID_OPTION ideogram4 cannot take boxes for generate. {"field":"boxes","model":"ideogram4","task":"generate"}
@@ -525,6 +577,10 @@ generate - flux2-flex ref1 => flux2-flex fal-ai/flux-2-flex/edit queued=false by
 generate - flux2-flex ref2 => flux2-flex fal-ai/flux-2-flex/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.052428800000000005} prompt="x" body={"image_size":"square_hd","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"output_format":"png","prompt":"x"}
 generate - flux2-flex count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - flux2-flex count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - flux2-flex count 5 => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-flex count 11 => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-flex count 2 svg => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-flex params num_images 11 => ERR INVALID_OPTION flux2-flex does not take more than one image. {"field":"params","key":"num_images","model":"flux2-flex","task":"generate"}
 generate - flux2-flex seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flux2-flex seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flux2-flex box outside => ERR INVALID_OPTION flux2-flex cannot take boxes for generate. {"field":"boxes","model":"flux2-flex","task":"generate"}
@@ -564,6 +620,10 @@ generate - recraft41 ref1 => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do 
 generate - recraft41 ref2 => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do references. {"blockedBy":"references","task":"generate","unblockedBy":["option"]}
 generate - recraft41 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - recraft41 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - recraft41 count 5 => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - recraft41 count 11 => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - recraft41 count 2 svg => ERR NO_MODEL_AVAILABLE recraft41 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - recraft41 params num_images 11 => ERR INVALID_OPTION recraft41 does not take more than one image. {"field":"params","key":"num_images","model":"recraft41","task":"generate"}
 generate - recraft41 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - recraft41 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - recraft41 box outside => ERR INVALID_OPTION recraft41 cannot take boxes for generate. {"field":"boxes","model":"recraft41","task":"generate"}
@@ -603,6 +663,10 @@ generate - flux2-pro ref1 => flux2-pro fal-ai/flux-2-pro/edit queued=false by=mo
 generate - flux2-pro ref2 => flux2-pro fal-ai/flux-2-pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.03145728} prompt="x" body={"image_size":"square_hd","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"output_format":"png","prompt":"x"}
 generate - flux2-pro count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - flux2-pro count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - flux2-pro count 5 => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-pro count 11 => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-pro count 2 svg => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-pro params num_images 11 => ERR INVALID_OPTION flux2-pro does not take more than one image. {"field":"params","key":"num_images","model":"flux2-pro","task":"generate"}
 generate - flux2-pro seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flux2-pro seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flux2-pro box outside => ERR INVALID_OPTION flux2-pro cannot take boxes for generate. {"field":"boxes","model":"flux2-pro","task":"generate"}
@@ -642,6 +706,10 @@ generate - krea3 ref1 => krea3 krea/v3/edit queued=false by=model tier=balanced 
 generate - krea3 ref2 => krea3 krea/v3/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.026214400000000002} prompt="x" body={"image_size":"square_hd","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"output_format":"png","prompt":"x"}
 generate - krea3 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - krea3 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - krea3 count 5 => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - krea3 count 11 => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - krea3 count 2 svg => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - krea3 params num_images 11 => ERR INVALID_OPTION krea3 does not take more than one image. {"field":"params","key":"num_images","model":"krea3","task":"generate"}
 generate - krea3 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - krea3 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - krea3 box outside => ERR INVALID_OPTION krea3 cannot take boxes for generate. {"field":"boxes","model":"krea3","task":"generate"}
@@ -681,6 +749,10 @@ generate - grok-image-quality ref1 => grok-image-quality xai/grok-imagine-image/
 generate - grok-image-quality ref2 => grok-image-quality xai/grok-imagine-image/quality/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.09000000000000001} prompt="x" body={"aspect_ratio":"1:1","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2k"}
 generate - grok-image-quality count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - grok-image-quality count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - grok-image-quality count 5 => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - grok-image-quality count 11 => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - grok-image-quality count 2 svg => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - grok-image-quality params num_images 11 => ERR INVALID_OPTION Grok Imagine Image Quality makes at most 4 images per request, not 11. {"field":"count","model":"grok-image-quality","task":"generate"}
 generate - grok-image-quality seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - grok-image-quality seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - grok-image-quality box outside => ERR INVALID_OPTION grok-image-quality cannot take boxes for generate. {"field":"boxes","model":"grok-image-quality","task":"generate"}
@@ -720,6 +792,10 @@ generate - ideogram3-transparent ref1 => ERR NO_MODEL_AVAILABLE ideogram3-transp
 generate - ideogram3-transparent ref2 => ERR NO_MODEL_AVAILABLE ideogram3-transparent (model) needs a transparency input. {"blockedBy":"transparency","task":"generate","unblockedBy":["input"]}
 generate - ideogram3-transparent count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - ideogram3-transparent count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - ideogram3-transparent count 5 => ERR NO_MODEL_AVAILABLE ideogram3-transparent (model) needs a transparency input. {"blockedBy":"transparency","task":"generate","unblockedBy":["input"]}
+generate - ideogram3-transparent count 11 => ERR NO_MODEL_AVAILABLE ideogram3-transparent (model) needs a transparency input. {"blockedBy":"transparency","task":"generate","unblockedBy":["input"]}
+generate - ideogram3-transparent count 2 svg => ERR NO_MODEL_AVAILABLE ideogram3-transparent (model) needs a transparency input. {"blockedBy":"transparency","task":"generate","unblockedBy":["input"]}
+generate - ideogram3-transparent params num_images 11 => ERR NO_MODEL_AVAILABLE ideogram3-transparent (model) needs a transparency input. {"blockedBy":"transparency","task":"generate","unblockedBy":["input"]}
 generate - ideogram3-transparent seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - ideogram3-transparent seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - ideogram3-transparent box outside => ERR NO_MODEL_AVAILABLE ideogram3-transparent (model) needs a transparency input. {"blockedBy":"transparency","task":"generate","unblockedBy":["input"]}
@@ -759,6 +835,10 @@ generate - banana2-lite ref1 => banana2-lite google/nano-banana-2-lite/edit queu
 generate - banana2-lite ref2 => banana2-lite google/nano-banana-2-lite/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"aspect_ratio":"1:1","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x"}
 generate - banana2-lite count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - banana2-lite count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - banana2-lite count 5 => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana2-lite count 11 => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - banana2-lite count 2 svg => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - banana2-lite params num_images 11 => ERR INVALID_OPTION Nano Banana 2 Lite makes at most 4 images per request, not 11. {"field":"count","model":"banana2-lite","task":"generate"}
 generate - banana2-lite seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - banana2-lite seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - banana2-lite box outside => ERR INVALID_OPTION banana2-lite cannot take boxes for generate. {"field":"boxes","model":"banana2-lite","task":"generate"}
@@ -798,6 +878,10 @@ generate - grok-image ref1 => grok-image xai/grok-imagine-image/edit queued=fals
 generate - grok-image ref2 => grok-image xai/grok-imagine-image/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.02} prompt="x" body={"aspect_ratio":"1:1","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2k"}
 generate - grok-image count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - grok-image count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - grok-image count 5 => ERR NO_MODEL_AVAILABLE grok-image (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - grok-image count 11 => ERR NO_MODEL_AVAILABLE grok-image (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - grok-image count 2 svg => ERR NO_MODEL_AVAILABLE grok-image (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - grok-image params num_images 11 => ERR INVALID_OPTION Grok Imagine Image makes at most 4 images per request, not 11. {"field":"count","model":"grok-image","task":"generate"}
 generate - grok-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - grok-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - grok-image box outside => ERR INVALID_OPTION grok-image cannot take boxes for generate. {"field":"boxes","model":"grok-image","task":"generate"}
@@ -837,6 +921,10 @@ generate - seedream5-lite ref1 => seedream5-lite bytedance/seedream/v5/lite/edit
 generate - seedream5-lite ref2 => seedream5-lite bytedance/seedream/v5/lite/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.035} prompt="x" body={"image_size":"square_hd","image_urls":["https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"prompt":"x"}
 generate - seedream5-lite count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - seedream5-lite count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - seedream5-lite count 5 => seedream5-lite bytedance/seedream/v5/lite/text-to-image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.17500000000000002} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"prompt":"the shoe"}
+generate - seedream5-lite count 11 => ERR NO_MODEL_AVAILABLE seedream5-lite (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - seedream5-lite count 2 svg => ERR NO_MODEL_AVAILABLE seedream5-lite (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - seedream5-lite params num_images 11 => ERR INVALID_OPTION Seedream 5.0 Lite makes at most 6 images per request, not 11. {"field":"count","model":"seedream5-lite","task":"generate"}
 generate - seedream5-lite seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - seedream5-lite seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - seedream5-lite box outside => ERR INVALID_OPTION seedream5-lite cannot take boxes for generate. {"field":"boxes","model":"seedream5-lite","task":"generate"}
@@ -876,6 +964,10 @@ generate - flux2-turbo ref1 => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot
 generate - flux2-turbo ref2 => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot do references. {"blockedBy":"references","task":"generate","unblockedBy":["option"]}
 generate - flux2-turbo count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"generate"}
 generate - flux2-turbo count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"generate"}
+generate - flux2-turbo count 5 => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-turbo count 11 => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - flux2-turbo count 2 svg => ERR NO_MODEL_AVAILABLE flux2-turbo (model) cannot return svg. {"blockedBy":"outputFormat","task":"generate","unblockedBy":["option"]}
+generate - flux2-turbo params num_images 11 => ERR INVALID_OPTION FLUX.2 Turbo makes at most 4 images per request, not 11. {"field":"count","model":"flux2-turbo","task":"generate"}
 generate - flux2-turbo seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"generate"}
 generate - flux2-turbo seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"generate"}
 generate - flux2-turbo box outside => ERR INVALID_OPTION flux2-turbo cannot take boxes for generate. {"field":"boxes","model":"flux2-turbo","task":"generate"}
@@ -909,6 +1001,18 @@ generate - ranked fast res 1K => grok-image xai/grok-imagine-image queued=false 
 generate - ranked quality res 1K => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":1536,"width":1536},"num_images":1,"output_format":"png","prompt":"the shoe","quality":"max"}
 generate - ranked fast res 2K => grok-image xai/grok-imagine-image queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.02} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":1,"output_format":"png","prompt":"the shoe","resolution":"2k"}
 generate - ranked quality res 2K => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":1,"output_format":"png","prompt":"the shoe","quality":"max"}
+generate - ranked fast count 5 => seedream5-lite bytedance/seedream/v5/lite/text-to-image queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.17500000000000002} prompt="the shoe" body={"image_size":"square_hd","num_images":5,"prompt":"the shoe"}
+generate - ranked balanced count 5 => grok-image-2 xai/grok-imagine-image/v2.0/text-to-image queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.4} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":5,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+generate - ranked quality count 5 => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
+generate - ranked fast count 7 => grok-image-2 xai/grok-imagine-image/v2.0/text-to-image queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.56} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":7,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+generate - ranked balanced count 7 => grok-image-2 xai/grok-imagine-image/v2.0/text-to-image queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.56} prompt="the shoe" body={"aspect_ratio":"1:1","num_images":7,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+generate - ranked quality count 7 => sunburst openai/gpt-image-2.6/sunburst/text-to-image queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":7,"output_format":"png","prompt":"the shoe","quality":"max"}
+generate - ranked fast count 11 => ERR NO_MODEL_AVAILABLE No Model for generate can do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - ranked balanced count 11 => ERR NO_MODEL_AVAILABLE No Model for generate can do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - ranked quality count 11 => ERR NO_MODEL_AVAILABLE No Model for generate can do count. {"blockedBy":"count","task":"generate","unblockedBy":["option"]}
+generate - ranked fast count 2 svg => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=ranking tier=fast mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":2,"output_format":"svg","prompt":"the shoe","quality":"max"}
+generate - ranked balanced count 2 svg => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=ranking tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":2,"output_format":"svg","prompt":"the shoe","quality":"max"}
+generate - ranked quality count 2 svg => flare openai/gpt-image-2.6/flare/text-to-image queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":2048,"width":2048},"num_images":2,"output_format":"svg","prompt":"the shoe","quality":"max"}
 generate - look portrait => seedream5 bytedance/seedream/v5/pro/text-to-image queued=false by=look tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text." body={"image_size":"square_hd","num_images":1,"prompt":"A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text."}
 generate - look portrait mood => seedream5 bytedance/seedream/v5/pro/text-to-image queued=false by=look tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text. Early morning light through tall glazing, cool and clear." body={"image_size":"square_hd","num_images":1,"prompt":"A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text. Early morning light through tall glazing, cool and clear."}
 generate - look portrait refs => seedream5 bytedance/seedream/v5/pro/edit queued=false by=look tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text." body={"image_size":"square_hd","image_urls":["https://example.com/reference.png"],"num_images":1,"prompt":"A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text."}

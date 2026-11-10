@@ -57,6 +57,8 @@ export const MODELS: Record<string, ModelConfig> = {
     maskImageField: "mask_url",
     supportsMarkupImage: true,
     autoEditSize: true,
+    // fal OpenAPI schema for openai/gpt-image-2.6/flare/text-to-image, 2026-11-10: num_images up to 10.
+    maxCount: 10,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportedOutputFormats: ["jpeg", "png", "webp", "gif", "svg"],
@@ -109,6 +111,10 @@ export const MODELS: Record<string, ModelConfig> = {
     maskImageField: "mask_url",
     supportsMarkupImage: true,
     autoEditSize: true,
+    // fal OpenAPI schema for openai/gpt-image-2.6/sunburst/text-to-image, 2026-11-10: num_images up to 10.
+    maxCount: 10,
+    // fal OpenAPI schema for openai/gpt-image-2.6/sunburst/text-to-image, 2026-11-10: num_images must be 1 for SVG output.
+    singleImageFormats: ["svg"],
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportedOutputFormats: ["jpeg", "png", "webp", "gif", "svg"],
@@ -167,6 +173,8 @@ export const MODELS: Record<string, ModelConfig> = {
     streaming: { generation: true, edit: true },
     supportsEdit: true,
     supportsMaskImage: true,
+    // fal OpenAPI schema for fal-ai/gpt-image-1.5, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsQuality: true,
@@ -208,6 +216,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsEdit: true,
     supportsLimitGenerations: true,
+    // fal OpenAPI schema for google/nano-banana-2.1, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: true,
@@ -249,6 +259,8 @@ export const MODELS: Record<string, ModelConfig> = {
     ],
     supportsAspect: true,
     supportsEdit: true,
+    // fal OpenAPI schema for microsoft/mai-image-2.5, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: false,
@@ -292,6 +304,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsEdit: true,
     supportsGoogleSearch: true,
     supportsLimitGenerations: true,
+    // fal OpenAPI schema for fal-ai/nano-banana-2, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: true,
@@ -359,6 +373,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsEdit: true,
     supportsGoogleSearch: true,
     supportsLimitGenerations: true,
+    // fal OpenAPI schema for fal-ai/nano-banana-pro, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: true,
@@ -408,6 +424,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsResolution: false,
     supportsEdit: true,
+    // fal OpenAPI schema for bytedance/seedream/v5/pro/text-to-image, 2026-11-10: num_images up to 6.
+    maxCount: 6,
     supportsNumImages: true,
     supportsSeed: true,
     supportsSyncMode: true,
@@ -449,6 +467,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsResolution: false,
     supportsEdit: true,
+    // fal OpenAPI schema for bytedance/seedream/v5/lite/text-to-image, 2026-11-10: num_images up to 6.
+    maxCount: 6,
     supportsNumImages: true,
     supportsSeed: true,
     supportsSyncMode: true,
@@ -586,6 +606,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsEdit: false,
     supportsGuidanceScale: true,
+    // fal OpenAPI schema for fal-ai/flux-2/turbo, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: false,
@@ -627,6 +649,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsResolution: false,
     supportsEdit: false,
+    // fal OpenAPI schema for ideogram/v4, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsRenderingSpeed: true,
     supportsSeed: true,
@@ -680,6 +704,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportedResolutions: ["1K", "2K"],
     supportsAspect: true,
     supportsEdit: true,
+    // fal OpenAPI schema for xai/grok-imagine-image, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: true,
@@ -726,6 +752,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsEdit: true,
     supportsNegativePrompt: true,
+    // fal OpenAPI schema for alibaba/qwen-image-3/text-to-image, 2026-11-10: num_images up to 6.
+    maxCount: 6,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: false,
@@ -784,6 +812,8 @@ export const MODELS: Record<string, ModelConfig> = {
     ],
     supportsAspect: true,
     supportsEdit: true,
+    // fal OpenAPI schema for microsoft/mai-image-2.5-pro, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: false,
@@ -817,6 +847,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsAspect: true,
     supportsEdit: true,
     supportsLimitGenerations: true,
+    // fal OpenAPI schema for google/nano-banana-2-lite, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: false,
@@ -859,6 +891,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportsEdit: false,
     supportsExpandPrompt: true,
     supportsNegativePrompt: true,
+    // fal OpenAPI schema for fal-ai/ideogram/v3/generate-transparent, 2026-11-10: num_images up to 8.
+    maxCount: 8,
     supportsNumImages: true,
     supportsRenderingSpeed: true,
     supportsResolution: false,
@@ -926,6 +960,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportedResolutions: ["1K", "2K"],
     supportsAspect: true,
     supportsEdit: true,
+    // fal OpenAPI schema for xai/grok-imagine-image/v2.0/text-to-image, 2026-11-10: num_images up to 10.
+    maxCount: 10,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: true,
@@ -976,6 +1012,8 @@ export const MODELS: Record<string, ModelConfig> = {
     ],
     supportsAspect: true,
     supportsEdit: true,
+    // fal OpenAPI schema for meta/muse-image/text-to-image, 2026-11-10: num_images up to 10.
+    maxCount: 10,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: false,
@@ -1059,6 +1097,8 @@ export const MODELS: Record<string, ModelConfig> = {
     supportedResolutions: ["1K", "2K"],
     supportsAspect: true,
     supportsEdit: true,
+    // fal OpenAPI schema for xai/grok-imagine-image/quality/text-to-image, 2026-11-10: num_images up to 4.
+    maxCount: 4,
     supportsNumImages: true,
     supportsOutputFormat: true,
     supportsResolution: true,

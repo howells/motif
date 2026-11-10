@@ -115,6 +115,21 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ],
   ["count 0", (input) => ({ ...input, count: 0, prompt: "the shoe" })],
   ["count 1.5", (input) => ({ ...input, count: 1.5, prompt: "the shoe" })],
+  ["count 5", (input) => ({ ...input, count: 5, prompt: "the shoe" })],
+  ["count 11", (input) => ({ ...input, count: 11, prompt: "the shoe" })],
+  [
+    "count 2 svg",
+    (input) => ({
+      ...input,
+      count: 2,
+      outputFormat: "svg",
+      prompt: "the shoe",
+    }),
+  ],
+  [
+    "params num_images 11",
+    (input) => ({ ...input, params: { num_images: 11 } }),
+  ],
   ["seed 1.5", (input) => ({ ...input, prompt: "the shoe", seed: 1.5 })],
   ["seed -1", (input) => ({ ...input, prompt: "the shoe", seed: -1 })],
   [
@@ -300,6 +315,32 @@ function table(task: TaskId): string {
       for (const tier of ["fast", "balanced", "quality"] as const) {
         lines.push(
           line(task, `ranked ${tier} scale ${scale}`, { ...base, scale, tier })
+        );
+      }
+    }
+  }
+  // A count past what a Model makes is refused there, so the ranking falls
+  // through to one that makes it, at every Tier.
+  if (task === "generate" || task === "vary") {
+    const { model: _model, ...base } = minimal(
+      task,
+      entriesOf(task)[0] ?? { model: "" }
+    );
+    const asks: [string, Partial<TaskInput>][] = [
+      ["count 5", { count: 5 }],
+      ["count 7", { count: 7 }],
+      ["count 11", { count: 11 }],
+      ["count 2 svg", { count: 2, outputFormat: "svg" }],
+    ];
+    for (const [label, extra] of asks) {
+      for (const tier of ["fast", "balanced", "quality"] as const) {
+        lines.push(
+          line(task, `ranked ${tier} ${label}`, {
+            ...base,
+            ...extra,
+            prompt: "the shoe",
+            tier,
+          })
         );
       }
     }

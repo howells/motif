@@ -22,6 +22,8 @@ export interface ModelProfile {
   readonly capabilities: ReadonlySet<Capability>;
   /** Key variables the Model needs for any request. */
   readonly keys: readonly string[];
+  /** Most images one request makes. Absent where no maximum is known. */
+  readonly maxCount?: number;
   readonly maxReferences: number;
   /** Aspect ratios the Model accepts. Absent means any. */
   readonly aspects?: readonly string[];
@@ -29,6 +31,8 @@ export interface ModelProfile {
   readonly resolutions?: readonly string[];
   /** Upscale factors the Model takes. Absent where its endpoint states no range. */
   readonly scaleRange?: ScaleRange;
+  /** Output formats that make one image whatever the count. */
+  readonly singleImageFormats?: readonly string[];
   /** What a resolution tier means for the Model, in pixels where known. */
   readonly sizing: ModelSizing;
   /** Output formats the Model returns, for a text request and an edit.
@@ -79,6 +83,7 @@ function generationProfile(id: string, config: ModelConfig): ModelProfile {
     aspects: config.supportedAspects,
     capabilities,
     keys: [FAL_KEY],
+    maxCount: config.maxCount,
     maxReferences: config.supportsEdit ? (config.maxReferenceImages ?? 1) : 0,
     outputFormats: {
       edit: outputFormatsOf(config, true),
@@ -86,6 +91,7 @@ function generationProfile(id: string, config: ModelConfig): ModelProfile {
     },
     resolutions: config.supportedResolutions,
     scaleRange: config.scaleRange,
+    singleImageFormats: config.singleImageFormats,
     sizing: generationSizing(id, config),
   };
 }

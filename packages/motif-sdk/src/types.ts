@@ -168,6 +168,10 @@ export interface ModelConfig {
    */
   autoEditSize?: boolean;
   supportsNegativePrompt?: boolean;
+  /** Most images one request makes, from the endpoint's `num_images` schema. Set wherever `supportsNumImages` is. */
+  maxCount?: number;
+  /** Output formats that make one image whatever `num_images` says. */
+  singleImageFormats?: readonly ImageOutputFormat[];
   supportsNumImages: boolean;
   supportsOutputFormat?: boolean;
   /**

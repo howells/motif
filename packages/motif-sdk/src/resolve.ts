@@ -18,6 +18,7 @@
  * every Tier.
  */
 
+import { countLimit, countRefusal } from "./capabilities";
 import { getLook } from "./creative";
 import type { MotifError } from "./errors";
 import { FAL_KEY, modelProfile, withEntry } from "./model-profile";
@@ -170,6 +171,12 @@ function withinLimits(
   if (capability === "references") {
     return (request.references ?? 0) <= profile.maxReferences;
   }
+  if (capability === "count") {
+    return (
+      countRefusal(profile, request.count ?? 1, request.outputFormat) ===
+      undefined
+    );
+  }
   if (capability === "aspect") {
     return listed(profile.aspects, request.aspect);
   }
@@ -203,6 +210,8 @@ type Check =
       readonly blockedBy: Capability | "key";
       /** The values the Model takes, when it refused an aspect or resolution. */
       readonly accepts?: readonly string[];
+      /** The most images the Model makes, when it refused a count. */
+      readonly limit?: number;
       readonly missingKey?: string;
       /** The Model needs this input and the request did not supply it. */
       readonly missingInput?: true;
@@ -230,6 +239,10 @@ function check(
       return { blockedBy: capability, ok: false };
     }
     if (!withinLimits(profile, capability, request)) {
+      if (capability === "count") {
+        const limit = countLimit(profile, request.outputFormat);
+        return { blockedBy: capability, limit, ok: false };
+      }
       const accepts =
         capability === "aspect" ? profile.aspects : profile.resolutions;
       return { accepts, blockedBy: capability, ok: false };
@@ -251,8 +264,12 @@ function describeBlock(
   request: TaskRequest,
   missingKey?: string,
   missingInput?: true,
-  accepts?: readonly string[]
+  accepts?: readonly string[],
+  limit?: number
 ): string {
+  if (blockedBy === "count" && limit !== undefined) {
+    return `cannot make ${request.count ?? 1} images; it makes at most ${limit}`;
+  }
   if (
     accepts !== undefined &&
     (blockedBy === "aspect" || blockedBy === "resolution")
@@ -399,7 +416,7 @@ function resolveFixed(
     task,
     result.blockedBy,
     unblockers,
-    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput, result.accepts)}.`,
+    `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput, result.accepts, result.limit)}.`,
     result.missingKey
   );
 }

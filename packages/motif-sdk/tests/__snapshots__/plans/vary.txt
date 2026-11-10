@@ -18,6 +18,10 @@ vary - sunburst ref1 => sunburst openai/gpt-image-2.6/sunburst/edit queued=true 
 vary - sunburst ref2 => sunburst openai/gpt-image-2.6/sunburst/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"image_size":"auto","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","quality":"max"}
 vary - sunburst count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - sunburst count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - sunburst count 5 => sunburst openai/gpt-image-2.6/sunburst/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
+vary - sunburst count 11 => ERR NO_MODEL_AVAILABLE sunburst (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - sunburst count 2 svg => ERR NO_MODEL_AVAILABLE sunburst (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - sunburst params num_images 11 => ERR INVALID_OPTION GPT Image 2.6 Sunburst makes at most 10 images per request, not 11. {"field":"count","model":"sunburst","task":"vary"}
 vary - sunburst seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - sunburst seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - sunburst box outside => ERR INVALID_OPTION sunburst cannot take boxes for vary. {"field":"boxes","model":"sunburst","task":"vary"}
@@ -57,6 +61,10 @@ vary - flare ref1 => flare openai/gpt-image-2.6/flare/edit queued=true by=model 
 vary - flare ref2 => flare openai/gpt-image-2.6/flare/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"image_size":"auto","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","quality":"max"}
 vary - flare count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - flare count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - flare count 5 => flare openai/gpt-image-2.6/flare/edit queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
+vary - flare count 11 => ERR NO_MODEL_AVAILABLE flare (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flare count 2 svg => ERR NO_MODEL_AVAILABLE flare (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - flare params num_images 11 => ERR INVALID_OPTION GPT Image 2.6 Flare makes at most 10 images per request, not 11. {"field":"count","model":"flare","task":"vary"}
 vary - flare seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - flare seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - flare box outside => ERR INVALID_OPTION flare cannot take boxes for vary. {"field":"boxes","model":"flare","task":"vary"}
@@ -96,6 +104,10 @@ vary - seedream5 ref1 => seedream5 bytedance/seedream/v5/pro/edit queued=false b
 vary - seedream5 ref2 => seedream5 bytedance/seedream/v5/pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="x" body={"image_size":{"height":960,"width":1200},"image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"prompt":"x"}
 vary - seedream5 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - seedream5 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - seedream5 count 5 => seedream5 bytedance/seedream/v5/pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.3375} prompt="the shoe" body={"image_size":{"height":960,"width":1200},"image_urls":["https://example.com/source.png"],"num_images":5,"prompt":"the shoe"}
+vary - seedream5 count 11 => ERR NO_MODEL_AVAILABLE seedream5 (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - seedream5 count 2 svg => ERR NO_MODEL_AVAILABLE seedream5 (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - seedream5 params num_images 11 => ERR INVALID_OPTION Seedream 5.0 Pro makes at most 6 images per request, not 11. {"field":"count","model":"seedream5","task":"vary"}
 vary - seedream5 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - seedream5 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - seedream5 box outside => ERR INVALID_OPTION seedream5 cannot take boxes for vary. {"field":"boxes","model":"seedream5","task":"vary"}
@@ -135,6 +147,10 @@ vary - gpt ref1 => gpt fal-ai/gpt-image-1.5/edit queued=false by=model tier=bala
 vary - gpt ref2 => gpt fal-ai/gpt-image-1.5/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.133} prompt="x" body={"image_size":"auto","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","quality":"high"}
 vary - gpt count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - gpt count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - gpt count 5 => ERR NO_MODEL_AVAILABLE gpt (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - gpt count 11 => ERR NO_MODEL_AVAILABLE gpt (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - gpt count 2 svg => ERR NO_MODEL_AVAILABLE gpt (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - gpt params num_images 11 => ERR INVALID_OPTION GPT Image 1.5 makes at most 4 images per request, not 11. {"field":"count","model":"gpt","task":"vary"}
 vary - gpt seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - gpt seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - gpt box outside => ERR INVALID_OPTION gpt cannot take boxes for vary. {"field":"boxes","model":"gpt","task":"vary"}
@@ -174,6 +190,10 @@ vary - mai-image-2.5-pro ref1 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model
 vary - mai-image-2.5-pro ref2 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot do references. {"blockedBy":"references","task":"vary","unblockedBy":["option"]}
 vary - mai-image-2.5-pro count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - mai-image-2.5-pro count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - mai-image-2.5-pro count 5 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - mai-image-2.5-pro count 11 => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - mai-image-2.5-pro count 2 svg => ERR NO_MODEL_AVAILABLE mai-image-2.5-pro (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - mai-image-2.5-pro params num_images 11 => ERR INVALID_OPTION MAI Image 2.5 Pro makes at most 4 images per request, not 11. {"field":"count","model":"mai-image-2.5-pro","task":"vary"}
 vary - mai-image-2.5-pro seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - mai-image-2.5-pro seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - mai-image-2.5-pro box outside => ERR INVALID_OPTION mai-image-2.5-pro cannot take boxes for vary. {"field":"boxes","model":"mai-image-2.5-pro","task":"vary"}
@@ -213,6 +233,10 @@ vary - grok-image-2 ref1 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued
 vary - grok-image-2 ref2 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.11} prompt="x" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2k"}
 vary - grok-image-2 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - grok-image-2 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - grok-image-2 count 5 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.41000000000000003} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+vary - grok-image-2 count 11 => ERR NO_MODEL_AVAILABLE grok-image-2 (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - grok-image-2 count 2 svg => ERR NO_MODEL_AVAILABLE grok-image-2 (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - grok-image-2 params num_images 11 => ERR INVALID_OPTION Grok Imagine Image 2.0 makes at most 10 images per request, not 11. {"field":"count","model":"grok-image-2","task":"vary"}
 vary - grok-image-2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - grok-image-2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - grok-image-2 box outside => ERR INVALID_OPTION grok-image-2 cannot take boxes for vary. {"field":"boxes","model":"grok-image-2","task":"vary"}
@@ -252,6 +276,10 @@ vary - banana21 ref1 => banana21 google/nano-banana-2.1/edit queued=false by=mod
 vary - banana21 ref2 => banana21 google/nano-banana-2.1/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"aspect_ratio":"auto","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2K"}
 vary - banana21 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - banana21 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - banana21 count 5 => ERR NO_MODEL_AVAILABLE banana21 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana21 count 11 => ERR NO_MODEL_AVAILABLE banana21 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana21 count 2 svg => ERR NO_MODEL_AVAILABLE banana21 (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - banana21 params num_images 11 => ERR INVALID_OPTION Nano Banana 2.1 makes at most 4 images per request, not 11. {"field":"count","model":"banana21","task":"vary"}
 vary - banana21 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - banana21 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - banana21 box outside => ERR INVALID_OPTION banana21 cannot take boxes for vary. {"field":"boxes","model":"banana21","task":"vary"}
@@ -291,6 +319,10 @@ vary - mai-image-2.5 ref1 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot
 vary - mai-image-2.5 ref2 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot do references. {"blockedBy":"references","task":"vary","unblockedBy":["option"]}
 vary - mai-image-2.5 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - mai-image-2.5 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - mai-image-2.5 count 5 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - mai-image-2.5 count 11 => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - mai-image-2.5 count 2 svg => ERR NO_MODEL_AVAILABLE mai-image-2.5 (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - mai-image-2.5 params num_images 11 => ERR INVALID_OPTION MAI Image 2.5 makes at most 4 images per request, not 11. {"field":"count","model":"mai-image-2.5","task":"vary"}
 vary - mai-image-2.5 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - mai-image-2.5 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - mai-image-2.5 box outside => ERR INVALID_OPTION mai-image-2.5 cannot take boxes for vary. {"field":"boxes","model":"mai-image-2.5","task":"vary"}
@@ -330,6 +362,10 @@ vary - muse-image ref1 => muse-image meta/muse-image/edit queued=false by=model 
 vary - muse-image ref2 => muse-image meta/muse-image/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="x" body={"aspect_ratio":"5:4","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x"}
 vary - muse-image count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - muse-image count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - muse-image count 5 => muse-image meta/muse-image/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"aspect_ratio":"5:4","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe"}
+vary - muse-image count 11 => ERR NO_MODEL_AVAILABLE muse-image (model) cannot make 11 images; it makes at most 10. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - muse-image count 2 svg => ERR NO_MODEL_AVAILABLE muse-image (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - muse-image params num_images 11 => ERR INVALID_OPTION Meta Muse Image makes at most 10 images per request, not 11. {"field":"count","model":"muse-image","task":"vary"}
 vary - muse-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - muse-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - muse-image box outside => ERR INVALID_OPTION muse-image cannot take boxes for vary. {"field":"boxes","model":"muse-image","task":"vary"}
@@ -369,6 +405,10 @@ vary - grok-image-quality ref1 => grok-image-quality xai/grok-imagine-image/qual
 vary - grok-image-quality ref2 => grok-image-quality xai/grok-imagine-image/quality/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.1} prompt="x" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2k"}
 vary - grok-image-quality count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - grok-image-quality count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - grok-image-quality count 5 => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - grok-image-quality count 11 => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - grok-image-quality count 2 svg => ERR NO_MODEL_AVAILABLE grok-image-quality (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - grok-image-quality params num_images 11 => ERR INVALID_OPTION Grok Imagine Image Quality makes at most 4 images per request, not 11. {"field":"count","model":"grok-image-quality","task":"vary"}
 vary - grok-image-quality seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - grok-image-quality seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - grok-image-quality box outside => ERR INVALID_OPTION grok-image-quality cannot take boxes for vary. {"field":"boxes","model":"grok-image-quality","task":"vary"}
@@ -408,6 +448,10 @@ vary - banana ref1 => banana fal-ai/nano-banana-pro/edit queued=false by=model t
 vary - banana ref2 => banana fal-ai/nano-banana-pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.15} prompt="x" body={"aspect_ratio":"auto","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2K"}
 vary - banana count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - banana count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - banana count 5 => ERR NO_MODEL_AVAILABLE banana (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana count 11 => ERR NO_MODEL_AVAILABLE banana (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana count 2 svg => ERR NO_MODEL_AVAILABLE banana (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - banana params num_images 11 => ERR INVALID_OPTION Nano Banana Pro makes at most 4 images per request, not 11. {"field":"count","model":"banana","task":"vary"}
 vary - banana seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - banana seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - banana box outside => ERR INVALID_OPTION banana cannot take boxes for vary. {"field":"boxes","model":"banana","task":"vary"}
@@ -447,6 +491,10 @@ vary - banana2 ref1 => banana2 fal-ai/nano-banana-2/edit queued=false by=model t
 vary - banana2 ref2 => banana2 fal-ai/nano-banana-2/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.12} prompt="x" body={"aspect_ratio":"5:4","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2K"}
 vary - banana2 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - banana2 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - banana2 count 5 => ERR NO_MODEL_AVAILABLE banana2 (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana2 count 11 => ERR NO_MODEL_AVAILABLE banana2 (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana2 count 2 svg => ERR NO_MODEL_AVAILABLE banana2 (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - banana2 params num_images 11 => ERR INVALID_OPTION Nano Banana 2 makes at most 4 images per request, not 11. {"field":"count","model":"banana2","task":"vary"}
 vary - banana2 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - banana2 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - banana2 box outside => ERR INVALID_OPTION banana2 cannot take boxes for vary. {"field":"boxes","model":"banana2","task":"vary"}
@@ -486,6 +534,10 @@ vary - krea3 ref1 => krea3 krea/v3/edit queued=false by=model tier=balanced mode
 vary - krea3 ref2 => krea3 krea/v3/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.018432} prompt="x" body={"image_size":{"height":768,"width":960},"image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"output_format":"png","prompt":"x"}
 vary - krea3 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - krea3 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - krea3 count 5 => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - krea3 count 11 => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - krea3 count 2 svg => ERR NO_MODEL_AVAILABLE krea3 (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - krea3 params num_images 11 => ERR INVALID_OPTION krea3 does not take more than one image. {"field":"params","key":"num_images","model":"krea3","task":"vary"}
 vary - krea3 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - krea3 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - krea3 box outside => ERR INVALID_OPTION krea3 cannot take boxes for vary. {"field":"boxes","model":"krea3","task":"vary"}
@@ -525,6 +577,10 @@ vary - qwen3 ref1 => qwen3 alibaba/qwen-image-3/edit queued=false by=model tier=
 vary - qwen3 ref2 => qwen3 alibaba/qwen-image-3/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="x" body={"image_size":{"height":768,"width":960},"image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x"}
 vary - qwen3 count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - qwen3 count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - qwen3 count 5 => qwen3 alibaba/qwen-image-3/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_size":{"height":768,"width":960},"image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe"}
+vary - qwen3 count 11 => ERR NO_MODEL_AVAILABLE qwen3 (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - qwen3 count 2 svg => ERR NO_MODEL_AVAILABLE qwen3 (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - qwen3 params num_images 11 => ERR INVALID_OPTION Qwen Image 3 makes at most 6 images per request, not 11. {"field":"count","model":"qwen3","task":"vary"}
 vary - qwen3 seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - qwen3 seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - qwen3 box outside => ERR INVALID_OPTION qwen3 cannot take boxes for vary. {"field":"boxes","model":"qwen3","task":"vary"}
@@ -564,6 +620,10 @@ vary - flux2-pro ref1 => flux2-pro fal-ai/flux-2-pro/edit queued=false by=model 
 vary - flux2-pro ref2 => flux2-pro fal-ai/flux-2-pro/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.022118399999999996} prompt="x" body={"image_size":{"height":768,"width":960},"image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"output_format":"png","prompt":"x"}
 vary - flux2-pro count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - flux2-pro count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - flux2-pro count 5 => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flux2-pro count 11 => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flux2-pro count 2 svg => ERR NO_MODEL_AVAILABLE flux2-pro (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flux2-pro params num_images 11 => ERR INVALID_OPTION flux2-pro does not take more than one image. {"field":"params","key":"num_images","model":"flux2-pro","task":"vary"}
 vary - flux2-pro seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - flux2-pro seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - flux2-pro box outside => ERR INVALID_OPTION flux2-pro cannot take boxes for vary. {"field":"boxes","model":"flux2-pro","task":"vary"}
@@ -603,6 +663,10 @@ vary - flux2-flex ref1 => flux2-flex fal-ai/flux-2-flex/edit queued=false by=mod
 vary - flux2-flex ref2 => flux2-flex fal-ai/flux-2-flex/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.036864} prompt="x" body={"image_size":{"height":768,"width":960},"image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"output_format":"png","prompt":"x"}
 vary - flux2-flex count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - flux2-flex count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - flux2-flex count 5 => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flux2-flex count 11 => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flux2-flex count 2 svg => ERR NO_MODEL_AVAILABLE flux2-flex (model) cannot do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - flux2-flex params num_images 11 => ERR INVALID_OPTION flux2-flex does not take more than one image. {"field":"params","key":"num_images","model":"flux2-flex","task":"vary"}
 vary - flux2-flex seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - flux2-flex seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - flux2-flex box outside => ERR INVALID_OPTION flux2-flex cannot take boxes for vary. {"field":"boxes","model":"flux2-flex","task":"vary"}
@@ -642,6 +706,10 @@ vary - grok-image ref1 => grok-image xai/grok-imagine-image/edit queued=false by
 vary - grok-image ref2 => grok-image xai/grok-imagine-image/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.02} prompt="x" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x","resolution":"2k"}
 vary - grok-image count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - grok-image count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - grok-image count 5 => ERR NO_MODEL_AVAILABLE grok-image (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - grok-image count 11 => ERR NO_MODEL_AVAILABLE grok-image (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - grok-image count 2 svg => ERR NO_MODEL_AVAILABLE grok-image (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - grok-image params num_images 11 => ERR INVALID_OPTION Grok Imagine Image makes at most 4 images per request, not 11. {"field":"count","model":"grok-image","task":"vary"}
 vary - grok-image seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - grok-image seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - grok-image box outside => ERR INVALID_OPTION grok-image cannot take boxes for vary. {"field":"boxes","model":"grok-image","task":"vary"}
@@ -681,6 +749,10 @@ vary - banana2-lite ref1 => banana2-lite google/nano-banana-2-lite/edit queued=f
 vary - banana2-lite ref2 => banana2-lite google/nano-banana-2-lite/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="x" body={"aspect_ratio":"5:4","image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"x"}
 vary - banana2-lite count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - banana2-lite count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - banana2-lite count 5 => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot make 5 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana2-lite count 11 => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot make 11 images; it makes at most 4. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - banana2-lite count 2 svg => ERR NO_MODEL_AVAILABLE banana2-lite (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - banana2-lite params num_images 11 => ERR INVALID_OPTION Nano Banana 2 Lite makes at most 4 images per request, not 11. {"field":"count","model":"banana2-lite","task":"vary"}
 vary - banana2-lite seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - banana2-lite seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - banana2-lite box outside => ERR INVALID_OPTION banana2-lite cannot take boxes for vary. {"field":"boxes","model":"banana2-lite","task":"vary"}
@@ -720,6 +792,10 @@ vary - seedream5-lite ref1 => seedream5-lite bytedance/seedream/v5/lite/edit que
 vary - seedream5-lite ref2 => seedream5-lite bytedance/seedream/v5/lite/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.035} prompt="x" body={"image_size":{"height":1728,"width":2160},"image_urls":["https://example.com/source.png","https://example.com/reference.png","https://example.com/source.png"],"num_images":1,"prompt":"x"}
 vary - seedream5-lite count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"vary"}
 vary - seedream5-lite count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"vary"}
+vary - seedream5-lite count 5 => seedream5-lite bytedance/seedream/v5/lite/edit queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.17500000000000002} prompt="the shoe" body={"image_size":{"height":1728,"width":2160},"image_urls":["https://example.com/source.png"],"num_images":5,"prompt":"the shoe"}
+vary - seedream5-lite count 11 => ERR NO_MODEL_AVAILABLE seedream5-lite (model) cannot make 11 images; it makes at most 6. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - seedream5-lite count 2 svg => ERR NO_MODEL_AVAILABLE seedream5-lite (model) cannot return svg from an edit. {"blockedBy":"outputFormat","task":"vary","unblockedBy":["option"]}
+vary - seedream5-lite params num_images 11 => ERR INVALID_OPTION Seedream 5.0 Lite makes at most 6 images per request, not 11. {"field":"count","model":"seedream5-lite","task":"vary"}
 vary - seedream5-lite seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"vary"}
 vary - seedream5-lite seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"vary"}
 vary - seedream5-lite box outside => ERR INVALID_OPTION seedream5-lite cannot take boxes for vary. {"field":"boxes","model":"seedream5-lite","task":"vary"}
@@ -753,6 +829,18 @@ vary - ranked fast res 1K => grok-image xai/grok-imagine-image/edit queued=false
 vary - ranked quality res 1K => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.06999999999999999} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"the shoe","resolution":"1k"}
 vary - ranked fast res 2K => grok-image xai/grok-imagine-image/edit queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.02} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"the shoe","resolution":"2k"}
 vary - ranked quality res 2K => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.09} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":1,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+vary - ranked fast count 5 => seedream5-lite bytedance/seedream/v5/lite/edit queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.17500000000000002} prompt="the shoe" body={"image_size":{"height":1728,"width":2160},"image_urls":["https://example.com/source.png"],"num_images":5,"prompt":"the shoe"}
+vary - ranked balanced count 5 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.41000000000000003} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+vary - ranked quality count 5 => sunburst openai/gpt-image-2.6/sunburst/edit queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto","image_urls":["https://example.com/source.png"],"num_images":5,"output_format":"png","prompt":"the shoe","quality":"max"}
+vary - ranked fast count 7 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.5700000000000001} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":7,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+vary - ranked balanced count 7 => grok-image-2 xai/grok-imagine-image/v2.0/edit queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.5700000000000001} prompt="the shoe" body={"aspect_ratio":"4:3","image_urls":["https://example.com/source.png"],"num_images":7,"output_format":"png","prompt":"the shoe","resolution":"2k"}
+vary - ranked quality count 7 => sunburst openai/gpt-image-2.6/sunburst/edit queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto","image_urls":["https://example.com/source.png"],"num_images":7,"output_format":"png","prompt":"the shoe","quality":"max"}
+vary - ranked fast count 11 => ERR NO_MODEL_AVAILABLE No Model for vary can do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - ranked balanced count 11 => ERR NO_MODEL_AVAILABLE No Model for vary can do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - ranked quality count 11 => ERR NO_MODEL_AVAILABLE No Model for vary can do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - ranked fast count 2 svg => ERR NO_MODEL_AVAILABLE No Model for vary can do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - ranked balanced count 2 svg => ERR NO_MODEL_AVAILABLE No Model for vary can do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
+vary - ranked quality count 2 svg => ERR NO_MODEL_AVAILABLE No Model for vary can do count. {"blockedBy":"count","task":"vary","unblockedBy":["option"]}
 vary - look portrait => seedream5 bytedance/seedream/v5/pro/edit queued=false by=look tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text." body={"image_size":{"height":960,"width":1200},"image_urls":["https://example.com/source.png"],"num_images":1,"prompt":"A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text."}
 vary - look portrait mood => seedream5 bytedance/seedream/v5/pro/edit queued=false by=look tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text. Early morning light through tall glazing, cool and clear." body={"image_size":{"height":960,"width":1200},"image_urls":["https://example.com/source.png"],"num_images":1,"prompt":"A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text. Early morning light through tall glazing, cool and clear."}
 vary - look portrait refs => seedream5 bytedance/seedream/v5/pro/edit queued=false by=look tier=balanced mode=undefined cost={"basis":"projected","usd":0.0675} prompt="A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text." body={"image_size":{"height":960,"width":1200},"image_urls":["https://example.com/source.png","https://example.com/reference.png"],"num_images":1,"prompt":"A vase. Editorial documentary portrait in the register of Kinfolk, muted warm palette, waist-up and unposed against a plain plaster or linen ground, plain clothing with no logos, soft natural light, shot on film with fine grain. No text."}
