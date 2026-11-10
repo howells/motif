@@ -93,3 +93,18 @@ export function toMotifError(error: unknown): MotifError {
       : undefined;
   return new MotifError(message, 0, code);
 }
+
+/**
+ * The option a refused request was stopped on, from either refusal shape: an
+ * `INVALID_OPTION` names it as `details.field`, a `NO_MODEL_AVAILABLE` as
+ * `details.blockedBy`. Undefined when the error names no option.
+ */
+export function refusedOption(error: MotifError): string | undefined {
+  const key =
+    error.code === "INVALID_OPTION"
+      ? error.details?.field
+      : error.code === "NO_MODEL_AVAILABLE"
+        ? error.details?.blockedBy
+        : undefined;
+  return typeof key === "string" ? key : undefined;
+}

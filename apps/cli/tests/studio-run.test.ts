@@ -77,6 +77,34 @@ describe("saveRun", () => {
   });
 });
 
+async function pinned(model: string) {
+  const { motifClient } = await import("../src/utils/motif-client");
+  const { acceptsResolution } = await import("../src/studio/task");
+  const client = motifClient({
+    apiKey: "unused: planning is local",
+    defaultAspect: "1:1",
+    defaultResolution: "2K",
+    tasks: { generate: { model } },
+  });
+  return acceptsResolution(client, "generate", {
+    aspect: "1:1",
+    prompt: "a cat",
+    resolution: "2K",
+    tier: "balanced",
+  });
+}
+
+describe("acceptsResolution", () => {
+  it("drops the resolution for a pinned Model that cannot take it, so Studio can still plan", async () => {
+    await expect(pinned("gpt")).resolves.toBe(false);
+    await expect(pinned("flux2-pro")).resolves.toBe(false);
+  });
+
+  it("keeps the resolution for a pinned Model that takes it", async () => {
+    await expect(pinned("banana")).resolves.toBe(true);
+  });
+});
+
 describe("Edit modes", () => {
   it("name upscale and cutout files and history as the CLI verbs do", async () => {
     const { outputPathFor, promptLabelFor } =

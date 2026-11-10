@@ -47,6 +47,7 @@ export {
   ACCOUNT_LOCKED,
   INVALID_RESPONSE,
   isFalAccountLocked,
+  refusedOption,
   SUBMISSION_UNCERTAIN,
 } from "./errors";
 export { INVALID_OPTION } from "./task-plan-shared";

@@ -114,6 +114,10 @@ export interface TaskUnresolved {
   readonly unblockedBy: readonly Unblocker[];
   /** The key variable that would unblock a Model, when one would. */
   readonly missingKey?: string;
+  /** The values the Model takes, when it refused an aspect, resolution or output format. */
+  readonly accepts?: readonly string[];
+  /** The most images the Model makes, when it refused a count. */
+  readonly limit?: number;
   readonly message: string;
 }
 
@@ -208,7 +212,7 @@ type Check =
   | {
       readonly ok: false;
       readonly blockedBy: Capability | "key";
-      /** The values the Model takes, when it refused an aspect or resolution. */
+      /** The values the Model takes, when it refused an aspect, resolution or output format. */
       readonly accepts?: readonly string[];
       /** The most images the Model makes, when it refused a count. */
       readonly limit?: number;
@@ -216,6 +220,26 @@ type Check =
       /** The Model needs this input and the request did not supply it. */
       readonly missingInput?: true;
     };
+
+/** The aspects, resolutions or output formats a Model takes, for a refusal to name. */
+function acceptedValues(
+  profile: ModelProfile,
+  capability: Capability,
+  request: TaskRequest
+): readonly string[] | undefined {
+  if (capability === "aspect") {
+    return profile.aspects;
+  }
+  if (capability === "resolution") {
+    return profile.resolutions;
+  }
+  if (capability === "outputFormat") {
+    const editing =
+      (request.references ?? 0) > 0 || request.source !== undefined;
+    return editing ? profile.outputFormats?.edit : profile.outputFormats?.text;
+  }
+  return undefined;
+}
 
 function check(
   profile: ModelProfile,
@@ -236,16 +260,25 @@ function check(
   }
   for (const capability of needed) {
     if (!profile.capabilities.has(capability)) {
-      return { blockedBy: capability, ok: false };
+      // A Model that takes no count makes one image.
+      return capability === "count"
+        ? { blockedBy: capability, limit: 1, ok: false }
+        : {
+            accepts: acceptedValues(profile, capability, request),
+            blockedBy: capability,
+            ok: false,
+          };
     }
     if (!withinLimits(profile, capability, request)) {
       if (capability === "count") {
         const limit = countLimit(profile, request.outputFormat);
         return { blockedBy: capability, limit, ok: false };
       }
-      const accepts =
-        capability === "aspect" ? profile.aspects : profile.resolutions;
-      return { accepts, blockedBy: capability, ok: false };
+      return {
+        accepts: acceptedValues(profile, capability, request),
+        blockedBy: capability,
+        ok: false,
+      };
     }
   }
   return { ok: true };
@@ -276,10 +309,16 @@ function describeBlock(
   ) {
     return `cannot do ${blockedBy} ${request[blockedBy] ?? ""}; it takes ${accepts.join(", ")}`;
   }
+  if (blockedBy === "resolution" && accepts === undefined) {
+    return "takes no resolution setting, so its size is fixed; drop the resolution";
+  }
   if (blockedBy === "outputFormat" && request.outputFormat !== undefined) {
+    if (accepts === undefined || accepts.length === 0) {
+      return "takes no output format setting; drop the output format";
+    }
     const editing =
       (request.references ?? 0) > 0 || request.source !== undefined;
-    return `cannot return ${request.outputFormat}${editing ? " from an edit" : ""}`;
+    return `cannot return ${request.outputFormat}${editing ? " from an edit" : ""}; it returns ${accepts.join(", ")}`;
   }
   if (missingInput === true) {
     return `needs a ${blockedBy} input`;
@@ -298,20 +337,24 @@ function unresolved(
   blockedBy: Blocker,
   unblockedBy: readonly Unblocker[],
   message: string,
-  missingKey?: string
+  extra: {
+    accepts?: readonly string[];
+    limit?: number;
+    missingKey?: string;
+  } = {}
 ): TaskUnresolved {
-  const base: TaskUnresolved = {
+  return {
     blockedBy,
     error: NO_MODEL_AVAILABLE,
     message,
     ok: false,
     task,
     unblockedBy,
+    ...(extra.missingKey !== undefined && { missingKey: extra.missingKey }),
+    ...(extra.accepts !== undefined &&
+      extra.accepts.length > 0 && { accepts: extra.accepts }),
+    ...(extra.limit !== undefined && { limit: extra.limit }),
   };
-  if (missingKey === undefined) {
-    return base;
-  }
-  return { ...base, missingKey };
 }
 
 function resolved(
@@ -417,7 +460,11 @@ function resolveFixed(
     result.blockedBy,
     unblockers,
     `${model} (${chosenBy}) ${describeBlock(result.blockedBy, request, result.missingKey, result.missingInput, result.accepts, result.limit)}.`,
-    result.missingKey
+    {
+      accepts: result.accepts,
+      limit: result.limit,
+      missingKey: result.missingKey,
+    }
   );
 }
 
@@ -530,7 +577,7 @@ function rankedRefusal(
       "key",
       ["key"],
       `No Model for ${task} without ${key}.`,
-      key
+      { missingKey: key }
     );
   }
   const unblockers: Unblocker[] = [unblockerFor(firstBlock)];
@@ -547,7 +594,7 @@ function rankedRefusal(
     firstBlock.blockedBy,
     unblockers,
     `No Model for ${where} ${reason}${keyBlock === undefined ? "" : ` without ${keyBlock}`}.`,
-    keyBlock
+    { missingKey: keyBlock }
   );
 }
 

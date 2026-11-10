@@ -149,7 +149,7 @@ Structured errors include an `instance` field (an `urn:fal:request:<id>` URN) wh
 
 `RESERVED_PROMPT` (status `400`, exit `2`) fires when the positional prompt is exactly a motif command word (e.g. `motif history` instead of `motif --history`). This protects agents from spending credits on a mistyped command. The error's `details.didYouMean` field carries the corrected invocation. To genuinely generate from such a one-word prompt, pass it via stdin JSON: `echo '{"prompt":"history"}' | motif`.
 
-A request no Model can honour fails with `NO_MODEL_AVAILABLE` (exit `2`): `-m seedream5 -r 4K` reads "seedream5 (model) cannot do resolution.", with `details.blockedBy` naming what stopped it and `details.unblockedBy` what would fix it.
+A request no Model can honour fails with `NO_MODEL_AVAILABLE` (exit `2`): `-m seedream5 -r 4K` reads "seedream5 (model) takes no resolution setting, so its size is fixed; drop the resolution.", with `details.blockedBy` naming what stopped it and `details.unblockedBy` what would fix it. A refusal says what the Model does take: `details.accepts` lists the aspects, resolutions or output formats it takes, and `details.limit` the most images it makes.
 
 What a code means, whether a retry can help and how to recover: `motif --describe errors --format json`.
 

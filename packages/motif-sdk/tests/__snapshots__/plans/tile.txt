@@ -54,16 +54,16 @@ tile upscale seedvr-seamless jpeg => seedvr-seamless fal-ai/seedvr/upscale/image
 tile upscale seedvr-seamless png => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.008} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
 tile upscale seedvr-seamless webp => seedvr-seamless fal-ai/seedvr/upscale/image/seamless queued=true by=model tier=balanced mode=upscale cost={"basis":"projected","usd":0.008} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"webp"}
 tile upscale seedvr-seamless gif => ERR INVALID_OPTION seedvr-seamless cannot return gif for tile; it takes png, jpeg, webp. {"accepts":["png","jpeg","webp"],"field":"outputFormat","model":"seedvr-seamless","task":"tile"}
-tile upscale seedvr-seamless 1K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
-tile upscale seedvr-seamless 2K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
-tile upscale seedvr-seamless 4K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless 1K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) takes no resolution setting, so its size is fixed; drop the resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless 2K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) takes no resolution setting, so its size is fixed; drop the resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless 4K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) takes no resolution setting, so its size is fixed; drop the resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless ref1 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless ref2 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"tile"}
 tile upscale seedvr-seamless count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"tile"}
-tile upscale seedvr-seamless count 5 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
-tile upscale seedvr-seamless count 11 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
-tile upscale seedvr-seamless count 2 svg => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless count 5 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot make 5 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless count 11 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot make 11 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless count 2 svg => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless params num_images 11 => ERR INVALID_OPTION params.num_images is not a parameter of seedvr-seamless. It takes: enable_safety_checker, noise_scale, output_format, seed, target_resolution, upscale_factor, upscale_mode. {"accepts":["enable_safety_checker","noise_scale","output_format","seed","target_resolution","upscale_factor","upscale_mode"],"field":"params","key":"num_images","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"tile"}
 tile upscale seedvr-seamless seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"tile"}
@@ -83,7 +83,7 @@ tile upscale seedvr-seamless params scale_factor 300 => ERR INVALID_OPTION param
 tile upscale seedvr-seamless aspect => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless aspect 21:9 => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless aspect auto => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do aspect. {"blockedBy":"aspect","task":"tile","unblockedBy":["option"]}
-tile upscale seedvr-seamless rich => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do count. {"blockedBy":"count","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless rich => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"tile","unblockedBy":["option"]}
 tile - ranked fast => ideogram-tiling ideogram/v4/tiling queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"output_format":"png","prompt":"the shoe"}
 tile - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for tile can do references. {"blockedBy":"references","task":"tile","unblockedBy":["option"]}
 tile - ranked balanced => ideogram-tiling ideogram/v4/tiling queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"output_format":"png","prompt":"the shoe"}

@@ -158,6 +158,10 @@ function resolve(
       ...(resolution.missingKey !== undefined && {
         missingKey: resolution.missingKey,
       }),
+      ...(resolution.accepts !== undefined && {
+        accepts: resolution.accepts,
+      }),
+      ...(resolution.limit !== undefined && { limit: resolution.limit }),
     })
   );
 }

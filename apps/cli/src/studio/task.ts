@@ -6,7 +6,7 @@
 
 import {
   formatCost,
-  INVALID_OPTION,
+  refusedOption,
   tierChangesChoice,
 } from "@howells/motif-sdk";
 import type {
@@ -48,11 +48,7 @@ export function acceptsResolution(
   input: TaskInput
 ): boolean {
   const planned = client.plan(task, input, { dryRun: true });
-  return !(
-    planned.isErr() &&
-    planned.error.code === INVALID_OPTION &&
-    planned.error.details?.field === "resolution"
-  );
+  return !(planned.isErr() && refusedOption(planned.error) === "resolution");
 }
 
 /** A USD figure for a person, or "cost unknown" when nobody knows it. */

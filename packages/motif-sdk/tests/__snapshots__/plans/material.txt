@@ -11,16 +11,16 @@ material - patina jpeg => patina fal-ai/patina queued=true by=model tier=balance
 material - patina png => patina fal-ai/patina queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
 material - patina webp => patina fal-ai/patina queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"webp"}
 material - patina gif => ERR INVALID_OPTION patina cannot return gif for material; it takes jpeg, png, webp. {"accepts":["jpeg","png","webp"],"field":"outputFormat","model":"patina","task":"material"}
-material - patina 1K => ERR NO_MODEL_AVAILABLE patina (model) cannot do resolution. {"blockedBy":"resolution","task":"material","unblockedBy":["option"]}
-material - patina 2K => ERR NO_MODEL_AVAILABLE patina (model) cannot do resolution. {"blockedBy":"resolution","task":"material","unblockedBy":["option"]}
-material - patina 4K => ERR NO_MODEL_AVAILABLE patina (model) cannot do resolution. {"blockedBy":"resolution","task":"material","unblockedBy":["option"]}
+material - patina 1K => ERR NO_MODEL_AVAILABLE patina (model) takes no resolution setting, so its size is fixed; drop the resolution. {"blockedBy":"resolution","task":"material","unblockedBy":["option"]}
+material - patina 2K => ERR NO_MODEL_AVAILABLE patina (model) takes no resolution setting, so its size is fixed; drop the resolution. {"blockedBy":"resolution","task":"material","unblockedBy":["option"]}
+material - patina 4K => ERR NO_MODEL_AVAILABLE patina (model) takes no resolution setting, so its size is fixed; drop the resolution. {"blockedBy":"resolution","task":"material","unblockedBy":["option"]}
 material - patina ref1 => ERR NO_MODEL_AVAILABLE patina (model) cannot do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
 material - patina ref2 => ERR NO_MODEL_AVAILABLE patina (model) cannot do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}
 material - patina count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"material"}
 material - patina count 1.5 => ERR INVALID_OPTION count must be a whole number of at least 1, not 1.5. {"field":"count","task":"material"}
-material - patina count 5 => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
-material - patina count 11 => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
-material - patina count 2 svg => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
+material - patina count 5 => ERR NO_MODEL_AVAILABLE patina (model) cannot make 5 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"material","unblockedBy":["option"]}
+material - patina count 11 => ERR NO_MODEL_AVAILABLE patina (model) cannot make 11 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"material","unblockedBy":["option"]}
+material - patina count 2 svg => ERR NO_MODEL_AVAILABLE patina (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"material","unblockedBy":["option"]}
 material - patina params num_images 11 => ERR INVALID_OPTION params.num_images is not a parameter of patina. It takes: enable_safety_checker, maps, output_format, seed. {"accepts":["enable_safety_checker","maps","output_format","seed"],"field":"params","key":"num_images","model":"patina","task":"material"}
 material - patina seed 1.5 => ERR INVALID_OPTION seed must be a whole number of at least 0, not 1.5. {"field":"seed","task":"material"}
 material - patina seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"material"}
@@ -40,7 +40,7 @@ material - patina params scale_factor 300 => ERR INVALID_OPTION params.scale_fac
 material - patina aspect => ERR NO_MODEL_AVAILABLE patina (model) cannot do aspect. {"blockedBy":"aspect","task":"material","unblockedBy":["option"]}
 material - patina aspect 21:9 => ERR NO_MODEL_AVAILABLE patina (model) cannot do aspect. {"blockedBy":"aspect","task":"material","unblockedBy":["option"]}
 material - patina aspect auto => ERR NO_MODEL_AVAILABLE patina (model) cannot do aspect. {"blockedBy":"aspect","task":"material","unblockedBy":["option"]}
-material - patina rich => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
+material - patina rich => ERR NO_MODEL_AVAILABLE patina (model) cannot make 2 images; it makes at most 1. {"blockedBy":"count","limit":1,"task":"material","unblockedBy":["option"]}
 material extract patina-extract bare => ERR INVALID_OPTION patina-extract needs prompt for material. {"field":"prompt","model":"patina-extract","task":"material"}
 material extract patina-extract prompted => patina-extract fal-ai/patina/material/extract queued=true by=model tier=balanced mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 material extract patina-extract no-source => ERR INVALID_OPTION material needs a source image. {"field":"image","task":"material"}

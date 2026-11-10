@@ -342,3 +342,50 @@ describe("fixed Models that do not fit the request", () => {
     }
   });
 });
+
+describe("a refusal says what the Model takes", () => {
+  const refusal = (
+    request: Parameters<typeof resolveTask>[1],
+    model: string
+  ) => {
+    const result = resolveTask("generate", request, {
+      ...fal,
+      pins: { generate: model },
+    });
+    return result.ok ? undefined : result;
+  };
+
+  it("says a Model with no resolution setting has a fixed size", () => {
+    expect(refusal({ resolution: "2K" }, "flux2-pro")?.message).toBe(
+      "flux2-pro (pin) takes no resolution setting, so its size is fixed; drop the resolution."
+    );
+    expect(refusal({ resolution: "2K" }, "gpt")?.message).toContain(
+      "takes no resolution setting"
+    );
+  });
+
+  it("lists the resolutions a Model takes", () => {
+    const refused = refusal({ resolution: "8K" }, "banana");
+
+    expect(refused?.message).toMatch(/cannot do resolution 8K; it takes .*2K/);
+    expect(refused?.accepts).toContain("2K");
+  });
+
+  it("lists the output formats a Model returns, and says when it takes none", () => {
+    expect(refusal({ outputFormat: "gif" }, "gpt")?.message).toBe(
+      "gpt (pin) cannot return gif; it returns jpeg, png, webp."
+    );
+    expect(refusal({ outputFormat: "webp" }, "seedream5")?.message).toBe(
+      "seedream5 (pin) takes no output format setting; drop the output format."
+    );
+  });
+
+  it("says a one-image Model makes at most one", () => {
+    const refused = refusal({ count: 2 }, "flux2-pro");
+
+    expect(refused?.message).toBe(
+      "flux2-pro (pin) cannot make 2 images; it makes at most 1."
+    );
+    expect(refused?.limit).toBe(1);
+  });
+});

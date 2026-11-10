@@ -10,6 +10,7 @@ import {
   INVALID_RESPONSE,
   MotifError,
   NO_MODEL_AVAILABLE,
+  refusedOption,
   resolveTask,
   SUBMISSION_UNCERTAIN,
 } from "@howells/motif-sdk";
@@ -43,7 +44,11 @@ export function resolveTaskModel(
 
 /** What a refused resolution carries, from `resolveTask` or an SDK error's details. */
 export interface RefusedResolution {
+  /** The values the Model takes, when it refused an aspect, resolution or format. */
+  accepts?: readonly string[];
   blockedBy: string;
+  /** The most images the Model makes, when it refused a count. */
+  limit?: number;
   message: string;
   missingKey?: string;
   task?: string;
@@ -123,7 +128,9 @@ function exitNoModelAvailable(
     {
       code,
       details: {
+        accepts: resolution.accepts,
         blockedBy: resolution.blockedBy,
+        limit: resolution.limit,
         missingKey: resolution.missingKey,
         task: resolution.task,
         unblockedBy: resolution.unblockedBy,
@@ -249,10 +256,14 @@ export function exitTaskError(
   }
   const details = error.details ?? {};
   if (error.code === NO_MODEL_AVAILABLE) {
-    const { unblockedBy } = details;
+    const { accepts, unblockedBy } = details;
     exitNoModelAvailable(
       {
-        blockedBy: stringField(details, "blockedBy") ?? "unknown",
+        accepts: Array.isArray(accepts)
+          ? accepts.filter((item): item is string => typeof item === "string")
+          : undefined,
+        blockedBy: refusedOption(error) ?? "unknown",
+        limit: typeof details.limit === "number" ? details.limit : undefined,
         message: error.message,
         missingKey: stringField(details, "missingKey"),
         task: stringField(details, "task") ?? context.task,
