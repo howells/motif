@@ -109,22 +109,26 @@ export function EditScreen({
 
   useEffect(() => {
     const loadGenerations = async () => {
-      const history = await loadHistory();
-      if (history.generations.length === 0) {
-        setUseCustomPath(true);
-        return;
-      }
-      const latest = history.generations.at(-1) ?? null;
-      setGenerations([...history.generations].reverse());
-      setSelectedGen(latest);
-      if (skipToOperation && latest !== null) {
-        await loadSource(latest.output);
+      try {
+        const history = await loadHistory();
+        if (history.generations.length === 0) {
+          setUseCustomPath(true);
+          return;
+        }
+        const latest = history.generations.at(-1) ?? null;
+        setGenerations([...history.generations].reverse());
+        setSelectedGen(latest);
+        if (skipToOperation && latest !== null) {
+          await loadSource(latest.output);
+        }
+      } catch (error) {
+        onError(error instanceof Error ? error : new Error(String(error)));
       }
     };
-    // Fire-and-forget: useEffect callbacks cannot be async; errors are non-fatal
-    // (screen falls back to custom-path entry).
+    // Fire-and-forget: useEffect callbacks cannot be async, so a failed load
+    // reaches the error banner through onError instead of an unhandled rejection.
     void loadGenerations();
-  }, [skipToOperation, loadSource]);
+  }, [skipToOperation, loadSource, onError]);
 
   const proceedFromCustomPath = () => {
     const path = customPath.trim();

@@ -236,6 +236,18 @@ describe("Studio settings", () => {
     studio.stop();
   });
 
+  it("shows a history it cannot read in the error banner when Edit opens", async () => {
+    const studio = await startStudio();
+    writeFileSync(join(motifDir, "history.json"), "{broken");
+
+    await studio.press(DOWN, ENTER);
+    await studio.waitForFrame("the error banner", (frame) =>
+      frame.includes("not valid JSON")
+    );
+    expect(studio.frame()).toContain("✗");
+    studio.stop();
+  });
+
   it("starts without an API key", async () => {
     const studio = await startStudio();
     expect(studio.frame()).toContain("Generate");
