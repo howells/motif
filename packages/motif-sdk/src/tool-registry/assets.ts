@@ -291,6 +291,8 @@ export const ASSET_TOOLS = {
     price: { kind: "megapixel", usd: 0.0025 },
     pricing: "$0.0025/megapixel",
     queued: true,
+    // fal OpenAPI schema for fal-ai/seedvr/upscale/image/seamless, 2026-11-10: upscale_factor 1 to 10.
+    scaleRange: { max: 10, min: 1 },
     sourceUrl: "https://fal.ai/models/fal-ai/seedvr/upscale/image/seamless",
     task: "seamless texture upscaling",
   },

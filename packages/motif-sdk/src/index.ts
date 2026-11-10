@@ -74,12 +74,11 @@ export {
   type Tier,
   TIERS,
 } from "./tasks";
+export { modelProfile, type ModelProfile } from "./model-profile";
 export {
   type Blocker,
   type Capability,
   type ChosenBy,
-  modelProfile,
-  type ModelProfile,
   NO_MODEL_AVAILABLE,
   resolveTask,
   type TaskEnvironment,

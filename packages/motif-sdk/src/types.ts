@@ -1,5 +1,5 @@
 import type { CreativeDirection } from "./creative";
-import type { FalToolPrice } from "./tool-types";
+import type { FalToolPrice, ScaleRange } from "./tool-types";
 
 /** ─── Model Types ─────────────────────────────────────────────── */
 
@@ -127,6 +127,8 @@ export interface ModelConfig {
   outputKeys?: readonly string[];
   /** Typed rate for a Model priced outside `pricePerImageUsd`. */
   price?: FalToolPrice;
+  /** Upscale factors the endpoint takes, from its fal OpenAPI schema. */
+  scaleRange?: ScaleRange;
   /** Body key for the upscale factor. */
   scaleField?: "scale_factor" | "upscale_factor";
   /** Body key the start frame goes under, on a video Model. */

@@ -18,12 +18,10 @@
  * every Tier.
  */
 
-import { outputFormatsOf } from "./capabilities";
 import { getLook } from "./creative";
 import type { MotifError } from "./errors";
-import { generationSizing, toolSizing } from "./model-sizing";
-import type { ModelSizing } from "./model-sizing";
-import { MODELS } from "./models";
+import { FAL_KEY, modelProfile, withEntry } from "./model-profile";
+import type { ModelProfile } from "./model-profile";
 import type {
   Capability,
   RankedFrom,
@@ -33,10 +31,6 @@ import type {
   Tier,
 } from "./tasks";
 import { DEFAULT_TIER, TASKS } from "./tasks";
-import { falToolParameters } from "./tool-parameters.generated";
-import { FAL_TOOLS, isFalToolId } from "./tools";
-import type { FalToolId } from "./tools";
-import type { ModelConfig } from "./types";
 
 export type { Capability } from "./tasks";
 
@@ -123,147 +117,6 @@ export interface TaskUnresolved {
 }
 
 export type TaskResolution = TaskResolved | TaskUnresolved;
-
-// ─── Model profiles ────────────────────────────────────────────────────
-
-const FAL_KEY = "FAL_KEY";
-
-export interface ModelProfile {
-  /** The Model's display name, e.g. "GPT Image 2.6 Sunburst". */
-  readonly name: string;
-  readonly capabilities: ReadonlySet<Capability>;
-  /** Key variables the Model needs for any request. */
-  readonly keys: readonly string[];
-  readonly maxReferences: number;
-  /** Aspect ratios the Model accepts. Absent means any. */
-  readonly aspects?: readonly string[];
-  /** Resolutions the Model accepts. Absent means any. */
-  readonly resolutions?: readonly string[];
-  /** What a resolution tier means for the Model, in pixels where known. */
-  readonly sizing: ModelSizing;
-  /** Output formats the Model returns, for a text request and an edit.
-   * Absent means any. */
-  readonly outputFormats?: {
-    readonly edit: readonly string[];
-    readonly text: readonly string[];
-  };
-}
-
-function generationProfile(id: string, config: ModelConfig): ModelProfile {
-  const capabilities = new Set<Capability>(["image"]);
-  if (config.supportsBackground === true || config.transparentOutput === true) {
-    capabilities.add("transparency");
-  }
-  if (config.supportsEdit) {
-    capabilities.add("references");
-  }
-  if (config.supportsMaskImage === true) {
-    capabilities.add("mask");
-  }
-  if (config.supportsMarkupImage === true) {
-    capabilities.add("markup");
-  }
-  if ((config.sizeMode ?? "aspect_ratio") !== "none") {
-    capabilities.add("aspect");
-  }
-  if (config.supportsResolution) {
-    capabilities.add("resolution");
-  }
-  if (config.supportsNumImages) {
-    capabilities.add("count");
-  }
-  if (config.supportsSeed === true) {
-    capabilities.add("seed");
-  }
-  if (config.supportsNegativePrompt === true) {
-    capabilities.add("negativePrompt");
-  }
-  if (
-    config.supportsOutputFormat === true ||
-    config.fixedOutputFormat !== undefined
-  ) {
-    capabilities.add("outputFormat");
-  }
-  return {
-    name: config.name,
-    aspects: config.supportedAspects,
-    capabilities,
-    keys: [FAL_KEY],
-    maxReferences: config.supportsEdit ? (config.maxReferenceImages ?? 1) : 0,
-    outputFormats: {
-      edit: outputFormatsOf(config, true),
-      text: outputFormatsOf(config, false),
-    },
-    resolutions: config.supportedResolutions,
-    sizing: generationSizing(id, config),
-  };
-}
-
-/**
- * Capabilities a fal tool takes, read from its generated parameter list: the
- * same list the task client maps request fields onto, so resolution and the
- * request body cannot disagree.
- */
-const TOOL_PARAMETER_CAPABILITIES: readonly (readonly [
-  Capability,
-  readonly string[],
-])[] = [
-  ["aspect", ["aspect_ratio", "image_size"]],
-  ["count", ["num_images"]],
-  ["negativePrompt", ["negative_prompt"]],
-  ["outputFormat", ["output_format"]],
-  ["resolution", ["canvas_size", "image_size"]],
-  ["rig", ["enable_rigging"]],
-  ["seed", ["seed"]],
-];
-
-function toolProfile(tool: FalToolId): ModelProfile {
-  const keys = new Set(
-    falToolParameters(tool).map((parameter) => parameter.key)
-  );
-  const config = FAL_TOOLS[tool];
-  const capabilities = new Set<Capability>([
-    config.inputKind === "video" ? "video" : "image",
-  ]);
-  for (const [capability, parameters] of TOOL_PARAMETER_CAPABILITIES) {
-    if (parameters.some((parameter) => keys.has(parameter))) {
-      capabilities.add(capability);
-    }
-  }
-  const takesReference = "referenceField" in config;
-  if (takesReference) {
-    capabilities.add("references");
-  }
-  return {
-    name: config.name,
-    capabilities,
-    keys: [FAL_KEY],
-    maxReferences: takesReference ? 1 : 0,
-    sizing: toolSizing(tool),
-  };
-}
-
-function withEntry(profile: ModelProfile, entry: RankedModel): ModelProfile {
-  if (entry.supports === undefined) {
-    return profile;
-  }
-  return {
-    ...profile,
-    capabilities: new Set([...profile.capabilities, ...entry.supports]),
-  };
-}
-
-/** The profile for a Model id, or undefined when no registry knows it. */
-export function modelProfile(model: string): ModelProfile | undefined {
-  const config = MODELS[model];
-  if (config !== undefined) {
-    return generationProfile(model, config);
-  }
-  if (isFalToolId(model)) {
-    return toolProfile(model);
-  }
-  return undefined;
-}
 
 // ─── Requirements ──────────────────────────────────────────────────────
 

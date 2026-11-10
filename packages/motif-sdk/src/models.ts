@@ -1110,6 +1110,8 @@ export const MODELS: Record<string, ModelConfig> = {
     price: { kind: "megapixel", usd: 0.03 },
     pricing: "$0.03/MP",
     scaleField: "upscale_factor",
+    // fal OpenAPI schema for fal-ai/clarity-upscaler, 2026-11-10: upscale_factor 1 to 4.
+    scaleRange: { max: 4, min: 1 },
     supportsAspect: false,
     supportsEdit: false,
     supportsNumImages: false,
@@ -1118,12 +1120,17 @@ export const MODELS: Record<string, ModelConfig> = {
     type: "utility",
   },
   crystal: {
+    // fal OpenAPI schema for clarityai/crystal-upscaler, 2026-11-10: scale_factor default 2.
+    defaultScale: 2,
     endpoint: "clarityai/crystal-upscaler",
     name: "Crystal Upscaler",
     outputKeys: ["image"],
     price: { kind: "call", usd: 0.02 },
     pricing: "$0.02",
     scaleField: "scale_factor",
+    // fal OpenAPI schema for clarityai/crystal-upscaler, 2026-11-10: scale_factor 1 to 200.
+    // The ceiling is real but costs per output megapixel: `--dry-run` shows the projection.
+    scaleRange: { max: 200, min: 1 },
     supportsAspect: false,
     supportsEdit: false,
     supportsNumImages: false,

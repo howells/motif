@@ -20,6 +20,7 @@ import {
   invalidOption,
   isPresent,
   mergeParams,
+  paramScaleRefusal,
   refuseOthers,
   scaleRefusal,
 } from "./task-plan-shared";
@@ -228,7 +229,7 @@ function toolOptions(
       parameter,
     ])
   );
-  const { keepsAlpha, maskField, referenceField }: FalToolConfig =
+  const { keepsAlpha, maskField, referenceField, scaleRange }: FalToolConfig =
     FAL_TOOLS[model];
   const mediaField = FAL_TOOLS[model].inputKind === "video" ? "video" : "image";
   const options: Record<string, unknown> = {};
@@ -261,7 +262,10 @@ function toolOptions(
     const accepted = enumValues(parameters.get("upscale_factor"))
       .map(Number)
       .filter((value) => value > 0);
-    const badScale = scaleRefusal(task, model, input.scale, accepted);
+    const badScale = scaleRefusal(task, model, input.scale, {
+      accepted,
+      range: scaleRange,
+    });
     if (badScale !== undefined) {
       return err(badScale);
     }
@@ -426,7 +430,7 @@ export function toolPlan(
   model: FalToolId,
   input: TaskInput
 ): Result<PlanBody, MotifError> {
-  const tool = FAL_TOOLS[model];
+  const tool: FalToolConfig = FAL_TOOLS[model];
   const media = tool.inputKind === "video" ? input.video : input.image;
   const sourceless = input.image === undefined && input.video === undefined;
   if (media === undefined && !sourceless) {
@@ -456,12 +460,19 @@ export function toolPlan(
   const badParam =
     input.params === undefined
       ? undefined
-      : toolParamsRefusal(
+      : (toolParamsRefusal(
           task,
           model,
           FAL_TOOL_PARAMETERS[model] ?? [],
           input.params
-        );
+        ) ??
+        paramScaleRefusal(
+          task,
+          model,
+          "upscale_factor",
+          input.params,
+          tool.scaleRange
+        ));
   if (badParam !== undefined) {
     return err(badParam);
   }

@@ -190,3 +190,100 @@ describe("Kling durations", () => {
     }
   );
 });
+
+function upscaleTask(model: string): TaskId {
+  return model === "seedvr-seamless" ? "tile" : "upscale";
+}
+
+describe("upscale factors fal's schema takes", () => {
+  const RANGES = [
+    ["topaz-precision", 4],
+    ["topaz-image", 4],
+    ["topaz-creative", 4],
+    ["topaz-generative", 4],
+    ["topaz-video", 4],
+    ["seedvr-upscale", 10],
+    ["seedvr-seamless", 10],
+    ["clarity", 4],
+    ["crystal", 200],
+  ] as const;
+  const source = (model: string): TaskInput =>
+    model === "topaz-video"
+      ? {
+          model,
+          sourceVideo: {
+            fps: 24,
+            frames: 96,
+            height: 720,
+            seconds: 4,
+            width: 1280,
+          },
+          video: "https://example.com/source.mp4",
+        }
+      : { image: IMAGE, model };
+  const MODES: Record<string, string> = {
+    "seedvr-seamless": "upscale",
+    "topaz-creative": "creative",
+    "topaz-generative": "generative",
+  };
+  const input = (model: string, extra: Partial<TaskInput>): TaskInput => ({
+    ...source(model),
+    ...(MODES[model] === undefined ? {} : { mode: MODES[model] }),
+    ...extra,
+  });
+
+  it.each(RANGES)(
+    "%s takes 1 to its ceiling of %i and refuses either side",
+    (model, max) => {
+      for (const scale of [1, max]) {
+        expect(planned(upscaleTask(model), input(model, { scale })).model).toBe(
+          model
+        );
+      }
+      for (const scale of [0.5, max + 1]) {
+        const error = refused(upscaleTask(model), input(model, { scale }));
+        expect(error.message).toContain(`it takes 1 to ${max}`);
+        expect(error.details).toMatchObject({
+          field: "scale",
+          range: { max, min: 1 },
+        });
+      }
+    }
+  );
+
+  it.each(RANGES)(
+    "%s holds the same range for a factor sent in params",
+    (model, max) => {
+      const key = model === "crystal" ? "scale_factor" : "upscale_factor";
+      expect(
+        planned(upscaleTask(model), input(model, { params: { [key]: max } }))
+          .model
+      ).toBe(model);
+      const error = refused(
+        upscaleTask(model),
+        input(model, { params: { [key]: max + 1 } })
+      );
+      expect(error.message).toContain(`it takes 1 to ${max}`);
+    }
+  );
+
+  it("ranks past a Model that cannot do the factor", () => {
+    const at = (scale: number, tier: "balanced" | "fast" | "quality") =>
+      planned("upscale", { image: IMAGE, scale, tier }).model;
+    expect(at(3, "balanced")).toBe("clarity");
+    expect(at(8, "balanced")).toBe("seedvr-upscale");
+    expect(at(8, "quality")).toBe("seedvr-upscale");
+    expect(at(8, "fast")).toBe("crystal");
+    expect(at(16, "balanced")).toBe("crystal");
+    expect(at(16, "quality")).toBe("crystal");
+  });
+
+  it("refuses a factor below 1 and one above every Model's ceiling", () => {
+    expect(refused("upscale", { image: IMAGE, scale: 0.5 }).code).toBe(
+      "INVALID_OPTION"
+    );
+    expect(refused("upscale", { image: IMAGE, scale: 201 }).code).toBe(
+      "INVALID_OPTION"
+    );
+  });
+});

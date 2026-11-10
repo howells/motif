@@ -28,6 +28,11 @@ try-on - virtual-try-on params gif => ERR INVALID_OPTION params.output_format is
 try-on - virtual-try-on params count 0 => virtual-try-on google/virtual-try-on queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0} prompt=undefined body={"num_images":0,"person_image_url":"https://example.com/source.png","product_image_url":"https://example.com/reference.png"}
 try-on - virtual-try-on scale 3 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on scale -1 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on scale 0.5 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on scale 8 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on scale 16 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on params upscale_factor 8 => ERR INVALID_OPTION params.upscale_factor is not a parameter of virtual-try-on. It takes: num_images. {"accepts":["num_images"],"field":"params","key":"upscale_factor","model":"virtual-try-on","task":"try-on"}
+try-on - virtual-try-on params scale_factor 300 => ERR INVALID_OPTION params.scale_factor is not a parameter of virtual-try-on. It takes: num_images. {"accepts":["num_images"],"field":"params","key":"scale_factor","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on aspect => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on aspect 21:9 => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on aspect auto => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}

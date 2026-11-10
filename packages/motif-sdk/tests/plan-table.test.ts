@@ -136,6 +136,17 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ["params count 0", (input) => ({ ...input, params: { num_images: 0 } })],
   ["scale 3", (input) => ({ ...input, scale: 3 })],
   ["scale -1", (input) => ({ ...input, scale: -1 })],
+  ["scale 0.5", (input) => ({ ...input, scale: 0.5 })],
+  ["scale 8", (input) => ({ ...input, scale: 8 })],
+  ["scale 16", (input) => ({ ...input, scale: 16 })],
+  [
+    "params upscale_factor 8",
+    (input) => ({ ...input, params: { upscale_factor: 8 } }),
+  ],
+  [
+    "params scale_factor 300",
+    (input) => ({ ...input, params: { scale_factor: 300 } }),
+  ],
   ["aspect", (input) => ({ ...input, aspect: "3:2" })],
   ["aspect 21:9", (input) => ({ ...input, aspect: "21:9" })],
   ["aspect auto", (input) => ({ ...input, aspect: "auto" })],
@@ -274,6 +285,21 @@ function table(task: TaskId): string {
               promptless?.includes(task) === true ? undefined : "the shoe",
             tier,
           })
+        );
+      }
+    }
+  }
+  // A factor past what a Model takes is refused there, so the ranking falls
+  // through to one that takes it, at every Tier.
+  if (task === "upscale") {
+    const { model: _model, ...base } = minimal(
+      task,
+      entriesOf(task)[0] ?? { model: "" }
+    );
+    for (const scale of [0.5, 3, 8, 16, 201]) {
+      for (const tier of ["fast", "balanced", "quality"] as const) {
+        lines.push(
+          line(task, `ranked ${tier} scale ${scale}`, { ...base, scale, tier })
         );
       }
     }

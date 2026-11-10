@@ -12,6 +12,7 @@ import { dataUrlImageSize } from "./source-size";
 import type { TaskInput, TaskPlan } from "./task-client";
 import type { TaskId } from "./tasks";
 import type { ResolvedCost } from "./tool-cost";
+import type { ScaleRange } from "./tool-types";
 import type { CustomImageSize } from "./types";
 
 export const INVALID_OPTION = "INVALID_OPTION";
@@ -75,16 +76,18 @@ export function cannotCarry(
 }
 
 /**
- * A scale that no endpoint takes (zero, negative, not a number) or that the
- * endpoint's record lists no such value for. `accepted` is the record's enum,
- * absent where the record says only `number`: no limit is invented for those.
+ * A scale that no endpoint takes (zero, negative, not a number), that the
+ * endpoint's record lists no such value for (`accepted`, its enum), or that
+ * is outside the endpoint's `range`. Both are absent where the endpoint states
+ * no limit: none is invented for those.
  */
 export function scaleRefusal(
   task: TaskId,
   model: string,
   scale: number,
-  accepted: readonly number[] = []
+  limits: { accepted?: readonly number[]; range?: ScaleRange } = {}
 ): MotifError | undefined {
+  const { accepted = [], range } = limits;
   if (!Number.isFinite(scale) || scale <= 0) {
     return invalidOption(`scale must be a positive number, not ${scale}.`, {
       field: "scale",
@@ -98,7 +101,33 @@ export function scaleRefusal(
       { accepts: accepted, field: "scale", model, task }
     );
   }
+  if (range !== undefined && (scale < range.min || scale > range.max)) {
+    return invalidOption(
+      `${model} cannot take scale ${scale} for ${task}; it takes ${range.min} to ${range.max}.`,
+      { field: "scale", model, range, task }
+    );
+  }
   return undefined;
+}
+
+/** `scaleRefusal` for the factor a caller sent in `params` under the endpoint's own key. */
+export function paramScaleRefusal(
+  task: TaskId,
+  model: string,
+  key: string,
+  params: Record<string, unknown> | undefined,
+  range: ScaleRange | undefined
+): MotifError | undefined {
+  const value = params?.[key];
+  if (value === undefined) {
+    return undefined;
+  }
+  return scaleRefusal(
+    task,
+    model,
+    typeof value === "number" ? value : Number.NaN,
+    { range }
+  );
 }
 
 export function isPresent(input: TaskInput, field: CarriedField): boolean {

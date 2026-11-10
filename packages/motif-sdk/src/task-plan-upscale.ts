@@ -10,6 +10,7 @@ import { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
 import {
   mergeParams,
+  paramScaleRefusal,
   refuseOthers,
   scaleRefusal,
   sourceSizeOf,
@@ -40,7 +41,9 @@ export function upscalerPlan(
   }
   const body: Record<string, unknown> = { image_url: input.image };
   if (input.scale !== undefined) {
-    const badScale = scaleRefusal(task, model, input.scale);
+    const badScale = scaleRefusal(task, model, input.scale, {
+      range: config.scaleRange,
+    });
     if (badScale !== undefined) {
       return err(badScale);
     }
@@ -56,16 +59,15 @@ export function upscalerPlan(
   if (merged.isErr()) {
     return err(merged.error);
   }
-  const paramScale = input.params?.[scaleField];
-  if (paramScale !== undefined) {
-    const badScale = scaleRefusal(
-      task,
-      model,
-      typeof paramScale === "number" ? paramScale : Number.NaN
-    );
-    if (badScale !== undefined) {
-      return err(badScale);
-    }
+  const badParamScale = paramScaleRefusal(
+    task,
+    model,
+    scaleField,
+    input.params,
+    config.scaleRange
+  );
+  if (badParamScale !== undefined) {
+    return err(badParamScale);
   }
   // A per-megapixel rate bills the output: the source's size times the factor.
   const factor = merged.value[scaleField];

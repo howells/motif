@@ -28,6 +28,11 @@ animate - kling params gif => kling fal-ai/kling-video/v3/pro/image-to-video que
 animate - kling params count 0 => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt=undefined body={"duration":"5","generate_audio":true,"num_images":0,"prompt":"","start_image_url":"https://example.com/source.png"}
 animate - kling scale 3 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
 animate - kling scale -1 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
+animate - kling scale 0.5 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
+animate - kling scale 8 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
+animate - kling scale 16 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
+animate - kling params upscale_factor 8 => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt=undefined body={"duration":"5","generate_audio":true,"prompt":"","start_image_url":"https://example.com/source.png","upscale_factor":8}
+animate - kling params scale_factor 300 => kling fal-ai/kling-video/v3/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.8400000000000001} prompt=undefined body={"duration":"5","generate_audio":true,"prompt":"","scale_factor":300,"start_image_url":"https://example.com/source.png"}
 animate - kling aspect => ERR NO_MODEL_AVAILABLE kling (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
 animate - kling aspect 21:9 => ERR NO_MODEL_AVAILABLE kling (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
 animate - kling aspect auto => ERR NO_MODEL_AVAILABLE kling (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
@@ -62,6 +67,11 @@ animate - kling-turbo params gif => kling-turbo fal-ai/kling-video/v3/turbo/pro/
 animate - kling-turbo params count 0 => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt=undefined body={"duration":"5","image_url":"https://example.com/source.png","num_images":0,"prompt":""}
 animate - kling-turbo scale 3 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
 animate - kling-turbo scale -1 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
+animate - kling-turbo scale 0.5 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
+animate - kling-turbo scale 8 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
+animate - kling-turbo scale 16 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
+animate - kling-turbo params upscale_factor 8 => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt=undefined body={"duration":"5","image_url":"https://example.com/source.png","prompt":"","upscale_factor":8}
+animate - kling-turbo params scale_factor 300 => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt=undefined body={"duration":"5","image_url":"https://example.com/source.png","prompt":"","scale_factor":300}
 animate - kling-turbo aspect => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
 animate - kling-turbo aspect 21:9 => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
 animate - kling-turbo aspect auto => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}

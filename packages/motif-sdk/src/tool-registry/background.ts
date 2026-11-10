@@ -147,6 +147,8 @@ export const BACKGROUND_TOOLS = {
     price: { kind: "megapixel", usd: 0.001 },
     pricing: "$0.001/megapixel",
     queued: true,
+    // fal OpenAPI schema for fal-ai/seedvr/upscale/image, 2026-11-10: upscale_factor 1 to 10.
+    scaleRange: { max: 10, min: 1 },
     sourceUrl: "https://fal.ai/models/fal-ai/seedvr/upscale/image",
     task: "image restoration and upscaling",
   },
@@ -176,6 +178,8 @@ export const BACKGROUND_TOOLS = {
     price: { kind: "megapixel-step", megapixels: 2, usd: 0.08 },
     pricing: "$0.08 per started 2 output megapixels, any Bloom model",
     queued: true,
+    // fal OpenAPI schema for topaz/upscale/image/creative, 2026-11-10: upscale_factor 1 to 4.
+    scaleRange: { max: 4, min: 1 },
     sourceUrl: "https://fal.ai/models/topaz/upscale/image/creative",
     task: "creative image upscaling",
   },
@@ -207,6 +211,8 @@ export const BACKGROUND_TOOLS = {
     pricing:
       "$0.08 per started 8 output megapixels at the default Wonder 3; per started 4 with Wonder, Wonder 2, Standard MAX, Redefine or Recover 3",
     queued: true,
+    // fal OpenAPI schema for topaz/upscale/image/generative, 2026-11-10: upscale_factor 1 to 4.
+    scaleRange: { max: 4, min: 1 },
     sourceUrl: "https://fal.ai/models/topaz/upscale/image/generative",
     task: "generative image upscaling",
   },
@@ -226,6 +232,8 @@ export const BACKGROUND_TOOLS = {
     pricing:
       "$0.08 for output up to 24MP; $0.16 to 48MP, $0.32 to 96MP, up to $1.36 at 512MP",
     queued: true,
+    // fal OpenAPI schema for fal-ai/topaz/upscale/image, 2026-11-10: upscale_factor 1 to 4.
+    scaleRange: { max: 4, min: 1 },
     sourceUrl: "https://fal.ai/models/fal-ai/topaz/upscale/image",
     task: "image enhancement",
   },
@@ -241,6 +249,8 @@ export const BACKGROUND_TOOLS = {
     price: { kind: "megapixel-step", megapixels: 24, usd: 0.08 },
     pricing: "$0.08 per 24 output megapixels, any precision model",
     queued: true,
+    // fal OpenAPI schema for topaz/upscale/image/precision, 2026-11-10: upscale_factor 1 to 4.
+    scaleRange: { max: 4, min: 1 },
     sourceUrl: "https://fal.ai/models/topaz/upscale/image/precision",
     task: "faithful image upscaling",
   },
@@ -316,6 +326,8 @@ export const BACKGROUND_TOOLS = {
     pricing:
       "$0.01/sec up to 720p output; $0.02 to 1080p, $0.08 above, doubled at 60fps, halved with Gaia 2",
     queued: true,
+    // fal OpenAPI schema for fal-ai/topaz/upscale/video, 2026-11-10: upscale_factor 1 to 4.
+    scaleRange: { max: 4, min: 1 },
     sourceUrl: "https://fal.ai/models/fal-ai/topaz/upscale/video",
     task: "video enhancement",
   },

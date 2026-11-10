@@ -87,6 +87,12 @@ export type FalToolPrice =
     }
   | { kind: "metered" };
 
+/** The upscale factors an endpoint takes, from its fal OpenAPI schema. */
+export interface ScaleRange {
+  max: number;
+  min: number;
+}
+
 export interface FalToolConfig {
   category:
     | "3d"
@@ -183,6 +189,8 @@ export interface FalToolConfig {
    * queue path.
    */
   queued?: true;
+  /** Upscale factors the endpoint takes; absent where its schema states no range. */
+  scaleRange?: ScaleRange;
   sourceUrl: string;
   task: string;
 }
