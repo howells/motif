@@ -96,22 +96,56 @@ function taskRequest(task: TaskId, input: TaskInput): TaskRequest {
   };
 }
 
+/**
+ * The Model's request body, or the refusal. The ranking asks this of each
+ * candidate, so a Model the planner would refuse is skipped, not chosen.
+ */
+function planModel(
+  task: TaskId,
+  model: string,
+  input: TaskInput
+): Result<PlanBody, MotifError> {
+  const noSource = missingSource(task, model, input);
+  if (noSource !== undefined) {
+    return err(noSource);
+  }
+  try {
+    return planBody(task, model, input);
+  } catch (error) {
+    return err(withCode(error, model, task));
+  }
+}
+
 function resolve(
   task: TaskId,
   input: TaskInput,
   context: PlanContext,
-  options: PlanOptions
+  options: PlanOptions,
+  plans: Map<string, Result<PlanBody, MotifError>>
 ): Result<TaskResolved, MotifError> {
   const keys: string[] = [];
   if (options.dryRun === true || context.falKey !== undefined) {
     keys.push("FAL_KEY");
   }
-  const resolution = resolveTask(task, taskRequest(task, input), {
-    keys,
-    pins: context.pins,
+  const request = taskRequest(task, input);
+  const environment = { keys, pins: context.pins };
+  const resolution = resolveTask(task, request, {
+    ...environment,
+    refusal: (model) => {
+      const planned = planModel(task, model, input);
+      plans.set(model, planned);
+      return planned.isErr() ? planned.error : undefined;
+    },
   });
   if (resolution.ok) {
     return ok(resolution);
+  }
+  // Every ranked Model the profiles allowed was refused by the planner: report
+  // the refusal of the one the profiles alone would have chosen.
+  const unfiltered = resolveTask(task, request, environment);
+  const refused = unfiltered.ok ? plans.get(unfiltered.model) : undefined;
+  if (refused?.isErr() === true) {
+    return err(refused.error);
   }
   return err(
     new MotifError(resolution.message, 0, NO_MODEL_AVAILABLE, undefined, {
@@ -159,22 +193,13 @@ export function planTask(
     return err(refusedInput);
   }
 
-  const resolved = resolve(task, input, context, options);
+  const plans = new Map<string, Result<PlanBody, MotifError>>();
+  const resolved = resolve(task, input, context, options, plans);
   if (resolved.isErr()) {
     return err(resolved.error);
   }
   const { chosenBy, model, tier } = resolved.value;
-  const noSource = missingSource(task, model, input);
-  if (noSource !== undefined) {
-    return err(noSource);
-  }
-
-  let built: Result<PlanBody, MotifError>;
-  try {
-    built = planBody(task, model, input);
-  } catch (error) {
-    built = err(withCode(error, model, task));
-  }
+  const built = plans.get(model) ?? planModel(task, model, input);
   if (built.isErr()) {
     return err(built.error);
   }

@@ -52,9 +52,9 @@ reframe sizes smart-resize aspect => ERR NO_MODEL_AVAILABLE smart-resize (model)
 reframe sizes smart-resize rich => ERR NO_MODEL_AVAILABLE smart-resize (model) cannot do count. {"blockedBy":"count","task":"reframe","unblockedBy":["option"]}
 reframe - ranked fast => bria-expand fal-ai/bria/expand queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for reframe can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
-reframe - ranked balanced => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ranked balanced => bria-expand fal-ai/bria/expand queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for reframe can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
-reframe - ranked quality => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ranked quality => bria-expand fal-ai/bria/expand queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
 reframe - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for reframe can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
 reframe margin ranked fast => ERR INVALID_OPTION flux-outpaint cannot take prompt for reframe. {"field":"prompt","model":"flux-outpaint","task":"reframe"}
 reframe margin ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
@@ -68,3 +68,27 @@ reframe sizes ranked balanced => smart-resize fal-ai/smart-resize queued=true by
 reframe sizes ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
 reframe sizes ranked quality => smart-resize fal-ai/smart-resize queued=true by=ranking tier=quality mode=sizes cost={"basis":"projected","usd":0.2} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe","target_sizes":["800x600"]}
 reframe sizes ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do references. {"blockedBy":"references","task":"reframe","unblockedBy":["option"]}
+reframe - ranked fast aspect 21:9 => ERR INVALID_OPTION bria-expand cannot take aspect 21:9 for reframe. {"accepts":["1:1","2:3","3:2","3:4","4:3","4:5","5:4","9:16","16:9"],"field":"aspect","model":"bria-expand","task":"reframe"}
+reframe - ranked quality aspect 21:9 => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ranked fast aspect 8:1 => ERR INVALID_OPTION bria-expand cannot take aspect 8:1 for reframe. {"accepts":["1:1","2:3","3:2","3:4","4:3","4:5","5:4","9:16","16:9"],"field":"aspect","model":"bria-expand","task":"reframe"}
+reframe - ranked quality aspect 8:1 => ERR INVALID_OPTION ideogram-reframe cannot take prompt for reframe. {"field":"prompt","model":"ideogram-reframe","task":"reframe"}
+reframe - ranked fast res 1K => bria-expand fal-ai/bria/expand queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - ranked quality res 1K => bria-expand fal-ai/bria/expand queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[1536,864],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - ranked fast res 2K => bria-expand fal-ai/bria/expand queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[2048,1152],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe - ranked quality res 2K => bria-expand fal-ai/bria/expand queued=false by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.04} prompt="the shoe" body={"aspect_ratio":"16:9","canvas_size":[2048,1152],"image_url":"https://example.com/source.png","prompt":"the shoe"}
+reframe margin ranked fast aspect 21:9 => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked quality aspect 21:9 => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked fast aspect 8:1 => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked quality aspect 8:1 => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked fast res 1K => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked quality res 1K => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked fast res 2K => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe margin ranked quality res 2K => ERR NO_MODEL_AVAILABLE No Model for reframe margin can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked fast aspect 21:9 => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked quality aspect 21:9 => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked fast aspect 8:1 => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked quality aspect 8:1 => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do aspect. {"blockedBy":"aspect","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked fast res 1K => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked quality res 1K => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked fast res 2K => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}
+reframe sizes ranked quality res 2K => ERR NO_MODEL_AVAILABLE No Model for reframe sizes can do resolution. {"blockedBy":"resolution","task":"reframe","unblockedBy":["option"]}

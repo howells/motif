@@ -20,6 +20,7 @@
 
 import { outputFormatsOf } from "./capabilities";
 import { getLook } from "./creative";
+import type { MotifError } from "./errors";
 import { MODELS } from "./models";
 import type {
   Capability,
@@ -75,6 +76,13 @@ export interface TaskEnvironment {
   readonly keys: readonly string[];
   /** Models pinned per Task in config (`tasks.<task>.model`). */
   readonly pins?: Readonly<Partial<Record<TaskId, string>>>;
+  /**
+   * Whether the Model can carry the whole request: the refusal when it cannot.
+   * The planner supplies it, so a ranked Model it would refuse is skipped
+   * rather than chosen and then refused. Absent when only the capability
+   * profiles are asked, as in `--describe`.
+   */
+  readonly refusal?: (model: string) => MotifError | undefined;
 }
 
 /** Which rule fixed the Model. */
@@ -460,7 +468,13 @@ export function resolveTask(
       return result;
     }
   }
-  return resolveRanked(task, request, needed, environment.keys);
+  return resolveRanked(
+    task,
+    request,
+    needed,
+    environment.keys,
+    environment.refusal
+  );
 }
 
 interface FixedModel {
@@ -561,7 +575,8 @@ function resolveRanked(
   task: TaskId,
   request: TaskRequest,
   needed: readonly Capability[],
-  keys: readonly string[]
+  keys: readonly string[],
+  refusal: TaskEnvironment["refusal"]
 ): TaskResolution {
   const tier = request.tier ?? DEFAULT_TIER;
   const qualifying = new Map<Tier, string>();
@@ -590,7 +605,9 @@ function resolveRanked(
     );
     if (result.ok) {
       if (!qualifying.has(modelTier)) {
-        qualifying.set(modelTier, model);
+        if (refusal?.(model) === undefined) {
+          qualifying.set(modelTier, model);
+        }
       }
     } else if (result.blockedBy === "key") {
       keyBlock ??= result.missingKey;

@@ -115,11 +115,11 @@ upscale generative topaz-generative ref1 => ERR NO_MODEL_AVAILABLE topaz-generat
 upscale generative topaz-generative ref2 => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative aspect => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do aspect. {"blockedBy":"aspect","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative rich => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do count. {"blockedBy":"count","task":"upscale","unblockedBy":["option"]}
-upscale - ranked fast => ERR INVALID_OPTION crystal cannot take prompt for upscale. {"field":"prompt","model":"crystal","task":"upscale"}
+upscale - ranked fast => clarity fal-ai/clarity-upscaler queued=false by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.096} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
 upscale - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for upscale can do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale - ranked balanced => clarity fal-ai/clarity-upscaler queued=false by=ranking tier=balanced mode=undefined cost={"basis":"projected","usd":0.096} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
 upscale - ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for upscale can do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
-upscale - ranked quality => ERR INVALID_OPTION topaz-precision cannot take prompt for upscale. {"field":"prompt","model":"topaz-precision","task":"upscale"}
+upscale - ranked quality => topaz-image fal-ai/topaz/upscale/image queued=true by=ranking tier=quality mode=undefined cost={"basis":"projected","usd":0.08} prompt="the shoe" body={"image_url":"https://example.com/source.png","model":"Standard V2","output_format":"jpeg","prompt":"the shoe","upscale_factor":2}
 upscale - ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for upscale can do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}
 upscale creative ranked fast => ERR INVALID_OPTION topaz-creative cannot take prompt for upscale. {"field":"prompt","model":"topaz-creative","task":"upscale"}
 upscale creative ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for upscale creative can do references. {"blockedBy":"references","task":"upscale","unblockedBy":["option"]}

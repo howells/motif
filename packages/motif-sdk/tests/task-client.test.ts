@@ -963,13 +963,29 @@ describe("createMotif refusals", () => {
     const error = refused("reframe", {
       aspect: "21:9",
       image: IMAGE,
-      tier: "fast",
+      model: "bria-expand",
     });
 
     expect(error.details).toMatchObject({
       field: "aspect",
       model: "bria-expand",
     });
+  });
+
+  it("skips a ranked Model that cannot take the request for one that can", () => {
+    const fast = client().plan("reframe", {
+      aspect: "21:9",
+      image: IMAGE,
+      tier: "fast",
+    });
+    const prompted = client().plan("reframe", {
+      aspect: "16:9",
+      image: IMAGE,
+      prompt: "extend the sky",
+    });
+
+    expect(fast._unsafeUnwrap().model).toBe("ideogram-reframe");
+    expect(prompted._unsafeUnwrap().model).toBe("bria-expand");
   });
 
   it("refuses a resolution on a named Model that can't take one", () => {

@@ -115,6 +115,34 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ],
 ];
 
+/** Options the ranking must choose by: a Model that cannot carry one is skipped. */
+const RANKED_OPTIONS: readonly {
+  extra: Partial<TaskInput>;
+  label: string;
+  tasks: readonly TaskId[];
+}[] = [
+  {
+    extra: { aspect: "21:9" },
+    label: "aspect 21:9",
+    tasks: ["generate", "layers", "relight", "reframe", "vary"],
+  },
+  {
+    extra: { aspect: "8:1" },
+    label: "aspect 8:1",
+    tasks: ["generate", "layers", "relight", "reframe", "vary"],
+  },
+  {
+    extra: { resolution: "1K" },
+    label: "res 1K",
+    tasks: ["generate", "relight", "reframe", "vary"],
+  },
+  {
+    extra: { resolution: "2K" },
+    label: "res 2K",
+    tasks: ["generate", "relight", "reframe", "vary"],
+  },
+];
+
 function sorted(value: unknown): unknown {
   if (Array.isArray(value)) {
     return value.map(sorted);
@@ -173,6 +201,28 @@ function table(task: TaskId): string {
           tier,
         })
       );
+    }
+  }
+  for (const mode of modes) {
+    const first = entriesOf(task).find((entry) => entry.mode === mode);
+    if (first === undefined) {
+      continue;
+    }
+    const { model: _model, ...base } = minimal(task, first);
+    for (const { extra, label, tasks } of RANKED_OPTIONS) {
+      if (!tasks.includes(task)) {
+        continue;
+      }
+      for (const tier of ["fast", "quality"] as const) {
+        lines.push(
+          line(task, `ranked ${tier} ${label}`, {
+            ...base,
+            ...extra,
+            prompt: "the shoe",
+            tier,
+          })
+        );
+      }
     }
   }
   if (task === "generate" || task === "vary") {
