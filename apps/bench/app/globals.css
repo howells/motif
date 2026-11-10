@@ -1,164 +1,34 @@
-/* Motif's site theme: the tokens and base styles the homepage sits on. The
-   homepage itself is the light `.site` palette (site.css) and its own grid and
-   type (home.css). */
+/* The homepage's base: Tailwind, the palette (site.css), the page's grid and
+   type (home.css), the font stack and the body's resets. */
 
 @import "tailwindcss";
-/* The light palette scoped to `.site`. */
 @import "./site.css";
-/* The homepage's grid, rhythm and type, scoped to `.home`. */
 @import "./home.css";
 
-@theme {
-  /* ── Dark throughout ──────────────────────────────────────────────
-     The app was warm paper with a dark plate cut into it for the images.
-     That split existed for one reason — image quality cannot be judged
-     against white — and a single dark ground satisfies it completely and
-     more simply. So the plate is no longer a region; the whole surface is
-     the plate, and the images now sit on the same ground everywhere.
-
-     Re-derived, not inverted: the ladder keeps the light theme's contrast
-     *relationships* (ink well clear of ground, muted legible but recessive,
-     borders barely there) rather than flipping lightness values.
-
-     Chroma stays at or below 0.004 on every surface. Any hue in the ground
-     tints the perception of what sits on it, and this tool exists to
-     compare images — so the surround must be as achromatic as the light
-     theme's plate was. Hue 106 is retained so the greys stay very slightly
-     warm rather than clinically blue. */
-  /* Ground goes deep. Informed by ~/Sites/kiln, the closest sibling tool
-     (same author, same job — judging generated images). Its reasoning: the
-     images should be the only luminous thing on screen. At L 0.185 the
-     surround was still bright enough to compete; at L 0.11 the rooms read
-     as lit objects on a bench. */
-  --color-background: oklch(0.11 0.002 106); /* the ground, everywhere */
-  --color-surface: oklch(0.145 0.002 106); /* rail, top bar, popovers */
-  --color-surface-soft: oklch(0.185 0.003 106); /* hover, selected rows */
-
-  /* Three text rungs, not two. `muted` was doing double duty on both
-     labels and de-emphasised data, which is why annotation blocks read flat.
-     Now: primary reading, secondary labels, tertiary annotation. */
-  --color-ink: oklch(0.96 0.002 106);
-  --color-muted: oklch(0.66 0.004 106);
-  --color-faint: oklch(0.46 0.004 106);
-
-  /* Borders are white at low alpha, not a solid grey. A solid border has to
-     be hand-tuned for each rung of the surface ladder; an alpha border sits
-     correctly against all of them automatically. */
-  --color-border: oklch(1 0 0 / 0.08);
-  --color-border-soft: oklch(1 0 0 / 0.05); /* interior rules */
-  --color-border-strong: oklch(1 0 0 / 0.16);
-
-  /* The accent is achromatic, and that is the point. This tool exists to
-     judge colour in the images; a coloured accent competes with the subject
-     it is meant to help evaluate. The previous commit lifted forest green to
-     L 0.62 just to survive the dark ground — kiln's answer is better: a hued
-     accent should not be here at all. Near-white on near-black is the
-     strongest possible affordance and carries no hue to interfere. */
-  --color-accent: oklch(0.96 0 0);
-  --color-accent-soft: oklch(1 0 0 / 0.1); /* tinted fill, not a wash */
-  --color-on-accent: oklch(0.11 0.002 106); /* text ON the accent fill */
-
-  /* ── The plate tokens now alias the ground ────────────────────────
-     Kept as names rather than deleted so every component that annotates
-     "on the plate" keeps reading correctly — there is simply no longer a
-     second surface for them to mean. */
-  --color-plate: var(--color-background);
-  --color-plate-edge: var(--color-border);
-  --color-plate-ink: var(--color-ink);
-  --color-plate-muted: var(--color-muted);
-
-  /* ── Semantic — all lifted for a dark surround ────────────────── */
-  --color-ok: oklch(
-    0.7 0.085 166
-  ); /* completed — its own green now the accent is achromatic */
-  --color-warn: oklch(0.76 0.11 78); /* partial, contended, stale */
-  --color-bad: oklch(0.66 0.16 27); /* failed */
+/* The colour utilities the markup uses (`bg-background`, `bg-surface`,
+   `text-ink`, `text-muted`) read the palette in site.css directly. */
+@theme inline {
+  --color-background: var(--ground);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
 }
 
-/* ── The scales ────────────────────────────────────────────────────────
-   One 4px-based spacing scale, one radius scale and one control height,
-   named once here and read by every stylesheet and every component on the
-   site. The spacing steps are Tailwind's own
-   (`gap-2` is 8px) and the CSS custom properties are the same numbers, so a
-   stylesheet writes `var(--spacing-4)` where markup writes `p-4`. Anything
-   between two steps is a decision to take one of them, never a new number.
-
-       1 = 4    2 = 8    3 = 12    4 = 16    6 = 24
-       8 = 32   12 = 48  16 = 64   24 = 96   32 = 128
-
-   Radius is 0 for images, 4 for controls, chips and inputs, 8 for panels,
-   dialogs, popovers and floating bars, and full for dots, avatars and round
-   icon buttons. Nested corners stay concentric: an inner radius is the outer
-   radius less the padding between them, so a 4px control inside an 8px panel
-   sits 4px in. `--radius-*: initial` removes Tailwind's own `sm` to `4xl`
-   steps so `rounded-md` cannot be written by accident. */
+/* The touch target: home.css sizes the menu button with it. */
 @theme static {
-  --spacing-1: 0.25rem;
-  --spacing-2: 0.5rem;
-  --spacing-3: 0.75rem;
-  --spacing-4: 1rem;
-  --spacing-6: 1.5rem;
-  --spacing-8: 2rem;
-  --spacing-12: 3rem;
-  --spacing-16: 4rem;
-  --spacing-24: 6rem;
-  --spacing-32: 8rem;
-
-  /* The one control height, and the touch target. Buttons, inputs, selects,
-     tabs and nav rows are this tall on the site. */
   --spacing-control: 44px;
-
-  /* The page gutter: 16px on a phone, 64px from 1450px up. */
-  --gutter: clamp(var(--spacing-4), 4.4vw, var(--spacing-16));
-
-  --radius-*: initial;
-  --radius-frame: 0px;
-  --radius-control: 4px;
-  --radius-panel: 8px;
 }
 
-/* Everything below is plumbing for the tokens above, not new design decisions:
-   the type stacks and the shadcn/ui variable names mapped onto house tokens
-   so the primitives inherit this theme instead of shipping default neutral. */
 @theme {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono:
-    "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
-
-  /* shadcn/ui semantic names → house tokens. `--color-accent` is deliberately
-     absent: shadcn treats `accent` as a neutral hover wash, but here it is the
-     one forest accent, so the primitives' hover states were rewritten to
-     `surface-soft` rather than being handed a green fill. */
-  --color-foreground: var(--color-ink);
-  --color-card: var(--color-surface);
-  --color-card-foreground: var(--color-ink);
-  --color-popover: var(--color-surface);
-  --color-popover-foreground: var(--color-ink);
-  --color-primary: var(--color-accent);
-  --color-primary-foreground: var(--color-on-accent);
-  --color-secondary: var(--color-surface-soft);
-  --color-secondary-foreground: var(--color-ink);
-  --color-accent-foreground: var(--color-on-accent);
-  --color-muted-foreground: var(--color-muted);
-  --color-destructive: var(--color-bad);
-  --color-input: var(--color-border);
-  --color-ring: var(--color-accent);
 }
 
 @layer base {
   :root {
-    /* One ground, one direction. The plate is a scoped surface inside the
-       page, not a dark scheme, so there is nothing here to invert. */
+    /* The page is one light surface whatever the browser's scheme. */
     color-scheme: light;
-  }
-
-  *,
-  *::before,
-  *::after {
-    border-color: var(--color-border);
-    box-sizing: border-box;
   }
 
   html {
@@ -166,8 +36,8 @@
   }
 
   body {
-    background: var(--color-background);
-    color: var(--color-ink);
+    background: var(--ground);
+    color: var(--ink);
     font-family: var(--font-sans);
     /* Weight 400 everywhere. `font-medium` (500) is the one emphasis weight,
        on names, buttons and the active nav item; nothing sits between. The
@@ -223,10 +93,10 @@
     font: inherit;
   }
 
-  /* Focus is visible on every control, at the accent, offset so it reads as a
+  /* Focus is visible on every control, in the ink, offset so it reads as a
      ring rather than a border replacement. */
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--ink);
     outline-offset: 2px;
   }
 }

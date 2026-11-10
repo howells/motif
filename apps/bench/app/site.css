@@ -1,43 +1,33 @@
-/* The light palette drawn from the Paper file "Motif", scoped to `.site`:
-   the homepage sits inside it. The homepage's own grid, rhythm and type are
-   in home.css.
+/* The homepage's palette, drawn from the Paper file "Motif" and declared once
+   on `:root`: the body, the Tailwind colour utilities (globals.css) and the
+   page's stylesheets all read it. The homepage's own grid, rhythm and type
+   are in home.css. */
 
-   globals.css owns the dark tokens declared in `@theme`. This palette is
-   scoped to the class rather than declared there, so the two never
-   collide: nothing here escapes `.site`. */
-
-.site {
+:root {
   /* Paper, and the holding tone behind a photograph while it loads. The
      ground carries the only warmth on the page and it is barely there: at
      this lightness the cast reads as stock rather than as a colour. */
   --ground: #faf9f7;
   --surface: #efedea;
 
-  /* Three rungs, all achromatic. `ink` is the reading colour, `muted` carries
-     captions and standfirsts, `faint` is for text that must recede without
-     becoming unreadable — measured at 5.3:1 on the ground, with room to spare
-     over AA at 14px. There is no accent: nothing on this page is coloured type. */
+  /* Two text rungs, both achromatic. `ink` is the reading colour and `muted`
+     carries captions and standfirsts. There is no accent: nothing on this page
+     is coloured type. */
   --ink: #1c1b1a;
   --muted: #5f5c5a;
-  --faint: #6b6866;
 
   --rule: rgb(28 27 26 / 12%);
+}
 
-  /* Both faces arrive as next/font variables on the same element. Overriding
-     `--font-mono` here rather than in `@theme` keeps it to this page: the
-     `font-mono` utility reads this variable, so every command on `/` is set
-     in DM Mono. */
+/* The homepage's wrapper. Both faces arrive as next/font variables on this
+   element, so the font stacks are declared here, not on `:root`. */
+.site {
   --font-display: var(--font-faculty), ui-serif, Georgia, serif;
   --font-mono:
     var(--font-dm-mono), "SFMono-Regular", "SF Mono", Menlo, monospace;
 
-  background: var(--ground);
-  color: var(--ink);
   /* The photographs run off the right edge. Clipping here means that bleed
      costs no sideways scroll. */
   overflow-x: clip;
-  /* The page is one light surface whatever the browser's scheme, and it must
-     cover the dark body underneath it. */
-  color-scheme: light;
   min-block-size: 100dvh;
 }
