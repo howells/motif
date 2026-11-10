@@ -21,8 +21,8 @@ import type {
   SizeMode,
 } from "./types";
 
-const GPT_IMAGE_SIZES = ["auto", "1024x1024", "1536x1024", "1024x1536"];
-const FAL_IMAGE_SIZE_PRESETS = [
+export const GPT_IMAGE_SIZES = ["auto", "1024x1024", "1536x1024", "1024x1536"];
+export const FAL_IMAGE_SIZE_PRESETS = [
   "auto",
   "square_hd",
   "square",

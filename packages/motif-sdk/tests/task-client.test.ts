@@ -992,6 +992,68 @@ describe("createMotif refusals", () => {
     });
   });
 
+  it("refuses a tool param its record does not list, and one that does not fit it", () => {
+    const unknown = refused("cutout", {
+      image: IMAGE,
+      model: "birefnet",
+      params: { bogus_key: 1 },
+    });
+    const wrongEnum = refused("cutout", {
+      image: IMAGE,
+      model: "birefnet",
+      params: { model: "Nope" },
+    });
+    const wrongType = refused("cutout", {
+      image: IMAGE,
+      model: "birefnet",
+      params: { refine_foreground: "yes" },
+    });
+
+    expect(unknown.details).toMatchObject({
+      field: "params",
+      key: "bogus_key",
+      model: "birefnet",
+    });
+    expect(unknown.details?.accepts).toContain("output_format");
+    expect(wrongEnum.message).toContain("must be one of General Use (Light)");
+    expect(wrongType.message).toContain("must be true or false");
+  });
+
+  it("holds a generation param to the limit the Task option has", () => {
+    const aspect = refused("generate", {
+      model: "gpt",
+      params: { aspect_ratio: "21:9" },
+      prompt: "x",
+    });
+    const resolution = refused("generate", {
+      model: "flux2-pro",
+      params: { resolution: "4K" },
+      prompt: "x",
+    });
+    const count = refused("generate", {
+      model: "banana",
+      params: { num_images: 0 },
+      prompt: "x",
+    });
+
+    expect(aspect.details).toMatchObject({
+      field: "params",
+      key: "aspect_ratio",
+    });
+    expect(resolution.details).toMatchObject({
+      field: "params",
+      key: "resolution",
+    });
+    expect(count.details).toMatchObject({ field: "params", key: "num_images" });
+    expect(
+      planned("generate", {
+        model: "banana",
+        params: { aspect_ratio: "21:9" },
+        prompt: "x",
+      }).body.aspect_ratio
+    ).toBe("21:9");
+  });
+
   it("refuses a request missing a parameter fal requires", () => {
     const error = refused("erase", { image: IMAGE });
 

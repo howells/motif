@@ -13,6 +13,7 @@ import { enrichPrompt } from "./creative";
 import type { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
 import { boxPrompts } from "./task-plan-boxes";
+import { toolParamsRefusal } from "./task-plan-params";
 import { projectedOutputs, sourceFacts } from "./task-plan-projection";
 import {
   cannotCarry,
@@ -419,6 +420,18 @@ export function toolPlan(
   }
   const { defaultOptions }: FalToolConfig = tool;
   // planTask has already refused a missing Source the Model needs.
+  const badParam =
+    input.params === undefined
+      ? undefined
+      : toolParamsRefusal(
+          task,
+          model,
+          FAL_TOOL_PARAMETERS[model] ?? [],
+          input.params
+        );
+  if (badParam !== undefined) {
+    return err(badParam);
+  }
   const { body, endpoint } =
     media === undefined
       ? {

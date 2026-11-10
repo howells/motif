@@ -56,6 +56,17 @@ export function upscalerPlan(
   if (merged.isErr()) {
     return err(merged.error);
   }
+  const paramScale = input.params?.[scaleField];
+  if (paramScale !== undefined) {
+    const badScale = scaleRefusal(
+      task,
+      model,
+      typeof paramScale === "number" ? paramScale : Number.NaN
+    );
+    if (badScale !== undefined) {
+      return err(badScale);
+    }
+  }
   // A per-megapixel rate bills the output: the source's size times the factor.
   const factor = merged.value[scaleField];
   const scale = typeof factor === "number" ? factor : config.defaultScale;

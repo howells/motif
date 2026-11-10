@@ -3,22 +3,11 @@
  * read the body as sent, `params` included, because fal bills that body.
  */
 
-import {
-  FAL_PRESET_SIZES,
-  RESOLUTIONS,
-  withinImageSizeBounds,
-} from "./aspects";
+import { FAL_PRESET_SIZES, RESOLUTIONS } from "./aspects";
 import { estimateCost } from "./cost";
-import type { MotifError } from "./errors";
 import type { TaskInput } from "./task-client";
-import {
-  invalidOption,
-  isCustomSize,
-  isPresent,
-  projected,
-} from "./task-plan-shared";
+import { isCustomSize, isPresent, projected } from "./task-plan-shared";
 import type { CarriedField } from "./task-plan-shared";
-import type { TaskId } from "./tasks";
 import type { ResolvedCost } from "./tool-cost";
 import type { ModelConfig, Resolution } from "./types";
 
@@ -112,25 +101,4 @@ export function ownedGenerationKeys(input: TaskInput): Set<string> {
 
 function isCarriedField(field: string): field is CarriedField {
   return Object.hasOwn(GENERATION_KEYS, field);
-}
-
-/** Refuse an `image_size` from `params` the Model can't take or that's out of bounds. */
-export function checkParamsImageSize(
-  config: ModelConfig,
-  model: string,
-  task: TaskId,
-  params: TaskInput["params"]
-): MotifError | undefined {
-  const value = params?.image_size;
-  if (!isCustomSize(value)) {
-    return undefined;
-  }
-  const bounds = config.customImageSize;
-  if (bounds === undefined || !withinImageSizeBounds(value, bounds)) {
-    return invalidOption(
-      `${model} cannot take image_size ${value.width}x${value.height}.`,
-      { bounds, field: "params", key: "image_size", model, task }
-    );
-  }
-  return undefined;
 }

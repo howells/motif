@@ -26,11 +26,8 @@ import { MODELS } from "./models";
 import { NO_MODEL_AVAILABLE, resolveTask } from "./resolve";
 import type { TaskRequest, TaskResolved } from "./resolve";
 import type { PlanOptions, TaskInput, TaskPlan } from "./task-client";
-import {
-  checkParamsImageSize,
-  generationCost,
-  ownedGenerationKeys,
-} from "./task-plan-pricing";
+import { generationParamsRefusal } from "./task-plan-params";
+import { generationCost, ownedGenerationKeys } from "./task-plan-pricing";
 import {
   cannotCarry,
   INVALID_OPTION,
@@ -512,9 +509,18 @@ function generationPlan(
   if (merged.isErr()) {
     return err(merged.error);
   }
-  const badSize = checkParamsImageSize(config, model, task, input.params);
-  if (badSize !== undefined) {
-    return err(badSize);
+  const badParam =
+    input.params === undefined
+      ? undefined
+      : generationParamsRefusal(
+          task,
+          model,
+          config,
+          input.params,
+          editImageUrls.length > 0
+        );
+  if (badParam !== undefined) {
+    return err(badParam);
   }
   return ok({
     body: merged.value,
