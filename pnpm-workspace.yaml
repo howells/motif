@@ -58,3 +58,15 @@ supportedArchitectures:
 # CLI shares, and the type-aware lint then reads the wrong Node types.
 overrides:
   "@types/node": "^26.6.2"
+  # Transitive advisories whose parent pins a vulnerable version. Each entry
+  # names the advisory and the parent to wait on; remove it once the parent moves.
+  #   zod < 4.6.6 (GHSA-mrhx-c7xc-m3w5): @vercel/cli-config@0.3.1 pins zod 4.1.11, reached through @vercel/oidc 3.8.x
+  #   path-to-regexp < 6.3.0: @vercel/routing-utils 6.6.1 pins 6.1.0
+  #   glob <= 14.0.1 (GHSA-3g3m-2fjr-6pw4) and minimatch < 11.0.1 (GHSA-g3hv-75wg-m249): @vercel/nft 1.11.1 wants glob ^13
+  #   postcss-selector-parser < 6.1.5 (GHSA-rj75-hqrm-r3gf): @tailwindcss/typography 0.5.20 pins 6.0.10
+  #   esbuild < 0.28.1 (GHSA-g7r4-m6w7-qqqr): tsup 8.5.1 wants esbuild ^0.27.0
+  "@vercel/cli-config>zod": "catalog:"
+  "@vercel/routing-utils>path-to-regexp": "6.3.0"
+  "@vercel/nft>glob": "^14.0.4"
+  "@tailwindcss/typography>postcss-selector-parser": "^6.1.5"
+  "tsup>esbuild": "^0.28.2"
