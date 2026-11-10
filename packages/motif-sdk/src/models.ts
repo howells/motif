@@ -666,6 +666,7 @@ export const MODELS: Record<string, ModelConfig> = {
       unitPrice: 0.02,
     },
     // fal's edit schema: "A maximum of 3 images are supported."
+    lowercaseResolution: true,
     maxReferenceImages: 3,
     name: "Grok Imagine Image",
     pricePerImageUsd: 0.02,
@@ -908,6 +909,7 @@ export const MODELS: Record<string, ModelConfig> = {
       unitPrice: 0.06,
     },
     // fal's edit schema: "A maximum of 3 images are supported."
+    lowercaseResolution: true,
     maxReferenceImages: 3,
     name: "Grok Imagine Image 2.0",
     // Motif leaves quality at fal's default, medium, and sends 2K unless asked.
@@ -1038,6 +1040,7 @@ export const MODELS: Record<string, ModelConfig> = {
       unitPrice: 0.05,
     },
     // fal's edit schema: "A maximum of 3 images are supported."
+    lowercaseResolution: true,
     maxReferenceImages: 3,
     name: "Grok Imagine Image Quality",
     // fal's model pages quote $0.05 at 1K and $0.07 at 2K; Motif sends 2K

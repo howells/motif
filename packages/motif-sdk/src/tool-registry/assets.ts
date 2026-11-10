@@ -253,6 +253,7 @@ export const ASSET_TOOLS = {
     pricing:
       "$0.02 per unit; fal does not define a unit, and this endpoint returns one mesh per detected object, so no estimate is reported",
     queued: true,
+    requiredPrompt: "a prompt naming the objects",
     sourceUrl: "https://fal.ai/models/fal-ai/sam-3/3d-objects",
     task: "single-image 3D object reconstruction",
   },

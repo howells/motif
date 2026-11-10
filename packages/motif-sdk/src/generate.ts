@@ -419,9 +419,7 @@ export function buildGenerateBody(options: GenerateOptions): {
       }
       if (config.supportsResolution) {
         body.resolution =
-          model === "grok-image" ||
-          model === "grok-image-2" ||
-          model === "grok-image-quality"
+          config.lowercaseResolution === true
             ? resolution.toLowerCase()
             : resolution;
       }

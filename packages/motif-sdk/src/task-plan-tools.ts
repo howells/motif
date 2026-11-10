@@ -21,8 +21,7 @@ import {
   refuseOthers,
 } from "./task-plan-shared";
 import type { CarriedField, PlanBody } from "./task-plan-shared";
-import { TASKS } from "./tasks";
-import type { RankedModel, TaskId } from "./tasks";
+import type { TaskId } from "./tasks";
 import { projectedToolCost } from "./tool-cost";
 import type { OutputDimensions, SourceFacts } from "./tool-cost";
 import { FAL_TOOL_PARAMETERS } from "./tool-parameters.generated";
@@ -33,11 +32,6 @@ import type { FalToolId } from "./tools";
 import type { AspectRatio, CustomImageSize } from "./types";
 
 type Box = NonNullable<TaskInput["boxes"]>[number];
-
-/** Tools whose `box_prompts` take fractions of the image, 0-1, one box only. */
-const FRACTION_BOX_TOOLS: ReadonlySet<string> = new Set([
-  "object-removal-bbox",
-]);
 
 /** The TaskInput field that supplies each fal key a tool may require. */
 export const FIELD_FOR_KEY: Readonly<Record<string, CarriedField>> = {
@@ -55,28 +49,6 @@ export const FIELD_FOR_KEY: Readonly<Record<string, CarriedField>> = {
 };
 
 const ENUM_TYPE_REGEX = /^enum\((.*)\)$/;
-
-function rankedEntry(
-  task: TaskId,
-  model: string,
-  mode: string | undefined
-): RankedModel | undefined {
-  const entries: readonly RankedModel[] = TASKS[task].models;
-  return entries.find((entry) => entry.model === model && entry.mode === mode);
-}
-
-function maskKey(
-  task: TaskId,
-  model: FalToolId,
-  mode: string | undefined
-): string | undefined {
-  if (model === "iclight-v2") {
-    return "mask_image_url";
-  }
-  const requiresMask =
-    rankedEntry(task, model, mode)?.requires?.includes("mask") === true;
-  return task === "erase" && requiresMask ? "mask_url" : undefined;
-}
 
 function enumValues(parameter: FalToolParameter | undefined): string[] {
   const match = ENUM_TYPE_REGEX.exec(parameter?.type ?? "");
@@ -113,9 +85,9 @@ function outputScale(
   parameters: readonly FalToolParameter[],
   body: Readonly<Record<string, unknown>>
 ): number | undefined {
-  // Topaz's transparent upscale always returns 4x the source's width and height.
-  if (model === "topaz-transparent") {
-    return 4;
+  const { fixedScale }: FalToolConfig = FAL_TOOLS[model];
+  if (fixedScale !== undefined) {
+    return fixedScale;
   }
   const mode = valueOrFallback(parameters, body, "upscale_mode");
   if (mode !== undefined && mode !== "factor") {
@@ -245,7 +217,8 @@ function boxPrompts(
     y_max: y + height,
     y_min: y,
   }));
-  if (!FRACTION_BOX_TOOLS.has(model)) {
+  const { fractionBoxes }: FalToolConfig = FAL_TOOLS[model];
+  if (fractionBoxes !== true) {
     return ok(corners);
   }
   if (boxes.length !== 1) {
@@ -388,7 +361,8 @@ function toolOptions(
     options.prompt = moodPrompt(input);
   }
 
-  const { referenceField }: FalToolConfig = FAL_TOOLS[model];
+  const { keepsAlpha, maskField, referenceField }: FalToolConfig =
+    FAL_TOOLS[model];
   if (referenceField !== undefined && isPresent(input, "references")) {
     options[referenceField] = input.references?.[0];
   }
@@ -407,11 +381,10 @@ function toolOptions(
   }
 
   if (input.mask !== undefined) {
-    const key = maskKey(task, model, input.mode);
-    if (key === undefined) {
+    if (maskField === undefined) {
       return err(cannotCarry("mask", model, task));
     }
-    options[key] = input.mask;
+    options[maskField] = input.mask;
   }
 
   if (isPresent(input, "boxes")) {
@@ -465,7 +438,7 @@ function toolOptions(
   if (referenceField !== undefined) {
     handled.add("references");
   }
-  if (model === "topaz-transparent") {
+  if (keepsAlpha === true) {
     handled.add("transparent");
   }
   const refused = refuseOthers(input, handled, model, task);
@@ -536,13 +509,13 @@ export function toolPlan(
   if (missing !== undefined) {
     return err(missing);
   }
-  // fal falls back to a sample prompt; the objects to reconstruct must be named.
+  const { requiredPrompt }: FalToolConfig = tool;
   if (
-    model === "sam3-3d-objects" &&
+    requiredPrompt !== undefined &&
     (typeof body.prompt !== "string" || body.prompt === "")
   ) {
     return err(
-      invalidOption(`${model} needs a prompt naming the objects for ${task}.`, {
+      invalidOption(`${model} needs ${requiredPrompt} for ${task}.`, {
         field: "prompt",
         model,
         task,

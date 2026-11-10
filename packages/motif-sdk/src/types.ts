@@ -174,6 +174,8 @@ export interface ModelConfig {
    * parameter (Ideogram V3 Transparent). Every output has an alpha channel.
    */
   transparentOutput?: boolean;
+  /** fal's `resolution` enum is lower case ("1k"), not Motif's "1K". */
+  lowercaseResolution?: true;
   type: ModelType;
   /** Use fal queue submit/status/result even for generate() calls. */
   useQueue?: boolean;

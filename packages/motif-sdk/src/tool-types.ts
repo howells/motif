@@ -104,6 +104,10 @@ export interface FalToolConfig {
   defaultOptions?: Record<string, unknown>;
   description: string;
   endpoint: string;
+  /** Every output is this many times the source's width and height. */
+  fixedScale?: number;
+  /** `box_prompts` take exactly one box, as fractions (0-1) of the image. */
+  fractionBoxes?: true;
   inputField:
     | "content_image_url"
     | "image_url"
@@ -113,6 +117,10 @@ export interface FalToolConfig {
     | "person_image_url"
     | "video_url";
   inputKind: FalToolInputKind;
+  /** Keeps the source's alpha channel end to end, so `transparent` asks for nothing. */
+  keepsAlpha?: true;
+  /** Body key for the Task's mask, on a tool that takes one. */
+  maskField?: "mask_image_url" | "mask_url";
   name: string;
   outputKeys: string[];
   /**
@@ -155,6 +163,11 @@ export interface FalToolConfig {
    * a restyle copies, the garment in a try-on. Absent on tools that take none.
    */
   referenceField?: "product_image_url" | "style_image_url";
+  /**
+   * fal falls back to a sample prompt when none is sent, so the request must
+   * carry one. Says what it must name, e.g. "a prompt naming the objects".
+   */
+  requiredPrompt?: string;
   /**
    * Endpoint routinely exceeds the 120s sync timeout; callers should use the
    * queue path.
