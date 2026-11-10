@@ -52,12 +52,15 @@ async function dryRun(
 describe("what generate sends", () => {
   it.each([
     [{}, ["-m", "flux2-pro"], undefined],
-    [{}, ["-m", "flux2-pro", "-r", "2K"], undefined],
+    // An explicit 2K is a request like any other: flux2-pro cannot make it.
+    [{}, ["-m", "flux2-pro", "-r", "2K"], "NO_MODEL_AVAILABLE"],
     [{}, ["-m", "flux2-pro", "-r", "1K"], "NO_MODEL_AVAILABLE"],
     [{ defaultResolution: "1K" }, ["-m", "flux2-pro"], "NO_MODEL_AVAILABLE"],
     [{ defaultResolution: "2K" }, ["-m", "flux2-pro"], undefined],
-    // A preset's resolution replaces the flag's, so the 1K is never sent.
-    [{}, ["-m", "flux2-pro", "--cover", "-r", "1K"], undefined],
+    // A preset's resolution replaces the flag's: the 2K of --cover is what is
+    // asked for, and flux2-pro cannot make it.
+    [{}, ["-m", "flux2-pro", "--cover", "-r", "1K"], "NO_MODEL_AVAILABLE"],
+    [{}, ["-m", "flux2-pro", "--cover"], undefined],
     [{}, ["--look", "editorial"], undefined],
     [{}, ["--look", "editorial", "-r", "1K"], "NO_MODEL_AVAILABLE"],
   ])("config %j, args %j -> error %s", async (config, args, code) => {

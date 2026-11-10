@@ -1126,7 +1126,7 @@ describe("CLI contract", () => {
       "--model",
       "gpt",
       "--aspect",
-      "16:9",
+      "3:2",
       "--param",
       "background=transparent",
       "--param",
