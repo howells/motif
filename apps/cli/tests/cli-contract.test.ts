@@ -521,22 +521,6 @@ describe("CLI contract", () => {
       creative: { selected: { look: "surface" } },
     });
 
-    const stdinNoMood = await runMotif(
-      ["series", "--format", "json"],
-      JSON.stringify({
-        command: "series-generate",
-        creative: { look: "surface", mood: null },
-        dryRun: true,
-        prompt: "an oak plank",
-        series: slug,
-      }),
-      home
-    );
-    expect(stdinNoMood.code).toBe(0);
-    expect(parseJsonLine(stdinNoMood.stdout)).toMatchObject({
-      creative: { selected: { look: "surface" } },
-    });
-
     const run = await runMotif(
       [
         "series",
@@ -601,16 +585,29 @@ describe("CLI contract", () => {
     });
   });
 
-  it("accepts themed series runs through stdin JSON", async () => {
+  it("does not read a series command from stdin", async () => {
     const result = await runMotif(
-      ["series", "--format", "json"],
-      JSON.stringify({
-        command: "series-run",
-        count: 3,
-        dryRun: true,
-        theme: "modular exhibition booths",
-      })
+      ["series", "list", "--format", "json"],
+      JSON.stringify({ command: "series-run", dryRun: true, theme: "towers" })
     );
+
+    expect(result.code).toBe(0);
+    expect(parseJsonLine(result.stdout)).toMatchObject({
+      command: "series-list",
+    });
+  });
+
+  it("plans a themed series run from arguments", async () => {
+    const result = await runMotif([
+      "series",
+      "run",
+      "modular exhibition booths",
+      "--count",
+      "3",
+      "--dry-run",
+      "--format",
+      "json",
+    ]);
 
     expect(result.code).toBe(0);
     expect(result.stderr).toBe("");

@@ -472,21 +472,6 @@ function seriesSchema() {
           enum: ASPECT_RATIOS,
           type: "string",
         },
-        command: {
-          description: "Series command for stdin JSON payloads",
-          enum: [
-            "series-create",
-            "series-list",
-            "series-show",
-            "series-ref-add",
-            "series-ref-remove",
-            "series-generate",
-            "series-run",
-            "series-history",
-            "series-delete",
-          ],
-          type: "string",
-        },
         count: {
           default: 4,
           description: "Number of scene prompts/images in a series run",
@@ -507,15 +492,8 @@ function seriesSchema() {
           type: "string",
         },
         noOpen: { default: false, type: "boolean" },
-        numImages: {
-          description: "Alias for count in stdin JSON series-run payloads.",
-          maximum: 24,
-          minimum: 1,
-          type: "integer",
-        },
         prompt: {
-          description:
-            "Single scene prompt for series gen, or alias for theme in stdin series-run.",
+          description: "Scene prompt: the second argument of series gen.",
           type: "string",
         },
         refs: {

@@ -26,12 +26,9 @@ motif series show luna-s-adventure
 motif series history luna-s-adventure
 ```
 
-## Stdin JSON
+## Arguments only
 
-```bash
-echo '{"command":"series-run","theme":"brutalist architecture","numImages":6,"dryRun":true}' | motif series --format json
-echo '{"command":"series-create","name":"Kitchen Stories","creative":{"look":"interior","mood":"overcast"}}' | motif series --format json
-```
+`motif series` takes everything from its arguments and never reads stdin, so it returns at once even when a parent holds stdin open. `--format` and `--fields` are accepted before or after the subcommand. Stdin JSON belongs to `generate` alone.
 
 ## How it works
 

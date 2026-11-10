@@ -44,6 +44,7 @@ import { resolveCreativeDirection } from "../utils/creative";
 import type { CreativeInput } from "../utils/creative";
 import {
   exitForErrorCode,
+  formatForParseErrors,
   handleError,
   routeCommanderErrors,
 } from "../utils/errors";
@@ -56,7 +57,6 @@ import {
 } from "../utils/image";
 import {
   parseIntegerOption,
-  readStdinJson,
   validateEnumOption,
   validateOutputPath,
   validateResourceId,
@@ -121,13 +121,11 @@ function seriesAsJson(config: SeriesConfig): Record<string, unknown> {
 }
 
 /**
- * Creative direction for one series call: CLI flags win, then the stdin
- * `creative` object, then the look and mood pinned on the series. `--no-mood`
- * or a stdin `mood: null` drops the pinned mood for this call.
+ * Creative direction for one series call: CLI flags win, then the look and
+ * mood pinned on the series. `--no-mood` drops the pinned mood for this call.
  */
 function seriesCreativeDirection(
   flags: CreativeInput,
-  stdinCreative: CreativeInput | undefined,
   series: SeriesConfig | null
 ): CreativeDirection | undefined {
   const pinned: CreativeDirection = {};
@@ -137,10 +135,7 @@ function seriesCreativeDirection(
   if (hasText(series?.mood)) {
     pinned.mood = series.mood;
   }
-  return resolveCreativeDirection(
-    flags,
-    resolveCreativeDirection(stdinCreative ?? {}, pinned)
-  );
+  return resolveCreativeDirection(flags, pinned);
 }
 
 /** The fields every Series payload carries about the Task and its Model. */
@@ -521,7 +516,6 @@ async function cmdGenerate(
   prompt: string,
   opts: {
     aspect?: string;
-    creative?: CreativeInput;
     dryRun?: boolean;
     look?: string;
     model?: string;
@@ -547,7 +541,7 @@ async function cmdGenerate(
       exitForErrorCode("EMPTY_PROMPT");
     }
 
-    const creative = seriesCreativeDirection(opts, opts.creative, config);
+    const creative = seriesCreativeDirection(opts, config);
     const creativeResult = creative
       ? validateSeriesOption(emitOpts, () =>
           enrichPrompt({ creative, prompt: sanitized })
@@ -768,7 +762,6 @@ async function cmdRun(
   opts: {
     aspect?: string;
     count?: string;
-    creative?: CreativeInput;
     dryRun?: boolean;
     look?: string;
     model?: string;
@@ -827,11 +820,7 @@ async function cmdRun(
       buildSeriesRunStylePrompt(sanitizedTheme);
     const refTags = splitRefTags(opts.refs);
     const refPaths = existingSeries ? resolveRefs(existingSeries, refTags) : [];
-    const creative = seriesCreativeDirection(
-      opts,
-      opts.creative,
-      existingSeries
-    );
+    const creative = seriesCreativeDirection(opts, existingSeries);
     const appConfig = await loadConfig();
     const dryRun = opts.dryRun === true;
     const client = motifClient(appConfig);
@@ -1123,92 +1112,30 @@ async function cmdHistory(
   }
 }
 
-// -- Stdin JSON handler --
-
-interface SeriesStdinPayload {
-  aspect?: string;
-  command:
-    | "series-create"
-    | "series-list"
-    | "series-show"
-    | "series-delete"
-    | "series-ref-add"
-    | "series-ref-remove"
-    | "series-generate"
-    | "series-run"
-    | "series-history";
-  description?: string;
-  count?: number;
-  creative?: CreativeInput;
-  dryRun?: boolean;
-  filename?: string;
-  from?: string;
-  // Ref
-  image?: string;
-  // History
-  limit?: number;
-  model?: string;
-  // Create
-  name?: string;
-  noOpen?: boolean;
-  numImages?: number;
-  offset?: number;
-  output?: string;
-  // Generate
-  prompt?: string;
-  refs?: string;
-  resolution?: string;
-  // Common
-  series?: string;
-  stylePrompt?: string;
-  tag?: string;
-  theme?: string;
-}
-
 // -- Router --
 
 export async function runSeries(args: string[]): Promise<void> {
-  const format = resolveFormat(
-    args.find((a) => a.startsWith("--format="))?.split("=")?.[1] ??
-      (args.includes("--format")
-        ? args[args.indexOf("--format") + 1]
-        : undefined)
-  );
-  const fields =
-    args.find((a) => a.startsWith("--fields="))?.split("=")?.[1] ??
-    (args.includes("--fields")
-      ? args[args.indexOf("--fields") + 1]
-      : undefined);
-
-  const emitOpts: EmitOptions = { fields, format, sanitize: true };
-
-  // Strip global flags before passing to Commander
-  const filteredArgs = args.filter((a, i) => {
-    if (a === "--format" || a === "--fields") {
-      return false;
-    }
-    if (i > 0 && (args[i - 1] === "--format" || args[i - 1] === "--fields")) {
-      return false;
-    }
-    if (a.startsWith("--format=") || a.startsWith("--fields=")) {
-      return false;
-    }
-    return true;
-  });
-
-  // Check for stdin JSON
-  const stdinData = await readStdinJson<SeriesStdinPayload>();
-  if (stdinData?.command) {
-    await handleStdinCommand(stdinData, emitOpts);
-    return;
-  }
-
   const program = routeCommanderErrors(
     new Command()
       .name("motif series")
-      .description("Manage image series for consistent styling"),
-    emitOpts.format
+      .description("Manage image series for consistent styling")
+      .option(
+        "--format <format>",
+        "Output format: json, human, ndjson (default: auto-detect from TTY)"
+      )
+      .option(
+        "--fields <fields>",
+        "Comma-separated fields to include in output"
+      ),
+    formatForParseErrors(args)
   );
+  const emitOpts = (): EmitOptions => {
+    const { fields, format } = program.opts<{
+      fields?: string;
+      format?: string;
+    }>();
+    return { fields, format: resolveFormat(format), sanitize: true };
+  };
 
   program
     .command("create <name>")
@@ -1223,21 +1150,21 @@ export async function runSeries(args: string[]): Promise<void> {
     )
     .option("-r, --resolution <res>", "Default resolution")
     .action(async (name: string, opts: Parameters<typeof cmdCreate>[1]) => {
-      await cmdCreate(name, opts, emitOpts);
+      await cmdCreate(name, opts, emitOpts());
     });
 
   program
     .command("list")
     .description("List all series")
     .action(async () => {
-      await cmdList(emitOpts);
+      await cmdList(emitOpts());
     });
 
   program
     .command("show <slug>")
     .description("Show series details")
     .action(async (slug: string) => {
-      await cmdShow(slug, emitOpts);
+      await cmdShow(slug, emitOpts());
     });
 
   program
@@ -1255,7 +1182,7 @@ export async function runSeries(args: string[]): Promise<void> {
         image: string,
         opts: Parameters<typeof cmdRefAdd>[2]
       ) => {
-        await cmdRefAdd(slug, image, opts, emitOpts);
+        await cmdRefAdd(slug, image, opts, emitOpts());
       }
     );
 
@@ -1263,7 +1190,7 @@ export async function runSeries(args: string[]): Promise<void> {
     .command("ref-remove <slug> <filename>")
     .description("Remove a reference image from a series")
     .action(async (slug: string, filename: string) => {
-      await cmdRefRemove(slug, filename, emitOpts);
+      await cmdRefRemove(slug, filename, emitOpts());
     });
 
   program
@@ -1289,7 +1216,7 @@ export async function runSeries(args: string[]): Promise<void> {
         prompt: string,
         opts: Parameters<typeof cmdGenerate>[2]
       ) => {
-        await cmdGenerate(slug, prompt, opts, emitOpts);
+        await cmdGenerate(slug, prompt, opts, emitOpts());
       }
     );
 
@@ -1313,7 +1240,7 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("--no-open", "Don't open after generation")
     .option("--dry-run", "Validate and plan without API call")
     .action(async (theme: string, opts: Parameters<typeof cmdRun>[1]) => {
-      await cmdRun(theme, opts, emitOpts);
+      await cmdRun(theme, opts, emitOpts());
     });
 
   program
@@ -1322,156 +1249,15 @@ export async function runSeries(args: string[]): Promise<void> {
     .option("--limit <n>", "Entries per page", "10")
     .option("--offset <n>", "Skip first N entries", "0")
     .action(async (slug: string, opts: Parameters<typeof cmdHistory>[1]) => {
-      await cmdHistory(slug, opts, emitOpts);
+      await cmdHistory(slug, opts, emitOpts());
     });
 
   program
     .command("delete <slug>")
     .description("Delete a series and all its data")
     .action(async (slug: string) => {
-      await cmdDelete(slug, emitOpts);
+      await cmdDelete(slug, emitOpts());
     });
 
-  await program.parseAsync(["node", "motif-series", ...filteredArgs]);
-}
-
-async function handleStdinCommand(
-  data: SeriesStdinPayload,
-  emitOpts: EmitOptions
-): Promise<void> {
-  switch (data.command) {
-    case "series-create": {
-      if (!hasText(data.name)) {
-        throw new Error("name is required");
-      }
-      const stdinPinned = resolveCreativeDirection(data.creative ?? {});
-      await cmdCreate(
-        data.name,
-        {
-          aspect: data.aspect,
-          from: data.from,
-          look: stdinPinned?.look,
-          mood: stdinPinned?.mood,
-          resolution: data.resolution,
-          style: data.stylePrompt,
-        },
-        emitOpts
-      );
-      break;
-    }
-    case "series-list": {
-      await cmdList(emitOpts);
-      break;
-    }
-    case "series-show": {
-      if (!hasText(data.series)) {
-        throw new Error("series slug is required");
-      }
-      await cmdShow(data.series, emitOpts);
-      break;
-    }
-    case "series-delete": {
-      if (!hasText(data.series)) {
-        throw new Error("series slug is required");
-      }
-      await cmdDelete(data.series, emitOpts);
-      break;
-    }
-    case "series-ref-add": {
-      if (!(hasText(data.series) && hasText(data.image) && hasText(data.tag))) {
-        throw new Error("series, image, and tag are required");
-      }
-      await cmdRefAdd(
-        data.series,
-        data.image,
-        { description: data.description, tag: data.tag },
-        emitOpts
-      );
-      break;
-    }
-    case "series-ref-remove": {
-      if (!(hasText(data.series) && hasText(data.filename))) {
-        throw new Error("series and filename are required");
-      }
-      await cmdRefRemove(data.series, data.filename, emitOpts);
-      break;
-    }
-    case "series-generate": {
-      if (!(hasText(data.series) && hasText(data.prompt))) {
-        throw new Error("series and prompt are required");
-      }
-      await cmdGenerate(
-        data.series,
-        data.prompt,
-        {
-          aspect: data.aspect,
-          creative: data.creative,
-          dryRun: data.dryRun,
-          model: data.model,
-          noOpen: data.noOpen,
-          num:
-            data.numImages !== undefined && data.numImages !== 0
-              ? String(data.numImages)
-              : undefined,
-          output: data.output,
-          refs: data.refs,
-          resolution: data.resolution,
-        },
-        emitOpts
-      );
-      break;
-    }
-    case "series-run": {
-      if (!(hasText(data.theme) || hasText(data.prompt))) {
-        throw new Error("theme is required");
-      }
-      await cmdRun(
-        data.theme ?? data.prompt ?? "",
-        {
-          aspect: data.aspect,
-          count:
-            data.count !== undefined && data.count !== 0
-              ? String(data.count)
-              : data.numImages !== undefined && data.numImages !== 0
-                ? String(data.numImages)
-                : undefined,
-          creative: data.creative,
-          dryRun: data.dryRun,
-          model: data.model,
-          noOpen: data.noOpen,
-          refs: data.refs,
-          resolution: data.resolution,
-          series: data.series,
-          style: data.stylePrompt,
-        },
-        emitOpts
-      );
-      break;
-    }
-    case "series-history": {
-      if (!hasText(data.series)) {
-        throw new Error("series slug is required");
-      }
-      await cmdHistory(
-        data.series,
-        {
-          limit:
-            data.limit !== undefined && data.limit !== 0
-              ? String(data.limit)
-              : undefined,
-          offset:
-            data.offset !== undefined && data.offset !== 0
-              ? String(data.offset)
-              : undefined,
-        },
-        emitOpts
-      );
-      break;
-    }
-    default: {
-      // data.command is `never` here after the exhaustive switch, but at
-      // runtime stdin JSON can carry any string.
-      throw new Error(`Unknown series command: ${String(data.command)}`);
-    }
-  }
+  await program.parseAsync(["node", "motif-series", ...args]);
 }

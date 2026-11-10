@@ -176,7 +176,7 @@ Every structured error still carries the machine-readable `status` field, so the
 
 Flag values override stdin JSON values for the same field. The schema is in [generate and vary](docs/generate.md#stdin-json).
 
-**Task verbs are argv-only.** They route on `argv[0]`, so there is no `"command": "segment"`. An unrecognised `command` value is not rejected - it falls through to `generate`, so `{"command":"segment","prompt":"the bowl"}` silently generates an image of a bowl and bills you for it. Invoke a verb as `motif segment ...`.
+**Task verbs and `series` are argv-only.** They route on `argv[0]`, so there is no `"command": "segment"`. An unrecognised `command` value is not rejected - it falls through to `generate`, so `{"command":"segment","prompt":"the bowl"}` silently generates an image of a bowl and bills you for it. Invoke a verb as `motif segment ...` and a series command as `motif series list`; `series` ignores stdin.
 
 ## Creative Direction
 
@@ -193,7 +193,7 @@ Each option is one or more full sentences. The final prompt is your prompt, then
 
 In `generate`, a look sets the Model and aspect when you gave none. Explicit `-m`/`--model`, `-a`/`--aspect`, a preset flag such as `--og`, or stdin `model`, `aspect` or `preset` always win. A look's Model comes before a pinned Model and the Tier ranking, so `--tier` has no effect with `--look`. Resolution is never changed.
 
-Four looks are flat and take no mood: `object`, `surface`, `abstract` and `illustration` (`acceptsMood: false` in `--describe`). A mood with one of them fails with `INVALID_OPTION` (exit `2`) on field `mood`, and `details.availableIds` lists the looks that do accept a mood. A mood with no look is valid. `--no-mood` on `generate`, `series gen` and `series run` (or `"mood": null` in stdin `creative`) drops any mood, including a Series' pinned one, so `series gen <slug> "x" --look surface --no-mood` works on a Series pinned to a mood.
+Four looks are flat and take no mood: `object`, `surface`, `abstract` and `illustration` (`acceptsMood: false` in `--describe`). A mood with one of them fails with `INVALID_OPTION` (exit `2`) on field `mood`, and `details.availableIds` lists the looks that do accept a mood. A mood with no look is valid. `--no-mood` on `generate`, `series gen` and `series run` (or `"mood": null` in `generate`'s stdin `creative`) drops any mood, including a Series' pinned one, so `series gen <slug> "x" --look surface --no-mood` works on a Series pinned to a mood.
 
 The `illustration` look is experimental (`experimental: true` in `--describe`): it works, but its text and defaults may change. Look defaults outrank `tasks.generate.model` and `defaultAspect` in `~/.motif/config.json`; explicit flags and stdin outrank both.
 

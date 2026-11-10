@@ -25,14 +25,6 @@ vi.mock(import("../src/utils/image"), async (importActual) => {
   };
 });
 
-vi.mock(import("../src/utils/input"), async (importActual) => {
-  const actual = await importActual<typeof import("../src/utils/input")>();
-  return {
-    ...actual,
-    readStdinJson: vi.fn(async () => null),
-  };
-});
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
