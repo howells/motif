@@ -21,10 +21,11 @@ import type { ModelOption } from "./capabilities";
 import { CreativeOptionError } from "./creative";
 import type { CreativeDirection } from "./creative";
 import { MotifError, toMotifError } from "./errors";
-import { buildGenerateBody } from "./generate";
+import { aspectFromSource, buildGenerateBody } from "./generate";
 import { MODELS } from "./models";
 import { NO_MODEL_AVAILABLE, resolveTask } from "./resolve";
 import type { TaskRequest, TaskResolved } from "./resolve";
+import { dataUrlImageSize } from "./source-size";
 import type { PlanOptions, TaskInput, TaskPlan } from "./task-client";
 import { generationParamsRefusal } from "./task-plan-params";
 import { generationCost, ownedGenerationKeys } from "./task-plan-pricing";
@@ -475,8 +476,16 @@ function generationPlan(
       )
     );
   }
+  // The edited image is the first one: the Source of a vary, else a Reference.
+  const source =
+    dataUrlImageSize(editImageUrls[0] ?? "") ??
+    (task === "vary" ? input.sourceSize : undefined);
   const options: GenerateOptions = {
-    aspect: input.aspect,
+    aspect:
+      input.aspect ??
+      (editImageUrls.length === 0 || source === undefined
+        ? undefined
+        : aspectFromSource(config, source, input.resolution ?? "2K")),
     background: input.transparent === true ? "transparent" : undefined,
     creative: creativeOf(input),
     editImageUrls: editImageUrls.length > 0 ? editImageUrls : undefined,

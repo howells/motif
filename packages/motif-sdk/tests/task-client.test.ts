@@ -481,6 +481,32 @@ describe("createMotif plan", () => {
     expect(large.cost.usd).toBeCloseTo((base.cost.usd ?? 0) * 2);
   });
 
+  it("shapes an edit with no aspect like its source, not a square", () => {
+    const wide = jpegDataUrl(1600, 900);
+    const edit = (model: string, task: "generate" | "vary" = "vary") =>
+      planned(
+        task,
+        task === "vary"
+          ? { image: wide, model, prompt: "x" }
+          : { model, prompt: "x", references: [wide] }
+      ).body;
+
+    // `auto` where the Model's own aspects list it, the nearest ratio where not.
+    expect(edit("banana21").aspect_ratio).toBe("auto");
+    expect(edit("mai-image-2.5-pro").aspect_ratio).toBe("auto");
+    expect(edit("grok-image-2").aspect_ratio).toBe("16:9");
+    expect(edit("banana2", "generate").aspect_ratio).toBe("16:9");
+    expect(edit("flux2-pro").image_size).toBe("landscape_16_9");
+    // An aspect the caller gave still wins, and text-to-image keeps its default.
+    expect(
+      planned("vary", { aspect: "1:1", image: wide, model: "banana21" }).body
+        .aspect_ratio
+    ).toBe("1:1");
+    expect(
+      planned("generate", { model: "banana21", prompt: "x" }).body.aspect_ratio
+    ).toBe("1:1");
+  });
+
   it("prices a megapixel Model's preset from the preset's pixels", () => {
     const plan = planned("generate", {
       aspect: "16:9",

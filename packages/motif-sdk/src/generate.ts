@@ -1,4 +1,5 @@
 import {
+  ASPECT_RATIOS,
   aspectToFalImageSize,
   aspectToGptSize,
   boundedImageSize,
@@ -100,6 +101,43 @@ function falImageSizeFor(
     throw new ImageSizeBoundsError(config.name, aspect, bounds);
   }
   return size ?? aspectToFalImageSize(aspect);
+}
+
+/**
+ * The ratio an edit with none asked for takes from its source, where the
+ * Model cannot send `auto`: the nearest ratio it can make, so the result keeps
+ * the source's shape rather than becoming a square. Undefined when the Model
+ * sizes an edit from its source itself, or no ratio fits its limits.
+ */
+export function aspectFromSource(
+  config: ModelConfig,
+  source: CustomImageSize,
+  resolution: Resolution
+): AspectRatio | undefined {
+  if (
+    config.autoEditSize === true ||
+    config.sizeMode === "gpt_size" ||
+    config.supportedAspects?.includes("auto") === true
+  ) {
+    return undefined;
+  }
+  const ratio = Math.log(source.width / source.height);
+  const distance = (aspect: AspectRatio): number => {
+    const [width, height] = aspect.split(":").map(Number);
+    return Math.abs(Math.log((width ?? 1) / (height ?? 1)) - ratio);
+  };
+  const longEdge = config.supportsResolution
+    ? RESOLUTION_LONG_EDGE[resolution]
+    : FAL_PRESET_LONG_EDGE;
+  return ASPECT_RATIOS.filter(
+    (aspect) =>
+      aspect !== "auto" &&
+      (config.supportedAspects?.includes(aspect) ?? true) &&
+      (config.sizeMode !== "image_size_enum" ||
+        config.customImageSize === undefined ||
+        boundedImageSize(aspect, longEdge, config.customImageSize) !==
+          undefined)
+  ).toSorted((a, b) => distance(a) - distance(b))[0];
 }
 
 function unsupported(config: ModelConfig, option: ModelOption): never {
@@ -418,7 +456,13 @@ export function buildGenerateBody(options: GenerateOptions): {
 
     case "aspect_ratio": {
       if (config.supportsAspect) {
-        body.aspect_ratio = aspect;
+        // An edit with no aspect follows its source where the Model can say so.
+        body.aspect_ratio =
+          hasEditImages &&
+          !explicitAspect &&
+          config.supportedAspects?.includes("auto") === true
+            ? "auto"
+            : aspect;
       }
       if (config.supportsResolution) {
         body.resolution =
