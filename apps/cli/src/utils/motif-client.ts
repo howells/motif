@@ -58,6 +58,13 @@ export async function imageSource(path: string): Promise<string> {
   return await imageToDataUrl(validateEditPath(path));
 }
 
+/** Several images for the SDK, as {@link imageSource} takes each. */
+export async function imageSources(
+  paths: readonly string[]
+): Promise<string[]> {
+  return await Promise.all(paths.map(async (path) => await imageSource(path)));
+}
+
 /**
  * A video for the SDK: a remote URL as given, a local file uploaded to fal
  * storage. Uploading spends nothing but needs a key, so a dry run passes the

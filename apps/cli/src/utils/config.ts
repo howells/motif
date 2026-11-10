@@ -327,4 +327,31 @@ export function generateId(): string {
   return randomUUID();
 }
 
+/** What a history entry is made of; `newGeneration` adds the id and timestamp. */
+export type GenerationFields = Omit<Generation, "id" | "timestamp"> & {
+  timestamp?: string;
+};
+
+/**
+ * A history entry, with an id, and a timestamp unless the caller shares one.
+ * Optional fields are left out when they have nothing to say.
+ */
+export function newGeneration(fields: GenerationFields): Generation {
+  return {
+    aspect: fields.aspect,
+    cost: fields.cost,
+    ...(hasText(fields.editedFrom) && { editedFrom: fields.editedFrom }),
+    id: generateId(),
+    ...(hasText(fields.look) && { look: fields.look }),
+    model: fields.model,
+    ...(hasText(fields.mood) && { mood: fields.mood }),
+    output: fields.output,
+    prompt: fields.prompt,
+    ...(fields.references !== undefined &&
+      fields.references.length > 0 && { references: fields.references }),
+    resolution: fields.resolution,
+    timestamp: fields.timestamp ?? new Date().toISOString(),
+  };
+}
+
 export { CONFIG_PATH, HISTORY_PATH, MOTIF_DIR };

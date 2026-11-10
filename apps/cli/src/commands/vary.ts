@@ -16,11 +16,10 @@ import type { Command } from "commander";
 import type { Generation, MotifConfig } from "../utils/config";
 import { getLastGeneration, loadHistory } from "../utils/config";
 import { resolveCreativeDirection } from "../utils/creative";
-import { exitForErrorCode, handleError, validateOption } from "../utils/errors";
+import { exitNoPrevious, handleError, validateOption } from "../utils/errors";
 import { generateFilename } from "../utils/image";
 import { parseIntegerOption, validateOutputPath } from "../utils/input";
 import { imageSource } from "../utils/motif-client";
-import { emitError } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { resolveTaskModel } from "../utils/task-model";
 import { hasText } from "../utils/text";
@@ -56,15 +55,10 @@ async function varySource(
   }
   const last = await getLastGeneration();
   if (!last) {
-    emitError(
-      {
-        code: "NO_PREVIOUS",
-        message:
-          "No previous generation to vary; pass an image: motif vary <image>",
-      },
+    exitNoPrevious(
+      "No previous generation to vary; pass an image: motif vary <image>",
       emitOpts.format
     );
-    exitForErrorCode("NO_PREVIOUS");
   }
   return { generation: last, path: last.output };
 }

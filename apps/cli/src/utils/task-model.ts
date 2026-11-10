@@ -11,7 +11,12 @@ import {
   NO_MODEL_AVAILABLE,
   resolveTask,
 } from "@howells/motif-sdk";
-import type { TaskId, TaskRequest, TaskResolution } from "@howells/motif-sdk";
+import type {
+  TaskId,
+  TaskPlan,
+  TaskRequest,
+  TaskResolution,
+} from "@howells/motif-sdk";
 
 import type { MotifConfig } from "./config";
 import { MISSING_FAL_KEY_MESSAGE, taskPins } from "./config";
@@ -252,4 +257,31 @@ export function exitTaskError(
     handleError(error, ACCOUNT_LOCKED, format);
   }
   exitTaskFailed(error.message, context, format, error.requestId);
+}
+
+/**
+ * The fields every run's JSON carries about the Task and its Model, from a
+ * plan or an output.
+ */
+export function identityFields(
+  plan: Pick<TaskPlan, "chosenBy" | "model" | "task" | "tier">
+): Pick<TaskPlan, "chosenBy" | "model" | "task" | "tier"> {
+  return {
+    task: plan.task,
+    model: plan.model,
+    tier: plan.tier,
+    chosenBy: plan.chosenBy,
+  };
+}
+
+/** {@link identityFields}, then the mode when there is one, and the cost. */
+export function taskFields(
+  plan: Pick<TaskPlan, "chosenBy" | "cost" | "mode" | "model" | "task" | "tier">
+): Record<string, unknown> {
+  return {
+    ...identityFields(plan),
+    ...(plan.mode === undefined ? {} : { mode: plan.mode }),
+    cost: plan.cost.usd,
+    costBasis: plan.cost.basis,
+  };
 }

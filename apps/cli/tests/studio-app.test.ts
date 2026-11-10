@@ -72,7 +72,20 @@ class FakeStdout extends PassThrough {
 
 const DEADLINE_MS = 15_000;
 
-/** Polls until the condition holds; a loaded machine only makes this slower, never wrong. */
+/** Lets ink attach the effects (its input handlers) of what it just rendered. */
+async function flushEffects(): Promise<void> {
+  for (let round = 0; round < 3; round++) {
+    await new Promise((resolve) => {
+      setImmediate(resolve);
+    });
+  }
+}
+
+/**
+ * Polls until the condition holds, then lets the render's effects run so the
+ * next key reaches the new screen's handlers. A loaded machine only makes this
+ * slower, never wrong.
+ */
 async function waitFor(
   what: string,
   condition: () => boolean,
@@ -87,6 +100,7 @@ async function waitFor(
       setTimeout(resolve, 10);
     });
   }
+  await flushEffects();
 }
 
 async function startStudio(configOverride: Record<string, unknown> = {}) {

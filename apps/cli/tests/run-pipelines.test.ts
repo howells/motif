@@ -8,7 +8,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -169,7 +169,7 @@ describe("generate", () => {
 
     expect(run.code).toBe(0);
     const [, saved] = SAVED_LINE.exec(run.stdout) ?? [];
-    expect(saved).toMatch(/^motif-\d{14}\.png$/);
+    expect(basename(saved ?? "")).toMatch(/^motif-\d{14}\.png$/);
     expect(run.stdout).toMatch(/Session: .* \| Today: /);
   });
 
@@ -318,7 +318,7 @@ describe("Task verbs", () => {
     expect(json(run.stderr)).toMatchObject({ code: "NO_PREVIOUS" });
   });
 
-  it("refuses an output that arrives as inline data", async () => {
+  it("writes an output that arrives as inline data", async () => {
     const dir = project();
     const run = await motif(
       dir,
@@ -326,9 +326,8 @@ describe("Task verbs", () => {
       { image: INLINE_PNG }
     );
 
-    expect(run.code).toBe(5);
-    expect(json(run.stderr)).toMatchObject({ code: "TASK_FAILED" });
-    expect(run.stderr).toContain("Refusing to download from non-HTTPS URL");
+    expect(run.code).toBe(0);
+    expect(readFileSync(join(dir, "in-cutout.png"))).toStrictEqual(PNG_1X1);
   });
 });
 

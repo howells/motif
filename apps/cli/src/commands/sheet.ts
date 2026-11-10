@@ -18,7 +18,7 @@ import sharp from "sharp";
 import { loadConfig, loadHistory } from "../utils/config";
 import type { Generation } from "../utils/config";
 import {
-  exitForErrorCode,
+  exitNoPrevious,
   formatForParseErrors,
   handleError,
   routeCommanderErrors,
@@ -27,7 +27,7 @@ import {
 } from "../utils/errors";
 import { generateFilename, openImage } from "../utils/image";
 import { parseIntegerOption, validateEditPath } from "../utils/input";
-import { emit, emitError, isStructured } from "../utils/output";
+import { emit, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { hasText } from "../utils/text";
 
@@ -192,14 +192,10 @@ async function buildSheet(
     );
     paths = lastOutputs(history.generations, count);
     if (paths.length === 0) {
-      emitError(
-        {
-          code: "NO_PREVIOUS",
-          message: "History has no saved images that still exist on disk",
-        },
+      exitNoPrevious(
+        "History has no saved images that still exist on disk",
         format
       );
-      exitForErrorCode("NO_PREVIOUS");
     }
   }
 

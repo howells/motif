@@ -1,10 +1,10 @@
 import { mkdtempSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { downloadAll } from "../src/utils/image";
+import { saveFiles } from "../src/utils/output-files";
 
 const PNG_1X1 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
@@ -31,18 +31,18 @@ function stubPngFetch(): void {
   );
 }
 
-describe(downloadAll, () => {
+describe(saveFiles, () => {
   it("names files after their key, suffixing repeats positionally", async () => {
     testDir = mkdtempSync(join(tmpdir(), "motif-tool-outputs-"));
     stubPngFetch();
 
-    const written = await downloadAll(
+    const written = await saveFiles(
       [
         { key: "masks", url: "https://fal.media/m1.png" },
         { key: "masks", url: "https://fal.media/m2.png" },
         { key: "masks", url: "https://fal.media/m3.png" },
       ],
-      testDir
+      { directory: testDir }
     );
 
     expect(written.map((file) => file.path)).toStrictEqual([
@@ -61,12 +61,12 @@ describe(downloadAll, () => {
     testDir = mkdtempSync(join(tmpdir(), "motif-tool-outputs-"));
     stubPngFetch();
 
-    const written = await downloadAll(
+    const written = await saveFiles(
       [
         { key: "image", url: "https://fal.media/a.png" },
         { key: "mask_image", url: "https://fal.media/b.png" },
       ],
-      testDir
+      { directory: testDir }
     );
 
     expect(written.map((file) => file.key)).toStrictEqual([
@@ -85,11 +85,24 @@ describe(downloadAll, () => {
     stubPngFetch();
     const nested = join(testDir, "out", "run");
 
-    const written = await downloadAll(
+    const written = await saveFiles(
       [{ key: "image", url: "https://fal.media/a.png?token=abc" }],
-      nested
+      { directory: nested }
     );
 
     expect(written[0]?.path).toBe(join(nested, "image.png"));
+  });
+
+  it("writes inline data in a directory, naming it from the bytes", async () => {
+    testDir = mkdtempSync(join(tmpdir(), "motif-tool-outputs-"));
+
+    const written = await saveFiles(
+      [{ key: "image", url: `data:image/png;base64,${PNG_1X1}` }],
+      { directory: testDir }
+    );
+
+    expect(written.map((file) => basename(file.path))).toStrictEqual([
+      "image.png",
+    ]);
   });
 });

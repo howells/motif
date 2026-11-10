@@ -32,9 +32,9 @@ import { handleError, validateOption } from "../utils/errors";
 import {
   OUTPUT_FORMATS,
   resolveEditPaths,
-  resolvePreset,
+  resolveSize,
 } from "../utils/generate-options";
-import { generateFilename } from "../utils/image";
+import { generateFilename, withExtension } from "../utils/image";
 import {
   parseIntegerOption,
   validateEnumOption,
@@ -42,24 +42,21 @@ import {
 } from "../utils/input";
 import {
   imageSource,
+  imageSources,
   motifClient,
   planForOutput,
   redactDataUrls,
 } from "../utils/motif-client";
 import { emit, isStructured } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
-import { chosenPreset } from "../utils/presets";
-import { exitTaskError, exitTaskFailed } from "../utils/task-model";
+import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
 import { firstText, hasText } from "../utils/text";
 import {
   deleteEphemeralPayloads,
   exitIfTransparencyMissing,
   saveGeneratedImages,
 } from "./save-images";
-import type { ImageSource } from "./save-images";
 import { commonInput } from "./verbs/shared";
-
-const DATA_URL_REGEX = /^data:[^;,]+;base64,(.*)$/s;
 
 /** Print prompt warnings in yellow for human output. */
 function printPromptWarnings(warnings: readonly PromptWarning[]): void {
@@ -91,17 +88,10 @@ export interface GenerationRun {
   extra?: Record<string, unknown>;
 }
 
-function taskFields(plan: TaskPlan | TaskOutput): Record<string, unknown> {
-  return {
-    task: plan.task,
-    model: plan.model,
-    tier: plan.tier,
-    chosenBy: plan.chosenBy,
-    ...(plan.mode === undefined ? {} : { mode: plan.mode }),
-    cost: plan.cost.usd,
-    costBasis: plan.cost.basis,
-    provider: plan.provider,
-  };
+function generationFields(
+  plan: TaskPlan | TaskOutput
+): Record<string, unknown> {
+  return { ...taskFields(plan), provider: plan.provider };
 }
 
 function creativeFields(run: GenerationRun): Record<string, unknown> {
@@ -111,14 +101,6 @@ function creativeFields(run: GenerationRun): Record<string, unknown> {
   const { creative } = run;
   const enriched = enrichPrompt({ creative, prompt: run.basePrompt });
   return { basePrompt: enriched.basePrompt, creative: enriched.creative };
-}
-
-/** A returned file as something `saveGeneratedImages` writes. */
-function imageFrom(url: string): ImageSource {
-  const match = DATA_URL_REGEX.exec(url);
-  return match?.[1] === undefined
-    ? { url }
-    : { bytes: new Uint8Array(Buffer.from(match[1], "base64")) };
 }
 
 function printDryRun(run: GenerationRun, plan: TaskPlan): void {
@@ -177,7 +159,7 @@ export async function runGeneration(
       {
         dryRun: true,
         command: run.command,
-        ...taskFields(plan),
+        ...generationFields(plan),
         ...run.extra,
         prompt: plan.prompt,
         warnings: run.warnings,
@@ -231,7 +213,7 @@ export async function runGeneration(
       throw new Error(`${run.task} returned no images`);
     }
     const saved = await saveGeneratedImages(
-      output.files.map((file) => imageFrom(file.url)),
+      output.files,
       run.outputPath,
       run.numImages,
       {
@@ -262,7 +244,7 @@ export async function runGeneration(
       {
         command: run.command,
         ...saved,
-        ...taskFields(output),
+        ...generationFields(output),
         cost: saved.cost,
         ...run.extra,
         ephemeral: run.ephemeral,
@@ -291,39 +273,6 @@ export async function runGeneration(
   }
 }
 
-/** Whether the caller, a preset, or a Look chose the aspect. */
-function aspectIsChosen(
-  options: CliOptions,
-  stdinData: StdinPayload | null,
-  lookAspect: string | undefined,
-  config: MotifConfig
-): boolean {
-  return (
-    chosenPreset(options) !== undefined ||
-    hasText(stdinData?.preset) ||
-    hasText(options.aspect ?? stdinData?.aspect) ||
-    lookAspect !== undefined ||
-    config.defaultAspect !== "1:1"
-  );
-}
-
-/**
- * Whether the caller or config chose the resolution. An unchosen 2K is left
- * to the Model; an explicit `-r 2K` is sent.
- */
-function resolutionIsChosen(
-  options: CliOptions,
-  stdinData: StdinPayload | null,
-  resolution: string,
-  config: MotifConfig
-): boolean {
-  return (
-    hasText(options.resolution ?? stdinData?.resolution) ||
-    config.defaultResolution !== "2K" ||
-    resolution !== "2K"
-  );
-}
-
 async function referenceSources(
   paths: readonly string[] | undefined,
   emitOpts: EmitOptions
@@ -332,9 +281,7 @@ async function referenceSources(
     return undefined;
   }
   try {
-    return await Promise.all(
-      paths.map(async (path) => await imageSource(path))
-    );
+    return await imageSources(paths);
   } catch (error) {
     handleError(error, "INVALID_EDIT_PATH", emitOpts.format);
   }
@@ -373,15 +320,12 @@ export async function generateImage(
     editing: (editFiles ?? []).length > 0,
   });
 
-  const { aspect, resolution } = validateOption(emitOpts.format, () =>
-    resolvePreset(
-      options,
-      stdinData?.preset,
-      stdinData?.aspect,
-      stdinData?.resolution,
-      look?.aspect ?? config.defaultAspect,
-      config.defaultResolution
-    )
+  const { aspect, request, resolution } = validateOption(emitOpts.format, () =>
+    resolveSize(options, stdinData, {
+      aspect: config.defaultAspect,
+      lookAspect: look?.aspect,
+      resolution: config.defaultResolution,
+    })
   );
 
   const numImages = validateOption(emitOpts.format, () =>
@@ -417,8 +361,8 @@ export async function generateImage(
       : undefined
   );
   if (!hasText(rawOutput) && outputFormat !== undefined) {
-    outputPath = outputPath.replace(
-      /\.png$/u,
+    outputPath = withExtension(
+      outputPath,
       outputFormat === "jpeg" ? ".jpg" : `.${outputFormat}`
     );
   }
@@ -446,12 +390,7 @@ export async function generateImage(
   const input: TaskInput = {
     ...common,
     prompt,
-    ...(aspectIsChosen(options, stdinData, look?.aspect, config) && {
-      aspect,
-    }),
-    ...(resolutionIsChosen(options, stdinData, resolution, config) && {
-      resolution,
-    }),
+    ...request,
     ...(numImages > 1 && { count: numImages }),
     ...(seed !== undefined && { seed }),
     ...(hasText(negativePrompt) && { negativePrompt }),

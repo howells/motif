@@ -221,3 +221,19 @@ export function emitError(
 export function isStructured(format: OutputFormat): boolean {
   return format === "json" || format === "ndjson";
 }
+
+/** The human line for a file a run wrote: its path, size and pixel size if known. */
+export function savedLine(file: {
+  height?: number;
+  path: string;
+  size: string;
+  width?: number;
+}): string {
+  const dims =
+    file.width !== undefined && file.height !== undefined
+      ? `${file.width}x${file.height}, `
+      : "";
+  return (
+    chalk.green(`✓ Saved: ${file.path}`) + chalk.dim(` (${dims}${file.size})`)
+  );
+}

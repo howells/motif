@@ -7,32 +7,30 @@
  * extension is corrected.
  */
 
-import { writeFile } from "node:fs/promises";
-import { join, parse, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import { sumCosts } from "@howells/motif-sdk";
-import type { AspectRatio, MotifClient, Resolution } from "@howells/motif-sdk";
+import type {
+  AspectRatio,
+  MotifClient,
+  Resolution,
+  TaskFile,
+} from "@howells/motif-sdk";
 import chalk from "chalk";
 
 import { hasTransparentPixels, TransparencyMissingError } from "../utils/alpha";
 import {
   addGenerations,
-  generateId,
   loadConfig,
   loadHistory,
+  newGeneration,
 } from "../utils/config";
-import type { Generation } from "../utils/config";
 import { formatTotal } from "../utils/cost";
 import { exitForErrorCode } from "../utils/errors";
-import {
-  downloadImage,
-  getFileSize,
-  getImageDimensions,
-  indexedOutputPath,
-  openImage,
-} from "../utils/image";
-import { emitError, isStructured } from "../utils/output";
+import { decodeDataUrl, indexedOutputPath, openImage } from "../utils/image";
+import { emitError, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions, OutputFormat } from "../utils/output";
+import { saveFiles } from "../utils/output-files";
 import { hasText } from "../utils/text";
 
 export interface SavedImage {
@@ -50,9 +48,6 @@ export interface SavedImage {
   size: string;
   width?: number;
 }
-
-/** An image to save: a provider URL to download, or bytes already in hand. */
-export type ImageSource = { bytes: Uint8Array } | { url: string };
 
 /** What history records about the run, plus save-time checks. */
 export interface SaveMeta {
@@ -77,17 +72,6 @@ export interface SaveResult {
   timestamp: string;
 }
 
-/** Write one image, returning the path actually used. Bytes are always PNG. */
-async function writeImage(image: ImageSource, path: string): Promise<string> {
-  if ("url" in image) {
-    return await downloadImage(image.url, path);
-  }
-  const { dir, name } = parse(path);
-  const pngPath = join(dir, `${name}.png`);
-  await writeFile(pngPath, image.bytes);
-  return pngPath;
-}
-
 /** Throw when a transparent run saved any image with no transparent pixels. */
 async function assertTransparent(paths: string[]): Promise<void> {
   const checks = await Promise.all(
@@ -103,7 +87,7 @@ async function assertTransparent(paths: string[]): Promise<void> {
 }
 
 export async function saveGeneratedImages(
-  images: ImageSource[],
+  files: readonly TaskFile[],
   outputPath: string,
   numImages: number,
   meta: SaveMeta,
@@ -112,71 +96,51 @@ export async function saveGeneratedImages(
   noOpen?: boolean,
   historyRecorded = true
 ): Promise<SaveResult> {
-  // Build paths for each image
-  const paths = images.map((_, i) =>
-    numImages > 1 ? indexedOutputPath(outputPath, i) : outputPath
-  );
-
-  // Download or write all images in parallel
-  const actualPaths = await Promise.all(
-    images.map(
-      async (image, i) =>
-        // biome-ignore lint/style/noNonNullAssertion: Index is guaranteed within bounds by the map
-        await writeImage(image, paths[i]!)
-    )
-  );
+  const written = await saveFiles(files, {
+    paths: files.map((_, i) =>
+      numImages > 1 ? indexedOutputPath(outputPath, i) : outputPath
+    ),
+  });
 
   if (meta.requireTransparency === true) {
-    await assertTransparent(actualPaths);
+    await assertTransparent(written.map((file) => file.path));
   }
 
-  // Collect metadata sequentially (dims via file command, console output ordering)
-  const savedImages: SavedImage[] = [];
-  const generations: Generation[] = [];
   const now = new Date().toISOString();
   const firstEditPath = meta.editPaths?.[0];
   const editedFrom = hasText(firstEditPath)
     ? resolve(firstEditPath)
     : undefined;
-
-  for (let i = 0; i < images.length; i++) {
-    // biome-ignore lint/style/noNonNullAssertion: Index is guaranteed within bounds by the loop condition
-    const path = actualPaths[i]!;
-    const source = images[i];
-    const dims = await getImageDimensions(path);
-    const size = getFileSize(path);
-
-    savedImages.push({
-      height: dims?.height,
-      path: resolve(path),
-      remoteUrl:
-        source !== undefined && "url" in source ? source.url : undefined,
-      size,
-      width: dims?.width,
-    });
-
-    if (!isStructured(emitOpts.format)) {
-      console.log(
-        chalk.green(`✓ Saved: ${path}`) +
-          chalk.dim(
-            ` (${dims ? `${dims.width}x${dims.height}` : "?"}, ${size})`
-          )
-      );
-    }
-
-    generations.push({
+  const generations = written.map((file) =>
+    newGeneration({
       aspect: meta.aspect,
       cost: meta.costPerImage,
       editedFrom,
-      id: generateId(),
-      ...(hasText(meta.look) && { look: meta.look }),
+      look: meta.look,
       model: meta.model,
-      ...(hasText(meta.mood) && { mood: meta.mood }),
-      output: resolve(path),
+      mood: meta.mood,
+      output: file.path,
       prompt: meta.prompt,
       resolution: meta.resolution,
       timestamp: now,
-    });
+    })
+  );
+  const savedImages = written.map((file, i): SavedImage => {
+    const url = files[i]?.url;
+    return {
+      height: file.height,
+      path: file.path,
+      remoteUrl:
+        url === undefined || decodeDataUrl(url) !== null ? undefined : url,
+      size: file.size,
+      width: file.width,
+    };
+  });
+
+  if (!isStructured(emitOpts.format)) {
+    for (const file of written) {
+      console.log(savedLine(file));
+    }
   }
 
   if (historyRecorded) {
@@ -186,7 +150,7 @@ export async function saveGeneratedImages(
   const { known: totalCost, unknown } = sumCosts(
     generations.map((g) => g.cost)
   );
-  // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since images is non-empty
+  // biome-ignore lint/style/noNonNullAssertion: generations is non-empty since files is non-empty
   const lastGen = generations.at(-1)!;
 
   if (historyRecorded && !isStructured(emitOpts.format)) {
@@ -199,12 +163,11 @@ export async function saveGeneratedImages(
     );
   }
 
-  // Open first image after all downloads complete. Use the actual saved path:
-  // downloadImage may rewrite the extension when fal returns a different
-  // format than the requested filename implies (e.g. .png -> .jpg).
+  // Open the first image after all downloads complete, by the path actually
+  // written: the extension may have been corrected from the file's content.
   if (config.openAfterGenerate && noOpen !== true) {
-    // biome-ignore lint/style/noNonNullAssertion: actualPaths[0] exists since images is non-empty
-    openImage(actualPaths[0]!);
+    // biome-ignore lint/style/noNonNullAssertion: written[0] exists since files is non-empty
+    openImage(written[0]!.path);
   }
 
   return {

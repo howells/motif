@@ -46,6 +46,12 @@ export function exitForErrorCode(code: KnownErrorCode): never {
   process.exit(exitCodeForStatus(getErrorMetadata(code).status));
 }
 
+/** Report that there is no earlier generation to work from, and exit. */
+export function exitNoPrevious(message: string, format: OutputFormat): never {
+  emitError({ code: "NO_PREVIOUS", message }, format);
+  exitForErrorCode("NO_PREVIOUS");
+}
+
 export function getErrorMessage(err: unknown): string {
   if (err instanceof Error) {
     return err.message;

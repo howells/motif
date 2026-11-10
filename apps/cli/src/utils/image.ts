@@ -1,14 +1,16 @@
 import { execFile } from "node:child_process";
 import { existsSync, statSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { extname, join, parse, resolve } from "node:path";
 
 import sharp from "sharp";
 
-import { hasText } from "./text";
-
 const URL_TAIL_REGEX = /[?#]/;
 const FILE_EXTENSION_REGEX = /^\.[a-z0-9]{1,8}$/i;
+const DATA_URL_REGEX = /^data:([^;,]+);base64,(.*)$/s;
+
+/** Extensions a raster image file may carry; its bytes decide which. */
+const RASTER_EXTENSIONS = new Set([".gif", ".jpeg", ".jpg", ".png", ".webp"]);
 
 /** Minimal environment for child processes — excludes secrets like FAL_KEY */
 const SAFE_ENV = { PATH: process.env.PATH ?? "" };
@@ -76,23 +78,61 @@ function detectImageExtension(
   return null;
 }
 
-function withDetectedExtension(outputPath: string, extension: string | null) {
-  if (!hasText(extension)) {
-    return outputPath;
+/**
+ * `path` with `extension` in place of its own. A path that already ends in it
+ * (`.jpeg` counts for `.jpg`) is returned as it is.
+ */
+export function withExtension(path: string, extension: string): string {
+  const current = extname(path).toLowerCase();
+  if (current === extension || (current === ".jpeg" && extension === ".jpg")) {
+    return path;
   }
+  return current === ""
+    ? `${path}${extension}`
+    : `${path.slice(0, -current.length)}${extension}`;
+}
 
-  const currentExtension = extname(outputPath).toLowerCase();
-  if (
-    currentExtension === extension ||
-    (currentExtension === ".jpeg" && extension === ".jpg")
-  ) {
-    return outputPath;
-  }
+/**
+ * `path` with the extension of a file that cannot be a raster image: a video,
+ * an SVG or a mesh named `.png` would open as a broken image. Raster
+ * mismatches are corrected from the bytes by {@link saveBytes}.
+ */
+export function withFileExtension(path: string, extension: string): string {
+  return extension === "" || RASTER_EXTENSIONS.has(extension)
+    ? path
+    : withExtension(path, extension);
+}
 
-  if (!hasText(currentExtension)) {
-    return `${outputPath}${extension}`;
-  }
-  return `${outputPath.slice(0, -currentExtension.length)}${extension}`;
+/** Extension carried by a URL path, ignoring query and fragment. */
+export function urlExtension(url: string): string {
+  const extension = extname(url.split(URL_TAIL_REGEX)[0] ?? "").toLowerCase();
+  return FILE_EXTENSION_REGEX.test(extension) ? extension : "";
+}
+
+/** The bytes and content type of a `data:<type>;base64,` URL, else null. */
+export function decodeDataUrl(
+  url: string
+): { buffer: Buffer; contentType: string } | null {
+  const match = DATA_URL_REGEX.exec(url);
+  return match?.[1] === undefined || match[2] === undefined
+    ? null
+    : { buffer: Buffer.from(match[2], "base64"), contentType: match[1] };
+}
+
+/**
+ * Write image bytes to `outputPath`, with the extension their content calls
+ * for. Returns the path actually written.
+ */
+export async function saveBytes(
+  buffer: Buffer,
+  contentType: string | null,
+  outputPath: string
+): Promise<string> {
+  const detected = detectImageExtension(buffer, contentType);
+  const actualPath =
+    detected === null ? outputPath : withExtension(outputPath, detected);
+  await writeFile(actualPath, buffer);
+  return actualPath;
 }
 
 /** Download an image from a URL and save it to a file */
@@ -109,130 +149,11 @@ export async function downloadImage(
     throw new Error(`Failed to download image: ${response.statusText}`);
   }
 
-  const buffer = Buffer.from(await response.arrayBuffer());
-  const actualPath = withDetectedExtension(
-    outputPath,
-    detectImageExtension(buffer, response.headers.get("content-type"))
+  return await saveBytes(
+    Buffer.from(await response.arrayBuffer()),
+    response.headers.get("content-type"),
+    outputPath
   );
-  await writeFile(actualPath, buffer);
-  return actualPath;
-}
-
-/** One downloadable artefact and the registry output key that produced it. */
-export interface UrlArtifact {
-  key: string;
-  url: string;
-}
-
-/** A file written to disk by {@link downloadAll}. */
-export interface WrittenFile {
-  height?: number;
-  key: string;
-  path: string;
-  size: string;
-  width?: number;
-}
-
-/** Extension carried by a URL path, ignoring query and fragment. */
-function urlExtension(url: string): string {
-  const extension = extname(url.split(URL_TAIL_REGEX)[0] ?? "");
-  return FILE_EXTENSION_REGEX.test(extension) ? extension : "";
-}
-
-/** Name for `key` at `occurrence` (0-based): masks.png, masks-2.png, masks-3.png. */
-function artifactFilename(
-  key: string,
-  occurrence: number,
-  url: string
-): string {
-  const suffix = occurrence === 0 ? "" : `-${occurrence + 1}`;
-  return `${key}${suffix}${urlExtension(url)}`;
-}
-
-/**
- * Semantic names for the positions of an array-valued output key, resolved
- * from the SDK's `TaskFile.label`. Each name is used verbatim as a filename
- * stem; the SDK slugifies any name built from untrusted text.
- */
-export type OutputLabels = Record<string, readonly string[]>;
-
-/**
- * Labels for `key`, but only when there is exactly one label per URL that key
- * produced. Callers resolve the names from the request before getting here;
- * this is the last guard against a count that still does not line up, such as
- * patina-extract multiplying its array by `num_images`. A mislabelled file is
- * worse than a positional one because it reads as authoritative.
- */
-function usableLabels(
-  labels: OutputLabels | undefined,
-  key: string,
-  count: number
-): readonly string[] | undefined {
-  const candidate = labels?.[key];
-  return candidate?.length === count ? candidate : undefined;
-}
-
-/**
- * Download every artefact into `directory`, named by the output key that
- * produced it, with a positional suffix when a key yields several files.
- * Where `labels` names the positions of a key and the count matches exactly,
- * those names are used as the filename stems instead.
- */
-export async function downloadAll(
-  artifacts: UrlArtifact[],
-  directory: string,
-  labels?: OutputLabels
-): Promise<WrittenFile[]> {
-  await mkdir(directory, { recursive: true });
-
-  const totals = new Map<string, number>();
-  for (const { key } of artifacts) {
-    totals.set(key, (totals.get(key) ?? 0) + 1);
-  }
-
-  const seen = new Map<string, number>();
-  const targets = artifacts.map((artifact) => {
-    const occurrence = seen.get(artifact.key) ?? 0;
-    seen.set(artifact.key, occurrence + 1);
-    const named = usableLabels(
-      labels,
-      artifact.key,
-      totals.get(artifact.key) ?? 0
-    )?.[occurrence];
-    return {
-      ...artifact,
-      target: join(
-        directory,
-        named === undefined
-          ? artifactFilename(artifact.key, occurrence, artifact.url)
-          : `${named}${urlExtension(artifact.url)}`
-      ),
-    };
-  });
-
-  return await Promise.all(
-    targets.map(
-      async ({ key, target, url }) => await writeArtifact(key, url, target)
-    )
-  );
-}
-
-/** Download one URL to `target` and describe the file that landed. */
-export async function writeArtifact(
-  key: string,
-  url: string,
-  target: string
-): Promise<WrittenFile> {
-  const actualPath = await downloadImage(url, target);
-  const dimensions = await getImageDimensions(actualPath);
-  return {
-    key,
-    path: resolve(actualPath),
-    size: getFileSize(actualPath),
-    ...(dimensions === null
-      ? {}
-      : { height: dimensions.height, width: dimensions.width }),
-  };
 }
 
 /** Convert a local image file to a base64 data URL */

@@ -14,14 +14,13 @@
  *     record no history.
  */
 
-import { extname, resolve } from "node:path";
+import { resolve } from "node:path";
 
 import { formatCost, MotifError } from "@howells/motif-sdk";
 import type {
   AspectRatio,
   MotifClient,
   Resolution,
-  TaskFile,
   TaskId,
   TaskInput,
   TaskOutput,
@@ -32,16 +31,18 @@ import ora from "ora";
 import type { Ora } from "ora";
 
 import type { Generation, MotifConfig } from "../utils/config";
-import { addGeneration, generateId, getLastGeneration } from "../utils/config";
-import { exitForErrorCode, handleError, validateOutput } from "../utils/errors";
 import {
-  downloadAll,
+  addGeneration,
+  getLastGeneration,
+  newGeneration,
+} from "../utils/config";
+import { exitNoPrevious, handleError, validateOutput } from "../utils/errors";
+import {
   generateFilename,
   openImage,
-  writeArtifact,
+  withExtension,
+  withFileExtension,
 } from "../utils/image";
-import type { OutputLabels, WrittenFile } from "../utils/image";
-import { validateOutputPath } from "../utils/input";
 import {
   imageSource,
   isVideoPath,
@@ -51,17 +52,14 @@ import {
   REMOTE_URL_REGEX,
   videoSource,
 } from "../utils/motif-client";
-import { emit, emitError, isStructured } from "../utils/output";
+import { emit, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
-import { exitTaskError, exitTaskFailed } from "../utils/task-model";
+import { derivedOutputPath, saveFiles } from "../utils/output-files";
+import type { WrittenFile } from "../utils/output-files";
+import { exitTaskError, exitTaskFailed, taskFields } from "../utils/task-model";
 import { hasText } from "../utils/text";
 import { readVideoHeader } from "../utils/video-header";
 
-/** Extensions `derivedOutputPath` strips before appending its suffix. */
-const SOURCE_EXT_REGEX = /\.(png|jpg|jpeg|webp|mp4|mov|m4v|webm)$/i;
-const RASTER_EXTENSIONS = new Set([".gif", ".jpeg", ".jpg", ".png", ".webp"]);
-const URL_TAIL_REGEX = /[?#]/;
-const FILE_EXTENSION_REGEX = /^\.[a-z0-9]{1,8}$/i;
 /** A history prompt's leading `[verb] ` tag, from an earlier Task run. */
 const HISTORY_TAG_REGEX = /^\[[\w-]+\]\s*/;
 
@@ -120,21 +118,6 @@ interface Target {
   path: string;
 }
 
-function derivedOutputPath(
-  sourcePath: string,
-  suffix: string,
-  extension: string
-): string {
-  const stem = sourcePath.replace(SOURCE_EXT_REGEX, "");
-  try {
-    return validateOutputPath(`${stem}${suffix}${extension}`);
-  } catch {
-    const name =
-      sourcePath.split("/").at(-1)?.replace(SOURCE_EXT_REGEX, "") ?? "motif";
-    return validateOutputPath(`${name || "motif"}${suffix}${extension}`);
-  }
-}
-
 async function resolveSource(
   input: TaskRunInput,
   spec: TaskRunSpec,
@@ -153,14 +136,10 @@ async function resolveSource(
   }
   const last = await getLastGeneration();
   if (!last) {
-    emitError(
-      {
-        code: "NO_PREVIOUS",
-        message: `No previous generation to run ${spec.command} against`,
-      },
+    exitNoPrevious(
+      `No previous generation to run ${spec.command} against`,
       emitOpts.format
     );
-    exitForErrorCode("NO_PREVIOUS");
   }
   return {
     aspect: last.aspect,
@@ -190,7 +169,7 @@ function resolveTarget(
   }
   const extension = outputExtension(spec, video);
   if (source === undefined) {
-    const name = generateFilename(spec.command).replace(/\.png$/, extension);
+    const name = withExtension(generateFilename(spec.command), extension);
     return {
       directoryMode: false,
       path: validateOutput(emitOpts.format, name),
@@ -215,18 +194,9 @@ function plannedOutput(
   if (!spec.writesFiles) {
     return null;
   }
-  const extension = outputExtension(spec, video);
-  const current = extname(target.path).toLowerCase();
-  if (
-    target.directoryMode ||
-    RASTER_EXTENSIONS.has(extension) ||
-    current === extension
-  ) {
-    return target.path;
-  }
-  return current === ""
-    ? `${target.path}${extension}`
-    : `${target.path.slice(0, -current.length)}${extension}`;
+  return target.directoryMode
+    ? target.path
+    : withFileExtension(target.path, outputExtension(spec, video));
 }
 
 /** The source as the SDK takes it: `image` or `video`. */
@@ -268,81 +238,6 @@ function exitSourceError(
   handleError(error, "INVALID_IMAGE_PATH", emitOpts.format);
 }
 
-/** Extension carried by a URL path, ignoring query and fragment. */
-function urlExtension(url: string): string {
-  const extension = extname(url.split(URL_TAIL_REGEX)[0] ?? "").toLowerCase();
-  return FILE_EXTENSION_REGEX.test(extension) ? extension : "";
-}
-
-/**
- * A file target whose extension the file cannot honour takes the file's own:
- * a video, an SVG or a mesh named `.png` would open as a broken image. Raster
- * mismatches are corrected from the bytes when the download lands.
- */
-function targetFor(path: string, file: TaskFile): string {
-  const fileExtension = urlExtension(file.url);
-  const current = extname(path).toLowerCase();
-  if (
-    fileExtension === "" ||
-    RASTER_EXTENSIONS.has(fileExtension) ||
-    current === fileExtension
-  ) {
-    return path;
-  }
-  return current === ""
-    ? `${path}${fileExtension}`
-    : `${path.slice(0, -current.length)}${fileExtension}`;
-}
-
-/** Label names per output key, for `downloadAll`'s file stems. */
-function labelsOf(files: readonly TaskFile[]): OutputLabels {
-  const labels: Record<string, string[]> = {};
-  for (const file of files) {
-    if (file.label !== undefined) {
-      (labels[file.key] ??= []).push(file.label);
-    }
-  }
-  return labels;
-}
-
-async function writeFiles(
-  files: readonly TaskFile[],
-  target: Target
-): Promise<WrittenFile[]> {
-  if (target.directoryMode) {
-    return await downloadAll(
-      files.map(({ key, url }) => ({ key, url })),
-      target.path,
-      labelsOf(files)
-    );
-  }
-  const primary = files[0];
-  if (!primary) {
-    return [];
-  }
-  return [
-    await writeArtifact(
-      primary.key,
-      primary.url,
-      targetFor(target.path, primary)
-    ),
-  ];
-}
-
-function taskFields(
-  plan: Pick<TaskPlan, "chosenBy" | "cost" | "mode" | "model" | "task" | "tier">
-): Record<string, unknown> {
-  return {
-    task: plan.task,
-    model: plan.model,
-    tier: plan.tier,
-    chosenBy: plan.chosenBy,
-    ...(plan.mode === undefined ? {} : { mode: plan.mode }),
-    cost: plan.cost.usd,
-    costBasis: plan.cost.basis,
-  };
-}
-
 function printDryRun(
   spec: TaskRunSpec,
   plan: TaskPlan,
@@ -358,18 +253,6 @@ function printDryRun(
   );
   console.log(`  Output: ${chalk.dim(output ?? "none, data only")}`);
   console.log(`  Cost:   ${chalk.yellow(formatCost(plan.cost.usd))}`);
-}
-
-function reportWritten(written: readonly WrittenFile[]): void {
-  for (const file of written) {
-    const dims =
-      file.width !== undefined && file.height !== undefined
-        ? `${file.width}x${file.height}, `
-        : "";
-    console.log(
-      chalk.green(`✓ Saved: ${file.path}`) + chalk.dim(` (${dims}${file.size})`)
-    );
-  }
 }
 
 function startProgress(
@@ -430,21 +313,18 @@ export function generationRecord(
   source: ResolvedSource | undefined,
   primary: Pick<WrittenFile, "path">
 ): Generation {
-  const references = (spec.referencePaths ?? []).map((path) =>
-    REMOTE_URL_REGEX.test(path) ? path : resolve(path)
-  );
-  return {
+  return newGeneration({
     aspect: source?.aspect ?? "1:1",
     cost: output.cost.usd,
-    ...(source !== undefined && { editedFrom: resolve(source.path) }),
-    id: generateId(),
+    editedFrom: source === undefined ? undefined : resolve(source.path),
     model: output.model,
     output: primary.path,
     prompt: historyPrompt(spec.command, source?.prompt ?? spec.input.prompt),
-    ...(references.length > 0 && { references }),
+    references: (spec.referencePaths ?? []).map((path) =>
+      REMOTE_URL_REGEX.test(path) ? path : resolve(path)
+    ),
     resolution: source?.resolution ?? "1K",
-    timestamp: new Date().toISOString(),
-  };
+  });
 }
 
 async function recordRun(
@@ -530,10 +410,17 @@ export async function runTask(
         `${spec.command} produced no downloadable output: the response carried no files`
       );
     }
-    const written = await writeFiles(output.files, target);
+    const written = await saveFiles(
+      output.files,
+      target.directoryMode
+        ? { directory: target.path }
+        : { paths: [target.path] }
+    );
     spinner?.succeed(`${spec.verb} complete`);
     if (withChrome) {
-      reportWritten(written);
+      for (const file of written) {
+        console.log(savedLine(file));
+      }
     }
     const [primary] = written;
     await recordRun(spec, output, source, primary);
