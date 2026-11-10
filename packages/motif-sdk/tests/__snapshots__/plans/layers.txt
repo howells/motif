@@ -11,9 +11,9 @@ layers - seedream-layerize jpeg => ERR NO_MODEL_AVAILABLE seedream-layerize (mod
 layers - seedream-layerize png => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize webp => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot return webp from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize gif => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot return gif from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
-layers - seedream-layerize 1K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
-layers - seedream-layerize 2K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
-layers - seedream-layerize 4K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
+layers - seedream-layerize 1K => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto_1K","image_url":"https://example.com/source.png","prompt":"the shoe"}
+layers - seedream-layerize 2K => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":"auto_2K","image_url":"https://example.com/source.png","prompt":"the shoe"}
+layers - seedream-layerize 4K => ERR INVALID_OPTION seedream-layerize cannot take resolution 4K for layers; it takes 1K, 1.5K, 2K. {"accepts":["1K","1.5K","2K"],"field":"resolution","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize ref1 => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize ref2 => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize count 0 => ERR INVALID_OPTION count must be a whole number of at least 1, not 0. {"field":"count","task":"layers"}
@@ -22,7 +22,8 @@ layers - seedream-layerize seed 1.5 => ERR INVALID_OPTION seed must be a whole n
 layers - seedream-layerize seed -1 => ERR INVALID_OPTION seed must be a whole number of at least 0, not -1. {"field":"seed","task":"layers"}
 layers - seedream-layerize scale 3 => ERR INVALID_OPTION seedream-layerize cannot take scale for layers. {"field":"scale","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize scale -1 => ERR INVALID_OPTION seedream-layerize cannot take scale for layers. {"field":"scale","model":"seedream-layerize","task":"layers"}
-layers - seedream-layerize aspect => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt=undefined body={"image_size":{"height":1024,"width":1536},"image_url":"https://example.com/source.png"}
+layers - seedream-layerize aspect => ERR INVALID_OPTION seedream-layerize sizes its output from the source image; it takes aspect auto, not 3:2. {"accepts":["auto"],"field":"aspect","model":"seedream-layerize","task":"layers"}
+layers - seedream-layerize aspect auto => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=model tier=balanced mode=undefined cost={"basis":"unknown","usd":null} prompt=undefined body={"image_size":"auto","image_url":"https://example.com/source.png"}
 layers - seedream-layerize rich => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do count. {"blockedBy":"count","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered bare => qwen-layered fal-ai/qwen-image-layered queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt=undefined body={"image_url":"https://example.com/source.png"}
 layers - qwen-layered prompted => qwen-layered fal-ai/qwen-image-layered queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
@@ -49,6 +50,7 @@ layers - qwen-layered seed -1 => ERR INVALID_OPTION seed must be a whole number 
 layers - qwen-layered scale 3 => ERR INVALID_OPTION qwen-layered cannot take scale for layers. {"field":"scale","model":"qwen-layered","task":"layers"}
 layers - qwen-layered scale -1 => ERR INVALID_OPTION qwen-layered cannot take scale for layers. {"field":"scale","model":"qwen-layered","task":"layers"}
 layers - qwen-layered aspect => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
+layers - qwen-layered aspect auto => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered rich => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do count. {"blockedBy":"count","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text bare => ideogram-layerize-text fal-ai/ideogram/v3/layerize-text queued=true by=model tier=balanced mode=text cost={"basis":"projected","usd":0.09} prompt=undefined body={"image_url":"https://example.com/source.png"}
 layers text ideogram-layerize-text prompted => ideogram-layerize-text fal-ai/ideogram/v3/layerize-text queued=true by=model tier=balanced mode=text cost={"basis":"projected","usd":0.09} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
@@ -75,6 +77,7 @@ layers text ideogram-layerize-text seed -1 => ERR INVALID_OPTION seed must be a 
 layers text ideogram-layerize-text scale 3 => ERR INVALID_OPTION ideogram-layerize-text cannot take scale for layers. {"field":"scale","model":"ideogram-layerize-text","task":"layers"}
 layers text ideogram-layerize-text scale -1 => ERR INVALID_OPTION ideogram-layerize-text cannot take scale for layers. {"field":"scale","model":"ideogram-layerize-text","task":"layers"}
 layers text ideogram-layerize-text aspect => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
+layers text ideogram-layerize-text aspect auto => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text rich => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do count. {"blockedBy":"count","task":"layers","unblockedBy":["option"]}
 layers - ranked fast => qwen-layered fal-ai/qwen-image-layered queued=true by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
 layers - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for layers can do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
@@ -88,10 +91,10 @@ layers text ranked balanced => ideogram-layerize-text fal-ai/ideogram/v3/layeriz
 layers text ranked balanced refs => ERR NO_MODEL_AVAILABLE No Model for layers text can do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
 layers text ranked quality => ideogram-layerize-text fal-ai/ideogram/v3/layerize-text queued=true by=ranking tier=quality mode=text cost={"basis":"projected","usd":0.09} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
 layers text ranked quality refs => ERR NO_MODEL_AVAILABLE No Model for layers text can do references. {"blockedBy":"references","task":"layers","unblockedBy":["option"]}
-layers - ranked fast aspect 21:9 => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=ranking tier=fast mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":624,"width":1456},"image_url":"https://example.com/source.png","prompt":"the shoe"}
-layers - ranked quality aspect 21:9 => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":624,"width":1456},"image_url":"https://example.com/source.png","prompt":"the shoe"}
-layers - ranked fast aspect 8:1 => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=ranking tier=fast mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":192,"width":1536},"image_url":"https://example.com/source.png","prompt":"the shoe"}
-layers - ranked quality aspect 8:1 => seedream-layerize bytedance/seedream/v5/pro/layerize queued=true by=ranking tier=quality mode=undefined cost={"basis":"unknown","usd":null} prompt="the shoe" body={"image_size":{"height":192,"width":1536},"image_url":"https://example.com/source.png","prompt":"the shoe"}
+layers - ranked fast aspect 21:9 => ERR INVALID_OPTION seedream-layerize sizes its output from the source image; it takes aspect auto, not 21:9. {"accepts":["auto"],"field":"aspect","model":"seedream-layerize","task":"layers"}
+layers - ranked quality aspect 21:9 => ERR INVALID_OPTION seedream-layerize sizes its output from the source image; it takes aspect auto, not 21:9. {"accepts":["auto"],"field":"aspect","model":"seedream-layerize","task":"layers"}
+layers - ranked fast aspect 8:1 => ERR INVALID_OPTION seedream-layerize sizes its output from the source image; it takes aspect auto, not 8:1. {"accepts":["auto"],"field":"aspect","model":"seedream-layerize","task":"layers"}
+layers - ranked quality aspect 8:1 => ERR INVALID_OPTION seedream-layerize sizes its output from the source image; it takes aspect auto, not 8:1. {"accepts":["auto"],"field":"aspect","model":"seedream-layerize","task":"layers"}
 layers text ranked fast aspect 21:9 => ERR NO_MODEL_AVAILABLE No Model for layers text can do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
 layers text ranked quality aspect 21:9 => ERR NO_MODEL_AVAILABLE No Model for layers text can do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}
 layers text ranked fast aspect 8:1 => ERR NO_MODEL_AVAILABLE No Model for layers text can do aspect. {"blockedBy":"aspect","task":"layers","unblockedBy":["option"]}

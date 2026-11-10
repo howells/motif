@@ -950,6 +950,47 @@ describe("createMotif refusals", () => {
     expect(negative.details).toMatchObject({ field: "scale", task: "upscale" });
   });
 
+  it("sizes a source-sized endpoint by its enum: auto, or auto_ plus the resolution", () => {
+    const plan = (input: TaskInput) =>
+      client().plan("layers", {
+        image: IMAGE,
+        model: "seedream-layerize",
+        ...input,
+      });
+
+    expect(plan({ aspect: "auto" })._unsafeUnwrap().body.image_size).toBe(
+      "auto"
+    );
+    expect(plan({ resolution: "2K" })._unsafeUnwrap().body.image_size).toBe(
+      "auto_2K"
+    );
+    expect(
+      plan({ aspect: "auto", resolution: "1K" })._unsafeUnwrap().body.image_size
+    ).toBe("auto_1K");
+    expect(
+      refused("layers", {
+        aspect: "3:2",
+        image: IMAGE,
+        model: "seedream-layerize",
+      }).details
+    ).toStrictEqual({
+      accepts: ["auto"],
+      field: "aspect",
+      model: "seedream-layerize",
+      task: "layers",
+    });
+    expect(
+      refused("layers", {
+        image: IMAGE,
+        model: "seedream-layerize",
+        resolution: "4K",
+      }).details
+    ).toMatchObject({
+      accepts: ["1K", "1.5K", "2K"],
+      field: "resolution",
+    });
+  });
+
   it("refuses a request missing a parameter fal requires", () => {
     const error = refused("erase", { image: IMAGE });
 

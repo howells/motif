@@ -23,6 +23,7 @@ material - patina seed -1 => ERR INVALID_OPTION seed must be a whole number of a
 material - patina scale 3 => ERR INVALID_OPTION patina cannot take scale for material. {"field":"scale","model":"patina","task":"material"}
 material - patina scale -1 => ERR INVALID_OPTION patina cannot take scale for material. {"field":"scale","model":"patina","task":"material"}
 material - patina aspect => ERR NO_MODEL_AVAILABLE patina (model) cannot do aspect. {"blockedBy":"aspect","task":"material","unblockedBy":["option"]}
+material - patina aspect auto => ERR NO_MODEL_AVAILABLE patina (model) cannot do aspect. {"blockedBy":"aspect","task":"material","unblockedBy":["option"]}
 material - patina rich => ERR NO_MODEL_AVAILABLE patina (model) cannot do count. {"blockedBy":"count","task":"material","unblockedBy":["option"]}
 material extract patina-extract bare => ERR INVALID_OPTION patina-extract needs prompt for material. {"field":"prompt","model":"patina-extract","task":"material"}
 material extract patina-extract prompted => patina-extract fal-ai/patina/material/extract queued=true by=model tier=balanced mode=extract cost={"basis":"projected","usd":0.17340032} prompt="the shoe" body={"image_url":"https://example.com/source.png","prompt":"the shoe"}
@@ -49,6 +50,7 @@ material extract patina-extract seed -1 => ERR INVALID_OPTION seed must be a who
 material extract patina-extract scale 3 => ERR INVALID_OPTION patina-extract cannot take scale 3 for material; it takes 2, 4. {"accepts":[2,4],"field":"scale","model":"patina-extract","task":"material"}
 material extract patina-extract scale -1 => ERR INVALID_OPTION scale must be a positive number, not -1. {"field":"scale","model":"patina-extract","task":"material"}
 material extract patina-extract aspect => ERR INVALID_OPTION patina-extract needs prompt for material. {"field":"prompt","model":"patina-extract","task":"material"}
+material extract patina-extract aspect auto => ERR INVALID_OPTION patina-extract cannot take aspect for material. {"field":"aspect","model":"patina-extract","task":"material"}
 material extract patina-extract rich => ERR NO_MODEL_AVAILABLE patina-extract (model) cannot do negativePrompt. {"blockedBy":"negativePrompt","task":"material","unblockedBy":["option"]}
 material - ranked fast => ERR INVALID_OPTION patina cannot take prompt for material. {"field":"prompt","model":"patina","task":"material"}
 material - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for material can do references. {"blockedBy":"references","task":"material","unblockedBy":["option"]}

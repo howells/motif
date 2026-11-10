@@ -332,6 +332,54 @@ function aspectOptions(
   return ok(options);
 }
 
+/**
+ * Whether an endpoint's `image_size` is a source-sized enum (`auto`,
+ * `auto_1K`...) with no `{ width, height }` form, by its record's type.
+ */
+function sizesFromSource(parameter: FalToolParameter | undefined): boolean {
+  return (
+    parameter !== undefined &&
+    !parameter.type.includes("object") &&
+    enumValues(parameter).length > 0
+  );
+}
+
+/**
+ * `image_size` for an endpoint that sizes its output from the source: `auto`,
+ * or `auto_<resolution>` for the resolution asked. Any other aspect is refused,
+ * because the endpoint keeps the source's shape.
+ */
+function sourceSizeOptions(
+  task: TaskId,
+  model: FalToolId,
+  input: TaskInput,
+  parameter: FalToolParameter | undefined
+): Result<Record<string, unknown>, MotifError> {
+  if (input.aspect !== undefined && input.aspect !== "auto") {
+    return err(
+      invalidOption(
+        `${model} sizes its output from the source image; it takes aspect auto, not ${input.aspect}.`,
+        { accepts: ["auto"], field: "aspect", model, task }
+      )
+    );
+  }
+  const accepted = enumValues(parameter);
+  const size =
+    input.resolution === undefined ? "auto" : `auto_${input.resolution}`;
+  if (!accepted.includes(size)) {
+    const resolutions = accepted
+      .filter((value) => value.startsWith("auto_"))
+      .map((value) => value.slice("auto_".length));
+    return err(
+      invalidOption(
+        `${model} cannot take resolution ${input.resolution} for ${task}; it takes ${resolutions.join(", ")}.`,
+        { accepts: resolutions, field: "resolution", model, task }
+      )
+    );
+  }
+  return ok({ image_size: size });
+}
+
 /** A Mood names a light, so relight joins its clause after the prompt. */
 function moodPrompt(input: TaskInput): string {
   return enrichPrompt({
@@ -431,17 +479,32 @@ function toolOptions(
     options[referenceField] = input.references?.[0];
   }
 
-  if (input.aspect !== undefined) {
-    const sized = aspectOptions(task, model, input, parameters, input.aspect);
-    if (sized.isErr()) {
-      return err(sized.error);
+  if (sizesFromSource(parameters.get("image_size"))) {
+    if (input.aspect !== undefined || input.resolution !== undefined) {
+      const sized = sourceSizeOptions(
+        task,
+        model,
+        input,
+        parameters.get("image_size")
+      );
+      if (sized.isErr()) {
+        return err(sized.error);
+      }
+      Object.assign(options, sized.value);
     }
-    Object.assign(options, sized.value);
-  }
-  const sizedByResolution =
-    options.image_size !== undefined || options.canvas_size !== undefined;
-  if (input.resolution !== undefined && !sizedByResolution) {
-    return err(cannotCarry("resolution", model, task));
+  } else {
+    if (input.aspect !== undefined) {
+      const sized = aspectOptions(task, model, input, parameters, input.aspect);
+      if (sized.isErr()) {
+        return err(sized.error);
+      }
+      Object.assign(options, sized.value);
+    }
+    const sizedByResolution =
+      options.image_size !== undefined || options.canvas_size !== undefined;
+    if (input.resolution !== undefined && !sizedByResolution) {
+      return err(cannotCarry("resolution", model, task));
+    }
   }
 
   if (input.mask !== undefined) {

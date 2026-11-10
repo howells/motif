@@ -23,6 +23,7 @@ vectorize - recraft-vectorize seed -1 => ERR INVALID_OPTION seed must be a whole
 vectorize - recraft-vectorize scale 3 => ERR INVALID_OPTION recraft-vectorize cannot take scale for vectorize. {"field":"scale","model":"recraft-vectorize","task":"vectorize"}
 vectorize - recraft-vectorize scale -1 => ERR INVALID_OPTION recraft-vectorize cannot take scale for vectorize. {"field":"scale","model":"recraft-vectorize","task":"vectorize"}
 vectorize - recraft-vectorize aspect => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do aspect. {"blockedBy":"aspect","task":"vectorize","unblockedBy":["option"]}
+vectorize - recraft-vectorize aspect auto => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do aspect. {"blockedBy":"aspect","task":"vectorize","unblockedBy":["option"]}
 vectorize - recraft-vectorize rich => ERR NO_MODEL_AVAILABLE recraft-vectorize (model) cannot do count. {"blockedBy":"count","task":"vectorize","unblockedBy":["option"]}
 vectorize - image2svg bare => image2svg fal-ai/image2svg queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt=undefined body={"image_url":"https://example.com/source.png"}
 vectorize - image2svg prompted => ERR INVALID_OPTION image2svg cannot take prompt for vectorize. {"field":"prompt","model":"image2svg","task":"vectorize"}
@@ -49,6 +50,7 @@ vectorize - image2svg seed -1 => ERR INVALID_OPTION seed must be a whole number 
 vectorize - image2svg scale 3 => ERR INVALID_OPTION image2svg cannot take scale for vectorize. {"field":"scale","model":"image2svg","task":"vectorize"}
 vectorize - image2svg scale -1 => ERR INVALID_OPTION image2svg cannot take scale for vectorize. {"field":"scale","model":"image2svg","task":"vectorize"}
 vectorize - image2svg aspect => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do aspect. {"blockedBy":"aspect","task":"vectorize","unblockedBy":["option"]}
+vectorize - image2svg aspect auto => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do aspect. {"blockedBy":"aspect","task":"vectorize","unblockedBy":["option"]}
 vectorize - image2svg rich => ERR NO_MODEL_AVAILABLE image2svg (model) cannot do count. {"blockedBy":"count","task":"vectorize","unblockedBy":["option"]}
 vectorize - ranked fast => ERR INVALID_OPTION image2svg cannot take prompt for vectorize. {"field":"prompt","model":"image2svg","task":"vectorize"}
 vectorize - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for vectorize can do references. {"blockedBy":"references","task":"vectorize","unblockedBy":["option"]}

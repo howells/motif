@@ -23,6 +23,7 @@ animate - kling seed -1 => ERR INVALID_OPTION seed must be a whole number of at 
 animate - kling scale 3 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
 animate - kling scale -1 => ERR INVALID_OPTION kling cannot take scale for animate. {"field":"scale","model":"kling","task":"animate"}
 animate - kling aspect => ERR NO_MODEL_AVAILABLE kling (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
+animate - kling aspect auto => ERR NO_MODEL_AVAILABLE kling (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
 animate - kling rich => ERR NO_MODEL_AVAILABLE kling (model) cannot do count. {"blockedBy":"count","task":"animate","unblockedBy":["option"]}
 animate - kling-turbo bare => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt=undefined body={"duration":"5","image_url":"https://example.com/source.png","prompt":""}
 animate - kling-turbo prompted => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt="the shoe" body={"duration":"5","image_url":"https://example.com/source.png","prompt":"the shoe"}
@@ -49,6 +50,7 @@ animate - kling-turbo seed -1 => ERR INVALID_OPTION seed must be a whole number 
 animate - kling-turbo scale 3 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
 animate - kling-turbo scale -1 => ERR INVALID_OPTION kling-turbo cannot take scale for animate. {"field":"scale","model":"kling-turbo","task":"animate"}
 animate - kling-turbo aspect => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
+animate - kling-turbo aspect auto => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do aspect. {"blockedBy":"aspect","task":"animate","unblockedBy":["option"]}
 animate - kling-turbo rich => ERR NO_MODEL_AVAILABLE kling-turbo (model) cannot do count. {"blockedBy":"count","task":"animate","unblockedBy":["option"]}
 animate - ranked fast => kling-turbo fal-ai/kling-video/v3/turbo/pro/image-to-video queued=true by=ranking tier=fast mode=undefined cost={"basis":"projected","usd":0.7000000000000001} prompt="the shoe" body={"duration":"5","image_url":"https://example.com/source.png","prompt":"the shoe"}
 animate - ranked fast refs => ERR NO_MODEL_AVAILABLE No Model for animate can do references. {"blockedBy":"references","task":"animate","unblockedBy":["option"]}

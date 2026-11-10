@@ -23,6 +23,7 @@ try-on - virtual-try-on seed -1 => ERR INVALID_OPTION seed must be a whole numbe
 try-on - virtual-try-on scale 3 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on scale -1 => ERR INVALID_OPTION virtual-try-on cannot take scale for try-on. {"field":"scale","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on aspect => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on aspect auto => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do aspect. {"blockedBy":"aspect","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on rich => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do seed. {"blockedBy":"seed","task":"try-on","unblockedBy":["option"]}
 try-on - ranked fast => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
 try-on - ranked fast refs => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
