@@ -5,6 +5,10 @@ tile - ideogram-tiling queued => ERR INVALID_OPTION ideogram-tiling needs prompt
 tile - ideogram-tiling mood => ERR INVALID_OPTION ideogram-tiling cannot take mood for tile. {"field":"mood","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling mask => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do mask. {"blockedBy":"mask","task":"tile","unblockedBy":["option"]}
 tile - ideogram-tiling transparent => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling transparent jpeg => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling transparent png => ERR NO_MODEL_AVAILABLE ideogram-tiling (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile - ideogram-tiling jpeg => ideogram-tiling ideogram/v4/tiling queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"output_format":"jpeg","prompt":"the shoe"}
+tile - ideogram-tiling png => ideogram-tiling ideogram/v4/tiling queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.06291456} prompt="the shoe" body={"output_format":"png","prompt":"the shoe"}
 tile - ideogram-tiling 1K => ERR INVALID_OPTION ideogram-tiling cannot take resolution for tile. {"field":"resolution","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling 2K => ERR INVALID_OPTION ideogram-tiling cannot take resolution for tile. {"field":"resolution","model":"ideogram-tiling","task":"tile"}
 tile - ideogram-tiling 4K => ERR INVALID_OPTION ideogram-tiling cannot take resolution for tile. {"field":"resolution","model":"ideogram-tiling","task":"tile"}
@@ -19,6 +23,10 @@ tile upscale seedvr-seamless queued => seedvr-seamless fal-ai/seedvr/upscale/ima
 tile upscale seedvr-seamless mood => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless mask => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do mask. {"blockedBy":"mask","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless transparent => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless transparent jpeg => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless transparent png => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do transparency. {"blockedBy":"transparency","task":"tile","unblockedBy":["option"]}
+tile upscale seedvr-seamless jpeg => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
+tile upscale seedvr-seamless png => ERR INVALID_OPTION seedvr-seamless cannot take prompt for tile. {"field":"prompt","model":"seedvr-seamless","task":"tile"}
 tile upscale seedvr-seamless 1K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless 2K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}
 tile upscale seedvr-seamless 4K => ERR NO_MODEL_AVAILABLE seedvr-seamless (model) cannot do resolution. {"blockedBy":"resolution","task":"tile","unblockedBy":["option"]}

@@ -5,6 +5,10 @@ upscale - topaz-precision queued => topaz-precision topaz/upscale/image/precisio
 upscale - topaz-precision mood => ERR INVALID_OPTION topaz-precision cannot take prompt for upscale. {"field":"prompt","model":"topaz-precision","task":"upscale"}
 upscale - topaz-precision mask => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-precision transparent => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-precision transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-precision transparent png => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-precision jpeg => ERR INVALID_OPTION topaz-precision cannot take prompt for upscale. {"field":"prompt","model":"topaz-precision","task":"upscale"}
+upscale - topaz-precision png => ERR INVALID_OPTION topaz-precision cannot take prompt for upscale. {"field":"prompt","model":"topaz-precision","task":"upscale"}
 upscale - topaz-precision 1K => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-precision 2K => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-precision 4K => ERR NO_MODEL_AVAILABLE topaz-precision (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -19,6 +23,10 @@ upscale - topaz-image queued => topaz-image fal-ai/topaz/upscale/image queued=tr
 upscale - topaz-image mood => ERR INVALID_OPTION topaz-image cannot take mood for upscale. {"field":"mood","model":"topaz-image","task":"upscale"}
 upscale - topaz-image mask => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image transparent => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-image transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-image transparent png => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-image jpeg => topaz-image fal-ai/topaz/upscale/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt="the shoe" body={"image_url":"https://example.com/source.png","model":"Standard V2","output_format":"jpeg","prompt":"the shoe","upscale_factor":2}
+upscale - topaz-image png => topaz-image fal-ai/topaz/upscale/image queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt="the shoe" body={"image_url":"https://example.com/source.png","model":"Standard V2","output_format":"png","prompt":"the shoe","upscale_factor":2}
 upscale - topaz-image 1K => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image 2K => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-image 4K => ERR NO_MODEL_AVAILABLE topaz-image (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -33,6 +41,10 @@ upscale - clarity queued => clarity fal-ai/clarity-upscaler queued=false by=mode
 upscale - clarity mood => ERR INVALID_OPTION clarity cannot take mood for upscale. {"field":"mood","model":"clarity","task":"upscale"}
 upscale - clarity mask => ERR NO_MODEL_AVAILABLE clarity (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - clarity transparent => ERR NO_MODEL_AVAILABLE clarity (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - clarity transparent jpeg => ERR NO_MODEL_AVAILABLE clarity (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - clarity transparent png => ERR NO_MODEL_AVAILABLE clarity (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - clarity jpeg => ERR NO_MODEL_AVAILABLE clarity (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"upscale","unblockedBy":["option"]}
+upscale - clarity png => ERR NO_MODEL_AVAILABLE clarity (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"upscale","unblockedBy":["option"]}
 upscale - clarity 1K => ERR NO_MODEL_AVAILABLE clarity (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - clarity 2K => ERR NO_MODEL_AVAILABLE clarity (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - clarity 4K => ERR NO_MODEL_AVAILABLE clarity (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -47,6 +59,10 @@ upscale - seedvr-upscale queued => seedvr-upscale fal-ai/seedvr/upscale/image qu
 upscale - seedvr-upscale mood => ERR INVALID_OPTION seedvr-upscale cannot take prompt for upscale. {"field":"prompt","model":"seedvr-upscale","task":"upscale"}
 upscale - seedvr-upscale mask => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale transparent => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - seedvr-upscale transparent jpeg => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - seedvr-upscale transparent png => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - seedvr-upscale jpeg => ERR INVALID_OPTION seedvr-upscale cannot take prompt for upscale. {"field":"prompt","model":"seedvr-upscale","task":"upscale"}
+upscale - seedvr-upscale png => ERR INVALID_OPTION seedvr-upscale cannot take prompt for upscale. {"field":"prompt","model":"seedvr-upscale","task":"upscale"}
 upscale - seedvr-upscale 1K => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale 2K => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - seedvr-upscale 4K => ERR NO_MODEL_AVAILABLE seedvr-upscale (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -61,6 +77,10 @@ upscale - crystal queued => crystal clarityai/crystal-upscaler queued=false by=m
 upscale - crystal mood => ERR INVALID_OPTION crystal cannot take prompt for upscale. {"field":"prompt","model":"crystal","task":"upscale"}
 upscale - crystal mask => ERR NO_MODEL_AVAILABLE crystal (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - crystal transparent => ERR NO_MODEL_AVAILABLE crystal (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - crystal transparent jpeg => ERR NO_MODEL_AVAILABLE crystal (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - crystal transparent png => ERR NO_MODEL_AVAILABLE crystal (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - crystal jpeg => ERR NO_MODEL_AVAILABLE crystal (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"upscale","unblockedBy":["option"]}
+upscale - crystal png => ERR NO_MODEL_AVAILABLE crystal (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"upscale","unblockedBy":["option"]}
 upscale - crystal 1K => ERR NO_MODEL_AVAILABLE crystal (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - crystal 2K => ERR NO_MODEL_AVAILABLE crystal (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - crystal 4K => ERR NO_MODEL_AVAILABLE crystal (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -75,6 +95,10 @@ upscale - topaz-transparent queued => topaz-transparent topaz/upscale/image/tran
 upscale - topaz-transparent mood => ERR INVALID_OPTION topaz-transparent cannot take prompt for upscale. {"field":"prompt","model":"topaz-transparent","task":"upscale"}
 upscale - topaz-transparent mask => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent transparent => topaz-transparent topaz/upscale/image/transparent queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png"}
+upscale - topaz-transparent transparent jpeg => topaz-transparent topaz/upscale/image/transparent queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"jpeg"}
+upscale - topaz-transparent transparent png => topaz-transparent topaz/upscale/image/transparent queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.08} prompt=undefined body={"image_url":"https://example.com/source.png","output_format":"png"}
+upscale - topaz-transparent jpeg => ERR INVALID_OPTION topaz-transparent cannot take prompt for upscale. {"field":"prompt","model":"topaz-transparent","task":"upscale"}
+upscale - topaz-transparent png => ERR INVALID_OPTION topaz-transparent cannot take prompt for upscale. {"field":"prompt","model":"topaz-transparent","task":"upscale"}
 upscale - topaz-transparent 1K => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent 2K => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-transparent 4K => ERR NO_MODEL_AVAILABLE topaz-transparent (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -89,6 +113,10 @@ upscale - topaz-video queued => topaz-video fal-ai/topaz/upscale/video queued=tr
 upscale - topaz-video mood => ERR INVALID_OPTION topaz-video cannot take prompt for upscale. {"field":"prompt","model":"topaz-video","task":"upscale"}
 upscale - topaz-video mask => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video transparent => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-video transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-video transparent png => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-video jpeg => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"upscale","unblockedBy":["option"]}
+upscale - topaz-video png => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video 1K => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video 2K => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale - topaz-video 4K => ERR NO_MODEL_AVAILABLE topaz-video (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -103,6 +131,10 @@ upscale creative topaz-creative queued => topaz-creative topaz/upscale/image/cre
 upscale creative topaz-creative mood => ERR INVALID_OPTION topaz-creative cannot take prompt for upscale. {"field":"prompt","model":"topaz-creative","task":"upscale"}
 upscale creative topaz-creative mask => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative transparent => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale creative topaz-creative transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale creative topaz-creative transparent png => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale creative topaz-creative jpeg => ERR INVALID_OPTION topaz-creative cannot take prompt for upscale. {"field":"prompt","model":"topaz-creative","task":"upscale"}
+upscale creative topaz-creative png => ERR INVALID_OPTION topaz-creative cannot take prompt for upscale. {"field":"prompt","model":"topaz-creative","task":"upscale"}
 upscale creative topaz-creative 1K => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative 2K => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale creative topaz-creative 4K => ERR NO_MODEL_AVAILABLE topaz-creative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
@@ -117,6 +149,10 @@ upscale generative topaz-generative queued => topaz-generative topaz/upscale/ima
 upscale generative topaz-generative mood => ERR INVALID_OPTION topaz-generative cannot take mood for upscale. {"field":"mood","model":"topaz-generative","task":"upscale"}
 upscale generative topaz-generative mask => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do mask. {"blockedBy":"mask","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative transparent => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale generative topaz-generative transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale generative topaz-generative transparent png => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do transparency. {"blockedBy":"transparency","task":"upscale","unblockedBy":["option"]}
+upscale generative topaz-generative jpeg => topaz-generative topaz/upscale/image/generative queued=true by=model tier=balanced mode=generative cost={"basis":"projected","usd":0.08} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
+upscale generative topaz-generative png => topaz-generative topaz/upscale/image/generative queued=true by=model tier=balanced mode=generative cost={"basis":"projected","usd":0.08} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 upscale generative topaz-generative 1K => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative 2K => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}
 upscale generative topaz-generative 4K => ERR NO_MODEL_AVAILABLE topaz-generative (model) cannot do resolution. {"blockedBy":"resolution","task":"upscale","unblockedBy":["option"]}

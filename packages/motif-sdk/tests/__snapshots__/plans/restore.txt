@@ -5,6 +5,10 @@ restore - topaz-restore queued => topaz-restore topaz/restore/image queued=true 
 restore - topaz-restore mood => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
 restore - topaz-restore mask => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore transparent => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore transparent png => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore - topaz-restore jpeg => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore - topaz-restore png => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
 restore - topaz-restore 1K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore 2K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore - topaz-restore 4K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -19,6 +23,10 @@ restore colour ddcolor queued => ddcolor fal-ai/ddcolor queued=false by=model ti
 restore colour ddcolor mood => ERR INVALID_OPTION ddcolor cannot take prompt for restore. {"field":"prompt","model":"ddcolor","task":"restore"}
 restore colour ddcolor mask => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor transparent => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor transparent jpeg => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor transparent png => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor jpeg => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
+restore colour ddcolor png => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor 1K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor 2K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore colour ddcolor 4K => ERR NO_MODEL_AVAILABLE ddcolor (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -33,6 +41,10 @@ restore dark control-light queued => control-light fal-ai/control-light queued=f
 restore dark control-light mood => ERR INVALID_OPTION control-light cannot take mood for restore. {"field":"mood","model":"control-light","task":"restore"}
 restore dark control-light mask => ERR NO_MODEL_AVAILABLE control-light (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore dark control-light transparent => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore dark control-light transparent jpeg => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore dark control-light transparent png => ERR NO_MODEL_AVAILABLE control-light (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore dark control-light jpeg => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
+restore dark control-light png => control-light fal-ai/control-light queued=false by=model tier=balanced mode=dark cost={"basis":"projected","usd":0.024} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 restore dark control-light 1K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore dark control-light 2K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore dark control-light 4K => ERR NO_MODEL_AVAILABLE control-light (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -47,6 +59,10 @@ restore noise topaz-denoise queued => topaz-denoise topaz/denoise/image queued=t
 restore noise topaz-denoise mood => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
 restore noise topaz-denoise mask => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise transparent => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise transparent png => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore noise topaz-denoise jpeg => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
+restore noise topaz-denoise png => ERR INVALID_OPTION topaz-denoise cannot take prompt for restore. {"field":"prompt","model":"topaz-denoise","task":"restore"}
 restore noise topaz-denoise 1K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise 2K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore noise topaz-denoise 4K => ERR NO_MODEL_AVAILABLE topaz-denoise (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -61,6 +77,10 @@ restore scratches topaz-restore queued => topaz-restore topaz/restore/image queu
 restore scratches topaz-restore mood => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
 restore scratches topaz-restore mask => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore transparent => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore transparent png => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore scratches topaz-restore jpeg => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
+restore scratches topaz-restore png => ERR INVALID_OPTION topaz-restore cannot take prompt for restore. {"field":"prompt","model":"topaz-restore","task":"restore"}
 restore scratches topaz-restore 1K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore 2K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore scratches topaz-restore 4K => ERR NO_MODEL_AVAILABLE topaz-restore (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -75,6 +95,10 @@ restore softness topaz-sharpen queued => topaz-sharpen topaz/sharpen/image queue
 restore softness topaz-sharpen mood => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
 restore softness topaz-sharpen mask => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen transparent => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen transparent png => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore softness topaz-sharpen jpeg => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
+restore softness topaz-sharpen png => ERR INVALID_OPTION topaz-sharpen cannot take prompt for restore. {"field":"prompt","model":"topaz-sharpen","task":"restore"}
 restore softness topaz-sharpen 1K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen 2K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore softness topaz-sharpen 4K => ERR NO_MODEL_AVAILABLE topaz-sharpen (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
@@ -89,6 +113,10 @@ restore tone topaz-adjust queued => topaz-adjust topaz/adjust/image queued=true 
 restore tone topaz-adjust mood => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
 restore tone topaz-adjust mask => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do mask. {"blockedBy":"mask","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust transparent => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust transparent jpeg => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust transparent png => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do transparency. {"blockedBy":"transparency","task":"restore","unblockedBy":["option"]}
+restore tone topaz-adjust jpeg => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
+restore tone topaz-adjust png => ERR INVALID_OPTION topaz-adjust cannot take prompt for restore. {"field":"prompt","model":"topaz-adjust","task":"restore"}
 restore tone topaz-adjust 1K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust 2K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}
 restore tone topaz-adjust 4K => ERR NO_MODEL_AVAILABLE topaz-adjust (model) cannot do resolution. {"blockedBy":"resolution","task":"restore","unblockedBy":["option"]}

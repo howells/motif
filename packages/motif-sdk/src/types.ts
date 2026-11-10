@@ -168,6 +168,12 @@ export interface ModelConfig {
   supportsNegativePrompt?: boolean;
   supportsNumImages: boolean;
   supportsOutputFormat?: boolean;
+  /**
+   * The one format an endpoint with no `output_format` parameter always
+   * returns (Ideogram V3 Transparent: png). Asking for it is accepted, and
+   * nothing is sent.
+   */
+  fixedOutputFormat?: ImageOutputFormat;
   /** Formats the Model returns. Absent means jpeg, png and webp. */
   supportedOutputFormats?: readonly ImageOutputFormat[];
   /** Formats an edit returns, where they differ from `supportedOutputFormats`. */

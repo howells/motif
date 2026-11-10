@@ -5,6 +5,10 @@ layers - seedream-layerize queued => seedream-layerize bytedance/seedream/v5/pro
 layers - seedream-layerize mood => ERR INVALID_OPTION seedream-layerize cannot take mood for layers. {"field":"mood","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize mask => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do mask. {"blockedBy":"mask","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize transparent => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers - seedream-layerize transparent jpeg => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers - seedream-layerize transparent png => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers - seedream-layerize jpeg => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
+layers - seedream-layerize png => ERR NO_MODEL_AVAILABLE seedream-layerize (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
 layers - seedream-layerize 1K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize 2K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
 layers - seedream-layerize 4K => ERR INVALID_OPTION seedream-layerize cannot take resolution for layers. {"field":"resolution","model":"seedream-layerize","task":"layers"}
@@ -19,6 +23,10 @@ layers - qwen-layered queued => qwen-layered fal-ai/qwen-image-layered queued=tr
 layers - qwen-layered mood => ERR INVALID_OPTION qwen-layered cannot take mood for layers. {"field":"mood","model":"qwen-layered","task":"layers"}
 layers - qwen-layered mask => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do mask. {"blockedBy":"mask","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered transparent => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers - qwen-layered transparent jpeg => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers - qwen-layered transparent png => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers - qwen-layered jpeg => qwen-layered fal-ai/qwen-image-layered queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"jpeg","prompt":"the shoe"}
+layers - qwen-layered png => qwen-layered fal-ai/qwen-image-layered queued=true by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.05} prompt="the shoe" body={"image_url":"https://example.com/source.png","output_format":"png","prompt":"the shoe"}
 layers - qwen-layered 1K => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered 2K => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
 layers - qwen-layered 4K => ERR NO_MODEL_AVAILABLE qwen-layered (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
@@ -33,6 +41,10 @@ layers text ideogram-layerize-text queued => ideogram-layerize-text fal-ai/ideog
 layers text ideogram-layerize-text mood => ERR INVALID_OPTION ideogram-layerize-text cannot take mood for layers. {"field":"mood","model":"ideogram-layerize-text","task":"layers"}
 layers text ideogram-layerize-text mask => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do mask. {"blockedBy":"mask","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text transparent => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers text ideogram-layerize-text transparent jpeg => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers text ideogram-layerize-text transparent png => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do transparency. {"blockedBy":"transparency","task":"layers","unblockedBy":["option"]}
+layers text ideogram-layerize-text jpeg => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
+layers text ideogram-layerize-text png => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text 1K => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text 2K => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}
 layers text ideogram-layerize-text 4K => ERR NO_MODEL_AVAILABLE ideogram-layerize-text (model) cannot do resolution. {"blockedBy":"resolution","task":"layers","unblockedBy":["option"]}

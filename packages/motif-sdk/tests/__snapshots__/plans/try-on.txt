@@ -5,6 +5,10 @@ try-on - virtual-try-on queued => virtual-try-on google/virtual-try-on queued=tr
 try-on - virtual-try-on mood => ERR INVALID_OPTION virtual-try-on cannot take prompt for try-on. {"field":"prompt","model":"virtual-try-on","task":"try-on"}
 try-on - virtual-try-on mask => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do mask. {"blockedBy":"mask","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on transparent => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do transparency. {"blockedBy":"transparency","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on transparent jpeg => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do transparency. {"blockedBy":"transparency","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on transparent png => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do transparency. {"blockedBy":"transparency","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on jpeg => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"try-on","unblockedBy":["option"]}
+try-on - virtual-try-on png => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on 1K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do resolution. {"blockedBy":"resolution","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on 2K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do resolution. {"blockedBy":"resolution","task":"try-on","unblockedBy":["option"]}
 try-on - virtual-try-on 4K => ERR NO_MODEL_AVAILABLE virtual-try-on (model) cannot do resolution. {"blockedBy":"resolution","task":"try-on","unblockedBy":["option"]}

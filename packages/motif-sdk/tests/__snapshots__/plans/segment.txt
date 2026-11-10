@@ -5,6 +5,10 @@ segment - sam3-1-image queued => sam3-1-image fal-ai/sam-3-1/image queued=false 
 segment - sam3-1-image mood => ERR INVALID_OPTION sam3-1-image cannot take mood for segment. {"field":"mood","model":"sam3-1-image","task":"segment"}
 segment - sam3-1-image mask => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image transparent => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image transparent png => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-image jpeg => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"jpeg","prompt":"the shoe"}
+segment - sam3-1-image png => sam3-1-image fal-ai/sam-3-1/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.01} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
 segment - sam3-1-image 1K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image 2K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-image 4K => ERR NO_MODEL_AVAILABLE sam3-1-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -19,6 +23,10 @@ segment - sam3-image queued => sam3-image fal-ai/sam-3/image queued=false by=mod
 segment - sam3-image mood => ERR INVALID_OPTION sam3-image cannot take mood for segment. {"field":"mood","model":"sam3-image","task":"segment"}
 segment - sam3-image mask => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-image transparent => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-image transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-image transparent png => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-image jpeg => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"jpeg","prompt":"the shoe"}
+segment - sam3-image png => sam3-image fal-ai/sam-3/image queued=false by=model tier=balanced mode=undefined cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
 segment - sam3-image 1K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-image 2K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-image 4K => ERR NO_MODEL_AVAILABLE sam3-image (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -33,6 +41,10 @@ segment - sam3-1-video queued => sam3-1-video fal-ai/sam-3-1/video queued=true b
 segment - sam3-1-video mood => ERR INVALID_OPTION sam3-1-video cannot take mood for segment. {"field":"mood","model":"sam3-1-video","task":"segment"}
 segment - sam3-1-video mask => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video transparent => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video transparent png => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video jpeg => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"segment","unblockedBy":["option"]}
+segment - sam3-1-video png => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video 1K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video 2K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-1-video 4K => ERR NO_MODEL_AVAILABLE sam3-1-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -47,6 +59,10 @@ segment - sam3-video queued => sam3-video fal-ai/sam-3/video queued=true by=mode
 segment - sam3-video mood => ERR INVALID_OPTION sam3-video cannot take mood for segment. {"field":"mood","model":"sam3-video","task":"segment"}
 segment - sam3-video mask => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment - sam3-video transparent => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-video transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-video transparent png => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment - sam3-video jpeg => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"segment","unblockedBy":["option"]}
+segment - sam3-video png => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"segment","unblockedBy":["option"]}
 segment - sam3-video 1K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-video 2K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment - sam3-video 4K => ERR NO_MODEL_AVAILABLE sam3-video (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -61,6 +77,10 @@ segment auto sam2-auto queued => sam2-auto fal-ai/sam2/auto-segment queued=true 
 segment auto sam2-auto mood => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
 segment auto sam2-auto mask => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto transparent => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto transparent jpeg => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto transparent png => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment auto sam2-auto jpeg => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
+segment auto sam2-auto png => ERR INVALID_OPTION sam2-auto cannot take prompt for segment. {"field":"prompt","model":"sam2-auto","task":"segment"}
 segment auto sam2-auto 1K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto 2K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment auto sam2-auto 4K => ERR NO_MODEL_AVAILABLE sam2-auto (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -75,6 +95,10 @@ segment rle sam3-image-rle queued => sam3-image-rle fal-ai/sam-3/image-rle queue
 segment rle sam3-image-rle mood => ERR INVALID_OPTION sam3-image-rle cannot take mood for segment. {"field":"mood","model":"sam3-image-rle","task":"segment"}
 segment rle sam3-image-rle mask => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle transparent => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle transparent png => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-image-rle jpeg => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"jpeg","prompt":"the shoe"}
+segment rle sam3-image-rle png => sam3-image-rle fal-ai/sam-3/image-rle queued=false by=model tier=balanced mode=rle cost={"basis":"projected","usd":0.005} prompt="the shoe" body={"apply_mask":true,"image_url":"https://example.com/source.png","max_masks":3,"output_format":"png","prompt":"the shoe"}
 segment rle sam3-image-rle 1K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle 2K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-image-rle 4K => ERR NO_MODEL_AVAILABLE sam3-image-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
@@ -89,6 +113,10 @@ segment rle sam3-video-rle queued => sam3-video-rle fal-ai/sam-3/video-rle queue
 segment rle sam3-video-rle mood => ERR INVALID_OPTION sam3-video-rle cannot take mood for segment. {"field":"mood","model":"sam3-video-rle","task":"segment"}
 segment rle sam3-video-rle mask => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do mask. {"blockedBy":"mask","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle transparent => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle transparent jpeg => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle transparent png => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do transparency. {"blockedBy":"transparency","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle jpeg => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot return jpeg from an edit. {"blockedBy":"outputFormat","task":"segment","unblockedBy":["option"]}
+segment rle sam3-video-rle png => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot return png from an edit. {"blockedBy":"outputFormat","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle 1K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle 2K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}
 segment rle sam3-video-rle 4K => ERR NO_MODEL_AVAILABLE sam3-video-rle (model) cannot do resolution. {"blockedBy":"resolution","task":"segment","unblockedBy":["option"]}

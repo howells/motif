@@ -16,14 +16,20 @@ const DEFAULT_OUTPUT_FORMATS: readonly ImageOutputFormat[] = [
   "webp",
 ];
 
+/** Formats with no alpha channel, so a transparent image cannot be kept in them. */
+export const OPAQUE_OUTPUT_FORMATS: readonly ImageOutputFormat[] = ["jpeg"];
+
 /** The output formats a Model returns, for an edit when `editing` is set.
- * A Model that takes no format returns none it can be asked for. */
+ * A Model that takes no format returns none it can be asked for, except the
+ * one it always returns. */
 export function outputFormatsOf(
   config: ModelConfig,
   editing: boolean
 ): readonly ImageOutputFormat[] {
   if (config.supportsOutputFormat !== true) {
-    return [];
+    return config.fixedOutputFormat === undefined
+      ? []
+      : [config.fixedOutputFormat];
   }
   const formats = config.supportedOutputFormats ?? DEFAULT_OUTPUT_FORMATS;
   return editing ? (config.supportedEditOutputFormats ?? formats) : formats;

@@ -839,6 +839,7 @@ export const MODELS: Record<string, ModelConfig> = {
     pricePerImageUsd: 0.06,
     pricing: "$0.03 TURBO / $0.06 BALANCED / $0.09 QUALITY",
     sizeMode: "aspect_ratio",
+    fixedOutputFormat: "png",
     // From fal's enums on fal-ai/ideogram/v3/generate-transparent.
     supportedAspects: [
       "16:9",

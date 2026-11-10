@@ -12,7 +12,11 @@ import { err, ok } from "neverthrow";
 import type { Result } from "neverthrow";
 
 import { ImageSizeBoundsError } from "./aspects";
-import { outputFormatsOf, UnsupportedOptionError } from "./capabilities";
+import {
+  OPAQUE_OUTPUT_FORMATS,
+  outputFormatsOf,
+  UnsupportedOptionError,
+} from "./capabilities";
 import type { ModelOption } from "./capabilities";
 import { CreativeOptionError } from "./creative";
 import type { CreativeDirection } from "./creative";
@@ -426,6 +430,23 @@ function generationPlan(
   ) {
     return err(cannotCarry("outputFormat", model, task));
   }
+  if (
+    input.transparent === true &&
+    input.outputFormat !== undefined &&
+    OPAQUE_OUTPUT_FORMATS.includes(input.outputFormat)
+  ) {
+    return err(
+      invalidOption(
+        `${model} cannot keep transparency in ${input.outputFormat}; use ${outputFormatsOf(
+          config,
+          editImageUrls.length > 0
+        )
+          .filter((format) => !OPAQUE_OUTPUT_FORMATS.includes(format))
+          .join(", ")}.`,
+        { field: "outputFormat", model, task, transparent: true }
+      )
+    );
+  }
 
   // `params.quality` goes through `buildGenerateBody`, which checks it against
   // the Model's levels.
@@ -457,6 +478,7 @@ function generationPlan(
     quality: liftQuality && isImageQuality(quality) ? quality : undefined,
     resolution: input.resolution,
     seed: input.seed,
+    transparent: input.transparent,
   };
   let built: ReturnType<typeof buildGenerateBody>;
   try {

@@ -239,7 +239,14 @@ function validateGenerateOptions(
     options.outputFormat !== undefined &&
     config.supportsOutputFormat !== true
   ) {
-    unsupported(config, "outputFormat");
+    if (config.fixedOutputFormat === undefined) {
+      unsupported(config, "outputFormat");
+    }
+    if (options.outputFormat !== config.fixedOutputFormat) {
+      throw new Error(
+        `${config.name} always returns ${config.fixedOutputFormat}, not ${options.outputFormat}`
+      );
+    }
   }
   if (options.quality !== undefined && config.supportsQuality !== true) {
     unsupported(config, "quality");
@@ -437,9 +444,6 @@ export function buildGenerateBody(options: GenerateOptions): {
   if (config.supportsBackground === true && transparent === true) {
     body.background = "transparent";
   }
-  if (transparent === true && config.supportsOutputFormat === true) {
-    body.output_format = "png";
-  }
 
   if (syncMode !== undefined && config.supportsSyncMode === true) {
     body.sync_mode = syncMode;
@@ -451,19 +455,16 @@ export function buildGenerateBody(options: GenerateOptions): {
   }
 
   // ── Output format ──────────────────────────────────────────────────
-  // transparent mode already forces output_format = "png" where supported.
-  if (
-    outputFormat &&
-    config.supportsOutputFormat === true &&
-    transparent !== true
-  ) {
+  // A transparent image with no format asked for is a PNG.
+  const format = outputFormat ?? (transparent === true ? "png" : undefined);
+  if (format && config.supportsOutputFormat === true) {
     const formats = outputFormatsOf(config, hasEditImages);
-    if (!formats.includes(outputFormat)) {
+    if (!formats.includes(format)) {
       throw new Error(
         `${config.name} ${hasEditImages ? "edits support" : "supports"} output formats: ${formats.join(", ")}`
       );
     }
-    body.output_format = outputFormat;
+    body.output_format = format;
   }
 
   if (config.supportsGuidanceScale === true && guidanceScale !== undefined) {

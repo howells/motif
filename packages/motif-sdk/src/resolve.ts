@@ -174,7 +174,10 @@ function generationProfile(config: ModelConfig): ModelProfile {
   if (config.supportsNegativePrompt === true) {
     capabilities.add("negativePrompt");
   }
-  if (config.supportsOutputFormat === true) {
+  if (
+    config.supportsOutputFormat === true ||
+    config.fixedOutputFormat !== undefined
+  ) {
     capabilities.add("outputFormat");
   }
   return {

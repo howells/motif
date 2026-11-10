@@ -93,6 +93,16 @@ const VARIANTS: readonly [string, (input: TaskInput) => TaskInput][] = [
   ["mood", (input) => ({ ...input, mood: "dawn", prompt: "the room" })],
   ["mask", (input) => ({ ...input, mask: OTHER_IMAGE, prompt: "the shoe" })],
   ["transparent", (input) => ({ ...input, transparent: true })],
+  [
+    "transparent jpeg",
+    (input) => ({ ...input, outputFormat: "jpeg", transparent: true }),
+  ],
+  [
+    "transparent png",
+    (input) => ({ ...input, outputFormat: "png", transparent: true }),
+  ],
+  ["jpeg", (input) => ({ ...input, outputFormat: "jpeg", prompt: "the shoe" })],
+  ["png", (input) => ({ ...input, outputFormat: "png", prompt: "the shoe" })],
   ["1K", (input) => ({ ...input, prompt: "the shoe", resolution: "1K" })],
   ["2K", (input) => ({ ...input, prompt: "the shoe", resolution: "2K" })],
   ["4K", (input) => ({ ...input, prompt: "the shoe", resolution: "4K" })],
