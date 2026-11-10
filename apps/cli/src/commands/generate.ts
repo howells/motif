@@ -7,15 +7,19 @@
  * Use --dry-run before mutating commands.
  */
 
+import { resolve } from "node:path";
+
 import {
   enrichPrompt,
   formatCost,
   getLook,
   promptWarnings,
+  runsQueued,
 } from "@howells/motif-sdk";
 import type {
   AspectRatio,
   CreativeDirection,
+  MotifClient,
   PromptWarning,
   Resolution,
   TaskInput,
@@ -58,6 +62,11 @@ import { emit, isStructured, savedLine } from "../utils/output";
 import type { EmitOptions } from "../utils/output";
 import { openAfterRun, prepareOutput } from "../utils/output-files";
 import {
+  forgetPendingRun,
+  pendingRun,
+  trackSubmission,
+} from "../utils/pending-runs";
+import {
   exitAfterRunFailed,
   exitTaskError,
   taskFields,
@@ -93,11 +102,14 @@ function printPromptWarnings(warnings: readonly PromptWarning[]): void {
   }
 }
 
-/** Everything a generate or vary run needs once its flags are read. */
-export interface GenerationRun {
+/**
+ * What a generate or vary run needs after fal has answered: where the files
+ * go and what history and the report say. It holds no image bytes, so it is
+ * kept in the run's pending record and `motif resume` finishes the run from it.
+ */
+export interface GenerationContext {
   command: "generate" | "vary";
   task: "generate" | "vary";
-  input: TaskInput;
   aspect: AspectRatio;
   resolution: Resolution;
   numImages: number;
@@ -110,10 +122,15 @@ export interface GenerationRun {
   warnings: readonly PromptWarning[];
   ephemeral: boolean;
   open: boolean;
-  dryRun: boolean;
   transparent: boolean;
   /** Fields added to every JSON result, e.g. vary's `varyModel`. */
   extra?: Record<string, unknown>;
+}
+
+/** Everything a generate or vary run needs once its flags are read. */
+export interface GenerationRun extends GenerationContext {
+  dryRun: boolean;
+  input: TaskInput;
 }
 
 function generationFields(
@@ -122,7 +139,7 @@ function generationFields(
   return { ...taskFields(plan), provider: plan.provider };
 }
 
-function creativeFields(run: GenerationRun): Record<string, unknown> {
+function creativeFields(run: GenerationContext): Record<string, unknown> {
   if (run.creative === undefined) {
     return {};
   }
@@ -131,7 +148,7 @@ function creativeFields(run: GenerationRun): Record<string, unknown> {
   return { basePrompt: enriched.basePrompt, creative: enriched.creative };
 }
 
-function printDryRun(run: GenerationRun, plan: TaskPlan): void {
+function printDryRun(run: GenerationContext, plan: TaskPlan): void {
   console.log(chalk.bold("\nDry run: no API call made\n"));
   console.log(`  Tier:   ${plan.tier}`);
   console.log(`  Aspect: ${run.aspect} | Resolution: ${run.resolution}`);
@@ -147,7 +164,7 @@ function printDryRun(run: GenerationRun, plan: TaskPlan): void {
   }
 }
 
-function printStart(run: GenerationRun, plan: TaskPlan): void {
+function printStart(run: GenerationContext, plan: TaskPlan): void {
   const prompt = plan.prompt ?? run.basePrompt;
   console.log(
     chalk.bold(`\n${run.task === "vary" ? "Varying" : "Generating"}`)
@@ -165,24 +182,25 @@ function printStart(run: GenerationRun, plan: TaskPlan): void {
 
 /** Plan, then dry-run or run, save, record and emit. */
 export async function runGeneration(
-  run: GenerationRun,
+  full: GenerationRun,
   config: MotifConfig,
   emitOpts: EmitOptions
 ): Promise<void> {
+  const { dryRun, input: requested, ...run } = full;
   const client = motifClient(config);
   const planned = planForOutput(
     client,
     run.task,
-    run.input,
+    requested,
     run.explicitOutput ? run.outputPath : undefined,
-    run.dryRun
+    dryRun
   );
   if (planned.isErr()) {
     exitTaskError(planned.error, emitOpts.format, { task: run.task });
   }
   const { input, plan } = planned.value;
 
-  if (run.dryRun) {
+  if (dryRun) {
     emit(
       {
         dryRun: true,
@@ -226,24 +244,47 @@ export async function runGeneration(
   const spinner = isStructured(emitOpts.format)
     ? null
     : ora("Generating...").start();
+  const onProgress = (status: string) => {
+    if (spinner) {
+      spinner.text = `Generating... ${status}`;
+    }
+  };
+  const pending = trackSubmission((requestId) =>
+    run.ephemeral || !runsQueued(plan, { onProgress })
+      ? undefined
+      : pendingRun(requestId, run.command, plan, "generation", {
+          ...run,
+          outputPath: resolve(run.outputPath),
+        })
+  );
   const ran = await client.run(run.task, {
     ...input,
-    onProgress: (status) => {
-      if (spinner) {
-        spinner.text = `Generating... ${status}`;
-      }
-    },
+    onProgress,
+    ...(!run.ephemeral &&
+      runsQueued(plan, { onProgress }) && { onSubmitted: pending.onSubmitted }),
   });
   if (ran.isErr()) {
     spinner?.fail("Generation failed");
     exitTaskError(ran.error, emitOpts.format, {
       model: plan.model,
+      pending: await pending.written(),
       task: run.task,
     });
   }
-  const output = ran.value;
   spinner?.succeed("Generated!");
+  await finishGeneration(run, ran.value, client, emitOpts);
+}
 
+/**
+ * Save, record and report what a generate or vary run returned: the tail of
+ * a run, and of `motif resume`, so the two cannot differ.
+ */
+export async function finishGeneration(
+  run: GenerationContext,
+  output: TaskOutput,
+  client: MotifClient,
+  emitOpts: EmitOptions
+): Promise<void> {
   try {
     if (output.files.length === 0) {
       throw new Error(`${run.task} returned no images`);
@@ -267,6 +308,7 @@ export async function runGeneration(
       },
       !run.ephemeral
     );
+    forgetPendingRun(output.requestId);
     if (!isStructured(emitOpts.format)) {
       await printSaved(saved);
     }

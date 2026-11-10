@@ -94,6 +94,7 @@ export const ERROR_CATALOG = {
   INVALID_RESPONSE: metadata("INVALID_RESPONSE", 502, {
     suggestions: [
       "details.requestId and details.endpoint name the run when fal had accepted it; it may still finish and be billed, so do not submit the same command again",
+      "A synchronous run has no request id to resume; look in fal's dashboard",
     ],
   }),
   INVALID_STDIN: metadata("INVALID_STDIN", 400, {
@@ -113,6 +114,18 @@ export const ERROR_CATALOG = {
     suggestions: [
       "Pass the image as an argument, e.g. motif upscale photo.png",
       'Or generate an image first: motif "a prompt"',
+    ],
+  }),
+  PENDING_RUN_NOT_FOUND: metadata("PENDING_RUN_NOT_FOUND", 404, {
+    suggestions: [
+      "Run 'motif resume' to list the runs Motif can collect",
+      "A run Motif did not submit, or one it has already finished, is not listed; look in fal's dashboard",
+    ],
+  }),
+  REQUEST_NOT_FOUND: metadata("REQUEST_NOT_FOUND", 404, {
+    suggestions: [
+      "fal has no record of this request: the id is wrong, it belongs to another endpoint, or fal no longer keeps its result",
+      "Run the original command again to make a new run, which is billed",
     ],
   }),
   RESERVED_PROMPT: metadata("RESERVED_PROMPT", 400, {
@@ -143,7 +156,7 @@ export const ERROR_CATALOG = {
   SUBMISSION_UNCERTAIN: metadata("SUBMISSION_UNCERTAIN", 502, {
     suggestions: [
       "fal may have accepted the request and may bill for it: check fal's dashboard before running the command again",
-      "Motif does not resend a request that can bill",
+      "Motif does not resend a request that can bill, and a request with no id, such as a synchronous run or a queue submission fal did not answer, cannot be resumed with 'motif resume'",
     ],
   }),
   TASK_FAILED: metadata("TASK_FAILED", 502, {

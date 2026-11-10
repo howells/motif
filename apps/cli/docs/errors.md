@@ -25,7 +25,7 @@ In JSON mode, errors are written to stderr as one object:
 ## Codes
 
 - General: `MISSING_API_KEY`, `ACCOUNT_LOCKED`, `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_PREVIOUS`, `TRANSPARENCY_MISSING`, `DESCRIBE_FAILED`, `CORRUPT_FILE`, `FILE_ACCESS_FAILED`.
-- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`, `FILES_NOT_SAVED`.
+- Tasks: `NO_MODEL_AVAILABLE`, `TASK_FAILED`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`, `FILES_NOT_SAVED`, `REQUEST_NOT_FOUND`, `PENDING_RUN_NOT_FOUND`.
 - Series: `SERIES_CREATE_FAILED`, `SERIES_NOT_FOUND`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`.
 
 ## Task errors
@@ -49,11 +49,15 @@ In JSON mode, errors are written to stderr as one object:
 
 `UNKNOWN_MODEL` exits `2`: `-m` names something that isn't a Model for this Task. `details.blockedBy` is `unknown-model`, `unblockedBy` is `["model"]`, and the message lists the Models the Task accepts.
 
-`TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran, and `instance` (`urn:fal:request:<id>`) names the run at fal whenever fal had accepted it. A failure after fal accepted a queued run (a poll that kept failing, a timeout) says the run may still finish and be billed: look the id up in fal's dashboard rather than running the command again. The CLI has no command that resumes a run; the SDK's `resume` does.
+`TASK_FAILED` exits `5`: the Model ran and the provider failed, or returned nothing to save. `details.task` and `details.model` name what ran, and `instance` (`urn:fal:request:<id>`) names the run at fal whenever fal had accepted it. A failure after fal accepted a queued run (a poll that kept failing, a timeout) says the run may still finish and be billed, and its `suggestions` give the exact command that collects it, `motif resume <id>`; run that rather than the original command, which would bill a second run (see [collecting a run](output.md#collecting-a-run-fal-accepted)). A job fal itself reports failed carries fal's own message, `details.model` and `details.task`, and offers nothing to resume.
 
-`SUBMISSION_UNCERTAIN` exits `5` and `is_retriable` is `false`: fal did not confirm a request that can bill (a connection error, a timeout or a 5xx before any answer). fal may have accepted it and may bill for it, so Motif sends a billable request once and never resends it, and neither should you: check fal's dashboard first. Status polls and result fetches, which cannot bill, are retried.
+`SUBMISSION_UNCERTAIN` exits `5` and `is_retriable` is `false`: fal did not confirm a request that can bill (a connection error, a timeout or a 5xx before any answer). fal may have accepted it and may bill for it, so Motif sends a billable request once and never resends it, and neither should you: check fal's dashboard first. There is no request id to resume: a synchronous run never has one, and a queue submission that went unanswered gave none, so `motif resume` cannot collect it. Status polls and result fetches, which cannot bill, are retried.
 
-`INVALID_RESPONSE` exits `5` and `is_retriable` is `false`: fal's answer was not the JSON it should be. When fal had already accepted the run, `instance` is `urn:fal:request:<id>` and `details.requestId` and `details.endpoint` name it; it may still finish and be billed. Motif has no command that resumes a run from the CLI (the SDK's `resume` does), so look the request up in fal's dashboard rather than running the command again.
+`INVALID_RESPONSE` exits `5` and `is_retriable` is `false`: fal's answer was not the JSON it should be. When fal had already accepted the run, `instance` is `urn:fal:request:<id>` and `details.requestId` and `details.endpoint` name it; it may still finish and be billed. When the run was queued its `suggestions` name `motif resume <id>`; a synchronous run has no id to resume, so look the request up in fal's dashboard rather than running the command again.
+
+`REQUEST_NOT_FOUND` exits `4` (status `404`): `motif resume` asked fal for a request and fal has no record of it. The id is wrong, it belongs to another endpoint, or fal no longer keeps the result of a finished run. `details.requestId` and `details.endpoint` name it. The pending record is removed, because the run can no longer be collected; running the original command again makes, and bills, a new run.
+
+`PENDING_RUN_NOT_FOUND` exits `4` (status `404`): `motif resume <id>` names a run Motif has no pending record of, because it was not submitted by this Motif, it was already collected, or it was never resumable (a synchronous run, an ephemeral run, a `series` scene). `motif resume` with no id lists the runs it can collect. Nothing was sent to fal.
 
 `FILES_NOT_SAVED` exits `5`: the run finished and was billed, but some returned files could not be written (a failed download, a full disk). stdout carries the result for the files that were saved, which are also recorded in history, plus `failed`: one entry per file that was not (`path`, `message`, and `remoteUrl`, the provider URL to fetch it from before it expires). `instance` and `details.failed` carry the same, and the request id. Do not run the command again; fetch the URL. The output directory is checked (created if needed, and writable) before anything is submitted, so a bad `-o` fails with `INVALID_OUTPUT_PATH` and nothing spent.
 

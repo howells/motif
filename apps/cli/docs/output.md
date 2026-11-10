@@ -59,6 +59,28 @@ If the history or series file fails after the files were saved (the disk filled,
 
 `generate` and the Task verbs report fal's `requestId` in every result.
 
+## Collecting a run fal accepted
+
+When fal's queue accepts a run, Motif writes `~/.motif/pending/<requestId>.json`: the plan the run was made with (its request body with every image replaced by its size) and where the files were going and what history should say. It holds no image. Ephemeral runs write none, because they ask fal to keep nothing; synchronous runs have no request id; `series` scenes finish through their own flow and are not resumable.
+
+If the run then fails after fal accepted it, the error carries `instance` (`urn:fal:request:<id>`), `details.requestId`, and a suggestion with the exact command:
+
+```json
+{
+  "code": "INVALID_RESPONSE",
+  "message": "fal's job status was not valid JSON (fal accepted request 7f3c...; it may still finish and be billed, so do not submit it again)",
+  "instance": "urn:fal:request:7f3c...",
+  "suggestions": [
+    "Run 'motif resume 7f3c...' to collect the same job; it is not billed twice",
+    "Do not run the original command again: that submits, and bills, a new run"
+  ]
+}
+```
+
+`motif resume <requestId>` then waits for that job and finishes it through the same save, history and report code as the original command: same file names, `-o` honoured as originally given (or replaced by `-o` here), PNG default, one history entry and the same JSON, with `requestId`. Once the files are saved and recorded the pending record is removed, so running `resume` again is `PENDING_RUN_NOT_FOUND` and history is not recorded twice. `--dry-run` reports `command`, `requestId`, `resumes` (the original command), `task`, `model`, `output` and `submittedAt` without contacting fal or needing a key; `--format`, `--fields` and `--open` work as on any command. With no id, `motif resume` lists `pending` (`requestId`, `command`, `task`, `model`, `output`, `submittedAt`) and `total`.
+
+If the files were saved but could not all be written or recorded, the pending record is already removed and the existing recovery applies: `FILES_NOT_SAVED` lists each file's `remoteUrl`.
+
 ## Pagination
 
 ```bash

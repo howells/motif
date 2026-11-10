@@ -16,7 +16,7 @@
 
 import { resolve } from "node:path";
 
-import { formatCost, MotifError } from "@howells/motif-sdk";
+import { formatCost, MotifError, runsQueued } from "@howells/motif-sdk";
 import type {
   AspectRatio,
   MotifClient,
@@ -69,6 +69,11 @@ import {
   saveFiles,
 } from "../utils/output-files";
 import type { WrittenFile } from "../utils/output-files";
+import {
+  forgetPendingRun,
+  pendingRun,
+  trackSubmission,
+} from "../utils/pending-runs";
 import {
   exitAfterRunFailed,
   exitTaskError,
@@ -127,9 +132,36 @@ export interface ResolvedSource {
   resolution: Resolution;
 }
 
-interface Target {
+export interface Target {
   directoryMode: boolean;
   path: string;
+}
+
+/**
+ * What a Task run needs once fal has answered: its spec, where the files go and
+ * the source it ran on. Plain data without image bytes, so it is kept in the
+ * run's pending record and `motif resume` finishes the run from it.
+ */
+export interface TaskRunContext {
+  open?: boolean;
+  source: ResolvedSource | undefined;
+  spec: TaskRunSpec;
+  target: Target;
+}
+
+/** A spec fit to store: no functions, and no input but the prompt history names. */
+function storableContext(context: TaskRunContext): TaskRunContext {
+  const { data, render, ...spec } = context.spec;
+  void data;
+  void render;
+  return {
+    ...context,
+    target: { ...context.target, path: resolve(context.target.path) },
+    spec: {
+      ...spec,
+      input: hasText(spec.input.prompt) ? { prompt: spec.input.prompt } : {},
+    },
+  };
 }
 
 async function resolveSource(
@@ -405,18 +437,50 @@ export async function runTask(
   }
 
   const withChrome = !isStructured(emitOpts.format) && spec.quiet !== true;
-  const { report, spinner } = startProgress(spec, source, withChrome);
+  const progress = startProgress(spec, source, withChrome);
+  const onProgress = progress.report;
   const context = { model: plan.model, task: spec.task };
+  const taskRun: TaskRunContext = { open: input.open, source, spec, target };
+  const pending = trackSubmission((requestId) =>
+    runsQueued(plan, { onProgress })
+      ? pendingRun(
+          requestId,
+          spec.command,
+          plan,
+          "task",
+          storableContext(taskRun)
+        )
+      : undefined
+  );
   const ran = await client.run(spec.task, {
     ...planned.value.input,
-    onProgress: report,
+    onProgress,
+    ...(runsQueued(plan, { onProgress }) && {
+      onSubmitted: pending.onSubmitted,
+    }),
   });
   if (ran.isErr()) {
-    spinner?.fail(`${spec.verb} failed`);
-    exitTaskError(ran.error, emitOpts.format, context);
+    progress.spinner?.fail(`${spec.verb} failed`);
+    exitTaskError(ran.error, emitOpts.format, {
+      ...context,
+      pending: await pending.written(),
+    });
   }
-  const output = ran.value;
+  await finishTaskRun(taskRun, progress.spinner, ran.value, emitOpts);
+}
 
+/**
+ * Save, record and report what a Task run returned: the tail of a run, and of
+ * `motif resume`, so the two cannot differ.
+ */
+export async function finishTaskRun(
+  { open, source, spec, target }: TaskRunContext,
+  spinner: Ora | null,
+  output: TaskOutput,
+  emitOpts: EmitOptions
+): Promise<void> {
+  const withChrome = !isStructured(emitOpts.format) && spec.quiet !== true;
+  const context = { model: output.model, task: spec.task };
   try {
     if (output.files.length === 0 && spec.writesFiles) {
       throw new Error(
@@ -439,6 +503,7 @@ export async function runTask(
     const recording = await recordingFailure(async () => {
       await recordRun(spec, output, source, primary);
     });
+    forgetPendingRun(output.requestId);
 
     const fields = {
       command: spec.command,
@@ -469,7 +534,7 @@ export async function runTask(
         console.log(body);
       }
     }
-    openAfterRun(primary?.path, input.open);
+    openAfterRun(primary?.path, open);
     exitIfNotSaved(
       failed,
       { ...context, requestId: output.requestId },

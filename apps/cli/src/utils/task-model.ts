@@ -11,6 +11,7 @@ import {
   MotifError,
   NO_MODEL_AVAILABLE,
   refusedOption,
+  REQUEST_NOT_FOUND,
   resolveTask,
   SUBMISSION_UNCERTAIN,
 } from "@howells/motif-sdk";
@@ -26,6 +27,8 @@ import { MISSING_FAL_KEY_MESSAGE, taskPins } from "./config";
 import { exitForErrorCode, handleError, isStoredFileError } from "./errors";
 import { emitError } from "./output";
 import type { OutputFormat } from "./output";
+import { isRequestId, removePendingRun } from "./pending-runs";
+import type { PendingOutcome } from "./pending-runs";
 import { hasText } from "./text";
 
 export function resolveTaskModel(
@@ -188,15 +191,62 @@ export function withoutEndpoints(message: string, task: string): string {
   return message.replaceAll(ENDPOINT_PATTERN, task);
 }
 
+/** What a failure knows about the run it came from. */
+export interface TaskContext {
+  model?: string;
+  /** Whether the run's pending record was written, so `motif resume` can read it. */
+  pending?: PendingOutcome;
+  task: string;
+}
+
+/** The recovery a failure after fal accepted a run offers, or says it cannot. */
+interface ResumeAdvice {
+  details?: Record<string, unknown>;
+  suggestions?: string[];
+}
+
+/**
+ * What to tell the caller about a failed run that has a request id. A job fal
+ * reports failed, or has no record of, is over: its pending record goes and
+ * nothing is offered. A run whose record was written offers `motif resume`.
+ */
+function resumeAdvice(
+  error: MotifError,
+  context: TaskContext
+): ResumeAdvice | undefined {
+  const { requestId } = error;
+  if (requestId === undefined || !isRequestId(requestId)) {
+    return undefined;
+  }
+  if (error.details?.jobFailed === true || error.code === REQUEST_NOT_FOUND) {
+    removePendingRun(requestId);
+    return undefined;
+  }
+  if (context.pending?.requestId === requestId) {
+    return {
+      suggestions: [
+        `Run 'motif resume ${requestId}' to collect the same job; it is not billed twice`,
+        "Do not run the original command again: that submits, and bills, a new run",
+      ],
+    };
+  }
+  return context.pending?.failure === undefined
+    ? undefined
+    : {
+        details: { pendingRecord: `not written: ${context.pending.failure}` },
+      };
+}
+
 /**
  * Emit TASK_FAILED and exit 5. The message names no endpoint; when one was
  * replaced, `details.message` keeps the upstream text.
  */
 export function exitTaskFailed(
   message: string,
-  context: { model?: string; task: string },
+  context: TaskContext,
   format: OutputFormat,
-  requestId?: string
+  requestId?: string,
+  advice?: ResumeAdvice
 ): never {
   const cleaned = withoutEndpoints(message, context.task);
   emitError(
@@ -206,11 +256,15 @@ export function exitTaskFailed(
         model: context.model,
         task: context.task,
         ...(cleaned === message ? {} : { message }),
+        ...advice?.details,
       },
       ...(requestId === undefined
         ? {}
         : { instance: `urn:fal:request:${requestId}` }),
       message: cleaned,
+      ...(advice?.suggestions === undefined
+        ? {}
+        : { suggestions: advice.suggestions }),
     },
     format
   );
@@ -224,7 +278,7 @@ export function exitTaskFailed(
  */
 export function exitAfterRunFailed(
   error: unknown,
-  context: { model?: string; task: string },
+  context: TaskContext,
   format: OutputFormat
 ): never {
   if (isStoredFileError(error)) {
@@ -245,7 +299,7 @@ export function exitAfterRunFailed(
 export function exitTaskError(
   error: unknown,
   format: OutputFormat,
-  context: { model?: string; task: string }
+  context: TaskContext
 ): never {
   if (!(error instanceof MotifError)) {
     exitTaskFailed(
@@ -289,21 +343,42 @@ export function exitTaskError(
   if (error.code === ACCOUNT_LOCKED) {
     handleError(error, ACCOUNT_LOCKED, format);
   }
+  const advice = resumeAdvice(error, context);
   if (error.code === SUBMISSION_UNCERTAIN || error.code === INVALID_RESPONSE) {
     emitError(
       {
         code: error.code,
-        details: { ...details, model: context.model, task: context.task },
+        details: {
+          ...details,
+          model: context.model,
+          task: context.task,
+          ...advice?.details,
+        },
         ...(error.requestId === undefined
           ? {}
           : { instance: `urn:fal:request:${error.requestId}` }),
         message: withoutEndpoints(error.message, context.task),
+        ...(advice?.suggestions === undefined
+          ? {}
+          : { suggestions: advice.suggestions }),
       },
       format
     );
     exitForErrorCode(error.code);
   }
-  exitTaskFailed(error.message, context, format, error.requestId);
+  if (error.code === REQUEST_NOT_FOUND) {
+    emitError(
+      {
+        code: REQUEST_NOT_FOUND,
+        details: { ...details, model: context.model, task: context.task },
+        instance: `urn:fal:request:${error.requestId}`,
+        message: withoutEndpoints(error.message, context.task),
+      },
+      format
+    );
+    exitForErrorCode(REQUEST_NOT_FOUND);
+  }
+  exitTaskFailed(error.message, context, format, error.requestId, advice);
 }
 
 /**

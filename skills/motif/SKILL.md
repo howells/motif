@@ -10,7 +10,7 @@ Motif picks a Model for the Task you ask for. The installed CLI's schema is the 
 - **Dry-run before spending.** Run the exact command with `--dry-run` first and check the Model and price. Get approval for the paid run unless the user has already authorised its scope and spend. `cost: null` means unknown, not free; video and 3D cost far more than stills.
 - **Resolution names are tiers, not pixels.** What `-r 2K` means depends on the Model; `--dry-run` shows `size` when Motif asks for an exact one (null when the Model decides), and `--describe <task>` lists each Model's `sizing`. Check before an exact need.
 - **Images are PNG unless you ask otherwise** (`--output-format jpeg|webp`, or `-o` ending `.jpg`/`.webp`). Convert afterwards for anything else.
-- **Don't resubmit a slow request.** A second submission can charge again.
+- **Don't resubmit a slow request.** A second submission can charge again. If a run fails after fal accepted it, the error's `suggestions` name `motif resume <requestId>`: run that, with `--dry-run` first if you like, instead of the original command. A request with no id (`SUBMISSION_UNCERTAIN`, or a synchronous run) can't be resumed: check fal's dashboard.
 - **Pass source images explicitly.** Omitting one can silently use the last generation from another workflow.
 - **Look at the result** (open the image, play the video) before reporting success. Give its path and cost, and keep a plan distinct from a finished generation.
 - **Never print `FAL_KEY`** or write it into files.
@@ -39,6 +39,7 @@ motif --describe <task> --format json
 - Garment on a person: `try-on`; still to video: `animate`
 - A consistent set from a theme: `series run`; a reusable style with references: `series`
 - Contact sheet of existing images: `sheet`
+- Collect a run fal accepted but the CLI couldn't finish: `resume <requestId>`
 
 Let Motif choose the Model and set the trade-off with `--tier fast|balanced|quality`. When the user names a Model, pass `-m` with an ID from the schema, never a fal endpoint. Model-specific options go in `--param key=value` and need `-m`.
 

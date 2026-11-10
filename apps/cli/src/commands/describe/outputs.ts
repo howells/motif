@@ -112,6 +112,47 @@ export const COMMAND_PROSE: Record<string, Schema> = {
     presets: formatPresets(),
     required: ["prompt"],
   },
+  resume: {
+    output: {
+      description:
+        "Collecting a run emits what the original command emitted, with the same fields; see that command's output. Without a request id it lists pending runs. A dry run reports what would be collected.",
+      properties: {
+        command: { type: "string" },
+        dryRun: { type: "boolean" },
+        output: {
+          description: "Where the files go, or null for a run that writes none",
+          type: ["string", "null"],
+        },
+        pending: {
+          description: "Listing only: each run that can be collected",
+          items: {
+            properties: {
+              command: { type: "string" },
+              model: { type: "string" },
+              output: { type: ["string", "null"] },
+              requestId: { type: "string" },
+              submittedAt: { format: "date-time", type: "string" },
+              task: { type: "string" },
+            },
+            type: "object",
+          },
+          type: "array",
+        },
+        requestId: { description: "Dry run only", type: "string" },
+        resumes: {
+          description: "Dry run only: the command the run came from",
+          type: "string",
+        },
+        total: { description: "Listing only", type: "integer" },
+      },
+      type: "object",
+    },
+    usage: [
+      "motif resume",
+      "motif resume <requestId> --format json",
+      "motif resume <requestId> --dry-run --format json",
+    ],
+  },
   series: {
     description:
       "Manage reusable image series and run themed multi-image generation plans with shared style, tone, references, and history.",

@@ -195,6 +195,17 @@ export const COMMAND_TASKS: readonly CommandTask[] = [
     inHelp: true,
   },
   {
+    command: "resume",
+    usage: "motif resume [requestId]",
+    summary: "collect a run fal already accepted",
+    whenToUse:
+      "Collect a run that fal accepted into its queue but Motif could not finish, from the request id in its error, without paying for it twice.",
+    notFor:
+      "Running again (the original command, which submits and bills a new run), or a run Motif did not submit.",
+    tasks: ["recover", "retrieve"],
+    inHelp: true,
+  },
+  {
     command: "series run",
     usage: 'motif series run "theme"',
     summary: "a consistent set from a theme",

@@ -7,6 +7,7 @@
 import { Command, Help } from "commander";
 
 import { registerGenerate } from "./cli";
+import { registerResume } from "./commands/resume";
 import { registerSeries } from "./commands/series";
 import { registerSheet } from "./commands/sheet";
 import { registerStudio } from "./commands/studio";
@@ -48,6 +49,7 @@ export function buildProgram(args: string[]): Command {
   const generate = registerGenerate(program, format);
   registerVerbs(program);
   registerSheet(program);
+  registerResume(program);
   registerSeries(program);
   registerStudio(program);
   program.description(generate.description());

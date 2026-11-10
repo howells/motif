@@ -30,4 +30,4 @@ motif --describe tasks --format json   # task words mapped to verbs, and what to
 motif --describe --format json         # full schema: Tasks, looks, moods, errors
 ```
 
-Add `--format json` to any command for structured output. The guide ships with this package: [AGENTS.md](AGENTS.md), and every verb's modes, flags and examples are in [docs/verbs.md](docs/verbs.md).
+Add `--format json` to any command for structured output. A run that fails after fal accepted it names `motif resume <requestId>`, which collects the same job without paying again. The guide ships with this package: [AGENTS.md](AGENTS.md), and every verb's modes, flags and examples are in [docs/verbs.md](docs/verbs.md).

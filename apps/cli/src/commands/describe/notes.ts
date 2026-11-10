@@ -202,6 +202,13 @@ export const COMMAND_NOTES: Record<string, Notes> = {
     },
     ...creativeNotes(),
   },
+  resume: {
+    requestId: {
+      description:
+        "The fal request id from a failed run's error: details.requestId, or the id in instance (urn:fal:request:<id>). Omit to list the runs that can be collected",
+      type: "string",
+    },
+  },
   series: {
     aspect: { default: "1:1", enum: ASPECT_RATIOS, type: "string" },
     count: {

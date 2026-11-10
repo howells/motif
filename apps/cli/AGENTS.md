@@ -2,7 +2,7 @@
 
 > **Security posture**: The agent is not a trusted operator. All inputs are validated. Output paths must stay inside the git root of the current directory (the nearest parent holding `.git`), or the current directory outside a repo. Task verbs write alongside the source image by default. Always use `--dry-run` before mutating commands.
 
-Motif is organised by Task: one verb per job, and Motif chooses the Model that does it. `--tier fast|balanced|quality` trades cost for quality; `-m <model>` overrides the choice.
+Motif is organised by Task: one verb per job, and Motif chooses the Model that does it. `--tier fast|balanced|quality` trades cost for quality; `-m <model>` overrides the choice. `sheet`, `series`, `history`, `last`, `describe`, `studio` and `resume` are commands but not Tasks, because none chooses a Model.
 
 ## Quick Start
 
@@ -59,6 +59,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 | Make a set of related images that share one style from a single theme, such as six brutalist buildings. | `motif series run "theme"` | One image (generate), several takes of the same prompt (generate with -n), or variations of an image (vary). |
 | Keep a named style with reference images, a pinned look and mood, and its own history, so later images match it. | `motif series <subcommand>` | A one-off themed set (series run creates or reuses a series for you), or a house register for one image (generate with --look). |
 | Browse, generate and review images interactively in a terminal, as a person rather than a script. | `motif studio` | Agents and scripts, which call the commands directly with --format json. |
+| Collect a run fal accepted but Motif could not finish (its error says `motif resume <requestId>`), without paying again. | `motif resume <requestId>` | Running the original command again, which submits and bills a new run. |
 | Show the last generation | `motif --last` | Older generations (history). |
 | List past generations and spend | `motif --history` | Only the most recent generation (last), or one series' images (motif series history <slug>). |
 | Print the CLI schema as JSON | `motif --describe [command]` | The task routing alone (motif --describe tasks). |
@@ -88,7 +89,7 @@ Pick the command by task. The last column is the same advice `motif --describe t
 
 5. **Never send prompts with control characters.** They are stripped during sanitization, which may change the intended meaning.
 
-6. **Never retry a slow queued call.** Topaz, material, layers, mesh and try-on run through fal's queue and can take minutes; every retry is billed. A `SUBMISSION_UNCERTAIN` error means the same: fal may have accepted the request, so look in fal's dashboard before running the command again. Motif itself never resends a request that can bill.
+6. **Never retry a slow queued call.** Topaz, material, layers, mesh and try-on run through fal's queue and can take minutes; every retry is billed. A `SUBMISSION_UNCERTAIN` error means the same: fal may have accepted the request, so look in fal's dashboard before running the command again. Motif itself never resends a request that can bill. When a failure carries a request id (`instance`, `details.requestId`) its `suggestions` name `motif resume <requestId>`: run that, not the original command. See [collecting a run](docs/output.md#collecting-a-run-fal-accepted).
 
 ## Reference
 
@@ -163,7 +164,7 @@ Structured failures exit with a semantic process code derived from the error's R
 | `1` | Unknown / unmapped | - | Unstructured crashes; any status outside the ranges below |
 | `2` | Invalid input or usage | `4xx` (except `401`/`403`/`404`) | `UNKNOWN_MODEL`, `INVALID_OPTION`, `INVALID_OUTPUT_PATH`, `INVALID_EDIT_PATH`, `INVALID_IMAGE_PATH`, `INVALID_STDIN`, `EMPTY_PROMPT`, `RESERVED_PROMPT`, `NO_MODEL_AVAILABLE`, `CORRUPT_FILE`, `FILE_ACCESS_FAILED` |
 | `3` | Authentication / authorization | `401`, `403` | `MISSING_API_KEY`, `ACCOUNT_LOCKED` |
-| `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND` |
+| `4` | Resource not found | `404` | `NO_PREVIOUS`, `SERIES_NOT_FOUND`, `PENDING_RUN_NOT_FOUND`, `REQUEST_NOT_FOUND` |
 | `5` | Upstream (fal) failure | `5xx` | `TASK_FAILED`, `DESCRIBE_FAILED`, `SERIES_CREATE_FAILED`, `SERIES_REF_ADD_FAILED`, `SERIES_REF_REMOVE_FAILED`, `SERIES_GENERATE_FAILED`, `SERIES_DELETE_FAILED`, `TRANSPARENCY_MISSING`, `SUBMISSION_UNCERTAIN`, `INVALID_RESPONSE`, `FILES_NOT_SAVED` |
 
 `NO_MODEL_AVAILABLE` (exit `2`) means no Model can do what the request asks. Its `details` carry `blockedBy` (the capability, `key` or input that stopped it), `unblockedBy` and, when a key would help, `missingKey`. To recover, name a Model with `-m`, set the key, drop the option, or supply the input. A missing `FAL_KEY` is still reported as `MISSING_API_KEY`.
@@ -271,6 +272,18 @@ motif sheet --last 6 --cols 3 --format json --fields path,count
 ```
 
 Pass files or `--last <n>` (the newest n history images still on disk, oldest first), not both. `--cols` defaults to roughly square. `-o` follows the same output-path rules as `generate` and defaults to `sheet-<timestamp>.png`. JSON output is `{command, path, count, cols, width, height}`. Unreadable images fail with `INVALID_IMAGE_PATH`, and an empty history with `NO_PREVIOUS`.
+
+## Collecting a Run
+
+A queued run (every generation, and the Task Models that always queue: Topaz, material, layers, mesh, try-on and the like) writes a small record under `~/.motif/pending` when fal accepts it. If the run then fails (a poll that kept failing, a timeout, an unreadable answer) the error names the id and the command that collects it:
+
+```bash
+motif resume                                 # list the runs that can be collected
+motif resume <requestId> --dry-run --format json   # what it would collect; fal is not contacted
+motif resume <requestId> --format json       # wait for the same job, save and record it as the original would
+```
+
+`resume` submits nothing, so nothing is billed twice. It saves where the original run was going to (`-o` overrides), records history once and removes the pending record; a second `motif resume <requestId>` is `PENDING_RUN_NOT_FOUND`. A job still running is waited for; a job fal reports failed is `TASK_FAILED` with fal's reason and is forgotten; an id fal has no record of, or a result fal no longer keeps, is `REQUEST_NOT_FOUND`. A synchronous run, an ephemeral run, a `series` scene and a request that was never given an id (`SUBMISSION_UNCERTAIN`) have nothing to resume: look in fal's dashboard.
 
 ## Schema Introspection
 
