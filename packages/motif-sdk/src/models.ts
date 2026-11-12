@@ -162,7 +162,8 @@ export const MODELS: Record<string, ModelConfig> = {
       unit: "units",
       unitPrice: 1,
     },
-    maxReferenceImages: 4,
+    // OpenAI images/edits reference, 2026-11-12: "For GPT image models, you can provide up to 16 images." fal's schema states no cap.
+    maxReferenceImages: 16,
     name: "GPT Image 1.5",
     pricePerImageUsd: 0.133,
     pricing: "$0.133",
@@ -297,7 +298,8 @@ export const MODELS: Record<string, ModelConfig> = {
       unit: "images",
       unitPrice: 0.08,
     },
-    maxReferenceImages: 4,
+    // fal model page for fal-ai/nano-banana-2/edit, 2026-11-12: "up to 14 reference images".
+    maxReferenceImages: 14,
     name: "Nano Banana 2",
     pricePerImageUsd: 0.08,
     pricing: "$0.08",
@@ -515,7 +517,8 @@ export const MODELS: Record<string, ModelConfig> = {
       unit: "processed megapixels",
       unitPrice: 0.03,
     },
-    maxReferenceImages: 10,
+    // fal model page for fal-ai/flux-2-pro/edit, 2026-11-12: "up to 9 reference images (9 MP total input)".
+    maxReferenceImages: 9,
     name: "FLUX.2 Pro",
     pricePerImageUsd: 0.03,
     pricing: "$0.03/MP",
@@ -948,9 +951,9 @@ export const MODELS: Record<string, ModelConfig> = {
       unit: "images",
       unitPrice: 0.06,
     },
-    // fal's edit schema: "A maximum of 3 images are supported."
+    // fal OpenAPI schema for xai/grok-imagine-image/v2.0/edit, 2026-11-12: "A maximum of 5 images are supported."
     lowercaseResolution: true,
-    maxReferenceImages: 3,
+    maxReferenceImages: 5,
     name: "Grok Imagine Image 2.0",
     // Motif leaves quality at fal's default, medium, and sends 2K unless asked.
     // Edits add $0.01 per input image.
