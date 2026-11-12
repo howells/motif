@@ -181,6 +181,21 @@ describe(validateOutputPath, () => {
     );
   });
 
+  it("allows an absolute path that names the root through a symlink, as /tmp names /private/tmp on macOS", () => {
+    const dir = realpathSync(mkdtempSync(join(tmpdir(), "motif-alias-")));
+    const real = join(dir, "real");
+    mkdirSync(real);
+    const alias = join(dir, "alias");
+    symlinkSync(real, alias);
+
+    expect(validateOutputPath(join(alias, "out.png"), real)).toBe(
+      join(alias, "out.png")
+    );
+    expect(validateOutputPath(join(real, "out.png"), alias)).toBe(
+      join(real, "out.png")
+    );
+  });
+
   it("rejects absolute paths outside the root", () => {
     expect(() => validateOutputPath("/tmp/evil.png")).toThrow(
       "Output path must be within"

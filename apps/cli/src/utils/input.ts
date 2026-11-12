@@ -198,10 +198,10 @@ export function validateOutputPath(
   const resolved = resolve(cwd, outputPath);
   const root = outputRoot(cwd);
 
-  if (
-    leavesRoot(root, resolved) ||
-    leavesRoot(realpathSync(root), realPathOf(resolved))
-  ) {
+  // Compared as real paths only: the same directory can be named through a
+  // symlink (/tmp is /private/tmp on macOS), and a symlink out of the root
+  // shows up here as a real path outside it.
+  if (leavesRoot(realpathSync(root), realPathOf(resolved))) {
     throw new Error(
       `Output path must be within ${root} (the git root, or the current directory outside a repository): ${outputPath}`
     );
