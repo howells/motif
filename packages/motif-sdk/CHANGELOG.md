@@ -1,5 +1,13 @@
 # @howells/motif-sdk
 
+## 7.4.1
+
+Released alongside `@howells/motif-cli` 5.4.1.
+
+### Patch Changes
+
+- `maxReferences` now matches what each provider documents: Nano Banana 2 takes 14 references (was 4), GPT Image 1.5 takes 16 (was 4), Grok Imagine Image 2.0 takes 5 (was 3), and FLUX.2 Pro takes 9 (was 10).
+
 ## 7.4.0
 
 Released alongside `@howells/motif-cli` 5.4.0.
