@@ -1,5 +1,11 @@
 # @howells/motif-sdk
 
+## CLI 5.4.2
+
+A CLI-only release; the SDK stays at 7.4.1.
+
+- `-o` accepts an absolute path that reaches the output root through a symlink, such as `/tmp/...` on macOS, where the working directory is `/private/tmp`. Paths are compared by where they really lead, so a symlink out of the root is still refused.
+
 ## 7.4.1
 
 Released alongside `@howells/motif-cli` 5.4.1.
