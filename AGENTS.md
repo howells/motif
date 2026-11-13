@@ -17,12 +17,12 @@ pnpm dev                                # CLI; homepage runs on 4400, docs on 45
 
 ### Issue tracker
 
-Issues live in Linear (howells, MOT). See `docs/agents/issue-tracker.md`.
+Linear, workspace `howells`, team `MOT`. See `~/Sites/home/docs/agents/issue-tracker.md`.
 
 ### Triage labels
 
-Default triage labels. See `docs/agents/triage-labels.md`.
+Default triage labels. See `~/Sites/home/docs/agents/triage-labels.md`.
 
 ### Domain docs
 
-Single-context. See `docs/agents/domain.md`.
+Single-context. See `~/Sites/home/docs/agents/domain.md`.
